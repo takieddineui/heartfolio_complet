@@ -1,0 +1,206 @@
+/*
+  Ported from the prototype's `.pl-*` rules, authored against an 800×1000
+  canvas (§ RATIOS.master) — every px value below is that canvas's own
+  design measurement, not a guess. Kept as literal px, not relative
+  units: the canvas itself is fixed-size and scaled as a whole by
+  `ScaleToFit`, the same mechanism Love Story Timeline already uses, so
+  nothing here needs to be independently responsive.
+
+  Palette is Player's own material values, not a CSS variable inherited
+  from a shared theme system — `--bg:#F6F3EC; --ink:#18191A;
+  --soft:#6B6A63; --rule:#D8D4C8;` from the prototype's own material rule.
+*/
+
+.sheet {
+  position: relative;
+  width: 800px;
+  height: 1000px;
+  overflow: hidden;
+  background: #f6f3ec;
+  color: #18191a;
+  font-family: var(--font-sans, "Archivo", system-ui, sans-serif);
+}
+
+.photo {
+  margin: 56px 60px 0;
+  width: 680px;
+  height: 560px;
+  overflow: hidden;
+  background: #dad5c7;
+  box-shadow: 0 0 0 1px #18191a;
+}
+.photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.head {
+  margin: 24px 60px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+.title {
+  font-weight: 800;
+  font-size: 40px;
+  line-height: 1.02;
+  letter-spacing: -0.02em;
+  margin: 0 0 7px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.artist {
+  font-weight: 400;
+  font-size: 16px;
+  color: #6b6a63;
+  margin: 0;
+}
+.heart {
+  width: 21px;
+  height: 21px;
+  color: #18191a;
+  flex: 0 0 auto;
+  margin-top: 5px;
+}
+
+.progress {
+  position: relative;
+  margin: 30px 60px 0;
+  height: 36px;
+  /* The real seek target lives HERE, at the full 36px height, not on
+     `.rule` (which stays a purely visual 1px line, exactly like the
+     prototype's). A click anywhere in this band seeks — see the
+     component's own click handler — which gives a customer a real
+     target to aim for instead of a literal 1px line. */
+  cursor: pointer;
+}
+.eq {
+  position: absolute;
+  inset-inline: 0;
+  top: -4px;
+  height: 20px;
+  color: #18191a;
+}
+.rule {
+  position: absolute;
+  inset-inline: 0;
+  top: 9px;
+  height: 1px;
+  background: #d8d4c8;
+  pointer-events: none;
+}
+.fill {
+  /*
+    §15's RTL policy applies here too, with one real consequence worth
+    stating rather than hiding: a time-based progress bar conventionally
+    stays left-to-right in every mainstream player regardless of text
+    direction (Spotify, Apple Music, YouTube's own chrome all do this) —
+    time itself is not bidi text. `inset-inline-start` mirrors it in
+    Arabic instead, matching the site-wide rule this test enforces
+    rather than carving out a silent exception. If Heartfolio wants the
+    transport to be the deliberate exception, that is a product decision
+    to make explicitly, not one to bury unstated in a CSS file.
+  */
+  position: absolute;
+  inset-inline-start: 0;
+  top: 0;
+  bottom: 0;
+  background: #18191a;
+  pointer-events: none;
+}
+.knob {
+  position: absolute;
+  top: 50%;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #18191a;
+  /* See `.fill`'s note — same inset-inline-start anchoring, same RTL
+     consequence, kept consistent with it rather than independently. */
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 0 3px #f6f3ec;
+  pointer-events: none;
+}
+.elapsed,
+.duration {
+  position: absolute;
+  top: 17px;
+  font-family: var(--font-mono, "IBM Plex Mono", ui-monospace, monospace);
+  font-size: 14px;
+  color: #6b6a63;
+  font-variant-numeric: tabular-nums lining-nums;
+}
+.elapsed {
+  transform: translateX(-50%);
+}
+.duration {
+  inset-inline-end: 0;
+}
+
+.transport {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 24px;
+  margin-top: 22px;
+}
+.icon {
+  width: 19px;
+  height: 19px;
+  color: #18191a;
+}
+/* Decorative chrome, matching the prototype exactly — Player is one
+   song, not a queue, so these have nothing real to skip to. Present
+   because a transport row with only a centre button reads as broken,
+   not minimal. */
+.iconInert {
+  color: #18191a;
+  opacity: 0.35;
+  cursor: default;
+}
+.playButton {
+  width: 44px;
+  height: 44px;
+  border: none;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  color: #18191a;
+  display: flex;
+}
+.playButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.bottom {
+  position: absolute;
+  inset-inline: 60px;
+  bottom: 32px;
+  text-align: center;
+}
+.message {
+  font-size: 13.5px;
+  font-style: italic;
+  color: #6b6a63;
+  margin: 0 0 20px;
+  line-height: 1.5;
+}
+.code {
+  width: 32px;
+  height: 32px;
+  margin: 0 auto 7px;
+  color: #18191a;
+  display: block;
+}
+.codeLabel {
+  font-family: var(--font-narrow, "Archivo Narrow", system-ui, sans-serif);
+  font-size: 13.5px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #6b6a63;
+  margin: 0;
+}

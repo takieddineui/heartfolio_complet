@@ -1,0 +1,129 @@
+/*
+  Ported from `.cs-*`. Canvas: 800x1000 (the prototype's `master`
+  ratio) — Contact Sheet is also authored for `phone` and a genuine
+  `landscape` ratio in the prototype, neither built here yet.
+
+  ANOTHER REAL ADAPTATION, worth stating as plainly as Ledger's and
+  Ephemeris's: this theme's own description is "a strip of film
+  frames — several photos, not one." This product's schema collects
+  exactly one photo. The four-frame grid is kept — dropping it would
+  lose the theme's entire visual identity — but ALL FOUR FRAMES SHOW
+  THE SAME PHOTO, because that is the only photo there is. This is a
+  considered choice, not a bug: the alternative was either faking
+  three photos that do not exist, or reducing to a single frame and
+  losing the filmstrip metaphor the theme is built on. A genuine
+  multi-photo Contact Sheet would need this product's schema to accept
+  more than one photo — a real product decision, not something to
+  route around quietly here.
+
+  Palette: `--bg:#EDEAE2; --ink:#17181A; --soft:#68665D;
+  --rule:#C7C2B4; --mark:#8A2F1D;` — light warm grey, its own tone,
+  distinct from Player, Ledger and Ephemeris.
+*/
+
+.sheet {
+  position: relative;
+  width: 800px;
+  height: 1000px;
+  overflow: hidden;
+  background: #edeae2;
+  color: #17181a;
+  font-family: var(--font-sans, "Archivo", system-ui, sans-serif);
+}
+
+.head {
+  margin: 48px 50px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 14.5px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: #68665d;
+}
+
+.grid {
+  position: relative;
+  margin: 20px 50px 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.frame {
+  position: relative;
+  aspect-ratio: 6 / 5;
+  border: 1px solid #17181a;
+  background: #d8d3c4;
+  overflow: hidden;
+}
+.frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: grayscale(0.08);
+}
+.num {
+  position: absolute;
+  inset-inline-start: 6px;
+  bottom: 6px;
+  background: rgba(18, 18, 16, 0.72);
+  color: #edefe7;
+  font-family: var(--font-mono, "IBM Plex Mono", ui-monospace, monospace);
+  font-size: 13.5px;
+  padding: 1.5px 5px;
+  letter-spacing: 0.04em;
+  z-index: 2;
+}
+
+.title {
+  font-weight: 800;
+  font-size: 34px;
+  line-height: 1.02;
+  letter-spacing: -0.018em;
+  margin: 22px 50px 6px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.artist {
+  margin: 0 50px;
+  font-size: 15.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #68665d;
+}
+
+.wavebox {
+  position: relative;
+  margin: 20px 50px 0;
+  height: 34px;
+}
+.wavebox svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.caption {
+  margin: 18px 50px 0;
+  font-family: var(--font-mono, "IBM Plex Mono", ui-monospace, monospace);
+  font-style: italic;
+  font-size: 14px;
+  line-height: 1.55;
+  max-width: 560px;
+}
+
+.foot {
+  position: absolute;
+  inset-inline: 50px;
+  bottom: 42px;
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  border-top: 1px solid #c7c2b4;
+  padding-top: 9px;
+  font-size: 14px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #68665d;
+}

@@ -1,0 +1,26 @@
+Django>=5.2,<5.3
+djangorestframework>=3.15,<3.16
+psycopg[binary]>=3.2,<3.3
+django-environ>=0.11,<0.12
+django-cors-headers>=4.4,<4.5
+boto3>=1.34,<2.0
+paddle-python-sdk>=1.15,<2.0
+# FastSpring has no official Python SDK — `fastspring_integration.py` talks
+# to the Sessions API over plain HTTP. Already installed today, but only as
+# an UNDECLARED transitive dependency of paddle-python-sdk; declaring it
+# directly so it doesn't silently disappear if Paddle's own SDK ever drops
+# it (an unrelated integration's dependency tree is not something this
+# integration should rely on).
+requests>=2.31,<3.0
+Pillow>=10.0,<11.0
+
+# §18 — bonus deliverables added to every purchase.
+#
+# reportlab: the printing-advice sheet and the thank-you card are text
+# documents, and a PDF built by pasting rendered text into an image has no
+# selectable text and blurs at print size. Pillow can emit a PDF wrapper
+# around an image (which is all §18c needs) but cannot typeset one.
+reportlab>=4.0,<5.0
+# qrcode: §18d encodes each order's own live-page link. There is no
+# reasonable way to produce a valid QR symbol without a library.
+qrcode[pil]>=8.0,<9.0

@@ -1,0 +1,684 @@
+.poster {
+  width: 100%;
+  height: 100%;
+  background: var(--p-bg);
+  color: var(--p-text);
+  font-family: var(--poster-body-font, sans-serif);
+  overflow: hidden;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  /* §13 — this used to come from `.frameNone`, one of five frame classes
+     that got appended to `.poster` depending on the customer's (now
+     removed) frame choice. `.poster` itself had no padding of its own;
+     deleting the frame classes outright without moving this here would
+     have pushed every milestone's content flush against the canvas edge. */
+  padding: 32px;
+}
+
+.header { text-align: center; }
+.names {
+  font-family: var(--poster-heading-font, serif);
+  font-size: calc(28px * var(--text-scale, 1));
+  letter-spacing: 0.02em;
+}
+.title {
+  margin-top: 4px;
+  font-size: calc(14px * var(--text-scale, 1));
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--p-muted);
+}
+.quote {
+  margin-top: 12px;
+  font-style: italic;
+  font-size: calc(13px * var(--text-scale, 1));
+  color: var(--p-muted);
+}
+.duration {
+  margin-top: 8px;
+  font-size: calc(11px * var(--text-scale, 1));
+  color: var(--p-accent);
+}
+
+.timeline {
+  flex: 1;
+  margin-top: 20px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+
+.subtitle {
+  font-size: calc(12px * var(--text-scale, 1));
+  color: var(--p-muted);
+  margin-top: 2px;
+}
+/* §4 — location sits under the description as context, deliberately
+   quieter than the event title it belongs to. */
+.eventLocation {
+  font-size: calc(9px * var(--text-scale, 1));
+  color: var(--p-muted);
+  letter-spacing: 0.04em;
+  margin-top: 2px;
+}
+.eventDate {
+  font-size: calc(10px * var(--text-scale, 1));
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--p-accent);
+}
+.eventTitle {
+  font-family: var(--poster-heading-font, serif);
+  font-size: calc(16px * var(--text-scale, 1));
+  margin-top: 2px;
+}
+.eventDescription {
+  font-size: calc(12px * var(--text-scale, 1));
+  color: var(--p-muted);
+  margin-top: 2px;
+}
+.eventPhoto {
+  margin-top: 6px;
+  width: 64px;
+  height: 64px;
+  object-fit: cover;
+  border-radius: 6px;
+}
+
+.footer {
+  text-align: center;
+  margin-top: 16px;
+  font-size: calc(11px * var(--text-scale, 1));
+  color: var(--p-muted);
+}
+.premiumLine {
+  text-align: center;
+  margin-top: 6px;
+  font-size: calc(10px * var(--text-scale, 1));
+  color: var(--p-accent);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+/* ---------------------------------------------------------------------
+   7.1 — NEAT VERTICAL STACK
+   ---------------------------------------------------------------------
+   Read from the reference posters, not from prose. What they establish:
+
+     * photos sit in ONE column, always the same side, never alternating
+     * they overlap slightly and each is tilted a degree or two, so the
+       column reads as a hand-stacked pile rather than a grid
+     * the spine is solid, thin, and runs beside the photos — not through
+       them
+     * a small heart marks each milestone ON the spine
+     * date and description sit in a fixed column on the far side, both
+       left-aligned to each other; centring them breaks the vertical edge
+       that makes the layout read as "neat"
+
+   Built on a three-column grid — photos / spine / text — so the spine is
+   a real element with a fixed position rather than a border on something
+   else. That matters for the heart nodes: they have to sit centred on the
+   line, and a border cannot host a child.
+
+   LOGICAL PROPERTIES THROUGHOUT (§15). In Arabic the whole composition
+   mirrors: photos to the right, text to the left, spine between them —
+   which is correct, because the eye should meet the photograph first in
+   either direction. */
+.layoutNeatStack {
+  display: grid;
+  grid-template-columns: 42% 24px 1fr;
+  align-items: stretch;
+  gap: 0;
+  column-gap: 10px;
+  /* The poster's text scale, captured here so `.neatEntry` can multiply its
+     fit into it without referring to itself. */
+  --base-text-scale: var(--text-scale, 1);
+}
+
+/* The photo column: one equal row per milestone (`.neatPhotoCell`), as the
+   print gives each milestone an equal slot. This used to be a centred stack
+   of fixed-width cards with a negative gap; at 5 or 8 milestones it grew
+   past the clipped timeline and hid most of them. */
+.neatPhotos {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+/* Fills its row and is a size container, so the card can be sized against
+   the ROW's height (cqh) as well as the column (cqw). */
+.neatPhotoCell {
+  flex: 1 1 0;
+  min-height: 0;
+  container-type: size;
+  display: grid;
+  place-items: center;
+}
+
+.neatPhoto {
+  background: #fff;
+  padding: 5px 5px 16px;         /* heavier bottom edge — a real Polaroid */
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.14);
+  /* 78% of the column, or less if the row is short. The card is 11px
+     taller than wide (16px + 5px padding around a square photo, minus the
+     10px of side padding); tilted 2deg its outline is
+     (cos 2deg + sin 2deg) x width + 11px = 1.0343 x width + 11px tall, which
+     must fit the row. */
+  width: min(78cqw, calc((100cqh - 11px) / 1.0343));
+  box-sizing: border-box;
+}
+.neatPhoto img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+}
+/* Alternating micro-tilt. Small on purpose: the references sit around
+   two degrees, and anything larger stops reading as "neat". */
+/* On the CELL's position: each card is now the only child of its cell. */
+.neatPhotoCell:nth-child(odd) .neatPhoto { transform: rotate(-2deg); }
+.neatPhotoCell:nth-child(even) .neatPhoto { transform: rotate(1.6deg); }
+
+/* The spine: one continuous line, with the hearts drawn over it. */
+.neatSpine {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  align-items: center;
+}
+.neatSpine::before {
+  content: "";
+  position: absolute;
+  top: 4%;
+  bottom: 4%;
+  width: 1.5px;
+  background: var(--p-text);
+  opacity: 0.85;
+}
+.neatNode {
+  position: relative;
+  width: calc(9px * var(--text-scale, 1));
+  height: calc(9px * var(--text-scale, 1));
+  color: var(--p-text);
+}
+
+/* The text column. Left-aligned to itself, not centred — the shared
+   vertical edge is what makes this layout look composed. */
+.neatEntries {
+  display: flex;
+  flex-direction: column;
+  text-align: start;
+  min-height: 0;
+}
+/* One equal row per milestone, the text centred in it. `--text-fit` is set
+   by FittedTimeline (timeline-text-fit.tsx) when the text is taller than
+   its row; it shrinks every line of the entry. */
+.neatEntry {
+  flex: 1 1 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  --text-scale: calc(var(--base-text-scale, 1) * var(--text-fit, 1));
+  /* Half a date line of space at each end, so fitted text keeps one date
+     line between milestones, as the print does (`_fit_milestone_text`'s
+     separation). Without it, text shrunk to fit its row touched the next
+     (0px at 5 and 8 milestones of long text). */
+  padding-block: calc(5.5px * var(--text-scale, 1));
+  box-sizing: border-box;
+}
+.neatDate {
+  font-size: calc(11px * var(--text-scale, 1));
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.neatTitle {
+  font-size: calc(11px * var(--text-scale, 1));
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--p-text);
+  margin-top: 2px;
+}
+.neatDescription {
+  font-size: calc(10px * var(--text-scale, 1));
+  line-height: 1.45;
+  color: var(--p-muted);
+  margin-top: 3px;
+}
+.neatLocation {
+  font-size: calc(9px * var(--text-scale, 1));
+  color: var(--p-muted);
+  opacity: 0.8;
+  margin-top: 2px;
+}
+
+/* ---------------------------------------------------------------------
+   7.3 — OVERLAPPING CASCADE
+   ---------------------------------------------------------------------
+   Designed rather than referenced, then corrected by rendering it at 3, 5
+   and 8 milestones. The numbers mirror `CascadeGeometry` in
+   compositions.py; the parity test asserts they match.
+
+   The distinguishing move: photographs drift along ONE diagonal down the
+   left, overlapping by about a fifth, while the timeline recedes to a
+   hairline. In 7.1 the spine is structure; here it is a whisper behind the
+   photographs, which is what §7.3 means by the photos dominating.
+
+   THE ROWS. Every milestone gets an equal row, and the cards overlap by
+   being taller than their row: 1.22 rows (`photo_overlap`), so each covers
+   0.11 of a row above and below. Half that overlap is left empty at the top
+   and bottom of each column (the `::before`/`::after` spacers), so the
+   first and last cards stay inside the timeline: the rows are
+   height / (count + 0.22). The print uses the same division.
+
+   This used to be a column of fixed-width cards pulled together with a
+   negative margin. It grew past the clipped timeline: 90px at 3 milestones
+   (the third card and its location cut off), 518px at 5 and 1,161px at 8,
+   with 2 of 5 and 2 of 8 cards visible. */
+.layoutCascade {
+  display: grid;
+  grid-template-columns: 50% 1fr;
+  grid-template-rows: minmax(0, 1fr);
+  /* No gap: `.timeline`'s 14px gap pushed the text column 14px past the
+     print's (54.5% of the width, `text_start`) and the nodes off the spine. */
+  gap: 0;
+  position: relative;
+  /* The poster's text scale, captured here so `.cascadeEntry` can multiply
+     its fit into it without referring to itself. */
+  --base-text-scale: var(--text-scale, 1);
+}
+
+.cascadePhotos {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.cascadePhotos::before,
+.cascadePhotos::after,
+.cascadeEntries::before,
+.cascadeEntries::after {
+  content: "";
+  flex: 0.11 1 0;
+}
+/* One row, and a size container, so the card can be sized against the
+   ROW's height (cqh) as well as the column (cqw). Flex centring lets the
+   card overflow its row equally above and below. */
+.cascadePhotoCell {
+  flex: 1 1 0;
+  min-height: 0;
+  container-type: size;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cascadePhoto {
+  background: #fff;
+  padding: 5px 5px 16px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.16);
+  /* 80% of the column, or less if the row is short. The photo is 1.15x as
+     tall as wide, so the card is 1.15 x width + 9.5px tall (16px + 5px of
+     padding, less 1.15 x the 10px of side padding). Tilted 2.5deg its
+     outline is (1.15 cos + sin) x width + 9.5 cos = 1.1925 x width + 9.49px
+     tall, which must fit 1.22 rows. */
+  --card-w: min(80cqw, calc((122cqh - 9.49px) / 1.1925));
+  width: var(--card-w);
+  flex: none;
+  box-sizing: border-box;
+}
+.cascadePhoto img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1 / 1.15;
+  object-fit: cover;
+}
+/* The single diagonal: the cards spread evenly from one side of the column
+   to the other, whatever the count. `--cascade-offset` runs from -0.5 (the
+   first card) to 0.5 (the last), set per card in renderer.tsx. The spread is
+   22% of the column, or less if a wide card would otherwise leave it:
+   the tilted outline is (cos + 1.15 sin) x width + 9.5 sin = 1.0492 x width
+   + 0.41px wide. This used to be a fixed table by position, which drifted
+   one way only at 3 milestones.
+
+   `translateX` is a PHYSICAL axis and does not flip under `dir="rtl"`, so
+   the drift is multiplied by a direction that the RTL rule negates. Left
+   as-is, an Arabic poster would cascade toward the spine instead of away
+   from it, and the photographs would drift into the text column — the same
+   class of latent bug §15 removed twice before.
+
+   The tilt is not negated: a Polaroid tilted two degrees looks the same
+   either way round, and mirroring it would be change for its own sake. */
+.cascadePhoto {
+  transform: translateX(calc(var(--cascade-offset, 0) * min(22cqw, 100cqw - 1.0492 * var(--card-w) - 0.41px) * var(--cascade-direction, 1)))
+    rotate(var(--cascade-tilt));
+}
+[dir="rtl"] .cascadePhoto { --cascade-direction: -1; }
+
+/* On the CELL's position: each card is the only child of its cell. */
+.cascadePhotoCell:nth-child(odd) .cascadePhoto { --cascade-tilt: -2.5deg; }
+.cascadePhotoCell:nth-child(even) .cascadePhoto { --cascade-tilt: 2.5deg; }
+
+/* The receding spine. Positioned rather than a grid column, and first in
+   the markup, so the photographs sit in front of it. */
+.cascadeSpine {
+  position: absolute;
+  inset-block: 6%;
+  inset-inline-start: 50.5%;
+  width: 1px;
+  background: var(--p-line);
+}
+
+.cascadeEntries {
+  display: flex;
+  flex-direction: column;
+  text-align: start;
+  padding-inline-start: 9%;
+  min-height: 0;
+}
+/* One equal row per milestone, level with its card, the text centred in it.
+   `--text-fit` is set by FittedTimeline (timeline-text-fit.tsx) when the
+   text is taller than its row. */
+.cascadeEntry {
+  flex: 1 1 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  --text-scale: calc(var(--base-text-scale, 1) * var(--text-fit, 1));
+  /* Half a date line of space at each end, so fitted text keeps one date
+     line between milestones, as the print does (`_fit_milestone_text`'s
+     separation). Without it, text shrunk to fit its row touched the next. */
+  padding-block: calc(5.5px * var(--text-scale, 1));
+  box-sizing: border-box;
+}
+/* The node hangs off the date line, centred on it and on the spine. */
+.cascadeEntry .neatDate { position: relative; }
+.cascadeNode {
+  position: absolute;
+  inset-inline-start: -9%;
+  margin-inline-start: -4px;
+  top: 50%;
+  margin-top: -4px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--p-muted);
+}
+
+/* ---------------------------------------------------------------------
+   7.2 — ALTERNATING TILTED LAYOUT
+   ---------------------------------------------------------------------
+   From two reference posters. The defining rule is that a milestone's
+   PHOTOGRAPH and its TEXT sit on opposite sides of the spine, and both flip
+   each milestone — putting them on the same side would collapse this into
+   7.1 with a zigzag.
+
+   Built as rows in a three-column grid (left / spine / right) rather than
+   two independent columns, so a milestone's photo and its text stay on the
+   same horizontal band no matter how tall either grows. The spine is drawn
+   on the grid's middle column via a pseudo-element on the container, so it
+   remains one unbroken line across all the rows.
+
+   Logical properties throughout (§15): under RTL the whole alternation
+   mirrors, which is correct — the sequence should read outward from the
+   spine in either direction. */
+.layoutAlternating {
+  display: grid;
+  grid-template-columns: 44% 1fr 44%;
+  /* EVERY ROW GETS AN EQUAL SHARE OF THE HEIGHT. Rows used to grow to fit
+     fixed-width cards, so 3 milestones were 602px of content in a 571px box
+     and 5 or 8 pushed milestones 4-8 out of sight (`.timeline` clips). The
+     cards now shrink to their row instead (`.altPhotoCell`). Mirrors the
+     print, which gives each milestone an equal slot. */
+  grid-auto-rows: minmax(0, 1fr);
+  align-items: center;
+  position: relative;
+  row-gap: 2%;
+  /* The poster's text scale, captured here so `.altText` can multiply its
+     fit into it without referring to itself. */
+  --base-text-scale: var(--text-scale, 1);
+}
+.layoutAlternating::before {
+  content: "";
+  position: absolute;
+  inset-block: 4%;
+  inset-inline-start: 50%;
+  width: 2px;
+  background: var(--p-text);
+  opacity: 0.9;
+}
+
+/* The card's cell fills its grid row and is a size container, so the card
+   can be sized against the ROW's height (cqh) as well as the column (cqw). */
+.altPhotoCell {
+  container-type: size;
+  align-self: stretch;
+  min-height: 0;
+  display: grid;
+  place-items: center;
+}
+.altPhoto {
+  background: #fff;
+  padding: 5px 5px 16px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.16);
+  /* 86% of the column, or less if the row is short. The card is 11px
+     taller than wide (16px + 5px padding around a square photo, minus the
+     10px of side padding); tilted 4deg its outline is
+     (cos 4deg + sin 4deg) x width + 11px = 1.0673 x width + 11px tall, which
+     must fit the row. */
+  width: min(86cqw, calc((100cqh - 11px) / 1.0673));
+  box-sizing: border-box;
+}
+.altPhoto img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+}
+/* Alternating tilt, larger than 7.1's — the references are visibly more
+   expressive, and §7.2 calls the layout expressive rather than structured. */
+.altPhotoOdd { transform: rotate(-4deg); }
+.altPhotoEven { transform: rotate(4deg); }
+
+.altNode {
+  justify-self: center;
+  width: 14px;
+  height: 14px;
+  color: var(--p-text);
+  z-index: 1;
+}
+
+/* `--text-fit` is set by FittedTimeline (timeline-text-fit.tsx) when the
+   text is taller than its row; it shrinks every line of the block. */
+.altText {
+  text-align: start;
+  --text-scale: calc(var(--base-text-scale, 1) * var(--text-fit, 1));
+}
+/* Text on the photograph's opposite side reads inward toward the spine. */
+.altTextStart { text-align: end; }
+
+/* ---------------------------------------------------------------------
+   7.4 — DOTTED BRANCHING TIMELINE
+   ---------------------------------------------------------------------
+   From the reference poster. Structurally close to 7.1, and distinguished
+   by the spine: dotted and faint rather than solid, with the YEAR sitting
+   on the line and interrupting it, and a heart preceding each label.
+
+   The dotted line is a repeating-linear-gradient rather than a dashed
+   border, because a border cannot host the year labels that break it. The
+   dash figures come from compositions.py, so Pillow's manual dash loop and
+   this gradient stay in step. */
+.layoutDotted {
+  display: grid;
+  grid-template-columns: 40% 1fr;
+  position: relative;
+}
+
+.dottedSpine {
+  position: absolute;
+  inset-block: 5%;
+  inset-inline-start: 48%;
+  width: 1px;
+  background: repeating-linear-gradient(
+    to bottom,
+    var(--p-line) 0 6px,
+    transparent 6px 14px
+  );
+}
+
+.dottedPhotos {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-around;
+}
+.dottedPhoto {
+  background: #fff;
+  padding: 5px 5px 16px;
+  box-shadow: 0 3px 9px rgba(0, 0, 0, 0.15);
+  width: 88%;
+  box-sizing: border-box;
+  margin-block-start: -4%;
+}
+.dottedPhoto:first-child { margin-block-start: 0; }
+.dottedPhoto img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1 / 1.12;
+  object-fit: cover;
+}
+.dottedPhoto:nth-child(odd) { transform: rotate(-3deg); }
+.dottedPhoto:nth-child(even) { transform: rotate(3deg); }
+
+.dottedEntries {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  padding-inline-start: 11%;
+  text-align: start;
+}
+.dottedEntry { position: relative; }
+/* The year sits ON the spine, interrupting it — the detail that most
+   distinguishes this layout from 7.1. */
+.dottedYear {
+  position: absolute;
+  inset-inline-start: -11%;
+  top: -0.9em;
+  transform: translateX(-50%);
+  background: var(--p-bg);
+  padding: 0 4px;
+  font-size: calc(9px * var(--text-scale, 1));
+  letter-spacing: 0.08em;
+  color: var(--p-muted);
+}
+.dottedLabel {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: calc(13px * var(--text-scale, 1));
+  color: var(--p-text);
+}
+.dottedHeart { width: 11px; height: 11px; color: var(--p-accent); flex: 0 0 auto; }
+
+/* ---------------------------------------------------------------------
+   7.5 / 7.6 — THE LANDSCAPE COMPOSITIONS
+   ---------------------------------------------------------------------
+   One grid for both. Milestones become COLUMNS rather than rows, which is
+   the whole difference: a vertical layout grows taller as milestones are
+   added, a horizontal one makes each milestone narrower. That is why these
+   two are recorded as strongest at 5–7 and why the caption sizes here are
+   more conservative than the portrait layouts'.
+
+   7.5 puts the caption inside the Polaroid's lower border, as the
+   reference does. 7.6 uses circular photographs above a ticked axis with
+   the label below — also from its reference. */
+.layoutHorizontal {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  align-items: start;
+  column-gap: 2%;
+  position: relative;
+}
+
+.hMilestone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* 7.5 — Polaroid with the caption inside its lower border. */
+.hPolaroid {
+  background: #fff;
+  padding: 4px 4px 0;
+  box-shadow: 0 2px 7px rgba(0, 0, 0, 0.15);
+  width: 88%;
+  box-sizing: border-box;
+  transform: rotate(-1.5deg);
+}
+.hMilestone:nth-child(even) .hPolaroid { transform: rotate(1.5deg); }
+.hPolaroid img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1 / 1.15;
+  object-fit: cover;
+}
+.hPolaroidCaption {
+  font-size: calc(7px * var(--text-scale, 1));
+  line-height: 1.25;
+  text-align: center;
+  color: var(--p-text);
+  padding: 4px 2px 7px;
+}
+
+/* 7.6 — circular photograph, no tilt. */
+.hCircle {
+  width: 78%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--p-line);
+}
+.hCircle img { display: block; width: 100%; height: 100%; object-fit: cover; }
+
+/* The axis, with a downward tick under each milestone (7.6). */
+.hAxis {
+  position: absolute;
+  inset-inline: 2%;
+  height: 1px;
+  background: var(--p-text);
+  opacity: 0.85;
+}
+.hTick {
+  width: 1px;
+  height: 18px;
+  background: var(--p-text);
+  opacity: 0.7;
+}
+
+.hLabel {
+  font-size: calc(8px * var(--text-scale, 1));
+  text-align: center;
+  color: var(--p-text);
+  letter-spacing: 0.05em;
+  margin-top: 5px;
+}
+.hDate {
+  font-size: calc(7px * var(--text-scale, 1));
+  text-align: center;
+  color: var(--p-muted);
+  margin-top: 2px;
+}
+
+/* §7 — the photo-led layouts omit the description.
+   Mirrors `shows_description` in compositions.py. Without this the Studio
+   would preview a sentence the delivered file does not contain, which is
+   the exact preview/delivery divergence the parity work exists to prevent. */
+.layoutAlternating .neatDescription,
+.layoutDotted .neatDescription {
+  display: none;
+}

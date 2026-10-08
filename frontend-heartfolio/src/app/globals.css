@@ -1,0 +1,368 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* =====================================================================
+ * TYPOGRAPHY — self-hosted brand faces
+ * =====================================================================
+ * AUDIT FINDING (Design System §5): the tokens below named "Fraunces"
+ * and "Inter", but nothing in the codebase ever loaded them — no
+ * next/font import, no @font-face, no stylesheet link. Every visitor was
+ * therefore reading the site in Georgia and system-UI sans. For a brand
+ * whose entire positioning is editorial and premium, that was the single
+ * largest gap between the intended design and the shipped one.
+ *
+ * They are now self-hosted (SIL Open Font License, redistribution
+ * permitted) rather than pulled from fonts.googleapis.com: one less
+ * third-party connection on first paint, no render-blocking CSS request
+ * to another origin, and no Google Fonts privacy footprint.
+ *
+ * Both families are VARIABLE — one file covers weights 300–700, so the
+ * whole Latin type system costs two requests, ~170 KB, instead of six
+ * static weights.
+ *
+ * Two composite families, each declaring Latin and Arabic faces under a
+ * single name. Because every face carries a `unicode-range`, the browser
+ * downloads only the script actually on the page: /en and /fr never fetch
+ * the Arabic files, /ar never fetches the Latin ones.
+ *
+ * ARABIC (§24): Arabic is not set in a Latin face with fallback glyphs —
+ * it has its own typographic pairing. Noto Kufi Arabic for display
+ * (geometric, calm, the closest Arabic analogue to Fraunces' editorial
+ * weight) and Noto Naskh Arabic for body text (the traditional reading
+ * face — Kufi at paragraph size is tiring). This is what "intentionally
+ * designed, not mechanically mirrored" means at the type level.
+ *
+ * `font-display: swap` — text is readable immediately in the fallback and
+ * swaps when the face arrives. `size-adjust` on the fallback stack is not
+ * used here; the metric difference is small and swap-shift is preferable
+ * to a permanently mis-scaled fallback.
+ * ------------------------------------------------------------------- */
+
+@font-face {
+  font-family: "Heartfolio Serif";
+  src: url("/fonts/fraunces-latin.woff2") format("woff2-variations");
+  font-weight: 300 700;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0100-024F, U+0131, U+0152-0153, U+02BB-02BC,
+    U+02C6, U+02DA, U+02DC, U+0259, U+1E00-1EFF, U+2000-206F, U+2020,
+    U+20A0-20AB, U+20AC, U+2113, U+2122, U+2191, U+2193, U+2212, U+2215,
+    U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Heartfolio Serif";
+  src: url("/fonts/noto-kufi-arabic.woff2") format("woff2-variations");
+  font-weight: 300 700;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0600-06FF, U+0750-077F, U+0870-088E, U+0890-0891,
+    U+0898-08E1, U+08E3-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41,
+    U+FB50-FDFF, U+FE70-FE74, U+FE76-FEFC;
+}
+
+@font-face {
+  font-family: "Heartfolio Sans";
+  src: url("/fonts/inter-latin.woff2") format("woff2-variations");
+  font-weight: 300 700;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0100-024F, U+0131, U+0152-0153, U+02BB-02BC,
+    U+02C6, U+02DA, U+02DC, U+0259, U+1E00-1EFF, U+2000-206F, U+2020,
+    U+20A0-20AB, U+20AC, U+2113, U+2122, U+2191, U+2193, U+2212, U+2215,
+    U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Heartfolio Sans";
+  src: url("/fonts/noto-naskh-arabic.woff2") format("woff2-variations");
+  font-weight: 300 700;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0600-06FF, U+0750-077F, U+0870-088E, U+0890-0891,
+    U+0898-08E1, U+08E3-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41,
+    U+FB50-FDFF, U+FE70-FE74, U+FE76-FEFC;
+}
+
+@theme {
+  /* ---- Color tokens (Heartfolio Design System §1–3) ---- */
+  --color-ink-navy: #141b2e;
+  --color-navy-deep: #1d2540;
+  --color-parchment: #f7f1e6;
+  --color-candle-white: #fffdf8;
+  --color-champagne-gold: #c9a24b;
+  --color-champagne-gold-bright: #d9b968;
+  --color-dusty-terracotta: #b5654b;
+  --color-muted-sage: #6b7a5e;
+  --color-soft-charcoal: #3a3a38;
+  --color-warm-fog: #dcd4c4;
+  --color-error-warm: #a24a34;
+
+  /* ---- Theme-aware semantic tokens ----
+     These are the ONLY tokens that flip between light/dark mode.
+     Sections that are intentionally "always night" (Hero, Footer, Gift
+     Occasions, Final CTA) keep using the raw ink-navy/parchment tokens
+     above directly, unaffected by the toggle — they represent a fixed
+     candlelit-night surface by design, not a light/dark page state. */
+  --color-page: var(--color-parchment);
+  --color-card: var(--color-candle-white);
+  --color-heading: var(--color-ink-navy);
+  --color-body: var(--color-soft-charcoal);
+  --color-subtle: var(--color-warm-fog);
+
+  /* ---- Fonts (Design System §5) ---- */
+  /* "Heartfolio Serif" = Fraunces (Latin) + Noto Kufi Arabic (Arabic).
+     "Heartfolio Sans"  = Inter (Latin) + Noto Naskh Arabic (Arabic).
+     Both are defined in the @font-face block at the top of this file;
+     the fallbacks below are what shows during the swap. */
+  --font-serif: "Heartfolio Serif", Georgia, "Times New Roman", serif;
+  --font-sans: "Heartfolio Sans", -apple-system, BlinkMacSystemFont, "Segoe UI",
+    system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", "GT America Mono", ui-monospace, monospace;
+
+  /* ---- Radius (Design System §7) ---- */
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --radius-xl: 32px;
+  --radius-full: 999px;
+
+  /* ---- Spacing (Design System §6) — extending default scale ---- */
+  --spacing-18: 4.5rem;
+  --spacing-30: 7.5rem;
+  --spacing-35: 8.75rem;
+
+  /* ---- Shadows (Design System §8) ---- */
+  --shadow-whisper: 0px 1px 2px rgba(20, 27, 46, 0.04);
+  --shadow-lift: 0px 8px 24px rgba(20, 27, 46, 0.08);
+  --shadow-float: 0px 24px 60px rgba(20, 27, 46, 0.14);
+  --shadow-candle: 0px 0px 60px rgba(201, 162, 75, 0.22);
+
+  /* ---- Easing (Design System §14) ---- */
+  --ease-heartfolio: cubic-bezier(0.22, 1, 0.36, 1);
+
+  --animate-drift-in: drift-in 0.9s var(--ease-heartfolio) both;
+  --animate-star-fade: star-fade 1.8s ease-out both;
+  --animate-twinkle: twinkle 3.4s ease-in-out infinite;
+  --animate-shimmer: shimmer 2.6s linear infinite;
+  --animate-float-slow: float-slow 7s ease-in-out infinite;
+
+  @keyframes drift-in {
+    from {
+      opacity: 0;
+      transform: translateY(14px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes star-fade {
+    0% {
+      opacity: 0;
+      transform: scale(0.6);
+    }
+    60% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0.9;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes twinkle {
+    0%, 100% { opacity: 0.35; transform: scale(0.85); }
+    50% { opacity: 1; transform: scale(1.15); }
+  }
+
+  @keyframes shimmer {
+    0% { background-position: -140% 0; }
+    100% { background-position: 140% 0; }
+  }
+
+  @keyframes float-slow {
+    0%, 100% { transform: translateY(0) rotate(var(--float-rot, 2deg)); }
+    50% { transform: translateY(-10px) rotate(calc(var(--float-rot, 2deg) * -1)); }
+  }
+
+  @keyframes accordion-down {
+    from { height: 0; opacity: 0.4; }
+    to { height: var(--radix-accordion-content-height); opacity: 1; }
+  }
+
+  @keyframes accordion-up {
+    from { height: var(--radix-accordion-content-height); opacity: 1; }
+    to { height: 0; opacity: 0.4; }
+  }
+}
+
+/* ---- Dark mode palette ----
+   Toggled by adding/removing `.dark` on <html>. Only the semantic
+   surface tokens change; accent colors (gold, terracotta, sage) stay
+   put since they're designed to sit on either surface. */
+.dark {
+  --color-page: #0f1220;
+  --color-card: #171b2c;
+  --color-heading: #f7f1e6;
+  --color-body: #cfc9ba;
+  --color-subtle: #2c3248;
+}
+
+@layer base {
+  /* Arabic typography (§24): a face chosen for Arabic rather than a Latin
+     face with a fallback. `.font-arabic` is applied to <html> only on /ar,
+     so it costs nothing on the other locales. */
+  .font-arabic {
+    --font-serif: var(--font-heartfolio-arabic-display), "Noto Kufi Arabic", "Segoe UI", sans-serif;
+    --font-sans: var(--font-heartfolio-arabic-body), "Noto Naskh Arabic", "Segoe UI", sans-serif;
+  }
+
+  /* Arabic sits lower on the line and needs more room than Latin at the
+     same size — without this, headings look cramped rather than designed. */
+  .font-arabic h1,
+  .font-arabic h2,
+  .font-arabic h3 {
+    line-height: 1.4;
+    letter-spacing: 0;
+  }
+
+  /* Letter-spaced Latin eyebrows (`tracking-[0.18em]`) break Arabic, which
+     joins its letters — spacing them apart severs the joins. */
+  .font-arabic [class*="tracking-["] {
+    letter-spacing: 0 !important;
+  }
+
+  * {
+    border-color: var(--color-subtle);
+  }
+
+  html {
+    scroll-behavior: smooth;
+    color-scheme: light;
+  }
+
+  html.dark {
+    color-scheme: dark;
+  }
+
+  body {
+    background-color: var(--color-page);
+    color: var(--color-body);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    transition: background-color 0.4s var(--ease-heartfolio), color 0.4s var(--ease-heartfolio);
+  }
+
+  ::selection {
+    background-color: var(--color-champagne-gold);
+    color: var(--color-ink-navy);
+  }
+
+  h1, h2, h3, .font-serif-display {
+    font-family: var(--font-serif);
+    letter-spacing: -0.01em;
+  }
+
+  /* ---- Arabic typographic corrections (§24) ----
+     Arabic is cursive: the letters in a word are joined. Negative
+     tracking — which the heading rule above applies, and which is
+     correct for a large Latin display face — visibly damages those
+     joins, so it is reset to normal rather than inherited. Arabic also
+     sits taller than Latin at the same font-size (ascenders, descenders
+     and diacritics all extend further), so it needs a slightly larger
+     optical size and more leading to avoid lines colliding.
+
+     This is the difference between "Arabic works" and "Arabic looks
+     designed". */
+  :lang(ar) h1,
+  :lang(ar) h2,
+  :lang(ar) h3,
+  :lang(ar) .font-serif-display {
+    letter-spacing: normal;
+    line-height: 1.35;
+  }
+
+  :lang(ar) body,
+  :lang(ar) p,
+  :lang(ar) li {
+    line-height: 1.9;
+  }
+
+  /* Tracking utilities read as deliberate spacing in Latin (the
+     `tracking-[0.25em]` eyebrow labels used throughout the sections);
+     in Arabic the same declaration pulls a word apart into disconnected
+     letterforms. Neutralised for Arabic only. */
+  :lang(ar) [class*="tracking-"] {
+    letter-spacing: normal;
+  }
+
+  /* Latin brand marks, dates and prices stay left-to-right inside an
+     RTL paragraph without needing a bidi override in every component. */
+  :lang(ar) .force-ltr {
+    direction: ltr;
+    unicode-bidi: isolate;
+  }
+
+  /* Visible keyboard focus everywhere — accessibility floor */
+  :focus-visible {
+    outline: 2px solid var(--color-champagne-gold);
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .paper-grain {
+    position: relative;
+  }
+
+  .paper-grain::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.035;
+    mix-blend-mode: multiply;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  .dark .paper-grain::before {
+    opacity: 0.05;
+    mix-blend-mode: overlay;
+  }
+
+  .candle-glow {
+    box-shadow: var(--shadow-candle);
+  }
+
+  .shimmer-text {
+    background-image: linear-gradient(
+      100deg,
+      transparent 30%,
+      rgba(255, 255, 255, 0.55) 50%,
+      transparent 70%
+    );
+    background-size: 200% 100%;
+    animation: var(--animate-shimmer);
+  }
+}
+

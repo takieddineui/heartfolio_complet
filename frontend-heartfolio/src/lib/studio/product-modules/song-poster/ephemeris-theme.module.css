@@ -1,0 +1,122 @@
+/*
+  Ported from the prototype's `.ep-*` rules, on the same 800x1000
+  "master" canvas as Player and Ledger.
+
+  A LARGER ADAPTATION THAN LEDGER'S — worth stating plainly rather than
+  presenting this as equally faithful. Ephemeris's whole idea, per the
+  prototype's own comment, is "the whole circumference is the runtime,
+  and the moment is a plotted point on it." Runtime and moment-position
+  are both fields this product's schema does not collect (there is no
+  `duration`, no `momentAt`). The tick marks that would divide the
+  circle by runtime, and the hand/marker that would plot the moment,
+  are THEREFORE NOT DRAWN — not a missing detail, the theme's central
+  device. What remains — the concentric rings, a polar waveform ring
+  built from the same seeded envelope every theme shares, and a circular
+  photo at the centre — is a real, honest composition, but it is "a
+  circular plate with a waveform ring," not "an astronomical dial with
+  a plotted moment." If Heartfolio wants the real dial, this product
+  needs a duration and a moment-position field first; that is a schema
+  decision, not something to fake here.
+
+  Palette is Ephemeris's own: `--bg:#12161C; --ink:#E9E4D7;
+  --soft:#8E8C82; --accent:#C6A15B; --rule:#3A4049;` — a dark, elegant
+  celestial tone, deliberately distinct from Player's cream and Ledger's
+  khaki.
+*/
+
+.sheet {
+  position: relative;
+  width: 800px;
+  height: 1000px;
+  overflow: hidden;
+  background: #12161c;
+  color: #e9e4d7;
+  font-family: var(--font-serif, "Cormorant Garamond", Georgia, serif);
+  padding: 56px 56px 78px;
+  box-sizing: border-box;
+}
+
+.head {
+  display: flex;
+  justify-content: center;
+  font-family: var(--font-sans, "Archivo Narrow", system-ui, sans-serif);
+  font-size: 14px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: #8e8c82;
+}
+
+.plate {
+  position: relative;
+  width: 560px;
+  height: 560px;
+  margin: 26px auto 0;
+}
+.plate svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.photo {
+  position: absolute;
+  inset-inline-start: calc(50% - 113px);
+  top: calc(50% - 113px);
+  width: 226px;
+  height: 226px;
+  border-radius: 50%;
+  overflow: hidden;
+  box-shadow: 0 0 0 1px #3a4049;
+  background: #232a33;
+}
+.photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.title {
+  text-align: center;
+  font-weight: 300;
+  font-size: 56px;
+  line-height: 1.02;
+  margin: 26px 0 0;
+  letter-spacing: 0.004em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.artist {
+  text-align: center;
+  font-family: var(--font-sans, "Archivo Narrow", system-ui, sans-serif);
+  font-size: 13.5px;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: #8e8c82;
+  margin: 11px 0 0;
+}
+
+.dedication {
+  text-align: center;
+  margin: 22px auto 0;
+  max-width: 56ch;
+  font-size: 15px;
+  color: #8e8c82;
+  font-style: italic;
+}
+
+.foot {
+  position: absolute;
+  inset-inline: 56px;
+  bottom: 46px;
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-sans, "Archivo Narrow", system-ui, sans-serif);
+  font-size: 13.5px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #8e8c82;
+  border-top: 1px solid #3a4049;
+  padding-top: 13px;
+}

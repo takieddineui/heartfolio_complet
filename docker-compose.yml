@@ -1,0 +1,170 @@
+# Heartfolio — local full stack.
+#
+# Postgres, the Django API and the Next storefront on one machine — the
+# development environment. Production is planned as a VPS running this same
+# Docker setup; Railway and Vercel are no longer used, and the database for
+# the VPS is still undecided. This file exists so work can be verified BEFORE
+# it is deployed — which, until now, nothing has been.
+#
+# What it is genuinely for:
+#   * running the database-backed tests, which have never been run
+#   * executing seed_catalog.py against a throwaway database
+#   * reproducing a bug without spending a deploy
+#
+# What it CANNOT cover, because both need a public URL:
+#   * Paddle webhooks (so no real payment confirmation)
+#   * the receipt email and its magic link
+# Those still have to be tested against a deployed backend.
+#
+# Usage:
+#   cp .env.docker.example .env.docker     # then fill it in
+#   docker compose up -d                   # starts api + web only
+#   docker compose exec api python manage.py migrate
+#   docker compose exec api python seed_catalog.py
+#   docker compose exec api python manage.py createsuperuser
+#
+# Running the test suite (needs the throwaway local Postgres, NOT Supabase):
+#   docker compose --profile test up -d db
+#   docker compose exec -e DATABASE_URL=postgres://heartfolio:heartfolio@db:5432/heartfolio \
+#     api python manage.py test
+#
+# `db` is NOT part of the normal `docker compose up -d` — it only starts
+# with `--profile test`. The normal app (api + web) talks to Supabase via
+# DATABASE_URL in .env.docker, exactly like production does. `db` exists
+# purely so the test suite has somewhere safe to run that is not the live
+# Supabase database — see the DATABASE_URL comment in .env.docker.example.
+# `scripts\test.bat` runs both commands above for you.
+
+services:
+
+  api:
+    # Path corrected: the backend lives at ./backend, not ./backend/backend.
+    # The old value described a directory layout this repo does not have, so
+    # `docker compose up` failed before building anything.
+    build:
+      context: ./backend
+    env_file: .env.docker
+    environment:
+      # DATABASE_URL IS NOT SET HERE — it comes from .env.docker, so the
+      # app runs against the SAME Supabase database Railway used to (the
+      # real one — which database the VPS will use is undecided). That is
+      # deliberate: it means what you see locally is the real catalog, the
+      # real packs and the real orders.
+      #
+      # THE COST: local experiments write to live data. A test purchase
+      # here creates a real order row, and `manage.py flush` or a stray
+      # `seed_catalog.py --update-prices` hits production.
+      #
+      # THE TEST SUITE MUST NOT RUN AGAINST IT. Django builds a
+      # `test_<name>` database, which needs CREATE DATABASE rights the
+      # Supabase pooler user is unlikely to have — and if it ever did run
+      # against the real one it would take the catalog and every order
+      # with it. Run tests against the `db` service instead (see the
+      # Usage comment at the top of this file, or just run `test.bat`).
+      #
+      # Development settings locally: production hard-fails at settings load
+      # if R2 or Paddle are unconfigured, and forces an HTTPS redirect that
+      # breaks http://localhost.
+      DJANGO_SETTINGS_MODULE: config.settings.development
+    # THE SOURCE TREE IS MOUNTED OVER /app, and the reason is specific:
+    # `backend/.dockerignore` ends with `tests_*.py` and `**/tests.py`,
+    # which strips EVERY test file out of the image. That is deliberate for
+    # a production build, but it means `manage.py test` inside the built
+    # image finds 5 tests instead of 652 — only
+    # `apps/delivery/test_date_formatting.py` survives, because its name
+    # matches neither pattern.
+    #
+    # Mounting fixes that without touching the production image, and also
+    # removes the rebuild-per-edit loop: change a file on the host, re-run
+    # the tests, no `docker compose build`.
+    #
+    # Note it also shadows /app/staticfiles built by collectstatic. Locally
+    # that is fine — DEBUG serves admin CSS through the staticfiles app —
+    # but it is why the admin can look unstyled here and correct in
+    # production.
+    volumes:
+      - ./backend:/app
+    # No depends_on: the app's database is Supabase, not the local `db`
+    # service, so there is nothing local for `api` to wait on. `db` is only
+    # for the test suite and is started explicitly with --profile test.
+    ports:
+      - "8000:8000"
+
+  web:
+    # Path corrected: ./frontend-heartfolio, not ./frontend/heartfolio.
+    build:
+      context: ./frontend-heartfolio
+      args:
+        NEXT_PUBLIC_GA_ID: ${NEXT_PUBLIC_GA_ID:-}
+        NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN: ${NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN:-}
+        NEXT_PUBLIC_PADDLE_ENVIRONMENT: ${NEXT_PUBLIC_PADDLE_ENVIRONMENT:-sandbox}
+        NEXT_PUBLIC_API_BASE_PATH: ${NEXT_PUBLIC_API_BASE_PATH:-/api/backend}
+        # Same build-time-only rule as the four above: `isFreemiusCheckoutActive()`
+        # reads this inlined into the client bundle, not at container runtime
+        # (confirmed directly — the running container had zero NEXT_PUBLIC_*
+        # vars in its live environment at all). Missing here meant the
+        # frontend could never take the Freemius path regardless of anything
+        # set elsewhere, and silently fell back to the generic order/pay flow.
+        # Defaults to `true`, deliberately: Compose resolves `${VAR}` here from
+        # the host shell or a root `.env`, NEVER from `.env.docker` (that file
+        # only feeds `env_file:` at container runtime), so an empty default
+        # silently produced a Paddle-only image on every plain rebuild.
+        NEXT_PUBLIC_FREEMIUS_ENABLED: ${NEXT_PUBLIC_FREEMIUS_ENABLED:-true}
+        # BUILD-TIME, not just runtime — see the matching comment on
+        # `environment:` below and the one in frontend-heartfolio/Dockerfile.
+        # next.config.ts's rewrites() is resolved once, during `next build`
+        # inside the image build, and frozen into .next/routes-manifest.json;
+        # the standalone server never re-reads next.config.ts afterward.
+        # Without this arg, that freeze happens before this container's own
+        # runtime environment exists to read from, so the build has no origin
+        # at all — next.config.ts throws and the build fails, naming the
+        # variable. It used to bake a hardcoded Railway URL in permanently
+        # instead — confirmed directly
+        # (`docker compose exec web cat .next/routes-manifest.json` showed
+        # the Railway URL even though `printenv BACKEND_API_ORIGIN` inside
+        # the same running container correctly showed `http://api:8000`).
+        BACKEND_API_ORIGIN: ${BACKEND_API_ORIGIN:-http://api:8000}
+    environment:
+      # RUNTIME — genuinely still read as such, by two real per-request
+      # server-side code paths that are NOT next.config.ts and are NOT
+      # frozen at build time the way rewrites() is:
+      # `lib/products/catalog-server.ts` and
+      # `app/[locale]/live/[liveId]/page.tsx` both read
+      # `process.env.BACKEND_API_ORIGIN` directly (module-scope, evaluated
+      # when the standalone server process actually loads that module at
+      # container runtime, never during the image build) to talk to Django
+      # straight from the server, bypassing the /api/backend/* proxy
+      # entirely — see either file's own comment for why. This entry is
+      # what supplies them the correct value; removing it makes every catalog
+      # and live-page request throw an explicit BACKEND_API_ORIGIN error (they
+      # used to fall back silently to a hardcoded Railway URL). Neither this nor
+      # `build.args` above makes the other redundant.
+      BACKEND_API_ORIGIN: http://api:8000
+    depends_on:
+      - api
+    ports:
+      - "3000:3000"
+
+  # Throwaway local Postgres for the test suite only. Never used by the
+  # normal application — api/web talk to Supabase. Does NOT start on a
+  # plain `docker compose up -d`; only with `docker compose --profile test
+  # up -d db` (which is what test.bat does). Credentials below are fixed
+  # local-only values, not secrets — this database is only ever reachable
+  # from this machine's own Docker network.
+  db:
+    profiles: ["test"]
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: heartfolio
+      POSTGRES_PASSWORD: heartfolio
+      POSTGRES_DB: heartfolio
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U heartfolio -d heartfolio"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  pgdata:

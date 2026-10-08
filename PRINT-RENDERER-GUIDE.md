@@ -1,0 +1,499 @@
+# Print renderer guide — read before working on any Love Story Timeline style
+
+Written 6 Oct 2026, after Neat Stack was taken from "looks right in the
+Studio" to "the downloaded print is right". Every bug below was found in
+Neat Stack the hard way, one style at a time. **The other five styles share
+most of the same code, so expect the same bugs there and check for them on
+purpose before a customer's real content finds them.**
+
+---
+
+## 1. The core problem: two independent renderers
+
+The design exists twice, with no shared source of truth:
+
+| | Studio preview | Downloaded print |
+|---|---|---|
+| Code | `frontend-heartfolio/src/lib/studio/product-modules/love-story-timeline/renderer.tsx` + `renderer.module.css` | `backend/apps/delivery/product_renderers/love_story_timeline/png_renderer.py` (Pillow) |
+| What it is | HTML/CSS in a browser | Pixels drawn one call at a time |
+
+The only bridge is `compositions.py` (a few numbers per composition), which
+`composition-parity.test.ts` checks against the CSS. **It only covers the
+numbers someone deliberately put there.** Everything else (alignment,
+tilt, shadow, which fields are drawn, fonts, spacing) can drift silently,
+and has:
+
+- **Content the print never drew.** The subtitle was validated, stored,
+  previewed and shown on the live page, but the print skipped it on every
+  layout (fixed 6 Oct). Milestone **locations** were missing from the
+  Cascade, Alternating Tilt and Dotted Branching prints, though their
+  previews showed them (fixed 6 Oct). Not every absence is a bug:
+  Alternating Tilt and Dotted Branching omit the **description** on purpose
+  ("photo-led", after reference posters 2, 4 and 7). That is
+  `shows_description = False` in `compositions.py`, mirrored by
+  `.layoutAlternating/.layoutDotted .neatDescription { display: none }` in
+  the CSS and pinned by the parity test, all added together on 12 Sep 2026.
+  The live preview confirms it: descriptions hidden on those two, shown on
+  Neat Stack and Cascade. **Check the CSS and the live preview, not just the
+  JSX, before calling a field missing.** On 6 Oct the JSX alone made this
+  look like a mismatch, and it wasn't.
+- **Values only half-pinned.** The parity test asserted `rotate(-2deg)`
+  under a comment claiming the print tilted the cards. The print drew them
+  flat, and the even cards' `1.6deg` was pinned nowhere (fixed 6 Oct).
+- **Styling that diverged.** Header and footer alignment, card tilt and
+  shadow (fixed for Neat Stack). Fonts, weights, title colour and case, the
+  divider and the polaroid border thickness are still deferred.
+
+### Two categories: always say which one a finding is
+
+1. **Layout correctness** is anything a customer would see as broken:
+   collisions, overflow, truncation, and **missing content**. Missing or cut
+   customer text is the most serious kind. These get fixed.
+2. **Styling drift** is a design difference that isn't broken. It only gets
+   fixed when the user scopes it explicitly. Never fix it silently, and
+   never skip mentioning it.
+
+---
+
+## 2. How to read the preview's real values (the standard method)
+
+Don't eyeball screenshots. Do both of these:
+
+1. **Read the rule** in `renderer.module.css` (`grep -n "text-align\|rotate(\|box-shadow"`).
+2. **Confirm it live.** Open `http://localhost:3000/en/studio/love-story-timeline`,
+   pick the style, and read the computed values in the browser. Use
+   `offsetWidth`/`offsetHeight`, which ignore transforms:
+
+```js
+const poster = document.querySelector('[class*="poster"]');
+const pick = el => { const cs = getComputedStyle(el); return {
+  cls: el.className.split('__').pop(), textAlign: cs.textAlign, transform: cs.transform,
+  boxShadow: cs.boxShadow, padding: cs.padding, fontSize: cs.fontSize,
+  fontWeight: cs.fontWeight, textTransform: cs.textTransform,
+  w: el.offsetWidth, h: el.offsetHeight }; };
+JSON.stringify({
+  poster: [poster.offsetWidth, poster.offsetHeight],
+  header: [...poster.querySelector('header').children].map(pick),
+  footer: poster.querySelector('footer') && pick(poster.querySelector('footer')),
+  // replace with the style's card class, e.g. altPhoto, cascadePhoto, dottedPhoto, hPolaroid
+  cards: [...poster.querySelectorAll('[class*="neatPhoto"]')].filter(e => e.tagName === 'SPAN').map(pick),
+}, null, 1);
+```
+
+Measured for Neat Stack: the poster was 540×810, the card 156×167 and the
+photo 146px.
+
+### Converting CSS to Pillow
+
+- **Rotation sign.** CSS `rotate(+a)` is clockwise; Pillow
+  `Image.rotate(+a)` is anticlockwise. The preview's `rotate(-2deg)` is
+  `+2.0` in Pillow. Check the matrix in `transform`: `matrix(cos, sin, …)`
+  with a negative `sin` means anticlockwise.
+- **Rotation origin.** CSS rotates about the element's centre, so rotate
+  each card about its own centre (`_paste_polaroid`).
+- **Shadow.** `box-shadow: 0 Ypx Bpx rgba(0,0,0,a)` means offset Y, a
+  Gaussian with sigma B/2, and black at opacity a. CSS pixels are absolute,
+  so convert through the photo's width in the preview: print px = CSS px ×
+  (print photo size ÷ preview photo width). This keeps the shadow the same
+  size relative to the photo. Write down the preview width you measured;
+  the ratio changes if the Studio draws the poster at a different size.
+- **Centring.** `text-align: center` centres by the line's *advance* width,
+  so use `draw.textlength`, not the glyph bounding box (`_line_x`,
+  `_draw_wrapped(centered=True)`).
+- **Antialiased rotated edges.** Rotate in premultiplied alpha
+  (`convert("RGBa")`), or the edge picks up a dark fringe.
+- Put each new shared value in `compositions.py` and pin it in
+  `composition-parity.test.ts`. Use the `cssRule(selector)` helper there so
+  the assertion targets one rule, not "somewhere in the file".
+
+---
+
+## 3. Bugs to check for in every style
+
+### 3a. Milestone text crowding: the shared size estimate is wrong
+
+`render_png` sizes milestone text with one shared formula:
+
+```python
+required_height = small_font.size * 1.4 + body_font.size * 1.3 + small_font.size * 1.3 * 2
+```
+
+Measured against the real drawing, it **undercounts a full milestone by
+21–25%**:
+
+- it leaves out the location line;
+- it assumes tighter spacing than the drawing uses (1.5/1.35 against
+  1.4/1.3);
+- it reserves **no space between milestones**.
+
+Text that "fits" therefore fills its whole slot and runs into the next
+milestone. That showed up as a 9px gap on the 8×10 edged print at text
+scale 130 with long names, and outright overlap with 8 milestones.
+
+Neat Stack no longer uses it. `_fit_neat_stack_text` measures each
+milestone's real wrapped height with the drawing's own fonts and widths,
+plus one line of separation; Alternating Tilt now does the same
+(`_fit_milestone_text`, §7), and so does Overlapping Cascade (§9).
+**Dotted Branching and both Horizontal styles still use the old formula
+unchanged.** Assume it is
+wrong for them, in either direction (it overcounted on Alternating Tilt). Check by instrumenting estimate against actual: exec a copy of
+the module in memory with a probe line after `slot_height = ...`, and
+compare it with the drawn text extents.
+
+Related limit: at the smallest text size (55%), some combinations can't
+fit at all. For Neat Stack, the names heading on a sold print gives up room
+when that happens (`_neat_stack_names_font`). Decide per style whether the
+same applies.
+
+**Known, accepted limit (decided 6 Oct 2026).** One Neat Stack combination
+still crowds: 8 milestones, a 60-character subtitle, a 180-character
+dedication, text scale 130, on the 8×10 edged print. Each milestone is 26px
+short (short names) or 42px short (long names), with the names heading
+already at its floor. It needs four independent fields at their maximum at
+once, so the crowding is accepted rather than adding subtitle or dedication
+shrinking. Revisit only if real orders reach it.
+
+### 3b. Card overflow: size the whole card, not the photo
+
+Neat Stack capped the **photo** at its slot height, then added the
+polaroid borders on top (6% top, 19% bottom). The card came out about 1.3×
+its slot, centred on it. The first card crossed the header rule and the
+duration line, the last one sat under "To be continued…", and neighbours
+overlapped by a quarter of a card. Drawn flat white, the column read as one
+white strip.
+
+Fixed by capping the **whole card**, and once tilted the **rotated
+bounding box** (`h·cos θ + w·sin θ`), at the slot minus a gap. The other
+styles' card code (`_draw_dotted`, `_draw_horizontal`) sizes from the
+photo too. Overlapping Cascade did, at 1.20–1.44× its slot, until 7 Oct
+(§9). Alternating Tilt did as well, at 1.01–1.14× its
+slot, until 7 Oct (§7); its fix also counts the shadow. Check every style
+with photo cards.
+
+### 3c. Lines that should wrap but don't
+
+Any text drawn with a single `draw.text` can run off the page. Neat Stack
+had this for the names header, the event titles and the locations. Event
+titles are still unwrapped in all four of the other layout functions.
+Names and titles are never truncated; descriptions keep their deliberate
+one- or two-line limit.
+
+### 3d. Customer text cut with an ellipsis
+
+`_draw_wrapped(max_lines=…)` appends "…". Check every limit against the
+field's maximum length at text scale 130 on the narrowest print:
+
+- the 4-line names limit was raised for this reason;
+- the dedication (max 180 characters) was capped at 3 lines and cut on
+  the edged prints at 130 (fixed 6 Oct: no line limit);
+- descriptions dropping to one line is a deliberate, deferred behaviour.
+
+### 3e. Fields the preview shows and the print doesn't
+
+For each style, list every field the preview's composition actually
+*displays*. That's `renderer.tsx` plus any CSS that hides it, confirmed in
+the live Studio with computed `display`. Then check the print draws it
+too. That's how the subtitle
+and the missing locations were found.
+
+**Printing text that was missing makes the page fuller.** Adding the
+locations exposed the unreviewed layouts' crowding and card overflow (§3a,
+§3b) in 27 of 108 Overlapping Cascade renders and 28 of 108 Alternating Tilt
+renders (none on Dotted Branching). Expect that when a missing field is
+restored, and fix the fit in the same style's pass rather than leaving the
+text out.
+
+### 3f. Measuring must equal drawing
+
+When layout decisions depend on how tall something will be, measure through
+the drawing code itself, not a copy of its arithmetic:
+`_draw_header(measure_only=True)` and `_draw_wrapped(measure_only=True)`.
+`HeaderMeasureMatchesDrawingTests` holds them equal.
+
+---
+
+## 4. Practicalities that cost time
+
+- **Restart `api` after any renderer change.** Gunicorn runs without
+  `--reload`. The code is mounted (`./backend:/app`), so no rebuild is
+  needed, but the running server keeps the old code until restarted. No
+  renders are cached.
+
+  ```bash
+  docker compose restart api
+  ```
+
+- **Never judge layout with `customer=None`.** The card code only runs with
+  a customer, so every photo is skipped. That is exactly how the card
+  overflow was missed the first time. Use real uploaded JPEGs
+  (`upload_asset` in tests), or stub `get_asset_bytes_for_customer` in a
+  probe.
+- **Never judge with thin data.** Use a dedication, the duration line,
+  ending text, maximum-length fields and long names. Missing header and
+  footer lines remove the very surfaces things collide with.
+- **Check every output, not just the sold prints.** That means the legacy
+  `*-png` targets (kept for re-downloads; they take layout improvements, by
+  decision), the wallpapers and the AR card. Compare old and new code
+  byte-for-byte: exec the backed-up module in memory and hash both renders.
+  Anything that changes must be explained.
+- **Don't copy files into `backend/`.** It's the live mount. Pass scripts to
+  `manage.py shell` on stdin, and put backups in a scratch directory.
+- **Run the full suite on its own.** Two tests are wall-clock sensitive (a
+  Paddle webhook signature test and an R2 stall timing test) and flake
+  under load.
+
+---
+
+## 5. Is this style actually done?
+
+Do all of these. Each item was learned from a bug.
+
+1. **Measure the preview's real values** (§2) for alignment, tilt, shadow,
+   card size, and every field drawn. List the differences and label each as
+   layout correctness or styling drift.
+2. **Render the real print** with real photo bytes and the full header and
+   footer, and look at it next to the live Studio preview, not just one or
+   the other.
+3. **Stress matrix:** compare against both the preview and a real rendered
+   print file. Check every axis:
+   - all 6 print sizes (`print-{a4,classic,poster}-{edged,frameless}`);
+   - text scale 70, 100 and 130;
+   - short names ("Emma & James") and long ones ("Alexandra
+     Konstantinopol" & "Maximilian von Habsburg"), plus a single
+     24-character word and a many-short-words pair;
+   - 3, 5 and 8 milestones, with milestones at maximum field length (title
+     40, description 140, location 40), plus a 60-character subtitle, also
+     in capitals, and a 180-character dedication;
+   - photos that are landscape, portrait and square, since the cards crop
+     to a centre square;
+   - legacy targets, wallpapers and the AR card, checked for unintended
+     changes.
+4. **What to check in each render:**
+   - no text overlaps text;
+   - nothing runs off the canvas;
+   - no card or shadow covers text or crosses the header rule;
+   - neighbouring cards keep a visible gap;
+   - the space between milestones is larger than the space inside one;
+   - no customer text is missing or cut;
+   - the header is aligned as the preview has it.
+5. **Write tests from the existing Neat Stack classes** in
+   `love_story_timeline/tests.py`:
+   - `NeatStackCardsFitTheirSlotsTests`
+   - `NeatStackMilestoneTextFitsTests`
+   - `NeatStackNamesGiveUpRoomOnlyWhenNeededTests`
+   - `NeatStackMatchesThePreviewTests`
+   - `NamesAreNeverTruncatedTests`
+   - `SubtitleIsPrintedTests`
+   - `HeaderMeasureMatchesDrawingTests`
+
+   Read cards through `_paste_polaroid`, which returns the tilted card's
+   bounding box and its shadow's visible extent, not by spotting flat
+   rectangles.
+6. **Mutation-check each fix.** Put the old behaviour back, confirm the
+   test fails for the right reason, and restore the file by checksum. If a
+   mutation survives, the test is wrong. Twice this round, a surviving
+   mutation exposed a test that couldn't fail.
+7. **Run the full suite on its own** and diff it against the baseline: same
+   failing IDs, and identical failure text once UUIDs, timestamps and
+   addresses are masked.
+8. **Restart `api`**, then let the user check a real download.
+
+---
+
+## 6. Status by style (6 Oct 2026)
+
+| Style | Layout correctness | Known before starting |
+|---|---|---|
+| Neat Stack | Done | Accepted known limit (§3a): 8 milestones + max subtitle + max dedication + scale 130 on 8x10 edged (26–42px short per milestone, names already at the floor). Styling deferred: fonts, weights, title colour and case, divider, polaroid border (preview 3.4%/11% vs print 6%/19%) |
+| Alternating Tilt | Done (7 Oct) | See §7. Accepted (7 Oct): printed cards fill about 77% of a slot against the preview's 88%, because the shadow must stay clear of text. Deferred: spine width (2px in print, about 9px if scaled like the hearts) |
+| Alternating Tilt (before 7 Oct, for the record) | was: not reviewed | Old text estimate (§3a); card overflow: its last card runs into the footer, and cards cover text in 23 renders now that locations print (§3b); unwrapped titles (§3c); descriptions omitted by design on both sides ("photo-led", §1); cards flat, no shadow (preview ±4°, `0 3px 10px` at 0.16); header left-aligned |
+| Overlapping Cascade | Done (7 Oct) | See §9. Was 108 of 108 broken (cards 1.20–1.44× their slot, first card over the header rule and last at the footer in 107, unwrapped titles, square photo in a 1:1.15 card, preview clipping at 3). Accepted: the preview's text overlaps by 7px at the 55% floor with 8 maximum-length milestones at scale 1.3 (full descriptions in the preview; deferred description item). Legacy 1080×1080 and 1920×1080 still crowd at 8, as before |
+| Dotted Branching | Investigated 7 Oct, not fixed | **106 of 108** print renders broken, all three photo shapes. Cards 1.03–1.38× their slot: the first crosses the header rule in 105 and the last covers "To be continued…" in 102. Titles unwrapped: 27 past the margin, 19 off the canvas. The full-date chip on the spine is wider than the gutter: into the text column in 51, into the photo column in 16, over a card in 17. The shared estimate OVERcounts (text is 0.41–0.70 of it). Square photo in a 1:1.12 card (blank band). Worst header 1 of 12. Locations confirmed printed whole in all 324 renders, and shown in the preview. Preview: 10px clipped at 3 (1 of 3 cards whole), 389px at 5, 959px at 8; `.timeline`'s 14px gap applies here too; the date chip sits 21px left of the spine, over the cards' edge. Styling: cards flat with no shadow (preview ±3°, `0 3px 9px` at 0.15), border 5%/16% against 3.2%/10.1%, print steps cards right by 0/5/10% of the column while the preview centres them, heart drawn as a ~5px dot (preview 11px heart), spine and dashes not scaled to the page, text starts at 54.5% (preview 49%), header left |
+| Horizontal Polaroids | Not reviewed | §3a, §3b, §3c; cards flat (preview ±1.5°, `0 2px 7px` at 0.15) |
+| Horizontal Circles | Not reviewed | §3a, §3c (circles are untilted by design) |
+
+The subtitle and dedication fixes apply to all six (shared header). The
+photo shape (landscape, portrait or square) was confirmed to have no effect
+on Neat Stack's card placement. Header and footer
+centring applies to the reviewed styles only (`_REVIEWED_CENTRED_LAYOUTS`).
+
+---
+
+## 7. Alternating Tilt (done 7 Oct 2026): what was different
+
+Investigated against this guide before any code changed. 102 of 108
+realistic renders were broken. Now 108 of 108 are clean with landscape,
+portrait and square photos, and the worst header (8 milestones + 60-char
+subtitle + scale 130) is clean in 12 of 12. Guarded by `AlternatingTiltTests`
+plus the Alternating section of `composition-parity.test.ts`.
+
+- **The preview was broken too, and was fixed first.** Its grid rows grew
+  to fit fixed-width cards, and `.timeline` clips, so 3 milestones lost
+  31px and 5 or 8 hid milestones 4-8 entirely. Now every row gets an equal
+  share (`grid-auto-rows: minmax(0, 1fr)`). Each card sits in a size
+  container (`.altPhotoCell`) and is `min(86cqw, (100cqh - 11px) / 1.0673)`
+  wide, so its 4°-tilted outline fits the row. The text is fitted to its
+  row by `FittedAlternatingTimeline` (`alternating-text-fit.tsx`), which
+  measures in the browser and scales `--text-scale` down to the print's 55%
+  floor. **Check the preview with 3, 5 and 8 milestones and long text**,
+  not just the Studio's default 3. Building extra rows in the page (clone
+  the composition's children) measures the real CSS when the Studio's form
+  is awkward to drive.
+- **The shared estimate overcounted here** (0.69-0.98 of the estimate,
+  median 0.72), the opposite of Neat Stack: it budgets two description
+  lines this photo-led layout never draws. Wrong either way, so it was
+  replaced by a measured fit: `_fit_milestone_text` with
+  `_alternating_block_height`. Expect a different error in each remaining
+  layout. Measure, don't assume the direction.
+- **Card overflow, same pattern as Neat Stack** (1.01-1.14× the slot).
+  Fixed by fitting the whole card, its 4° tilt **and its shadow's visible
+  extent** (2.25σ plus the offset) inside the slot. The shadow term matters:
+  without it the last card's faint shadow reached "To be continued…" on the
+  poster. That's why the printed cards fill about 77% of a slot where the
+  preview's fill about 88%: the preview clips shadows at its edge, while the
+  print has to keep them clear of text.
+- **Styling matched in the same pass, by decision:**
+  - tilt ±4°, symmetric;
+  - shadow `0 3px 10px` at 0.16;
+  - border 5/16px of a 151px photo;
+  - the preview's heart path, sized 14px on a 540px poster;
+  - text on the left half right-aligned toward the spine;
+  - centred header and footer (`_REVIEWED_CENTRED_LAYOUTS`).
+- **A docstring had claimed alignment the code never did.** Don't trust
+  comments about appearance. Measure the preview and the print.
+
+---
+
+## 8. Studio milestone cap and the other previews (measured 7 Oct 2026)
+
+**The Studio allows exactly 3 milestones.** `metadata.ts` has
+`minEvents: 3, maxEvents: 3`, set on 20 Sep 2026; it was 8 from 12 Sep.
+The backend still accepts 3–8 (`MAX_EVENTS` in `data.py`). Its comment
+calls it "a product decision rather than a technical limit". The user
+recalls it as a workaround for overflow. `recommendedMin: 4` and
+`recommendedMax: 6` sit above the cap and are not read anywhere.
+
+**Before raising it, every preview must show every milestone.** Measured
+in the Studio by duplicating rows; "fully visible" counts photos entirely
+inside the preview's clipped timeline box:
+
+| Preview | 3 milestones | 5 milestones | 8 milestones |
+|---|---|---|---|
+| Neat Stack | fits | was 266px clipped, 2 of 5 fully visible; **fixed 7 Oct**: fits | was 767px clipped, 2 of 8; **fixed 7 Oct**: fits |
+| Alternating Tilt | fits (fixed 7 Oct) | fits | fits |
+| Overlapping Cascade | was 90px clipped (3rd card and location cut); **fixed 7 Oct**: fits | was 518px clipped, 2 of 5; **fixed 7 Oct**: fits | was 1,161px clipped, 2 of 8; **fixed 7 Oct**: fits |
+| Dotted Branching | 10px clipped already | 390px clipped, 1 of 5 | 959px clipped, 1 of 8 |
+| Horizontal Polaroids | no vertical clipping (cards poke past the box edge) | same | same |
+| Horizontal Circles | fits | no vertical clipping | no vertical clipping |
+
+**Neat Stack's preview had Alternating Tilt's bug** (a column of
+fixed-width cards growing past the box), so "closed" had covered only the
+print. Fixed 7 Oct the same way as §7, and now closed on both sides:
+- each card sits in an equal-height `.neatPhotoCell` size container;
+- its width is `min(78cqw, (100cqh − 11px) / 1.0343)`;
+- each `.neatEntry` row is equal, with its text centred and fitted;
+- the tilts are selected on the cell (`.neatPhotoCell:nth-child(…)
+  .neatPhoto`), because each card is now its cell's only child.
+
+Measured live: 3, 5 and 8 milestones fit with 0px clipped, every card
+inside its row. Known limit: 8 milestones of maximum-length text at scale
+1.3 is 2px over even at the 55% floor, because the preview shows each
+140-character description in full while the print cuts it to one line
+there (that cutting is the deferred item). Overlapping Cascade was fixed
+the same way on 7 Oct (§9). Dotted Branching needs it in its own review.
+
+Overlapping Cascade re-measured 7 Oct in layout pixels (after the unit bug
+below was found): 90, 518 and 1,161px, the same as the table, so those
+figures were not inflated. At 3 milestones, the Studio's only allowed count
+today, the third card is cut off and the third milestone's location line
+is clipped (the entry ends at 581px in a 571px box). 2 of 5 and 2 of 8
+cards are fully visible.
+
+### Measuring the preview: units and triggers (learned 7 Oct)
+
+- **The Studio draws the poster scaled down (about 0.8) with a CSS
+  transform.** `getBoundingClientRect()` returns the scaled size, while
+  `offsetWidth`, `clientHeight` and `scrollHeight` return layout pixels.
+  Never compare one kind with the other. The first `FittedTimeline` did,
+  and shrank text about 20% too far. Some overflow figures reported on 7 Oct
+  before this was found were inflated the same way.
+- **The fit has to bisect.** Shrinking changes where lines wrap, so height
+  isn't proportional to size, and one proportional step overshoots.
+  `FittedTimeline` searches for the largest size that fits. It also
+  re-fits when web fonts finish loading.
+- **A hidden browser pane renders no frames, so `ResizeObserver` never
+  fires there.** To test a fit after editing the page directly, trigger a
+  real React render (switch typography and back), not a resize.
+
+---
+
+## 9. Overlapping Cascade (done 7 Oct 2026): what was different
+
+Investigated against this guide first: 108 of 108 realistic print renders
+broken, and the preview clipping at 3 milestones (the Studio's only count).
+Now 108 of 108 clean with landscape, portrait and square photos, and the
+fullest header (8 milestones + 60-character subtitle + scale 130) clean in
+12 of 12. Guarded by `OverlappingCascadeTests`,
+`OverlappingCascadeNamesGiveUpRoomOnlyWhenNeededTests` and the Cascade
+section of `composition-parity.test.ts`.
+
+- **The overlap is the design, so it is kept, and bounded.** Both sides
+  divide the timeline into `count + photo_overlap` (0.22) equal slots with
+  half the overlap spare at each end. A card's tilted outline may be 1.22
+  slots tall, so it overlaps each neighbour by up to 0.11 of a slot and the
+  first and last stay inside. In CSS this is flex rows plus two `flex: 0.11`
+  spacers (`::before`/`::after`), with each card in a size-container cell:
+  `--card-w: min(80cqw, (122cqh - 9.49px) / 1.1925)`.
+- **The shadow is reserved at the ends only** (`_cascade_layout`). Counting
+  it in every card, as Alternating Tilt does, left neighbours overlapping by
+  5% of a slot against the preview's 22%; between cards the shadow just
+  falls on the next card. Printed neighbours now overlap by 0.18–0.20 of a
+  slot.
+- **The code comment was false.** It said sizing width first gave
+  "generous whitespace instead of overflow". Measured: overflow at every
+  count. Don't trust comments about appearance (as in §7).
+- **The photo is 1:1.15, as in the preview.** `_paste_photo(height=…)`
+  crops the centre to that shape; the print used to paste a square photo into
+  a card sized for 1:1.15, leaving a blank band.
+- **The drift is one even diagonal**, 22% of the column end to end, narrowed
+  so the widest tilted card stays in its column. The preview's fixed
+  per-position table drifted one way only at 3 milestones; each card now gets
+  `--cascade-offset` (−0.5 to 0.5) from `renderer.tsx`.
+- **The names give up room on sold prints**, by the Neat Stack rule (§3a),
+  which `_names_font_for_milestones` now applies to both layouts. The case:
+  8 milestones, long names, scale 130 on the 8×10 edged print, 204px of text
+  for 135px slots.
+- **Two preview bugs outside the layout's own CSS.**
+  - `.timeline`'s `gap: 14px` applied to the Cascade grid and pushed the text
+    column, and the nodes, 14px past the print's (`gap: 0` now).
+  - `FittedTimeline` measured with `scrollHeight`, which ignores padding and
+    the part of a centred overflow above the box. It now measures the text's
+    real extent (`neededHeight`). That lets `.cascadeEntry`'s half-date-line
+    padding keep milestones apart as the print's separation does; before,
+    fitted text touched the next milestone. Neat Stack and Alternating Tilt
+    fit the same as before (0.708 / 0.909 / 0.657 against 0.717 / 0.912 /
+    0.664).
+- **Neat Stack's preview got the same padding (7 Oct).** At the fit limit
+  its milestones touched (0px at 5 and 8 milestones of long text, 8 at 1.3).
+  Now 10px or more. Text that already had room is pixel-identical, and cards
+  and hearts do not move. The floor case (8 maximum-length milestones at
+  1.3) is still −5px: the deferred description item, as in §8.
+  **Alternating Tilt does not need it.** Consecutive milestones sit on
+  opposite sides of the spine with a 2% row gap; measured, they never come
+  closer than 10px. An earlier report said they touched; that was Neat
+  Stack's measurement wrongly carried over.
+- **Styling matched in the same pass, by decision:**
+  - tilt ±2.5°;
+  - shadow `0 3px 10px` at 0.16;
+  - border 5/16px of a 163px photo;
+  - card width 80% of the column, borders included;
+  - an 8px node on the spine, level with the date line;
+  - the spine and nodes at the preview's share of the page width (540px poster);
+  - centred header and footer.
+- **Accepted:**
+  - At the 55% floor, 8 milestones with every field at its maximum at scale
+    1.3 overlap by 7px in the preview, because the preview shows full
+    140-character descriptions (the deferred description item).
+  - The legacy 1080×1080 and 1920×1080 targets still crowd at 8 milestones,
+    as they did before and as Neat Stack's do. 14 of 90 legacy renders have
+    problems, down from 28.

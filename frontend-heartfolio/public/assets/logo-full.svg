@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 152" role="img" aria-label="Heartfolio">
+  <!--
+    FULL LOCKUP — mark above the wordmark, matching the supplied artwork.
+
+    THE WORDMARK IS DRAWN AS TEXT, not converted to outlines, and that is a
+    trade with a reason on both sides. Outlines would render identically
+    everywhere; live text keeps the file small, editable and searchable, and
+    lets the gradient split "HEART" from "FOLIO" as in the original. The
+    risk is a machine without the font substituting one — mitigated by a
+    fallback stack that stays geometric, and by wide letter-spacing that
+    survives substitution better than a tight setting.
+
+    If exact fidelity ever matters more than editability (print, or a
+    partner's brand sheet), convert this one <text> to paths and keep this
+    file as the source.
+  -->
+  <defs>
+    <linearGradient id="hf-ribbon" x1="120" y1="12" x2="200" y2="94" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#EBB0A6"/>
+      <stop offset="0.5" stop-color="#DE9B85"/>
+      <stop offset="1" stop-color="#C5854F"/>
+    </linearGradient>
+    <linearGradient id="hf-ribbon-over" x1="134" y1="26" x2="186" y2="86" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#D89A8C"/>
+      <stop offset="1" stop-color="#B8763F"/>
+    </linearGradient>
+    <linearGradient id="hf-spark" x1="188" y1="8" x2="208" y2="34" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFEBCF"/>
+      <stop offset="1" stop-color="#E0A765"/>
+    </linearGradient>
+    <!-- Rose through the first half of the word, bronze through the second,
+         so "HEART" and "FOLIO" are distinguishable without a hard split. -->
+    <linearGradient id="hf-word" x1="40" y1="0" x2="280" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#E9A9A0"/>
+      <stop offset="0.42" stop-color="#E0A487"/>
+      <stop offset="1" stop-color="#D08F55"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Mark: the icon geometry scaled 2x and centred on the 320-wide canvas. -->
+  <g transform="translate(102.4 4) scale(1.8)">
+    <g fill="none" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+      <path stroke="url(#hf-ribbon)" d="M32 22 A 10 10 0 0 0 14 31.5 L32 50"/>
+      <path stroke="url(#hf-ribbon-over)" d="M41 23 L23 40.5"/>
+      <path stroke="url(#hf-ribbon)" d="M23 23 L41 40.5"/>
+      <path stroke="url(#hf-ribbon)" d="M32 22 A 10 10 0 0 1 50 31.5 L32 50"/>
+    </g>
+    <path fill="url(#hf-spark)" d="M51 7 L52.8 13.2 L59 15 L52.8 16.8 L51 23 L49.2 16.8 L43 15 L49.2 13.2 Z"/>
+  </g>
+
+  <text x="160" y="142"
+        text-anchor="middle"
+        font-family="'Inter', 'Helvetica Neue', Arial, sans-serif"
+        font-size="34"
+        font-weight="500"
+        letter-spacing="6"
+        fill="url(#hf-word)">HEARTFOLIO</text>
+</svg>

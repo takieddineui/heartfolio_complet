@@ -1,0 +1,78 @@
+/*
+  The live keepsake's opening — §10 asks for one explicitly ("an opening
+  section") and none existed; the static names/title/duration block in
+  `live-keepsake.tsx` had no entrance at all, on this page or any other.
+
+  Uses THIS PAGE'S OWN --ink/--muted/--paper/--accent, inherited from
+  `.root[data-palette]` in live-keepsake.module.css — never a separate
+  dark overlay palette. A customer who chose Sage or Blush for their
+  page should open into THEIR colours, not a generic "brand moment"
+  that ignores the choice they already made.
+*/
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  background: var(--paper);
+  color: var(--ink);
+  text-align: center;
+  padding: 8vw;
+  overflow: hidden;
+}
+
+.mark {
+  width: clamp(56px, 12vw, 96px);
+  height: clamp(56px, 12vw, 96px);
+  color: var(--accent);
+}
+
+.photo {
+  width: min(64vw, 320px);
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  box-shadow: 0 24px 60px -20px rgba(0, 0, 0, 0.35);
+}
+.photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.names {
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  font-size: 0.78rem;
+  color: var(--muted);
+  margin: 0;
+}
+.title {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(1.8rem, 7vw, 3.2rem);
+  font-weight: 400;
+  margin: 0;
+  line-height: 1.1;
+}
+
+.skip {
+  position: absolute;
+  bottom: max(24px, env(safe-area-inset-bottom, 0px));
+  inset-inline-end: max(24px, env(safe-area-inset-end, 0px));
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  padding: 10px 14px;
+  opacity: 0.7;
+}
+.skip:hover,
+.skip:focus-visible {
+  opacity: 1;
+}

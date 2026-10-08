@@ -1,0 +1,70 @@
+{% comment %}
+Ops front door (§9).
+
+`/api/v1/ops/` used to 404, so five separate URLs had to be remembered.
+This is one address that leads to all of them, with a line each saying what
+the screen is actually for — the tab bar alone says where you can go, not
+which one answers the question you have.
+
+Deliberately NOT a merged dashboard. Reports runs revenue aggregates across
+every order, Reconcile and Re-send change state or email a customer. Putting
+them on one surface would make every quick lookup pay for the reports
+queries, and would place a "Re-send to <customer>" button a scroll away from
+something you were only reading.
+{% endcomment %}
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Ops — Heartfolio</title>
+  <style>
+    :root { color-scheme: dark; }
+    * { box-sizing: border-box; }
+    body { margin:0; padding:20px 16px 48px; background:#14141a; color:#e9e9ef;
+           font:16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; }
+    .wrap { max-width:560px; margin:0 auto; }
+    .opsnav { display:flex; gap:6px; margin-bottom:18px; font-size:14px; flex-wrap:wrap; }
+    .opsnav a { color:#8a8a99; text-decoration:none; padding:7px 12px; border-radius:20px; }
+    .opsnav a:hover { color:#e9e9ef; background:#1d1d25; }
+    .opsnav a.active { color:#e9e9ef; background:#2e2e3a; font-weight:600; }
+    h1 { font-size:22px; margin:0 0 6px; }
+    .lede { font-size:14px; color:#8a8a99; margin:0 0 18px; }
+    .card { display:block; background:#1d1d25; border-radius:12px; padding:16px;
+            margin:10px 0; text-decoration:none; color:#e9e9ef; }
+    .card:hover { background:#23232c; }
+    .card strong { display:block; font-size:17px; margin-bottom:2px; }
+    .card span { font-size:13px; color:#8a8a99; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  {% include "ops/_nav.html" %}
+
+  <h1>Ops</h1>
+  <p class="lede">Staff tools. Same login as the Django admin.</p>
+
+  <a class="card" href="/api/v1/ops/reports/">
+    <strong>Reports</strong>
+    <span>Revenue, packs, countries, and the feedback customers have left.</span>
+  </a>
+  <a class="card" href="/api/v1/ops/lookup/">
+    <strong>Lookup</strong>
+    <span>Find an order by email or partial ID. Read-only — shows what happened.</span>
+  </a>
+  <a class="card" href="/api/v1/ops/resend/">
+    <strong>Re-send</strong>
+    <span>Send a paid order's receipt again, with a fresh 30-day link.</span>
+  </a>
+  <a class="card" href="/api/v1/ops/reconcile/">
+    <strong>Reconcile</strong>
+    <span>An order that was paid but never delivered — ask Paddle and settle it.</span>
+  </a>
+  <a class="card" href="/api/v1/ops/status/">
+    <strong>Status</strong>
+    <span>Is the database reachable, is storage configured, is Paddle answering.</span>
+  </a>
+</div>
+</body>
+</html>

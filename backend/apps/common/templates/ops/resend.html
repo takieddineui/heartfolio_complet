@@ -1,0 +1,92 @@
+{% comment %}
+Re-send order link (§9) — the recovery path for "I lost the email".
+
+Its own screen rather than a button on Lookup, because Lookup is read-only
+by design and this sends mail to a customer. Same phone-first shape as
+Reconcile: search by what staff have on hand, then one explicit action.
+
+There is no account system by decision (see site-config.ts), so this is the
+whole recovery mechanism. It works because a paid order stays deliverable:
+photos never expire and artwork is rendered on demand.
+{% endcomment %}
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Re-send link — Heartfolio</title>
+  <style>
+    :root { color-scheme: dark; }
+    * { box-sizing: border-box; }
+    body { margin:0; padding:20px 16px 48px; background:#14141a; color:#e9e9ef;
+           font:16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; }
+    .wrap { max-width:560px; margin:0 auto; }
+    .opsnav { display:flex; gap:6px; margin-bottom:18px; font-size:14px; flex-wrap:wrap; }
+    .opsnav a { color:#8a8a99; text-decoration:none; padding:7px 12px; border-radius:20px; }
+    .opsnav a:hover { color:#e9e9ef; background:#1d1d25; }
+    .opsnav a.active { color:#e9e9ef; background:#2e2e3a; font-weight:600; }
+    h1 { font-size:22px; margin:0 0 6px; }
+    .lede { font-size:14px; color:#8a8a99; margin:0 0 18px; }
+    input[type=search] { width:100%; padding:16px; font-size:17px; border-radius:12px;
+      border:1px solid #33333f; background:#1d1d25; color:#e9e9ef; }
+    button { width:100%; margin-top:10px; padding:16px; font-size:16px; font-weight:600;
+      border:0; border-radius:12px; background:#3a3a4a; color:#e9e9ef; }
+    button.confirm { background:#1f6f45; }
+    .card { background:#1d1d25; border-radius:12px; padding:16px; margin:12px 0; }
+    .row { display:flex; justify-content:space-between; gap:12px; font-size:14px; padding:3px 0; color:#b9b9c4; }
+    .row span:last-child { color:#e9e9ef; text-align:right; word-break:break-all; }
+    .note { font-size:13px; margin:14px 0; padding:12px; border-radius:10px; }
+    .note.ok { background:#123524; color:#7ee2a8; }
+    .note.bad { background:#3a1418; color:#ff9ba4; }
+    .muted { color:#7b7b86; font-size:13px; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  {% include "ops/_nav.html" %}
+
+  <h1>Re-send order link</h1>
+  <p class="lede">
+    Sends the receipt again, with a fresh link valid for another 30 days.
+    Only for orders that are actually paid.
+  </p>
+
+  <form method="get">
+    <input type="search" name="q" value="{{ query }}" placeholder="Email or order ID"
+           autocomplete="off" autocapitalize="off" spellcheck="false" autofocus>
+    <button type="submit">Find order</button>
+  </form>
+  <p class="muted">A partial order ID works — paste whatever the customer sent.</p>
+
+  {% if message %}<p class="note ok">{{ message }}</p>{% endif %}
+  {% if error %}<p class="note bad">{{ error }}</p>{% endif %}
+
+  {% if order %}
+    <div class="card">
+      <div class="row"><span>Email</span><span>{{ order.guest_email }}</span></div>
+      <div class="row"><span>Order</span><span>{{ order.id }}</span></div>
+      <div class="row"><span>Status</span><span>{{ order.status }}</span></div>
+      <div class="row"><span>Total</span><span>{{ order_total }} {{ order.currency }}</span></div>
+      <div class="row"><span>Placed</span><span>{{ order.created_at|date:"Y-m-d H:i" }}</span></div>
+
+      {% if order.status == "paid" %}
+        <form method="post">
+          {% csrf_token %}
+          <input type="hidden" name="order_id" value="{{ order.id }}">
+          <input type="hidden" name="q" value="{{ query }}">
+          {# The button names the address, so nobody sends a stranger's
+             keepsake link to the wrong person on a small screen. #}
+          <button class="confirm" type="submit">Re-send to {{ order.guest_email }}</button>
+        </form>
+      {% else %}
+        <p class="muted" style="margin-top:12px;">
+          Not paid — nothing to re-send. Use Reconcile if you believe this order
+          was actually paid.
+        </p>
+      {% endif %}
+    </div>
+  {% endif %}
+</div>
+</body>
+</html>

@@ -1,0 +1,27 @@
+{% comment %}
+The ops tab bar, shared by all five staff screens (§9).
+
+ONE PARTIAL, NOT FIVE COPIES. The nav was duplicated in every template, so
+adding Re-send meant editing five files and the order drifted between them.
+
+THE ACTIVE TAB IS DERIVED FROM `request.path`, not passed in by each view.
+That keeps every view unchanged — a nav that needs a context variable is a
+nav that silently renders wrong the first time someone adds a screen and
+forgets it. `django.template.context_processors.request` is enabled in
+base.py, which is what makes `request` available here.
+
+STYLING LIVES IN THE HOST TEMPLATE, deliberately. Reports is a light
+screen and the other four are dark, so `.opsnav a.active` is defined in
+each file against its own palette. Only the markup is shared.
+
+ORDER IS BY WHAT IS REACHED FOR MOST, not by workflow sequence: Reports
+daily, Lookup when a customer writes in, then the two actions, and Status
+last because it is only opened when something seems wrong.
+{% endcomment %}
+<nav class="opsnav" aria-label="Ops sections">
+  <a href="/api/v1/ops/reports/" {% if request.path == "/api/v1/ops/reports/" %}class="active" aria-current="page"{% endif %}>Reports</a>
+  <a href="/api/v1/ops/lookup/" {% if request.path == "/api/v1/ops/lookup/" %}class="active" aria-current="page"{% endif %}>Lookup</a>
+  <a href="/api/v1/ops/resend/" {% if request.path == "/api/v1/ops/resend/" %}class="active" aria-current="page"{% endif %}>Re-send</a>
+  <a href="/api/v1/ops/reconcile/" {% if request.path == "/api/v1/ops/reconcile/" %}class="active" aria-current="page"{% endif %}>Reconcile</a>
+  <a href="/api/v1/ops/status/" {% if request.path == "/api/v1/ops/status/" %}class="active" aria-current="page"{% endif %}>Status</a>
+</nav>

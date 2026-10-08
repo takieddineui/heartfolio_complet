@@ -1,0 +1,11 @@
+-r base.txt
+
+gunicorn>=22.0,<23.0
+
+# Serves Django admin's own CSS/JS in production. Required because the
+# catalog is entered through the admin, and with DEBUG=False Django
+# itself serves no static files at all — without this the admin loads as
+# unstyled, effectively unusable HTML. Documented as a known gap in the
+# Phase 3.14 report; this is that gap being closed, not a new dependency
+# taken on lightly.
+whitenoise[brotli]>=6.6,<7.0

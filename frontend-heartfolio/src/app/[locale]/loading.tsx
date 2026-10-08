@@ -1,0 +1,52 @@
+import { SkeletonBlock, SkeletonProductGrid, SkeletonRegion, SkeletonText } from "@/components/ui/skeleton";
+
+/**
+ * Homepage.
+ *
+ * A NOTE ON WHY THIS IS A WHOLE-PAGE SKELETON, which is not ideal.
+ *
+ * Only two things on this page need the catalog: the featured products and
+ * the occasion cards. The hero, how-it-works, FAQ and footer read from
+ * message files and could render instantly. But the page is
+ * `force-dynamic` with no Suspense boundary, so Next holds the entire
+ * response until the catalog fetch resolves — and `loading.tsx` replaces
+ * everything.
+ *
+ * A skeleton is still better than the blank page that was here before. The
+ * genuinely better fix is to wrap only the catalog-dependent sections in
+ * `<Suspense>`, so the hero streams immediately and only the grid waits.
+ * That is a restructure of the page rather than a new file, which is why it
+ * is noted here instead of done quietly.
+ */
+export default function Loading() {
+  return (
+    <main className="bg-page">
+      <SkeletonRegion label="Loading Heartfolio">
+        {/* Hero — dark, full-bleed, two-column on desktop. */}
+        <section className="bg-ink-navy py-24 sm:py-32">
+          <div className="mx-auto grid max-w-7xl gap-12 px-5 sm:px-8 lg:grid-cols-2 lg:items-center">
+            <div className="space-y-5">
+              <SkeletonBlock className="h-4 w-32 bg-parchment/10" />
+              <SkeletonBlock className="h-16 w-full bg-parchment/10" />
+              <SkeletonBlock className="h-16 w-4/5 bg-parchment/10" />
+              <SkeletonBlock className="h-4 w-3/4 bg-parchment/10" />
+              <SkeletonBlock className="h-12 w-48 rounded-full bg-parchment/10" />
+            </div>
+            <SkeletonBlock className="aspect-[4/5] w-full rounded-[var(--radius-xl)] bg-parchment/10" />
+          </div>
+        </section>
+
+        {/* Featured keepsakes — the first section that actually waits on data. */}
+        <section className="py-20 sm:py-24">
+          <div className="mx-auto max-w-7xl space-y-10 px-5 sm:px-8">
+            <div className="max-w-xl space-y-3">
+              <SkeletonText width="w-28" />
+              <SkeletonBlock className="h-10 w-2/3" />
+            </div>
+            <SkeletonProductGrid count={1} />
+          </div>
+        </section>
+      </SkeletonRegion>
+    </main>
+  );
+}

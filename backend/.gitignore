@@ -1,0 +1,36 @@
+# Environment
+# Anything under .env* holds real values and must never be tracked — the
+# two exceptions are the maintained, names-only templates (.env.example,
+# .env.docker.example), explicitly un-ignored below so they stay tracked.
+# .env.docker itself was previously tracked with real Paddle/Supabase
+# values in it (removed via `git rm --cached`, history not rewritten) —
+# this pattern is what stops that happening again for any similarly-named
+# real-values file, not just that one.
+.env
+.env.*
+!.env.example
+!.env.docker.example
+.venv/
+venv/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+
+# Django
+staticfiles/
+media/
+*.sqlite3
+db.sqlite3
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+
+# Testing / coverage
+.pytest_cache/
+.coverage
+htmlcov/

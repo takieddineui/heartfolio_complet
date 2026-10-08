@@ -1,0 +1,121 @@
+/*
+  Ported from `.lb-*`. Canvas: 800x1000 ("master"). A vinyl record: a
+  dark disc with concentric grooves, the photo as the circular label at
+  its centre, a spindle hole.
+
+  ADAPTED: `.lb-meta` (duration + momentAt) and `.lb-head`'s album/year
+  are dropped — none of those four fields exist in this schema, same
+  reasoning as every theme before this one. The footer's `.lb-names`
+  (names/place/date join) is replaced with the same simple artist +
+  wordmark footer every other theme uses, for the same reason.
+
+  Palette: `--bg:#EDEAE3; --ink:#18181A; --soft:#68665D;
+  --rule:#CDC8B9; --vinyl:#101012; --groove:#2B2B2E;` — the disc is
+  genuinely black, independent of the cream sheet behind it.
+*/
+
+.sheet {
+  position: relative;
+  width: 800px;
+  height: 1000px;
+  overflow: hidden;
+  background: #edeae3;
+  color: #18181a;
+  font-family: var(--font-sans, "Archivo", system-ui, sans-serif);
+}
+
+.head {
+  margin: 48px 60px 0;
+  font-size: 14.5px;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: #68665d;
+  text-align: center;
+}
+
+.disc {
+  position: relative;
+  width: 560px;
+  height: 560px;
+  margin: 30px auto 0;
+}
+.disc svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.label {
+  position: absolute;
+  inset-inline-start: 50%;
+  top: 50%;
+  width: 272px;
+  height: 272px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px #2b2b2e;
+  overflow: hidden;
+  background: #3a3a3d;
+}
+.label img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.spindle {
+  position: absolute;
+  inset-inline-start: 50%;
+  top: 50%;
+  width: 9px;
+  height: 9px;
+  margin: -4.5px 0 0 -4.5px;
+  border-radius: 50%;
+  background: #edeae3;
+  box-shadow: 0 0 0 1px #101012;
+  z-index: 2;
+}
+
+.title {
+  text-align: center;
+  font-weight: 800;
+  font-size: 38px;
+  line-height: 1.02;
+  letter-spacing: -0.018em;
+  margin: 26px 60px 6px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.artist {
+  text-align: center;
+  margin: 0 60px;
+  font-size: 16px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #68665d;
+}
+
+.dedication {
+  text-align: center;
+  margin: 20px auto 0;
+  max-width: 56ch;
+  font-style: italic;
+  font-size: 13.5px;
+  color: #68665d;
+  line-height: 1.5;
+}
+
+.foot {
+  position: absolute;
+  inset-inline: 60px;
+  bottom: 44px;
+  display: flex;
+  justify-content: space-between;
+  border-top: 1px solid #cdc8b9;
+  padding-top: 14px;
+  font-size: 14px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #68665d;
+}

@@ -1,0 +1,561 @@
+/* Preview mockups. Drawn in CSS rather than photographed — see the note in
+   preview-modes.tsx on why. */
+
+.wall {
+  /* height/width: 100% closes a real sizing chain, not a cosmetic fix.
+     `ScaleToFit`'s own wrapper needs `h-full w-full` to resolve to a
+     concrete pixel size — CSS requires every ancestor in that chain to
+     have an explicit height, or `height: 100%` computes to nothing. Every
+     div in this mockup used to be sized only by padding and its own
+     content, which broke that chain: `ScaleToFit`'s ResizeObserver
+     measured a collapsed box, the scale calculation resolved to 0/NaN,
+     and the code's own fallback (`scale = 1`) meant NO scaling down ever
+     happened. The artwork rendered at its full intrinsic pixel size
+     regardless of the panel's real size — the entire framed mockup
+     bursting past the preview panel's bounds, not shrinking to fit it. */
+  height: 100%;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3.5%;
+  background: linear-gradient(160deg, #efeae2 0%, #e4ded4 100%);
+  box-sizing: border-box;
+}
+.frame {
+  /* `height: 100%` stays the ONE definite dimension `.wall` provides
+     (needed for the exact reason the comment below already explains —
+     a flex child with no definite size anywhere in the chain collapses
+     `ScaleToFit`'s measurement to 0). `width` is now DERIVED from that
+     height via the caller's `aspect-ratio` (see FramedMockup's
+     `aspectRatio` prop) instead of also being forced to 100% — the
+     same shape technique `.phone`/`.tablet`/`.desktop` use further
+     down, just with height as the fixed axis instead of an outer
+     aspect-ratio box. Forcing width:100% too made the frame fill
+     `.wall`'s entire (roughly square) box regardless of the artwork's
+     actual proportions: a portrait print centred in a near-square
+     frame, which read as a large blank mat even at a tight mat
+     percentage, because most of the visible gap was letterboxing from
+     that SHAPE mismatch, not the mat itself. `max-width` caps a very
+     wide (landscape) aspect ratio from overflowing `.wall` sideways;
+     `aspect-ratio` is optional (undefined when no prop is passed) so a
+     caller that doesn't know the artwork's ratio still gets the old
+     width:100% fill via the browser's own no-aspect-ratio default. */
+  height: 100%;
+  max-width: 100%;
+  width: auto;
+  /* Without this, `aspect-ratio`'s derived width is a ceiling in name
+     only: a flex item's default `min-width: auto` resolves to its
+     content's min-content size, and `ScaleToFit`'s child keeps its
+     full UNSCALED pixel width as far as layout/min-content is
+     concerned (the `transform: scale(...)` that actually shrinks it
+     visually doesn't change what it contributes to an ancestor's
+     min-content floor). That floor was overriding the aspect-ratio
+     width upward to roughly the artwork's own unscaled size —
+     confirmed by inspecting the rendered rects directly, not assumed. */
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  /* A moulding with an inner lip, which is what a frame actually is —
+     and it is also §3's "edged" case made visible: the lip is the half
+     inch the edged variant leaves clear.
+
+     THIS ELEMENT MUST NEVER BE `position: absolute` WITH AN INSET-0
+     CHILD. A prototype of the black variant put the next layer down
+     (.mat) at `position: absolute; inset: 0`, which made it ignore this
+     element's own padding and cover the moulding entirely — only a 1px
+     shadow line was ever visible, regardless of what colour the padding
+     band was set to. Every layer here stays a plain block, sized by
+     `height/width: 100%` against a definite ancestor size, exactly the
+     chain the comment above this rule already protects. */
+  padding: 1.8%;
+  background: linear-gradient(145deg, #b98d5c 0%, #8f6a41 55%, #a37c4f 100%);
+  box-shadow:
+    0 18px 38px rgba(0, 0, 0, 0.22),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.18);
+}
+.frame.black {
+  /* The moulding colour is the ONLY thing this variant changes. Same
+     padding, same box-shadow shape, same child structure — so the two
+     variants share every sizing guarantee above and can never drift
+     apart on layout, only on colour.
+
+     The highlight stop is compressed to the first ~20% of the gradient
+     rather than spread across 55% the way the wood tone is: at the
+     frame's actual on-screen width (a few percent of a preview panel,
+     often under 20px), a slow fade to black reads as dark grey, not
+     black — most of the visible band needs to already BE black. */
+  background: linear-gradient(145deg, #26262a 0%, #0a0a0b 22%, #030303 100%);
+  box-shadow:
+    0 18px 38px rgba(0, 0, 0, 0.32),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.5),
+    inset 0 1px 2px rgba(255, 255, 255, 0.08);
+}
+.mat {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  padding: 2.5%;
+  background: #fdfbf7;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.06);
+}
+
+/* --- Frameless: glass/acrylic mount, no mat, edge-to-edge artwork ---
+   §3's `frameless` print target exists for exactly this mounting: no
+   half-inch margin, because nothing is meant to overlap the edge. A
+   moulding-and-mat mockup on a frameless print would show a margin the
+   print itself does not have. */
+.glassMount {
+  /* Same shape fix as `.frame` above — a definite `height: 100%` plus
+     the caller's `aspect-ratio` deriving `width`, so a frameless mount
+     also takes the artwork's own proportions instead of `.wall`'s box
+     shape. */
+  height: 100%;
+  max-width: 100%;
+  width: auto;
+  /* Same min-content floor fix as `.frame` above. */
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  /* Thin — a glass or acrylic edge is a few millimetres, not a moulding.
+     The gradient reads as glass thickness catching light along one side
+     rather than as a coloured border. */
+  padding: 0.9%;
+  background: linear-gradient(
+    160deg,
+    rgba(255, 255, 255, 0.9) 0%,
+    rgba(220, 224, 222, 0.5) 40%,
+    rgba(120, 128, 124, 0.35) 100%
+  );
+  /* TWO shadows, not one, and that is the physical cue that makes this
+     read as a different mounting rather than a thin frame. A moulded
+     frame sits flush on the wall and casts one soft shadow. A glass or
+     acrylic mount is hung on standoffs, held slightly off the wall, and
+     that gap shows as a second, tighter contact shadow close beneath it
+     in addition to the ambient one. */
+  box-shadow:
+    0 3px 4px rgba(20, 14, 8, 0.22),
+    0 22px 26px rgba(20, 14, 8, 0.26);
+}
+
+.device {
+  /* Same sizing-chain fix as .wall/.frame/.mat above: `ScaleToFit`'s own
+     wrapper needs a concrete ancestor size to measure, and this div's
+     parent (a `flex-1` panel) genuinely resolves to one in a real browser
+     — this just passes that real size down instead of leaving it "auto". */
+  height: 100%;
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5%;
+}
+/*
+  Distinct phone/tablet/desktop SHAPES, not just border-radius.
+
+  `.screen` below is forced to height:100%/width:100% of `.device` — a
+  requirement of the sizing-chain fix, not a stylistic choice. Before that
+  fix, `.screen`'s shape came entirely from its CONTENT's own aspect ratio
+  (the wallpaper artwork, already pre-sized to roughly device-correct
+  proportions by component-renderer.tsx). Once `.screen` blindly fills
+  `.device`, that shape has to come from `.device` itself instead, or
+  "phone" and "desktop" would collapse to whatever rectangle the Studio
+  panel happens to be. `max-height`/`max-width: 100%` keep each shape
+  within the available space rather than overflowing it.
+*/
+.phone {
+  aspect-ratio: 9 / 19.5;
+  max-height: 100%;
+  max-width: 100%;
+}
+.tablet {
+  aspect-ratio: 3 / 4;
+  max-height: 100%;
+  max-width: 100%;
+}
+.desktop {
+  aspect-ratio: 16 / 9;
+  max-height: 100%;
+  max-width: 100%;
+}
+.screen {
+  /* Completes the sizing-chain fix: without an explicit size here,
+     `ScaleToFit`'s measuring div — nested inside .device > .screen — has
+     nothing concrete to measure, for the same reason as .wall/.frame/.mat.
+     Safe now that `.device` has its own real, kind-specific shape above,
+     rather than stretching `.screen` to an arbitrary rectangle. */
+  height: 100%;
+  width: 100%;
+  box-sizing: border-box;
+  position: relative;
+  overflow: hidden;
+  line-height: 0;
+  background: #000;
+  /* The one consumer of this today is `.momentTitle`/`.momentDate`'s
+     `cqw` sizing: the device shell itself scales with the Studio panel
+     (via `.phone`/`.tablet`/`.desktop`'s aspect-ratio + max-width: 100%),
+     so a fixed px or vw size would be right at one panel width and wrong
+     at every other. `cqw` resolves against THIS box's own inline size —
+     without declaring it a container, the unit falls back to nothing. */
+  container-type: inline-size;
+}
+
+.phone .screen {
+  border-radius: 34px;
+  box-shadow: 0 0 0 9px #1b1b1f, 0 14px 30px rgba(0, 0, 0, 0.3);
+}
+.tablet .screen {
+  border-radius: 20px;
+  box-shadow: 0 0 0 11px #1b1b1f, 0 14px 30px rgba(0, 0, 0, 0.3);
+}
+.desktop .screen {
+  border-radius: 6px;
+  box-shadow: 0 0 0 5px #2a2a30, 0 14px 30px rgba(0, 0, 0, 0.3);
+}
+
+/* --- OS furniture, indicative positions -------------------------------
+   These exist so §4's safe zones can be judged in the Studio. A wallpaper
+   previewed flat looks fine even when the clock lands on someone's face. */
+
+.statusBar {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline: 0;
+  height: 4%;
+}
+.lockClock {
+  position: absolute;
+  inset-inline: 0;
+  inset-block-start: 7%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+.clockTime {
+  width: 42%;
+  height: 26px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.72);
+}
+.clockDate {
+  width: 26%;
+  height: 9px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.5);
+}
+.homeIndicator {
+  position: absolute;
+  inset-block-end: 2.5%;
+  inset-inline-start: 50%;
+  transform: translateX(-50%);
+  width: 32%;
+  height: 4px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.68);
+}
+
+/* --- Phone/tablet HOME screen furniture ---
+   Previously only the lock-screen clock existed for phone/tablet — there
+   was no way to check the §4 safe zone that matters for the icon grid and
+   dock, which sit at the OPPOSITE edge from the clock. A wallpaper can
+   clear the lock-screen safe zone and still put a milestone's face behind
+   the dock; nothing before this let that be checked before purchase. */
+.homeGrid {
+  position: absolute;
+  inset-block-start: 8%;
+  inset-inline: 6%;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 9%;
+}
+.homeGrid span {
+  aspect-ratio: 1;
+  border-radius: 22%;
+  background: rgba(255, 255, 255, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+/* The glyph itself, not the tile: sized relative to the tile rather than
+   a fixed pixel count, since the whole device shell scales with the
+   Studio panel (same reasoning `.screen`'s own comment gives for `cqw`
+   further up). A dark, low-opacity ink reads as an engraved icon on the
+   light, translucent tile; a white glyph on a near-white tile would all
+   but disappear. */
+.homeGrid span svg {
+  width: 55%;
+  height: 55%;
+  color: rgba(20, 27, 46, 0.55);
+}
+.homeDock {
+  position: absolute;
+  inset-block-end: 3.5%;
+  inset-inline: 6%;
+  display: flex;
+  justify-content: space-evenly;
+  padding: 7% 6%;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.16);
+  backdrop-filter: blur(2px);
+}
+.homeDock span {
+  aspect-ratio: 1;
+  width: 15%;
+  border-radius: 22%;
+  background: rgba(255, 255, 255, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.homeDock span svg {
+  width: 55%;
+  height: 55%;
+  color: rgba(20, 27, 46, 0.55);
+}
+
+.menuBar {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline: 0;
+  height: 4.5%;
+  background: rgba(0, 0, 0, 0.32);
+}
+.iconColumn {
+  position: absolute;
+  inset-block-start: 9%;
+  inset-inline-start: 3%;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.iconColumn span {
+  width: 34px;
+  height: 28px;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.iconColumn span svg {
+  width: 60%;
+  height: 60%;
+  color: rgba(20, 27, 46, 0.55);
+}
+.dock {
+  position: absolute;
+  inset-block-end: 2.5%;
+  inset-inline-start: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 10px;
+  padding: 7px 11px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.26);
+}
+.dock span {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.62);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.dock span svg {
+  width: 60%;
+  height: 60%;
+  color: rgba(20, 27, 46, 0.55);
+}
+
+/* --- Moment wallpaper (§13) — one milestone, filling the screen ---
+   Mirrors `_render_moment_wallpaper` in the Python renderer field for
+   field; see the component's own docstring in preview-modes.tsx for what
+   is matched and what is an acknowledged approximation. */
+.moment {
+  position: relative;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  background: #1c1c22;
+}
+.momentPhoto {
+  position: absolute;
+  inset: 0;
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+.momentPhotoFallback {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(160deg, #3a3630 0%, #24211d 100%);
+}
+.momentScrim {
+  position: absolute;
+  inset-inline: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 10%;
+  /* Eased with a mid stop rather than two, so the top reads as nearly
+     transparent before darkening — the same shape the server's cubic
+     alpha curve produces, approximated rather than reproduced exactly. */
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0) 0%,
+    rgba(0, 0, 0, 0.28) 55%,
+    rgba(0, 0, 0, 0.62) 100%
+  );
+}
+.momentCaption {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  text-align: center;
+  padding-inline: 8%;
+}
+.momentTitle {
+  font-size: clamp(11px, 4.5cqw, 22px);
+  font-weight: 600;
+  color: #ffffff;
+  line-height: 1.2;
+}
+.momentDate {
+  font-size: clamp(8px, 3cqw, 15px);
+  color: #eceae6;
+}
+
+/* --- Story wallpaper (§13) — the whole story, composed for a screen ---
+   Mirrors `_render_story_wallpaper` in the Python renderer field for
+   field; see the component's own docstring in preview-modes.tsx for what
+   is matched. A dark fallback background, same as `.moment` above, for
+   the moment before any photo has been added. */
+.story {
+  position: relative;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  background: #1c1c22;
+}
+/* `top`/`height`/`insetInlineStart` are set inline (per-render, from the
+   device's own safe-zone fractions) — this only supplies the layout
+   direction each shape needs. */
+.storyPhotosColumn {
+  position: absolute;
+  inset-inline-end: 0;
+  display: flex;
+  flex-direction: column;
+}
+.storyPhotosRow {
+  position: absolute;
+  inset-inline-end: 0;
+  display: flex;
+  flex-direction: row;
+  gap: 0.4%;
+}
+.storyPhotoCell {
+  position: relative;
+  flex: 1 1 0;
+  min-height: 0;
+  min-width: 0;
+  background-size: cover;
+  background-position: center;
+}
+.storyCaption {
+  position: absolute;
+  inset-inline: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* Text starts near the TOP of the caption band and stacks downward —
+     matching the Python source drawing names at `bottom - caption_band +
+     10*scale`, then the ending text below that, not vertically centred
+     within the whole band. */
+  justify-content: flex-start;
+  padding-top: 6%;
+  gap: 4px;
+  text-align: center;
+  padding-inline: 8%;
+}
+
+/* --- Example QR card (§18d) — same visual grammar as the real backend
+   card in bonuses.py, using the SAME brand tokens as the rest of the
+   site rather than re-declared hex values, so the two stay in step if
+   the palette ever changes. */
+.qrCard {
+  display: flex;
+  height: 100%;
+  width: 100%;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  padding: 10% 8%;
+  background: var(--color-ink-navy);
+  box-sizing: border-box;
+}
+.qrCardMark {
+  color: var(--color-champagne-gold);
+}
+.qrCardMarkIcon {
+  height: 32px;
+  width: 32px;
+}
+.qrCardPlate {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6%;
+  border-radius: 12px;
+  background: #f7f1e6;
+  /* the matrix paints in the plate's own dark ink, not the page's --qr-plate
+     custom property override on the finder-square cutout above */
+  --qr-plate: #f7f1e6;
+  color: var(--color-ink-navy);
+  width: min(62%, 220px);
+  aspect-ratio: 1;
+}
+.qrCardMatrix {
+  width: 100%;
+  height: 100%;
+}
+.qrCardBadge {
+  position: absolute;
+  inset-block-start: -10px;
+  inset-inline-end: -10px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: var(--color-champagne-gold);
+  color: var(--color-ink-navy);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+.qrCardCaption {
+  max-width: 80%;
+  text-align: center;
+  font-size: 12px;
+  color: rgba(247, 241, 230, 0.72);
+  line-height: 1.4;
+  margin: 0;
+}
+.qrCardWordmark {
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  color: rgba(247, 241, 230, 0.5);
+  margin: 0;
+}

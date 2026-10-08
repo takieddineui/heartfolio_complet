@@ -1,0 +1,9 @@
+Fonts bundled here are DejaVu fonts (https://dejavu-fonts.github.io),
+derived from Bitstream Vera, licensed under a permissive free license
+that explicitly allows embedding/redistribution in commercial products.
+See https://dejavu-fonts.github.io/License.html for the full text.
+
+Bundled deliberately (rather than relying on whatever fonts happen to
+be installed on a given OS/container) so rendering is identical in
+development and production regardless of deployment image — see the
+"Fonts" note in apps/delivery/renderers/love_story_timeline/png_renderer.py.

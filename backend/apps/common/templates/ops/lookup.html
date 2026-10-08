@@ -1,0 +1,75 @@
+{% comment %}
+Phone-first order lookup (§9).
+
+Opened one-handed, usually while reading a customer's email. So: a single
+large search field, results that answer the question without tapping into
+anything, and the problem cases visually separated from the fine ones.
+{% endcomment %}
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Order lookup — Heartfolio</title>
+  <style>
+    :root { color-scheme: dark; }
+    * { box-sizing: border-box; }
+    body { margin:0; padding:20px 16px 48px; background:#14141a; color:#e9e9ef;
+           font:16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; }
+    .wrap { max-width:560px; margin:0 auto; }
+    h1 { font-size:22px; margin:0 0 16px; }
+    input[type=search] { width:100%; padding:16px; font-size:17px; border-radius:12px;
+      border:1px solid #33333f; background:#1d1d25; color:#e9e9ef; }
+    button { width:100%; margin-top:10px; padding:16px; font-size:16px; font-weight:600;
+      border:0; border-radius:12px; background:#3a3a4a; color:#e9e9ef; }
+    .hint { font-size:13px; color:#7b7b86; margin:10px 0 22px; }
+    .card { background:#1d1d25; border-radius:12px; padding:16px; margin-bottom:12px;
+            border-left:4px solid #33333f; }
+    .card.attention { border-left-color:#ff5f6d; background:#241a1e; }
+    .card.delivered { border-left-color:#34d17f; }
+    .cond { font-weight:600; margin-bottom:8px; }
+    .cond.attention { color:#ff9ba4; }
+    .cond.delivered { color:#7ee2a8; }
+    .row { display:flex; justify-content:space-between; gap:12px; font-size:14px;
+           padding:3px 0; color:#b9b9c4; }
+    .row span:last-child { color:#e9e9ef; text-align:right; word-break:break-all; }
+    .empty { color:#7b7b86; padding:20px 0; }
+    .opsnav { display:flex; gap:6px; margin-bottom:18px; font-size:14px; flex-wrap:wrap; }
+    .opsnav a { color:#8a8a99; text-decoration:none; padding:7px 12px; border-radius:20px; }
+    .opsnav a:hover { color:#e9e9ef; background:#1d1d25; }
+    .opsnav a.active { color:#e9e9ef; background:#2e2e3a; font-weight:600; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+  {% include "ops/_nav.html" %}
+    <h1>Order lookup</h1>
+    <form method="get">
+      <input type="search" name="q" value="{{ query }}" placeholder="Email or order ID"
+             autocomplete="off" autocapitalize="off" spellcheck="false" autofocus>
+      <button type="submit">Search</button>
+    </form>
+    <p class="hint">A partial order ID works — paste whatever the customer sent.</p>
+
+    {% if query %}
+      {% for result in results %}
+        <div class="card {% if result.needs_attention %}attention{% elif result.condition == 'delivered' %}delivered{% endif %}">
+          <div class="cond {% if result.needs_attention %}attention{% elif result.condition == 'delivered' %}delivered{% endif %}">
+            {{ result.condition_label }}
+          </div>
+          <div class="row"><span>Email</span><span>{{ result.email }}</span></div>
+          <div class="row"><span>Order</span><span>{{ result.order_id }}</span></div>
+          <div class="row"><span>Product</span><span>{{ result.product }} / {{ result.pack }}</span></div>
+          <div class="row"><span>Total</span><span>{{ result.total }} {{ result.currency }}</span></div>
+          <div class="row"><span>Files granted</span><span>{{ result.entitlement_count }}</span></div>
+          <div class="row"><span>Payment records</span><span>{{ result.payment_count }}</span></div>
+          <div class="row"><span>Placed</span><span>{{ result.created_at }}</span></div>
+        </div>
+      {% empty %}
+        <p class="empty">Nothing matched that.</p>
+      {% endfor %}
+    {% endif %}
+  </div>
+</body>
+</html>

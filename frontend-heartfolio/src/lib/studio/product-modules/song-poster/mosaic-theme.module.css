@@ -1,0 +1,138 @@
+/*
+  Ported from `.ms-*`. Canvas: 800x1000 ("master", the only ratio this
+  theme has). A photo card floating on a dark, marked ground — the
+  simplest of the eight themes structurally.
+
+  ADAPTED: the progress bar has no real moment/duration to show (same
+  static "0:00" treatment as Player's own progress row), and the
+  footer's names+date join is replaced with the same artist + wordmark
+  line most other themes use.
+
+  THE EIGHT DECORATIVE MARKS ARE REAL EMOJI, kept as-authored — this is
+  a browser rendering them, and browsers/OS both handle emoji natively.
+  The prototype's own material note already flags a real fragility
+  here even in its intended environment: "they render in whatever
+  glyph set the device carries… worth a physical proof before this one
+  ships." That caution carries over unchanged; nothing new was added
+  to it for this adaptation.
+
+  Palette: `--bg:#17181A; --card:#0E0F10; --ink:#EDEDE8;
+  --soft:#A9A9A2; --rule:#3A3A3B; --mark:#C9A15C;` — the darkest ground
+  of any theme so far, with the card one step darker still.
+*/
+
+.sheet {
+  position: relative;
+  width: 800px;
+  height: 1000px;
+  overflow: hidden;
+  background: #17181a;
+  color: #edede8;
+  font-family: var(--font-sans, "Archivo", system-ui, sans-serif);
+}
+
+.mark {
+  position: absolute;
+  line-height: 0;
+  user-select: none;
+  transform: translate(-50%, -50%) rotate(var(--r, 0deg));
+}
+.markGlyph {
+  display: block;
+  font-style: normal;
+  line-height: 1;
+}
+
+.hero {
+  position: absolute;
+  inset-inline-start: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 560px;
+  background: #0e0f10;
+  box-shadow: 0 18px 40px -14px rgba(0, 0, 0, 0.55), 0 0 0 1px #3a3a3b;
+}
+.heroPhoto {
+  width: 100%;
+  height: 340px;
+  overflow: hidden;
+  background: #2a2a2c;
+}
+.heroPhoto img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.heroBody {
+  padding: 20px 26px 24px;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 14px;
+}
+.title {
+  font-weight: 800;
+  font-size: 26px;
+  line-height: 1.05;
+  letter-spacing: -0.015em;
+  margin: 0 0 3px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.artist {
+  font-size: 14.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #a9a9a2;
+  margin: 0;
+}
+.heart {
+  width: 16px;
+  height: 16px;
+  color: #edede8;
+  flex: 0 0 auto;
+  margin-top: 3px;
+}
+
+.progress {
+  position: relative;
+  margin-top: 16px;
+  height: 20px;
+}
+.rule {
+  position: absolute;
+  inset-inline: 0;
+  top: 9px;
+  height: 1px;
+  background: #3a3a3b;
+}
+.times {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 5px;
+  font-family: var(--font-mono, "IBM Plex Mono", ui-monospace, monospace);
+  font-size: 13px;
+  color: #a9a9a2;
+}
+
+.dedication {
+  margin: 16px 0 0;
+  font-style: italic;
+  font-size: 16px;
+  color: #a9a9a2;
+  line-height: 1.5;
+}
+
+.foot {
+  margin: 10px 0 0;
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #a9a9a2;
+}

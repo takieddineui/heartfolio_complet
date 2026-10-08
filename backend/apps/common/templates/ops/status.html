@@ -1,0 +1,97 @@
+{% comment %}
+Phone-first ops status page (§7b, §9).
+
+§9 splits the dashboard in two: desktop-oriented work stays in plain Django
+admin, while the urgent-by-nature screens are purpose-built for a small
+screen. This is the first of those — the "is everything OK" glance you take
+standing up, not sitting at a desk.
+
+Designed accordingly: one column, large touch targets, the answer visible
+without scrolling, and no dependency on any external stylesheet or font so it
+still renders when things are broken — which is the only time it matters.
+{% endcomment %}
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Status — Heartfolio</title>
+  <style>
+    :root { color-scheme: dark; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; padding: 20px 16px 48px;
+      background: #14141a; color: #e9e9ef;
+      font: 16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    }
+    .wrap { max-width: 520px; margin: 0 auto; }
+    .headline {
+      border-radius: 14px; padding: 24px 20px; margin-bottom: 20px; text-align: center;
+    }
+    .headline h1 { margin: 0 0 4px; font-size: 26px; letter-spacing: -0.01em; }
+    .headline p { margin: 0; opacity: 0.75; font-size: 14px; }
+    .ok      { background: #123524; color: #7ee2a8; }
+    .failing { background: #3a1418; color: #ff9ba4; }
+    .unknown { background: #2c2718; color: #f0d08a; }
+    ul { list-style: none; margin: 0; padding: 0; }
+    li {
+      display: flex; align-items: flex-start; gap: 12px;
+      background: #1d1d25; border-radius: 12px;
+      padding: 16px; margin-bottom: 10px;
+    }
+    .dot { width: 12px; height: 12px; border-radius: 50%; margin-top: 5px; flex: 0 0 12px; }
+    .dot.ok { background: #34d17f; }
+    .dot.failing { background: #ff5f6d; }
+    .dot.unknown { background: #e8b64c; }
+    .name { font-weight: 600; }
+    .detail { font-size: 13px; opacity: 0.6; margin-top: 2px; word-break: break-word; }
+    .latency { font-size: 12px; opacity: 0.45; margin-top: 2px; }
+    .refresh {
+      display: block; width: 100%; text-align: center; text-decoration: none;
+      background: #2e2e3a; color: #e9e9ef; padding: 16px; border-radius: 12px;
+      margin-top: 20px; font-weight: 600;
+    }
+    .checked { text-align: center; font-size: 12px; opacity: 0.45; margin-top: 16px; }
+    .opsnav { display:flex; gap:6px; margin-bottom:18px; font-size:14px; flex-wrap:wrap; }
+    .opsnav a { color:#8a8a99; text-decoration:none; padding:7px 12px; border-radius:20px; }
+    .opsnav a:hover { color:#e9e9ef; background:#1d1d25; }
+    .opsnav a.active { color:#e9e9ef; background:#2e2e3a; font-weight:600; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+  {% include "ops/_nav.html" %}
+    <div class="headline {{ overall }}">
+      <h1>
+        {% if overall == "ok" %}Everything OK
+        {% elif overall == "failing" %}Something is down
+        {% else %}Partly unknown{% endif %}
+      </h1>
+      <p>
+        {% if overall == "failing" %}One or more services failed their check.
+        {% elif overall == "unknown" %}Some services aren't configured here.
+        {% else %}All checks passed.{% endif %}
+      </p>
+    </div>
+
+    <ul>
+      {% for service in services %}
+        <li>
+          <span class="dot {{ service.status }}"></span>
+          <span>
+            <span class="name">{{ service.label }}</span>
+            <div class="detail">{{ service.detail }}</div>
+            {% if service.latency_ms is not None %}
+              <div class="latency">{{ service.latency_ms }} ms</div>
+            {% endif %}
+          </span>
+        </li>
+      {% endfor %}
+    </ul>
+
+    <a class="refresh" href="">Check again</a>
+    <p class="checked">Checked {{ checked_at }} · live, not cached</p>
+  </div>
+</body>
+</html>

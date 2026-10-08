@@ -1,0 +1,146 @@
+/*
+  Song Poster's own §10 — same principle as `live-keepsake.module.css`'s
+  own opening comment, applied to a different product: the digital
+  keepsake is a full LISTENING experience, not the Ledger/Ephemeris/
+  Sleeve print reproduced in HTML. Independent of `themeSelections.
+  theme` entirely — a customer who bought the Ledger print gets the
+  SAME one digital keepsake a Player customer gets, the way Love Story
+  Timeline's own digital experience doesn't care whether the print was
+  vertical or horizontal.
+
+  ONE PALETTE, not five like Love Story Timeline's — deliberate, not an
+  oversight. There is no palette-selection axis for this product yet;
+  rather than invent a customer choice that doesn't exist elsewhere in
+  Song Poster, this uses one warm, neutral ground close to Player
+  theme's own — the closest thing this product has to "the foundation,
+  no genre" register Player's own build documented.
+*/
+
+.root {
+  --ink: #171512;
+  --muted: #6b675c;
+  --paper: #f6f2e9;
+  --accent: #b5a06b;
+
+  position: relative;
+  min-height: 100svh;
+  background: var(--paper);
+  color: var(--ink);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-family: var(--font-sans, "Archivo", system-ui, sans-serif);
+}
+
+.stage {
+  flex: 1;
+  width: 100%;
+  max-width: 480px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  padding: 12vh 28px 6vh;
+  text-align: center;
+}
+
+.photo {
+  width: min(70vw, 300px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  overflow: hidden;
+  box-shadow: 0 24px 60px -20px rgba(0, 0, 0, 0.3);
+  background: #d8d3c4;
+}
+.photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.track {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(1.5rem, 6vw, 2.2rem);
+  font-weight: 400;
+  margin: 0;
+  line-height: 1.15;
+}
+.artist {
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-size: 0.78rem;
+  color: var(--muted);
+  margin: 4px 0 0;
+}
+
+.transport {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.playButton {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 1px solid var(--ink);
+  background: var(--ink);
+  color: var(--paper);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.playButton:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.waveform {
+  width: 100%;
+  height: 44px;
+  cursor: pointer;
+  touch-action: none;
+}
+
+.times {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-mono, "IBM Plex Mono", ui-monospace, monospace);
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+
+.dedication {
+  font-style: italic;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  max-width: 38ch;
+  color: var(--muted);
+  margin: 0;
+}
+
+.error {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.ending {
+  padding: 4vh 28px 6vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.colophon {
+  font-size: 0.72rem;
+  opacity: 0.55;
+}
+.colophon a {
+  color: inherit;
+  text-decoration: none;
+}

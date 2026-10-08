@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Heartfolio">
+  <!--
+    HEARTFOLIO MARK — the heart drawn as an interlaced ribbon, with the
+    sparkle off its upper-right shoulder.
+
+    NO width/height ON THE ROOT, deliberately: the consumer sizes it, and
+    hardcoded dimensions would fight every one of them.
+
+    STROKED, NOT FILLED. The weave depends on bands crossing over and under
+    one another. As strokes that is four short paths whose ORDER is the
+    weave; as a filled outline every crossing becomes its own region and
+    the file stops being hand-editable.
+
+    PADDING IS LOAD-BEARING. The mark sits inside the middle ~75% of the
+    64-unit box. At 16x16 a shape touching the edges loses its outer
+    contour to the browser's own rounding and stops reading as a heart.
+  -->
+  <defs>
+    <!-- Rose at the upper left warming to bronze at the lower right, following
+         the light in the source artwork. Angled, so the two lobes never land
+         on the same tone. -->
+    <linearGradient id="hf-ribbon" x1="10" y1="12" x2="54" y2="52" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#EBB0A6"/>
+      <stop offset="0.5" stop-color="#DE9B85"/>
+      <stop offset="1" stop-color="#C5854F"/>
+    </linearGradient>
+    <!-- One shade deeper, used only for the band that passes OVER, which is
+         what makes the crossing legible without drawing a shadow. -->
+    <linearGradient id="hf-ribbon-over" x1="18" y1="18" x2="46" y2="46" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#D89A8C"/>
+      <stop offset="1" stop-color="#B8763F"/>
+    </linearGradient>
+    <linearGradient id="hf-spark" x1="46" y1="6" x2="57" y2="21" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFEBCF"/>
+      <stop offset="1" stop-color="#E0A765"/>
+    </linearGradient>
+  </defs>
+
+  <g fill="none" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Paint order IS the weave. Reordering these four lines turns the knot
+         into a tangle. -->
+
+    <!-- Left lobe, continuing down the left flank to the point. -->
+    <path stroke="url(#hf-ribbon)" d="M32 22 A 10 10 0 0 0 14 31.5 L32 50"/>
+
+    <!-- The band that passes OVER, upper right to lower left. Its lower end
+         stops exactly on the left flank, so it reads as tucking under rather
+         than being cut off. -->
+    <path stroke="url(#hf-ribbon-over)" d="M41 23 L23 40.5"/>
+
+    <!-- The band passing UNDER, mirrored onto the right flank. -->
+    <path stroke="url(#hf-ribbon)" d="M23 23 L41 40.5"/>
+
+    <!-- Right lobe, closing the silhouette at the same point. -->
+    <path stroke="url(#hf-ribbon)" d="M32 22 A 10 10 0 0 1 50 31.5 L32 50"/>
+  </g>
+
+  <!-- Four-point star, filled rather than stroked: at 16px a stroked star
+       fills its own centre and becomes a dot. -->
+  <path fill="url(#hf-spark)" d="M51 7 L52.8 13.2 L59 15 L52.8 16.8 L51 23 L49.2 16.8 L43 15 L49.2 13.2 Z"/>
+</svg>

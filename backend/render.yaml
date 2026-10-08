@@ -1,0 +1,93 @@
+# NOT IN USE. Neither Render nor Railway hosts this project any more:
+# development is local Docker, and production is planned as a VPS running
+# the same Docker setup (the database choice for the VPS is still
+# undecided). This file is kept as a record of a hosting option that was
+# configured, not as a deployment path.
+#
+# Render blueprint — OPTIONAL. Everything here can be set in the Render
+# dashboard instead; this file only keeps it in version control.
+#
+# Does not replace or interfere with `railpack.json`, which Railway read
+# and Render ignores. Both could sit in the repo at once.
+#
+# The Dockerfile is the build, same as it was on Railway: it binds
+# ${PORT:-8000} and Render injects PORT, so no Procfile and no wsgi.py
+# change is needed.
+#
+# Health check is `/api/v1/health/` — public (AllowAny) and deliberately
+# does NOT touch the database, so it reports process liveness. The
+# database-backed variant is `/api/v1/health/ready/`; it is the better
+# readiness probe but will fail the service during a database blip, which
+# is not what a platform health check should do on a free plan.
+#
+# NOT RUN HERE: migrations. The Dockerfile leaves this as a deliberate
+# manual step. The Supabase database is ALREADY MIGRATED AND SEEDED, so
+# after the first deploy the useful command is a check, not a rebuild:
+#   python manage.py showmigrations
+# Do NOT re-run `seed_catalog.py` — the catalog rows already exist and are
+# correct. Do NOT run `createsuperuser` — the existing one carries over
+# with the database.
+
+services:
+  - type: web
+    name: heartfolio-backend
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    region: frankfurt
+    healthCheckPath: /api/v1/health/
+    envVars:
+      # THE DATABASE IS SUPABASE, NOT RENDER. This is the same connection
+      # string Railway used (its former host), copied unchanged — there is no migration and
+      # no second database. `sync: false` keeps the credentials out of the
+      # repo. It must stay the Supavisor SESSION-mode URL that
+      # `config/db_backends/postgresql_patient` was written against;
+      # transaction-mode pooling is a different port and would need
+      # DISABLE_SERVER_SIDE_CURSORS, which this project does not set.
+      - key: DATABASE_URL
+        sync: false
+      - key: DJANGO_SECRET_KEY
+        sync: false
+      - key: DJANGO_SETTINGS_MODULE
+        value: config.settings.production
+      - key: ASSET_STORAGE_BACKEND
+        value: r2
+      - key: PAYMENT_PROVIDER
+        value: paddle
+      - key: PADDLE_ENVIRONMENT
+        value: sandbox
+
+      # Set in the dashboard, not here. `sync: false` means Render prompts
+      # for the value on first deploy and never stores it in the repo —
+      # which is the point for every secret below.
+      - key: DJANGO_ALLOWED_HOSTS
+        sync: false
+      - key: CORS_ALLOWED_ORIGINS
+        sync: false
+      - key: FRONTEND_URL
+        sync: false
+      - key: R2_ACCOUNT_ID
+        sync: false
+      - key: R2_ACCESS_KEY_ID
+        sync: false
+      - key: R2_SECRET_ACCESS_KEY
+        sync: false
+      - key: R2_BUCKET_NAME
+        sync: false
+      - key: PADDLE_API_KEY
+        sync: false
+      - key: PADDLE_CLIENT_TOKEN
+        sync: false
+      - key: PADDLE_WEBHOOK_SECRET
+        sync: false
+      - key: RESEND_API_KEY
+        sync: false
+      - key: RESEND_FROM_EMAIL
+        sync: false
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: TELEGRAM_CHAT_ID
+        sync: false
+
+# No `databases:` block on purpose. Postgres is Supabase, provisioned
+# outside Render and shared with the former Railway deployment.

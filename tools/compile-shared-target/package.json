@@ -1,0 +1,10 @@
+{
+  "name": "heartfolio-compile-shared-target",
+  "private": true,
+  "type": "module",
+  "description": "One-time compilation of the shared AR tracking target (§21i).",
+  "dependencies": {
+    "canvas": "^2.11.2",
+    "mind-ar": "1.2.5"
+  }
+}

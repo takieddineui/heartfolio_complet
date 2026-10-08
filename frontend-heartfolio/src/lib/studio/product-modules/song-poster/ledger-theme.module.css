@@ -1,0 +1,135 @@
+/*
+  Ported from the prototype's `.lg-*` rules, authored against the same
+  800x1000 "master" canvas Player uses (§ RATIOS.master — both themes
+  share that ratio, so they share an authoring canvas by construction,
+  not coincidence).
+
+  ADAPTED, NOT A FULL PORT — see `ledger-theme.tsx`'s own docstring for
+  the honest account of what changed and why: the prototype's `.lg-
+  fields` six-row evidence table (Album/Year/Runtime/Mark/Logged/
+  Location) has no real data behind ANY of its six rows in this
+  product's actual schema, so it is not rendered rather than filled
+  with invented values.
+
+  Palette is Ledger's own material values, not shared with Player:
+  `--bg:#E7E3D8; --ink:#232019; --soft:#6C6455; --rule:#B2AA98;` — a
+  warmer, more document-like khaki, deliberately distinct from Player's
+  cooler cream.
+*/
+
+.sheet {
+  position: relative;
+  width: 800px;
+  height: 1000px;
+  overflow: hidden;
+  background: #e7e3d8;
+  color: #232019;
+  font-family: var(--font-sans, "Archivo", system-ui, sans-serif);
+  padding: 52px 54px 74px;
+  box-sizing: border-box;
+}
+
+.head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 14.5px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: #6c6455;
+}
+.rule {
+  height: 1px;
+  background: #232019;
+  margin: 9px 0 26px;
+}
+
+.title {
+  font-weight: 800;
+  font-size: 66px;
+  line-height: 0.94;
+  letter-spacing: -0.028em;
+  margin: 0 0 6px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.artist {
+  font-family: var(--font-mono, "IBM Plex Mono", ui-monospace, monospace);
+  font-size: 16px;
+  letter-spacing: 0.02em;
+  margin: 0;
+}
+
+.mid {
+  display: flex;
+  gap: 26px;
+  margin: 28px 0 0;
+  align-items: flex-start;
+}
+.photo {
+  flex: 0 0 222px;
+  width: 222px;
+  height: 270px;
+  overflow: hidden;
+  background: #cfc9ba;
+  box-shadow: 0 0 0 1px #232019;
+}
+.photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.caption {
+  font-size: 13.5px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #6c6455;
+  margin: 7px 0 0;
+  text-align: end;
+}
+
+.wavebox {
+  margin: 30px 0 0;
+  border: 1px solid #232019;
+  padding: 11px 12px 8px;
+  position: relative;
+}
+.wavelab {
+  position: absolute;
+  top: -6px;
+  inset-inline-start: 10px;
+  background: #e7e3d8;
+  padding: 0 5px;
+  font-size: 13.5px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #6c6455;
+}
+.wavebox svg {
+  display: block;
+  width: 100%;
+  height: 88px;
+}
+
+.dedication {
+  margin: 24px 0 0;
+  font-size: 15px;
+  letter-spacing: 0.05em;
+  color: #6c6455;
+  max-width: 56ch;
+}
+
+.foot {
+  position: absolute;
+  inset-inline: 54px;
+  bottom: 40px;
+  display: flex;
+  justify-content: space-between;
+  font-size: 13.5px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #6c6455;
+  border-top: 1px solid #b2aa98;
+  padding-top: 8px;
+}

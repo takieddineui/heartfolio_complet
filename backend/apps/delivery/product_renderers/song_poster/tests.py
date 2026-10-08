@@ -1,0 +1,603 @@
+"""
+Tests for Song Poster's data contract, Pillow renderer, and registry
+registration — the same three layers Love Story Timeline's own
+`tests.py` covers, in the same style (`make_customer`/`make_*` local
+fixture helpers, real uploaded photos via `upload_asset`, not
+placeholder asset ids — see that file's own comment on why a
+placeholder id fails at the renderer rather than at validation).
+
+WRITTEN, NOT RUN. No Django is available in the environment these were
+authored in — every assertion here is reasoned from the real model
+fields and the real function signatures actually read from the source
+files (`data.py`, `png_renderer.py`, `renderer.py`, `registry.py`), the
+same discipline the rest of this session's test-repair work followed,
+but it has not executed against a real database. Run with:
+
+    docker compose exec -e DATABASE_URL=postgres://heartfolio:heartfolio@db:5432/heartfolio \\
+      -e ASSET_STORAGE_BACKEND=mock api python manage.py test apps.delivery.product_renderers.song_poster
+"""
+
+import io
+import uuid
+
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import SimpleTestCase, TestCase
+from PIL import Image
+
+from apps.assets.services import upload_asset
+from apps.common.exceptions.api_errors import SongPosterInvalidData, SongPosterRenderFailed
+from apps.customers.models import Customer
+from apps.delivery.delivery_types import DeliveryType
+from apps.delivery.registry import get_renderer
+from apps.delivery.renderers import NotImplementedRenderer
+from apps.products.models import DeliveryPack, Product
+from apps.projects.models import Project
+
+from .data import THEMES, NormalizedSongPoster, validate_and_normalize
+from .png_renderer import render_png
+from .renderer import SongPosterRenderer
+
+VALID_VALUES = {
+    "track": "Halfway Home",
+    "artist": "The Landing",
+    "dedication": "For every long drive that led back to you.",
+    "photo": {"assetId": "asset-1"},
+    "youtubeUrl": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+    "youtubeVideoId": "dQw4w9WgXcQ",
+}
+
+
+def make_customer(**overrides) -> Customer:
+    defaults = {"email": f"guest-{uuid.uuid4().hex[:8]}@example.com"}
+    defaults.update(overrides)
+    return Customer.objects.create(**defaults)
+
+
+def make_song_poster_product() -> Product:
+    return Product.objects.create(
+        slug="song-poster", name_i18n_key="product.songPoster.name",
+        category=Product.CATEGORY_MUSIC, status=Product.STATUS_AVAILABLE,
+    )
+
+
+def make_delivery_pack(product, **overrides) -> DeliveryPack:
+    defaults = {
+        "product": product, "slug": "printable", "name_i18n_key": "pack.name",
+        "description_i18n_key": "pack.description", "price_cents": 1200,
+        "included_targets": ["print-classic-frameless"],
+    }
+    defaults.update(overrides)
+    return DeliveryPack.objects.create(**defaults)
+
+
+def values_with_real_photo(customer, values=None):
+    """`VALID_VALUES` with a REAL uploaded photo, not the placeholder
+    `"asset-1"` id — same reasoning as Love Story Timeline's own
+    `values_with_real_photos`: a test that actually renders needs
+    `get_asset_bytes_for_customer` to resolve something real, and a
+    placeholder id fails there (correctly) rather than at validation.
+    """
+    base = values or VALID_VALUES
+    buf = io.BytesIO()
+    Image.new("RGB", (1200, 900), "steelblue").save(buf, format="JPEG")
+    buf.seek(0)
+    asset = upload_asset(customer, SimpleUploadedFile("p.jpg", buf.read(), content_type="image/jpeg"))
+    return {**base, "photo": {"assetId": str(asset.id)}}
+
+
+# ------------------------------------------------------------------
+# Data validation
+# ------------------------------------------------------------------
+
+class DataValidationTests(SimpleTestCase):
+    def test_valid_data_passes(self):
+        song = validate_and_normalize(VALID_VALUES)
+        self.assertEqual(song.track, "Halfway Home")
+        self.assertEqual(song.artist, "The Landing")
+        self.assertEqual(song.youtube_video_id, "dQw4w9WgXcQ")
+
+    def test_missing_track_rejected(self):
+        values = {**VALID_VALUES, "track": ""}
+        with self.assertRaises(SongPosterInvalidData):
+            validate_and_normalize(values)
+
+    def test_missing_artist_rejected(self):
+        values = {**VALID_VALUES, "artist": ""}
+        with self.assertRaises(SongPosterInvalidData):
+            validate_and_normalize(values)
+
+    def test_missing_photo_rejected(self):
+        values = {**VALID_VALUES, "photo": None}
+        with self.assertRaises(SongPosterInvalidData):
+            validate_and_normalize(values)
+
+    def test_dedication_is_optional(self):
+        values = {**VALID_VALUES, "dedication": ""}
+        song = validate_and_normalize(values)
+        self.assertEqual(song.dedication, "")
+
+    def test_dedication_over_length_rejected(self):
+        values = {**VALID_VALUES, "dedication": "x" * 181}
+        with self.assertRaises(SongPosterInvalidData):
+            validate_and_normalize(values)
+
+    def test_missing_youtube_url_rejected(self):
+        values = {**VALID_VALUES, "youtubeUrl": ""}
+        with self.assertRaises(SongPosterInvalidData):
+            validate_and_normalize(values)
+
+    def test_unconfirmed_youtube_link_rejected(self):
+        """A `youtubeUrl` with no matching `youtubeVideoId` — the
+        customer pasted a link but `YouTubeValidateView` was never
+        actually called (or was, and rejected it). Must fail here, not
+        render with no video at all."""
+        values = {**VALID_VALUES, "youtubeVideoId": None}
+        with self.assertRaises(SongPosterInvalidData):
+            validate_and_normalize(values)
+
+    def test_edited_link_since_confirmation_rejected(self):
+        """The customer validated one link, then edited the text field
+        afterward — `youtubeVideoId` still holds the OLD confirmation,
+        which no longer matches what the current URL text parses to.
+        `extract_video_id` re-parsing the URL is what catches this."""
+        values = {
+            **VALID_VALUES,
+            "youtubeUrl": "https://www.youtube.com/watch?v=differentId",
+            # youtubeVideoId still "dQw4w9WgXcQ" — stale.
+        }
+        with self.assertRaises(SongPosterInvalidData):
+            validate_and_normalize(values)
+
+    def test_not_a_dict_rejected(self):
+        with self.assertRaises(SongPosterInvalidData):
+            validate_and_normalize(["not", "a", "dict"])
+
+    def test_track_over_length_rejected(self):
+        values = {**VALID_VALUES, "track": "x" * 61}
+        with self.assertRaises(SongPosterInvalidData):
+            validate_and_normalize(values)
+
+    def test_theme_selection_is_read_and_normalized(self):
+        song = validate_and_normalize(VALID_VALUES, {"theme": "player"})
+        self.assertEqual(song.theme, "player")
+
+    def test_unrecognised_theme_falls_back_to_default(self):
+        """Matches the frontend's own `getSongPosterTheme(undefined)`
+        fallback — a project saved before the theme axis existed, or
+        one referencing a since-removed theme id, must still render as
+        Player rather than fail outright."""
+        song = validate_and_normalize(VALID_VALUES, {"theme": "not-a-real-theme"})
+        self.assertEqual(song.theme, "player")
+
+    def test_missing_theme_selections_falls_back_to_default(self):
+        song = validate_and_normalize(VALID_VALUES, None)
+        self.assertEqual(song.theme, "player")
+
+
+# ------------------------------------------------------------------
+# PNG rendering
+# ------------------------------------------------------------------
+
+class PngRenderingTests(TestCase):
+    def test_print_target_renders(self):
+        customer = make_customer()
+        values = values_with_real_photo(customer)
+        song = validate_and_normalize(values)
+
+        content = render_png(song, target_id="print-classic-frameless", customer=customer)
+
+        self.assertGreater(len(content), 0)
+        with Image.open(io.BytesIO(content)) as img:
+            self.assertEqual(img.size, (2400, 3000))
+
+    def test_edged_print_is_smaller_content_than_frameless(self):
+        """Not a pixel-identical assertion (the two ARE meant to differ —
+        edged insets by the safe margin) — just proves the edged
+        variant is a genuinely distinct render, not the frameless
+        bytes with a different filename."""
+        customer = make_customer()
+        values = values_with_real_photo(customer)
+        song = validate_and_normalize(values)
+
+        frameless = render_png(song, target_id="print-classic-frameless", customer=customer)
+        edged = render_png(song, target_id="print-classic-edged", customer=customer)
+
+        self.assertNotEqual(frameless, edged)
+
+    def test_wallpaper_target_renders_at_device_dimensions(self):
+        customer = make_customer()
+        values = values_with_real_photo(customer)
+        song = validate_and_normalize(values)
+
+        content = render_png(song, target_id="wallpaper-phone", customer=customer)
+
+        with Image.open(io.BytesIO(content)) as img:
+            self.assertEqual(img.size, (1290, 2796))
+
+    def test_unsupported_target_raises(self):
+        customer = make_customer()
+        values = values_with_real_photo(customer)
+        song = validate_and_normalize(values)
+
+        with self.assertRaises(SongPosterRenderFailed):
+            render_png(song, target_id="not-a-real-target", customer=customer)
+
+    def test_photo_belonging_to_another_customer_fails(self):
+        """The same ownership boundary Love Story Timeline's own
+        `SecurityTests` proves — `get_asset_bytes_for_customer` is
+        called with THIS render's customer, not whoever originally
+        owned the asset id in a malformed/stale `values` payload."""
+        owner = make_customer()
+        stranger = make_customer()
+        values = values_with_real_photo(owner)
+        song = validate_and_normalize(values)
+
+        with self.assertRaises(SongPosterRenderFailed):
+            render_png(song, target_id="print-classic-frameless", customer=stranger)
+
+    def test_ledger_theme_renders(self):
+        """Proves the theme DISPATCH, not just Player's own path — a
+        real risk this test exists specifically to catch: a second
+        theme registered but never actually reached because
+        `render_png` kept calling `_draw_player` by name somewhere."""
+        customer = make_customer()
+        values = values_with_real_photo(customer, {**VALID_VALUES, "youtubeVideoId": "dQw4w9WgXcQ"})
+        song = validate_and_normalize(values, {"theme": "ledger"})
+        self.assertEqual(song.theme, "ledger")
+
+        content = render_png(song, target_id="print-classic-frameless", customer=customer)
+        self.assertGreater(len(content), 0)
+
+    def test_ledger_and_player_produce_different_bytes(self):
+        """The two themes must actually look different — a regression
+        here would mean the dispatch resolved but both paths silently
+        called the same drawing function."""
+        customer = make_customer()
+        values = values_with_real_photo(customer)
+        player_song = validate_and_normalize(values, {"theme": "player"})
+        ledger_song = validate_and_normalize(values, {"theme": "ledger"})
+
+        player_bytes = render_png(player_song, target_id="print-classic-frameless", customer=customer)
+        ledger_bytes = render_png(ledger_song, target_id="print-classic-frameless", customer=customer)
+
+        self.assertNotEqual(player_bytes, ledger_bytes)
+
+    def test_every_registered_drawing_theme_is_also_a_valid_selection(self):
+        """The EXACT bug found while building Ephemeris: `png_renderer.
+        py`'s `_THEME_RENDERERS` gained an entry before `data.py`'s
+        `THEMES` whitelist did, so `validate_and_normalize` was
+        silently rejecting a real customer's theme choice and falling
+        back to Player — the drawing dispatch was correct throughout;
+        the gate in front of it was not. This test exists specifically
+        so the same class of bug fails loudly the next time a theme is
+        registered in one place and not the other.
+        """
+        from .png_renderer import _THEME_RENDERERS
+
+        for theme_id in _THEME_RENDERERS:
+            with self.subTest(theme=theme_id):
+                self.assertIn(theme_id, THEMES)
+
+    def test_ephemeris_theme_renders(self):
+        customer = make_customer()
+        values = values_with_real_photo(customer)
+        song = validate_and_normalize(values, {"theme": "ephemeris"})
+        self.assertEqual(song.theme, "ephemeris")
+
+        content = render_png(song, target_id="print-classic-frameless", customer=customer)
+        self.assertGreater(len(content), 0)
+
+    def test_ephemeris_produces_different_bytes_from_the_other_two(self):
+        customer = make_customer()
+        values = values_with_real_photo(customer)
+        ledger_bytes = render_png(
+            validate_and_normalize(values, {"theme": "ledger"}), target_id="print-classic-frameless", customer=customer
+        )
+        ephemeris_bytes = render_png(
+            validate_and_normalize(values, {"theme": "ephemeris"}), target_id="print-classic-frameless", customer=customer
+        )
+        self.assertNotEqual(ledger_bytes, ephemeris_bytes)
+
+    def test_contact_sheet_theme_renders(self):
+        customer = make_customer()
+        values = values_with_real_photo(customer)
+        song = validate_and_normalize(values, {"theme": "contactsheet"})
+        self.assertEqual(song.theme, "contactsheet")
+
+        content = render_png(song, target_id="print-classic-frameless", customer=customer)
+        self.assertGreater(len(content), 0)
+
+    def test_contact_sheet_produces_different_bytes_from_the_others(self):
+        customer = make_customer()
+        values = values_with_real_photo(customer)
+        contactsheet_bytes = render_png(
+            validate_and_normalize(values, {"theme": "contactsheet"}), target_id="print-classic-frameless", customer=customer
+        )
+        player_bytes = render_png(
+            validate_and_normalize(values, {"theme": "player"}), target_id="print-classic-frameless", customer=customer
+        )
+        self.assertNotEqual(contactsheet_bytes, player_bytes)
+
+    def test_label_theme_renders(self):
+        customer = make_customer()
+        values = values_with_real_photo(customer)
+        song = validate_and_normalize(values, {"theme": "label"})
+        self.assertEqual(song.theme, "label")
+
+        content = render_png(song, target_id="print-classic-frameless", customer=customer)
+        self.assertGreater(len(content), 0)
+
+    def test_label_produces_different_bytes_from_the_others(self):
+        customer = make_customer()
+        values = values_with_real_photo(customer)
+        label_bytes = render_png(
+            validate_and_normalize(values, {"theme": "label"}), target_id="print-classic-frameless", customer=customer
+        )
+        ledger_bytes = render_png(
+            validate_and_normalize(values, {"theme": "ledger"}), target_id="print-classic-frameless", customer=customer
+        )
+        self.assertNotEqual(label_bytes, ledger_bytes)
+
+    def test_award_theme_renders_at_its_own_landscape_dimensions(self):
+        """Award has no portrait composition at all — `ratios:
+        ['landscape']` in the prototype's own registry — so this uses
+        the theme's own `design_w`/`design_h` (1200x800) directly,
+        exercising `_draw_award` in isolation rather than through
+        `render_png`'s target-dimension resolution (that path is
+        proven separately, by `test_landscape_themes_swap_a_nominally_
+        portrait_print_target` below).
+
+        UPDATED FROM THIS TEST'S ORIGINAL VERSION: it used to say Award
+        "is not purchasable and printable correctly" — true when this
+        test was first written, no longer true. `render_png` now swaps
+        a print target's dimensions to landscape when the selected
+        theme's own design canvas is landscape, so the SAME
+        `print-classic-frameless` a Player customer buys now produces
+        a genuinely landscape file for Award. See that test for the
+        proof.
+
+        WHAT REMAINS GENUINELY OPEN: the Studio's export panel
+        (`export-section.tsx`) still LABELS every print target's
+        dimensions from a static, theme-unaware list — so while the
+        delivered FILE is now correct, the panel a customer sees while
+        composing may still show portrait numbers for a theme that
+        will actually deliver landscape. Fixing that needs
+        `ExportEngineConfig` (or how the panel reads it) to become
+        theme-selection-aware, a real Shell-level type change, not
+        something to fold into this backend fix.
+        """
+        from .png_renderer import AWARD_DESIGN_H, AWARD_DESIGN_W
+
+        customer = make_customer()
+        values = values_with_real_photo(customer)
+        song = validate_and_normalize(values, {"theme": "award"})
+        self.assertEqual(song.theme, "award")
+
+        from .png_renderer import _draw_award
+
+        canvas = Image.new("RGB", (AWARD_DESIGN_W, AWARD_DESIGN_H), "#f1ede3")
+        _draw_award(canvas, song, scale=1.0, origin=(0, 0), customer=customer)
+        self.assertEqual(canvas.size, (AWARD_DESIGN_W, AWARD_DESIGN_H))
+
+    def test_sleeve_theme_renders_at_its_own_landscape_dimensions(self):
+        """Same shape as the Award test above, including the same
+        correction: see that test's docstring for what changed and
+        what remains genuinely open (the export panel's display, not
+        the delivered file).
+        """
+        from .png_renderer import SLEEVE_DESIGN_H, SLEEVE_DESIGN_W, _draw_sleeve
+
+        customer = make_customer()
+        values = values_with_real_photo(customer)
+        song = validate_and_normalize(values, {"theme": "sleeve"})
+        self.assertEqual(song.theme, "sleeve")
+
+        canvas = Image.new("RGB", (SLEEVE_DESIGN_W, SLEEVE_DESIGN_H), "#f1ece2")
+        _draw_sleeve(canvas, song, scale=1.0, origin=(0, 0), customer=customer)
+        self.assertEqual(canvas.size, (SLEEVE_DESIGN_W, SLEEVE_DESIGN_H))
+
+    def test_sleeve_ring_text_falls_back_to_a_dot_when_no_dedication(self):
+        """`_ring_text`'s own fallback ('· ' repeated) when there is
+        nothing to ring the disc with — proves the same "always
+        something to draw" guarantee the frontend's `ringText` already
+        has, on the Python side too."""
+        from .png_renderer import _ring_text
+
+        text = _ring_text("", circumference=2 * 3.14159 * 130)
+        self.assertTrue(text)
+        self.assertTrue(set(text.replace(" ", "")) <= {"·"})
+
+    def test_sleeve_palette_selection_reaches_the_rendered_pixels(self):
+        """The fix for a real gap: an earlier version of `_draw_sleeve`
+        hardcoded Cream regardless of `themeSelections.sleevePalette`
+        — the frontend preview could show any of six colours, but the
+        delivered file was always Cream. Checks the literal corner
+        pixel of the rendered PNG against each palette's own `bg` hex
+        value, not just that rendering succeeds without error.
+        """
+        from .png_renderer import SLEEVE_PALETTES
+
+        customer = make_customer()
+        values = values_with_real_photo(customer)
+
+        for palette_id in ("cream", "red", "black"):
+            with self.subTest(palette=palette_id):
+                song = validate_and_normalize(values, {"theme": "sleeve", "sleevePalette": palette_id})
+                self.assertEqual(song.sleeve_palette, palette_id)
+
+                content = render_png(song, target_id="print-classic-frameless", customer=customer)
+                with Image.open(io.BytesIO(content)) as img:
+                    corner = img.getpixel((10, 10))
+                    expected_hex = SLEEVE_PALETTES[palette_id]["bg"].lstrip("#")
+                    expected_rgb = tuple(int(expected_hex[i : i + 2], 16) for i in (0, 2, 4))
+                    self.assertEqual(corner, expected_rgb)
+
+    def test_unrecognised_sleeve_palette_falls_back_to_cream(self):
+        customer = make_customer()
+        values = values_with_real_photo(customer)
+        song = validate_and_normalize(values, {"theme": "sleeve", "sleevePalette": "not-a-real-palette"})
+        self.assertEqual(song.sleeve_palette, "cream")
+
+    def test_sleeve_palette_ids_stay_in_sync_with_the_renderer(self):
+        """Same class of guard as `test_every_registered_drawing_theme_
+        is_also_a_valid_selection` — this time between `data.py`'s
+        `SLEEVE_PALETTES` id tuple and `png_renderer.py`'s own
+        `SLEEVE_PALETTES` colour dict, which are two independently
+        maintained lists for the same reason `THEMES`/`_THEME_
+        RENDERERS` are."""
+        from .data import SLEEVE_PALETTES as VALID_PALETTE_IDS
+        from .png_renderer import SLEEVE_PALETTES as PALETTE_COLOURS
+
+        self.assertEqual(set(VALID_PALETTE_IDS), set(PALETTE_COLOURS))
+
+    def test_mosaic_theme_renders(self):
+        customer = make_customer()
+        values = values_with_real_photo(customer)
+        song = validate_and_normalize(values, {"theme": "mosaic"})
+        self.assertEqual(song.theme, "mosaic")
+
+        content = render_png(song, target_id="print-classic-frameless", customer=customer)
+        self.assertGreater(len(content), 0)
+
+    def test_mosaic_card_height_grows_with_a_long_dedication(self):
+        """`_mosaic_card_height` is a dry run used to vertically centre
+        the floating card BEFORE anything is drawn — this proves it
+        actually varies with real content rather than returning a
+        fixed guess, which would silently mis-centre the card whenever
+        a dedication is unusually long or absent."""
+        from PIL import ImageDraw
+
+        from .png_renderer import _font, _mosaic_card_height
+
+        customer = make_customer()
+        song_short = validate_and_normalize(
+            values_with_real_photo(customer, {**VALID_VALUES, "dedication": ""}), {"theme": "mosaic"}
+        )
+        song_long = validate_and_normalize(
+            values_with_real_photo(customer, {**VALID_VALUES, "dedication": "A " * 80}), {"theme": "mosaic"}
+        )
+
+        canvas = Image.new("RGB", (10, 10))
+        draw = ImageDraw.Draw(canvas)
+        fonts = dict(
+            title_font=_font("DejaVuSans-Bold.ttf", 26, 1.0),
+            artist_font=_font("DejaVuSans.ttf", 14.5, 1.0),
+            dedication_font=_font("DejaVuSans.ttf", 16, 1.0),
+            times_font=_font("DejaVuSansMono.ttf", 13, 1.0),
+            foot_font=_font("DejaVuSans.ttf", 13, 1.0),
+        )
+        h_short = _mosaic_card_height(draw, song_short, **fonts)
+        h_long = _mosaic_card_height(draw, song_long, **fonts)
+        self.assertGreater(h_long, h_short)
+
+    def test_all_eight_themes_render_without_error(self):
+        """One pass over every registered theme, through the SAME
+        `render_png(..., target_id="print-classic-frameless", ...)`
+        call for all eight — no special-casing needed for Award or
+        Sleeve since `test_landscape_themes_swap_a_nominally_portrait_
+        print_target` below confirmed `render_png` now resolves their
+        correct landscape dimensions itself. The final, cumulative
+        guard for this entire module: if any theme's composition
+        throws, or if `THEMES`/`_THEME_RENDERERS` ever drift apart
+        again the way they did for Ledger, this is where it surfaces.
+        """
+        from .png_renderer import _THEME_RENDERERS
+
+        customer = make_customer()
+        values = values_with_real_photo(customer)
+        self.assertEqual(set(THEMES), set(_THEME_RENDERERS))
+
+        for theme_id in THEMES:
+            with self.subTest(theme=theme_id):
+                song = validate_and_normalize(values, {"theme": theme_id})
+                content = render_png(song, target_id="print-classic-frameless", customer=customer)
+                self.assertGreater(len(content), 0)
+
+    def test_landscape_themes_swap_a_nominally_portrait_print_target(self):
+        """The fix for the gap `test_award_theme_renders_at_its_own_
+        landscape_dimensions` and `test_sleeve_theme_renders_at_its_
+        own_landscape_dimensions` originally flagged as unresolved —
+        NOT a full fix (the Studio's export panel can still LABEL the
+        dimensions as portrait for these two themes; that needs the
+        Shell-level change those tests' docstrings describe), but the
+        part that matters most: requesting the SAME `print-classic-
+        frameless` target a Player customer would buy now produces a
+        genuinely landscape file for Award or Sleeve, at the swapped
+        dimensions, rather than a portrait canvas holding a landscape
+        composition badly cropped or letterboxed into it.
+        """
+        customer = make_customer()
+        values = values_with_real_photo(customer)
+
+        portrait_song = validate_and_normalize(values, {"theme": "player"})
+        portrait_content = render_png(portrait_song, target_id="print-classic-frameless", customer=customer)
+        with Image.open(io.BytesIO(portrait_content)) as img:
+            self.assertEqual(img.size, (2400, 3000))
+
+        for theme_id in ("award", "sleeve"):
+            with self.subTest(theme=theme_id):
+                song = validate_and_normalize(values, {"theme": theme_id})
+                content = render_png(song, target_id="print-classic-frameless", customer=customer)
+                with Image.open(io.BytesIO(content)) as img:
+                    # Same nominal target, same two numbers — swapped.
+                    self.assertEqual(img.size, (3000, 2400))
+                    self.assertGreater(img.width, img.height)
+
+
+# ------------------------------------------------------------------
+# Renderer / registry
+# ------------------------------------------------------------------
+
+class RendererTests(TestCase):
+    def test_render_with_no_project_raises(self):
+        renderer = SongPosterRenderer()
+        with self.assertRaises(SongPosterRenderFailed):
+            renderer.render(None, DeliveryType.PRINTABLE, None, "print-classic-frameless")
+
+    def test_render_dispatches_printable(self):
+        customer = make_customer()
+        product = make_song_poster_product()
+        pack = make_delivery_pack(product)
+        values = values_with_real_photo(customer)
+        project = Project.objects.create(customer=customer, product=product, data={"version": 1, "values": values})
+
+        renderer = SongPosterRenderer()
+        result = renderer.render(project, DeliveryType.PRINTABLE, pack, "print-classic-frameless")
+
+        self.assertEqual(result.content_type, "image/png")
+        self.assertGreater(len(result.content), 0)
+
+    def test_render_rejects_unsupported_delivery_type(self):
+        customer = make_customer()
+        product = make_song_poster_product()
+        pack = make_delivery_pack(product)
+        values = values_with_real_photo(customer)
+        project = Project.objects.create(customer=customer, product=product, data={"version": 1, "values": values})
+
+        renderer = SongPosterRenderer()
+        with self.assertRaises(SongPosterRenderFailed):
+            renderer.render(project, DeliveryType.DIGITAL, pack, "__live__")
+
+    def test_preview_is_not_implemented(self):
+        """Deliberately NOT a fake HTML wrapper — see `renderer.py`'s
+        own note on why Song Poster has no server-rendered digital
+        artifact the way Love Story Timeline's `render_html` is one."""
+        renderer = SongPosterRenderer()
+        with self.assertRaises(SongPosterRenderFailed):
+            renderer.preview(None)
+
+
+class RegistryTests(SimpleTestCase):
+    def test_song_poster_resolves_to_the_real_renderer(self):
+        """The specific regression Love Story Timeline's own registry
+        test set out to prevent: a product slug quietly falling through
+        to `NotImplementedRenderer` because nobody registered the real
+        one — see `apps/delivery/registry.py`'s own comment on why
+        nothing outside that file should ever branch on a product slug."""
+        renderer = get_renderer("song-poster", DeliveryType.PRINTABLE)
+        self.assertIsInstance(renderer, SongPosterRenderer)
+        self.assertNotIsInstance(renderer, NotImplementedRenderer)
+
+    def test_unregistered_slug_still_falls_through_safely(self):
+        renderer = get_renderer("not-a-real-product", DeliveryType.PRINTABLE)
+        self.assertIsInstance(renderer, NotImplementedRenderer)

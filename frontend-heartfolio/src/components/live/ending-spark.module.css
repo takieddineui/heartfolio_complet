@@ -1,0 +1,44 @@
+/*
+  §10's "a continued feeling rather than an abrupt stop" — the comment
+  already sitting on `.endingText` in live-keepsake.module.css, never
+  implemented. `Reveal`/`RevealItem` (components/motion/reveal.tsx)
+  handle the fade-in itself; this file is only the ONE thing they
+  can't do — an animation that keeps going rather than settling into
+  stillness, which is the literal difference between "continued" and
+  "stopped."
+
+  A KEYFRAME LOOP, NOT FRAMER MOTION, deliberately: this needs no
+  entrance logic, no completion callback, nothing React needs to know
+  about — it should simply always be drifting, for as long as the page
+  is open. A plain CSS `animation` gets the site's EXISTING global
+  `prefers-reduced-motion` rule in `globals.css` for free (it overrides
+  `animation-duration` to near-zero for every element, automatically);
+  the opening sequence's framer-motion animations needed their own
+  explicit reduced-motion handling specifically because JS-driven
+  animations aren't covered by that CSS rule at all.
+*/
+
+.wrap {
+  display: flex;
+  justify-content: center;
+  margin-top: 2.5rem;
+}
+
+.spark {
+  width: 18px;
+  height: 18px;
+  color: var(--accent);
+  animation: spark-drift 4.5s ease-in-out infinite;
+}
+
+@keyframes spark-drift {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: translateY(0) scale(0.85);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-6px) scale(1);
+  }
+}

@@ -1,0 +1,866 @@
+{
+  "Meta": {
+    "title": "Heartfolio — Souvenirs numériques personnalisés",
+    "description": "Heartfolio transforme vos moments importants en souvenirs personnalisés : des frises d'histoire d'amour, livrées en fichiers numériques haute résolution à imprimer, encadrer ou garder sur votre téléphone.",
+    "ogAlt": "Un souvenir Heartfolio personnalisé — une frise d'histoire d'amour",
+    "slogan": "Transformez vos moments importants en souvenirs personnalisés.",
+    "skipToContent": "Aller au contenu"
+  },
+  "Nav": {
+    "occasion": "Par occasion",
+    "product": "Par création",
+    "story": "Notre histoire",
+    "search": "Rechercher",
+    "cart": "Panier",
+    "cta": "Créer un souvenir",
+    "menu": "Menu",
+    "close": "Fermer",
+    "secondary": {
+      "story": "Notre histoire",
+      "faq": "FAQ"
+    }
+  },
+  "Hero": {
+    "eyebrow": "Heartfolio",
+    "headline": "Certains moments méritent\nmieux qu'une photo.",
+    "subhead": "Heartfolio transforme une date, un lieu, une chanson ou une histoire en un souvenir numérique personnalisé — conçu par nos soins, à vivre comme vous le souhaitez.",
+    "cta": "Découvrir la collection",
+    "ctaSecondary": "Voir comment ça marche",
+    "trust": "Souvenirs numériques. Livrés instantanément. À garder.",
+    "scrollHint": "Faites défiler pour ressentir la suite",
+    "definition": "Des souvenirs numériques personnalisés et des cadeaux à imprimer, pensés pour les anniversaires, les mariages et les moments qui méritent qu'on s'en souvienne."
+  },
+  "OccasionTeaser": {
+    "title": "Que célébrez-vous ?",
+    "subtitle": "Pas un produit. Un sentiment. Dites-nous lequel, et nous vous aiderons à trouver les mots.",
+    "items": {
+      "anniversary": {
+        "label": "Un moment à deux",
+        "sub": "Anniversaires, sans raison particulière"
+      },
+      "baby": {
+        "label": "Une nouvelle vie",
+        "sub": "Naissances, premiers jours, chambres d'enfant"
+      },
+      "wedding": {
+        "label": "Un mariage",
+        "sub": "Des vœux, une date, deux noms"
+      },
+      "memory": {
+        "label": "Une vie qu'on n'oublie pas",
+        "sub": "En souvenir"
+      }
+    }
+  },
+  "FeaturedKeepsakes": {
+    "eyebrow": "La collection",
+    "title": "Un souvenir pour chaque\ninstant qui compte.",
+    "subtitle": "Chaque souvenir Heartfolio part de quelque chose que vous seul possédez — une date, un lieu, une chanson, une histoire bien à vous. Choisissez celui qui correspond au moment.",
+    "cta": "Explorer tous les souvenirs",
+    "digitalNote": "Chaque souvenir est une expérience numérique personnalisée — avec les versions Imprimable et Fond d'écran disponibles pour les souvenirs qui les proposent.",
+    "waitlistBadge": "Liste d'attente"
+  },
+  "HowItWorks": {
+    "eyebrow": "Le savoir-faire",
+    "title": "Créé en quelques minutes.\nGardé pour des années.",
+    "subtitle": "Pas de calques. Pas de modèles à dompter. Juste votre histoire, et un peu de notre savoir-faire.",
+    "steps": {
+      "one": {
+        "title": "Racontez-nous l'instant",
+        "description": "Une date, un lieu, un nom — ce dont le souvenir a besoin. Une question à la fois, rien d'autre à l'écran."
+      },
+      "two": {
+        "title": "Regardez-le prendre vie",
+        "description": "Votre souvenir prend forme sous vos yeux, révélé lentement, comme une photo qui se développe."
+      },
+      "three": {
+        "title": "Rendez-le unique",
+        "description": "Choisissez parmi quelques ambiances magnifiques, pas quarante médiocres. Ajoutez les mots que vous seuls comprendriez."
+      },
+      "four": {
+        "title": "Téléchargez, imprimez, ou en fond d'écran",
+        "description": "Votre création terminée, prête en PNG haute résolution — à vous en quelques secondes, imprimée à votre façon ou gardée dans votre poche."
+      }
+    }
+  },
+  "GiftOccasions": {
+    "eyebrow": "Occasions",
+    "title": "Chaque occasion mérite\nson propre ton.",
+    "subtitle": "Nous ne croyons pas à une seule voix pour chaque instant. Le soir de votre rencontre n'est pas le jour de votre mariage. Chacun mérite son attention.",
+    "cta": "Découvrir",
+    "items": {
+      "anniversary": {
+        "label": "Anniversaire & sans raison",
+        "description": "Pour la nuit de votre rencontre, les années depuis, ou aucune raison précise — juste l'amour, au présent.",
+        "cta": "Découvrir les souvenirs d'anniversaire"
+      },
+      "wedding": {
+        "label": "Mariage",
+        "description": "Mieux qu'un blender de liste de mariage — deux noms, une date, fait pour durer aussi longtemps que le mariage.",
+        "cta": "Découvrir les souvenirs de mariage"
+      },
+      "newBaby": {
+        "label": "Nouvelle naissance",
+        "description": "Doux et tendre — pour la chambre qui s'apprête à accueillir une toute nouvelle personne.",
+        "cta": "Découvrir les souvenirs de naissance"
+      },
+      "inMemory": {
+        "label": "En souvenir",
+        "description": "Sobre et digne. Un nom, gardé quelque part de plus doux qu'un tiroir.",
+        "cta": "Découvrir les souvenirs commémoratifs"
+      },
+      "newChapter": {
+        "label": "Pendaison de crémaillère",
+        "description": "Une nouvelle adresse, une nouvelle ville, un premier appartement — pour des murs qui commencent tout juste leur histoire.",
+        "cta": "Découvrir les souvenirs de nouveau chapitre"
+      }
+    }
+  },
+  "TemplateGallery": {
+    "eyebrow": "Des ambiances, pas des menus",
+    "title": "Moins de choix.\nDe plus beaux choix.",
+    "subtitle": "Plutôt qu'une page blanche, nous vous proposons quelques ambiances parfaites — sélectionnées, jamais personnalisables à l'infini.",
+    "items": {
+      "midnight": {
+        "name": "Minuit",
+        "description": "Tons bleu marine profonds, fines lignes dorées — pour les instants qui se sont passés après la tombée de la nuit."
+      },
+      "warmIvory": {
+        "name": "Ivoire chaud",
+        "description": "Tons parchemin doux et typographie sereine — assez délicat pour une chambre d'enfant ou un hommage."
+      },
+      "vintageChart": {
+        "name": "Carte ancienne",
+        "description": "Lignes d'inspiration cartographique d'époque — pour les âmes sentimentales, mais un peu scientifiques."
+      },
+      "goldenHour": {
+        "name": "Heure dorée",
+        "description": "Tons terracotta et chandelle — chaleureux, romantique, résolument festif."
+      }
+    },
+    "note": "Chaque ambiance est pensée pour être belle encadrée — pas seulement à l'écran."
+  },
+  "WhyHeartfolio": {
+    "eyebrow": "Pourquoi Heartfolio",
+    "title": "Nous ne sommes pas un outil.\nNous sommes un artisan.",
+    "subtitle": "Nul besoin de maîtriser un logiciel. Il vous suffit de vous souvenir de l'instant — nous nous occupons du reste, comme le ferait un fleuriste ou un joaillier.",
+    "pillars": {
+      "design": {
+        "title": "Un design de studio, pas un modèle",
+        "description": "Chaque ambiance est dirigée artistiquement à la main — pas un formulaire à remplir, une pièce vraiment conçue par quelqu'un."
+      },
+      "instant": {
+        "title": "À vous en quelques secondes",
+        "description": "Livré dès l'achat — l'expérience propre à votre souvenir, avec les formats Imprimable et autres lorsqu'ils sont proposés."
+      },
+      "print": {
+        "title": "Imprimez-la à votre façon",
+        "description": "Une affiche, une toile, une carte — ou simplement l'écran de verrouillage de votre téléphone. Quelle que soit votre façon de la garder, elle est prête."
+      }
+    },
+    "comparison": {
+      "title": "La différence, c'est ce que nous retirons.",
+      "us": {
+        "label": "Heartfolio",
+        "points": [
+          "Quelques ambiances magnifiques",
+          "Guidé, un instant à la fois",
+          "Fichiers haute résolution, instantanément",
+          "Livré dès l'achat"
+        ]
+      },
+      "them": {
+        "label": "Un outil de création",
+        "points": [
+          "Polices et calques infinis",
+          "Une page blanche",
+          "Des heures pour que ce soit réussi",
+          "Fait pour être fini vendredi"
+        ]
+      }
+    },
+    "statement": {
+      "text": "Nous préférons faire quatre choses correctement que quarante à la hâte.",
+      "attribution": "L'atelier Heartfolio"
+    }
+  },
+  "Pricing": {
+    "eyebrow": "Tarifs",
+    "title": "Des tarifs simples et transparents.",
+    "subtitle": "Chaque souvenir a ses propres formats disponibles et son propre tarif — vous voyez exactement ce qui est inclus avant de commencer.",
+    "note": "Les formats varient selon le souvenir — consultez la page de chaque création pour savoir ce qui est inclus. L'impression et l'encadrement ne sont jamais inclus, sauf mention contraire sur la création elle-même.",
+    "single": {
+      "priceNote": "prix de départ sur l'ensemble de la collection",
+      "description": "Quelle que soit la façon dont vous voulez le garder — Numérique, Imprimable, Fond d'écran et plus selon la création — le tarif est indiqué clairement sur la page de chaque souvenir.",
+      "features": [
+        "Personnalisé selon votre propre histoire, à chaque fois",
+        "Personnalisez et prévisualisez votre souvenir autant de fois que vous le souhaitez avant l'achat",
+        "Téléchargez votre souvenir terminé après l'achat",
+        "Numérique, Imprimable, Fond d'écran et plus, selon la création"
+      ],
+      "cta": "Voir les tarifs de chaque souvenir",
+      "reassurance": "Téléchargez votre souvenir terminé après l'achat.",
+      "badge": "Chaque souvenir, personnalisé"
+    },
+    "from": "À partir de {price}"
+  },
+  "Faq": {
+    "eyebrow": "Avant de commencer",
+    "title": "Les questions qu'on\nnous pose vraiment.",
+    "subtitle": "Classées par préoccupation, pas par département.",
+    "searchPlaceholder": "Rechercher une question…",
+    "items": {
+      "whatIs": {
+        "question": "Qu'est-ce que Heartfolio ?",
+        "answer": "Heartfolio crée des cadeaux numériques personnalisés — des souvenirs composés à partir de vos propres dates, lieux et mots, puis livrés en fichiers haute résolution que vous téléchargez dès le paiement. La plupart des gens les offrent pour un anniversaire de rencontre ou un mariage, et les font imprimer pour les encadrer. Rien n'est expédié, rien ne vous fait attendre."
+      },
+      "preview": {
+        "question": "Est-ce que ça ressemblera vraiment à l'aperçu ?",
+        "answer": "Oui — ce que vous voyez pendant la création est un rendu fidèle de votre souvenir, pas une simple maquette. Ce que vous recevez est ce que vous avez vu."
+      },
+      "printing": {
+        "question": "Puis-je l'imprimer et l'encadrer ?",
+        "answer": "Oui — votre téléchargement comprend des fichiers PNG et PDF prêts à imprimer en 300 DPI, pour n'importe quel imprimeur, en ligne ou près de chez vous. La plupart préfèrent le PDF. Demandez un papier de qualité musée ou archive si vous souhaitez qu'il dure."
+      },
+      "sizing": {
+        "question": "À quelle taille puis-je l'imprimer ?",
+        "answer": "Chaque version imprimable existe en trois formats : A4, qui s'imprime aussi en A3 ; Classique 8″ × 10″, qui monte jusqu'à 16″ × 20″ ; et Affiche 12″ × 18″, qui monte jusqu'à 24″ × 36″. Chacun est un fichier distinct conçu pour ce format, afin que rien ne soit recadré."
+      },
+      "mistake": {
+        "question": "Puis-je corriger une erreur après ma commande ?",
+        "answer": "Presque toujours, oui. Vous pouvez ajuster la date, les mots ou une orthographe autant de fois que vous le souhaitez avant l'achat — rien n'est définitif tant que vous ne l'avez pas téléchargé."
+      },
+      "access": {
+        "question": "Combien de temps puis-je accéder à mes fichiers ?",
+        "answer": "Vos fichiers restent disponibles — les photos que vous avez envoyées sont conservées, et votre souvenir est regénéré dès que vous en avez besoin. Le lien de votre e-mail de confirmation fonctionne sur tout appareil pendant 30 jours. S'il cesse de fonctionner, répondez simplement à cet e-mail et nous vous en enverrons un nouveau."
+      },
+      "incomplete": {
+        "question": "Et si je ne connais pas l'heure ou le lieu exact ?",
+        "answer": "Ce n'est pas grave. Une heure approximative suffit à produire un résultat beau et fidèle, et nous vous guiderons doucement s'il manque un détail."
+      },
+      "appropriate": {
+        "question": "Est-ce approprié comme cadeau de mariage, de naissance ou de deuil ?",
+        "answer": "C'est précisément pour ces moments que c'est pensé. Chaque occasion a son propre ton — une édition commémorative est traitée avec le même soin, que ce soit votre première ou cinquantième commande."
+      }
+    },
+    "memorialNote": {
+      "title": "Pour les commandes commémoratives",
+      "text": "Si un détail manque ou est incertain, nous vous contacterons avec délicatesse, une seule fois, sans jamais vous presser de répondre. Il n'y a aucune vente additionnelle sur cette page, et il n'y en aura jamais."
+    }
+  },
+  "FinalCta": {
+    "title": "Certaines choses\nméritent d'être gardées.",
+    "subtitle": "Commencez par une date, un lieu, ou un nom. Nous vous aiderons à trouver le reste.",
+    "cta": "Créer un souvenir",
+    "trust": "Livré instantanément. À vous de le garder."
+  },
+  "Footer": {
+    "tagline": "Des moments qui comptent, transformés en souvenirs qui durent.",
+    "shop": {
+      "title": "Souvenirs",
+      "all": "Tout voir"
+    },
+    "company": {
+      "title": "Heartfolio",
+      "collection": "La collection",
+      "howItWorks": "Comment ça marche",
+      "faq": "FAQ"
+    },
+    "legal": {
+      "title": "Aide & mentions légales",
+      "terms": "Conditions générales",
+      "privacy": "Politique de confidentialité",
+      "refunds": "Politique de remboursement",
+      "contact": "Contact"
+    },
+    "digitalNotice": "Heartfolio vend des souvenirs numériques. Chacun est une expérience numérique personnalisée — avec les formats Imprimable et autres disponibles sur certains souvenirs — et il n'y a aucun article physique, rien n'est expédié.",
+    "supportLine": "Une question sur une commande, un téléchargement ou une personnalisation ?",
+    "copyright": "© {year} Heartfolio",
+    "pricesNote": "Tous les prix sont en USD."
+  },
+  "Products": {
+    "songPoster": {
+      "name": "Affiche musicale",
+      "shortDescription": "La chanson qui a accompagné tout le trajet du retour.",
+      "fullDescription": "L'onde sonore d'une chanson qui a compté, rendue comme une partition pour ceux qui ne la lisent pas.",
+      "meta": {
+        "title": "Affiche de chanson personnalisée | Heartfolio",
+        "description": "La chanson qui compte, dessinée par son onde sonore — un souvenir numérique personnalisé à partir de {price}, livré instantanément.",
+        "imageAlt": "Une affiche de chanson Heartfolio personnalisée montrant l'onde sonore d'un morceau",
+        "descriptionNoPrice": "La chanson qui compte, dessinée par son onde sonore — un souvenir numérique personnalisé, livré instantanément."
+      },
+      "storyTitle": "Une chanson, vue plutôt qu'écoutée.",
+      "story": "Chaque chanson a une forme. L'Affiche de chanson dessine cette forme — l'onde réelle du morceau que vous choisissez — et la pose sous le titre, l'artiste et le moment auquel elle appartient. On y voit d'abord une œuvre, ensuite un souvenir : c'est exactement le bon ordre.",
+      "faq": [
+        {
+          "question": "Quelles chansons puis-je utiliser ?",
+          "answer": "Tout morceau que vous pouvez identifier par son titre et son artiste. Le souvenir est une œuvre générée à partir de la forme d'onde — aucun fichier audio n'est vendu, inclus ni distribué."
+        },
+        {
+          "question": "Puis-je ajouter mes propres mots ?",
+          "answer": "Oui. Une courte ligne sous l'onde — une date, un fragment de parole, un prénom — fait partie de la personnalisation."
+        },
+        {
+          "question": "Le rendu est-il bon encadré ?",
+          "answer": "L'affiche est pensée d'abord pour le papier. L'édition imprimable est préparée en 300 DPI, aux proportions des cadres standard."
+        }
+      ]
+    },
+    "whereWeMet": {
+      "name": "Là où nous nous sommes rencontrés",
+      "shortDescription": "L'endroit exact où tout a commencé.",
+      "fullDescription": "Une carte sobre et soignée des coordonnées qui ont tout changé — marquée d'un seul cœur, à l'endroit exact où vous étiez.",
+      "meta": {
+        "title": "Là où nous nous sommes rencontrés — Carte personnalisée | Heartfolio",
+        "description": "« Là où nous nous sommes rencontrés » transforme le lieu exact où tout a commencé en une carte personnalisée tout en retenue — un souvenir numérique à partir de {price}, livré instantanément.",
+        "imageAlt": "Une carte Heartfolio personnalisée « Là où nous nous sommes rencontrés » marquant le lieu où une histoire a commencé",
+        "descriptionNoPrice": "« Là où nous nous sommes rencontrés » transforme le lieu exact où tout a commencé en une carte personnalisée tout en retenue — un souvenir numérique livré instantanément."
+      },
+      "storyTitle": "Un lieu, marqué comme il se doit.",
+      "story": "Des coordonnées n'ont rien de romantique tant qu'elles ne sont pas les vôtres. « Là où nous nous sommes rencontrés » prend l'endroit exact — le coin de rue, le bar, le pont, l'adresse que vous appelez encore « l'appart » — et en dessine les rues au trait fin, avec un seul repère là où vous vous teniez et les coordonnées posées en dessous.",
+      "faq": [
+        {
+          "question": "Le lieu peut-il être très précis ?",
+          "answer": "Aussi précis qu'une adresse ou qu'un point posé sur une carte. Le dessin est construit autour des coordonnées que vous donnez."
+        },
+        {
+          "question": "Puis-je marquer plusieurs lieux ?",
+          "answer": "Chaque carte se concentre sur un seul lieu, et c'est ce qui la garde apaisée. Pour plusieurs moments, la Frise d'histoire d'amour convient mieux."
+        },
+        {
+          "question": "La carte est-elle réelle ?",
+          "answer": "Oui — la géométrie réelle des rues de ce lieu, redessinée dans le style Heartfolio plutôt qu'une capture d'écran."
+        }
+      ],
+      "offerings": {
+        "digital": {
+          "description": "Votre expérience de carte numérique personnalisée — le lieu exact, prêt à revivre quand vous le souhaitez."
+        }
+      }
+    },
+    "loveStoryTimeline": {
+      "name": "Chronologie d'histoire d'amour",
+      "shortDescription": "Vos jalons, racontés comme une seule histoire continue.",
+      "fullDescription": "De trois à huit moments — dates, photos et les mots que vous seuls employez — disposés en une seule frise souvenir.",
+      "meta": {
+        "title": "Frise d'histoire d'amour personnalisée | Heartfolio",
+        "description": "Transformez les moments les plus marquants de votre relation en un souvenir numérique personnalisé. À partir de {price}, livré instantanément.",
+        "imageAlt": "Une frise d'histoire d'amour Heartfolio personnalisée montrant cinq moments sur une même ligne",
+        "descriptionNoPrice": "Transformez les moments les plus marquants de votre relation en un souvenir numérique personnalisé, livré instantanément."
+      },
+      "storyTitle": "Une ligne, cinq moments, toute une histoire.",
+      "story": "La plupart des histoires se résument à quelques dates qui ne disent rien à personne d'autre. La frise d'histoire d'amour en place de trois à huit sur une même ligne — le jour de la rencontre, le jour du déménagement, le jour de la décision — chacune avec sa photo et sa légende, disposées pour se lire comme une histoire continue plutôt qu'une liste.",
+      "faq": [
+        {
+          "question": "Combien de moments puis-je inclure ?",
+          "answer": "Entre trois et huit. En dessous de trois, ce n'est pas une frise ; au-delà de huit, la page se charge. La plupart des histoires tiennent confortablement entre quatre et six."
+        },
+        {
+          "question": "Puis-je utiliser des photos ?",
+          "answer": "Oui — et chaque moment en demande une. Les photographies portent chacune des six mises en page : la frise se construit autour d'elles plutôt que de s'en décorer."
+        },
+        {
+          "question": "Comment vais-je le recevoir ?",
+          "answer": "Instantanément, en téléchargement. Rien n'est expédié ni imprimé pour vous — dès le paiement validé, votre souvenir est prêt à être ouvert, et le fichier prêt à imprimer vous attend aussi si vous avez choisi une version qui en comprend un."
+        }
+      ],
+      "offerings": {
+        "digital": {
+          "description": "Votre expérience de souvenir numérique personnalisé — l'histoire mise en scène exactement comme vous l'avez construite, prête à revivre à tout moment."
+        }
+      },
+      "audience": {
+        "title": "Pour qui c'est fait",
+        "body": "Celui-ci est pensé pour les couples, les familles, les parents, et pour quiconque compose une histoire destinée à quelqu'un d'autre. Il lui faut une histoire commune assez longue pour compter quelques dates qui comptent vraiment. Nul besoin d'être graphiste ni de savoir ce que vous voulez avant de commencer : vous apportez les dates, les photos et les mots, la mise en page est déjà décidée."
+      }
+    },
+    "badges": {
+      "mostGifted": "Le plus offert",
+      "new": "Nouveau"
+    },
+    "offerings": {
+      "digital": {
+        "name": "Souvenir numérique",
+        "description": "Votre souvenir personnalisé sous la forme d'une expérience numérique Heartfolio — la façon principale d'en profiter et de le partager."
+      },
+      "printable": {
+        "name": "Édition imprimable",
+        "description": "Préparée pour le papier : un fichier prêt à imprimer avec les marges, le fond perdu et la résolution attendus par un imprimeur."
+      },
+      "wallpaper": {
+        "name": "Fond d'écran",
+        "description": "Le même souvenir, recomposé pour un écran de téléphone : le moment vous accompagne toute la journée."
+      },
+      "complete_pack": {
+        "name": "Pack complet",
+        "description": "Toutes les versions disponibles de ce souvenir, réunies en un seul achat."
+      },
+      "printable_plus_digital": {
+        "name": "Imprimable + Numérique",
+        "description": "Tous les formats d'impression et le souvenir interactif, réunis en un seul achat."
+      },
+      "digital_plus_wallpaper": {
+        "name": "Numérique + fonds d'écran"
+      },
+      "printable_plus_wallpaper": {
+        "name": "Imprimable + fonds d'écran"
+      },
+      "ar": {
+        "name": "Expérience AR",
+        "description": "Votre souvenir placé dans la pièce, vu à travers votre téléphone."
+      },
+      "vr": {
+        "name": "Expérience VR",
+        "description": "Entrez dans le moment — votre souvenir devient un espace où se tenir."
+      }
+    },
+    "offeringDetails": {
+      "digitalExperience": "Souvenir numérique personnalisé · à revivre quand vous le souhaitez",
+      "printableFiles": "PNG + PDF prêts à imprimer · 300 DPI · trois formats, avec et sans marges",
+      "wallpaperFiles": "PNG au format téléphone · téléchargement immédiat",
+      "completeFiles": "Tous les fichiers inclus · téléchargement immédiat",
+      "printableDigitalFiles": "PNG + PDF prêts à imprimer et souvenir numérique personnalisé · téléchargement immédiat"
+    }
+  },
+  "Create": {
+    "eyebrow": "Heartfolio",
+    "title": "Que créez-vous aujourd'hui ?",
+    "subtitle": "Chaque création Heartfolio commence ici. Choisissez-en une pour continuer.",
+    "waitlistTag": "Liste d'attente",
+    "comingSoonTag": "Bientôt disponible",
+    "selectPrompt": "Sélectionnez une création pour continuer",
+    "notAvailableYet": "{name} n'est pas encore disponible",
+    "startCreating": "Commencer",
+    "joinWaitlist": "Rejoindre la liste d'attente"
+  },
+  "Waitlist": {
+    "defaultEyebrow": "Heartfolio",
+    "titleWithProduct": "{name} arrive bientôt.",
+    "titleGeneric": "Quelque chose de nouveau arrive bientôt.",
+    "subtitleGeneric": "Réservez votre place et nous vous préviendrons dès que ce sera prêt.",
+    "estimatedAvailability": "Disponibilité estimée : accès anticipé prochainement",
+    "benefits": [
+      "Soyez parmi les premiers à créer le moment que vous avez déjà en tête",
+      "Accès anticipé avant l'ouverture au public",
+      "Un cadeau de lancement pour les membres de la liste d'attente"
+    ],
+    "emailLabel": "Email",
+    "firstNameLabel": "Prénom",
+    "optional": "(optionnel)",
+    "joinCta": "Rejoindre la liste d'attente",
+    "joining": "Inscription…",
+    "errorText": "Une erreur est survenue — veuillez réessayer.",
+    "privacyNote": "Jamais de spam. Un seul email, quand ce sera prêt.",
+    "successTitle": "Vous êtes sur la liste.",
+    "successSubtitleWithProduct": "Nous vous enverrons un email dès que {name} sera prêt.",
+    "successSubtitleGeneric": "Nous vous enverrons un email dès que ce sera prêt."
+  },
+  "Collection": {
+    "meta": {
+      "title": "La collection Heartfolio | Souvenirs numériques personnalisés",
+      "description": "Découvrez la collection Heartfolio : des frises d'histoire d'amour personnalisées. Œuvres numériques à partir de {price}, livrées instantanément, en haute résolution et prêtes à imprimer.",
+      "descriptionNoPrice": "Découvrez la collection Heartfolio : des frises d'histoire d'amour personnalisées. Œuvres numériques livrées instantanément, en haute résolution et prêtes à imprimer."
+    },
+    "eyebrow": "La collection",
+    "title": "Des souvenirs personnalisés, un moment à la fois.",
+    "subtitle": "Chaque souvenir part de quelque chose que vous seul possédez — un ciel nocturne, un coin de rue, une chanson, une suite de dates — et en fait une œuvre faite pour être gardée.",
+    "digitalNote": "Chaque souvenir est avant tout une expérience numérique, avec les formats Imprimable et autres disponibles lorsqu'ils sont proposés. Rien n'est expédié ; l'impression et l'encadrement restent à votre charge.",
+    "from": "À partir de {price}",
+    "explore": "Découvrir",
+    "statusWaitlist": "Liste d'attente",
+    "statusComingSoon": "Bientôt disponible",
+    "occasionHeading": "Souvenirs pour {occasion}",
+    "occasionFallback": "D'autres souvenirs pour cette occasion arrivent bientôt — voici la collection complète pour l'instant.",
+    "occasionViewAll": "Voir tous les souvenirs"
+  },
+  "ProductPage": {
+    "eyebrow": "Collection Heartfolio",
+    "breadcrumbHome": "Accueil",
+    "breadcrumbProducts": "Souvenirs",
+    "from": "À partir de {price}",
+    "createYours": "Créez votre souvenir",
+    "joinWaitlist": "Rejoindre la liste d'attente",
+    "comingSoon": "Bientôt disponible",
+    "comingSoonNote": "Ce souvenir est encore à l'atelier. Il ouvrira ici en premier.",
+    "statusWaitlist": "Bientôt — rejoignez la liste d'attente",
+    "digitalNotice": "Une expérience de souvenir numérique. Rien n'est expédié — certaines versions incluent des fichiers à télécharger ou à imprimer, présentés ci-dessous.",
+    "howItWorks": {
+      "eyebrow": "Comment ça marche",
+      "title": "Quatre étapes, et aucune n'est du graphisme.",
+      "steps": [
+        {
+          "title": "Racontez-nous le moment",
+          "description": "Une date, un lieu, une chanson, un prénom — une question à la fois."
+        },
+        {
+          "title": "Regardez-le prendre vie",
+          "description": "Votre souvenir se dessine devant vous au fil de vos réponses."
+        },
+        {
+          "title": "Choisissez une ambiance",
+          "description": "Quelques palettes travaillées, pas quarante modèles quelconques."
+        },
+        {
+          "title": "Téléchargez-le",
+          "description": "Des fichiers haute résolution, prêts en quelques secondes, retéléchargeables."
+        }
+      ]
+    },
+    "offerings": {
+      "eyebrow": "Versions disponibles",
+      "title": "Choisissez comment le garder.",
+      "subtitle": "Chaque version de ce souvenir reprend la même œuvre, préparée pour une vie différente : sur un écran, sur un mur, ou dans votre poche.",
+      "note": "Les prix sont affichés en USD. Vous choisirez votre version à l'étape suivante, une fois le souvenir créé — rien ne se sélectionne sur cette page.",
+      "unavailable": "Les options de ce cadeau sont momentanément indisponibles. Merci de réessayer dans un instant.",
+      "unavailableRetry": "Réessayer",
+      "wallpaperAddon": "Ajouter les fonds d'écran (+{price})"
+    },
+    "included": {
+      "title": "Ce que vous recevez",
+      "items": [
+        "Un souvenir personnalisé, conçu à partir des détails que vous nous confiez",
+        "L'expérience numérique native de votre souvenir, prête dès qu'il est terminé",
+        "Des fichiers PNG et PDF prêts à imprimer en 300 DPI, dans chacun des formats ci-dessous, pour les versions qui incluent l'impression",
+        "Personnalisez et prévisualisez votre souvenir autant de fois que vous le souhaitez avant l'achat"
+      ],
+      "note": "Heartfolio est un produit numérique. Aucun article physique n'est fabriqué ni envoyé, et l'impression et l'encadrement ne sont pas inclus — votre fichier prêt à imprimer fonctionne chez n'importe quel imprimeur, en ligne ou près de chez vous."
+    },
+    "faq": {
+      "title": "Questions sur ce souvenir",
+      "contactLink": "Une autre question ? Écrivez-nous →"
+    },
+    "finalCta": {
+      "title": "Créez votre {name}.",
+      "subtitle": "Commencez par le détail dont vous vous souvenez déjà. Nous nous occupons du reste."
+    },
+    "formats": {
+      "title": "Formats et dimensions",
+      "intro": "Chaque version imprimable comprend les trois formats, chacun en deux variantes — l'une pour un montage sous verre, l'autre avec marges pour un cadre traditionnel. Six fichiers au total, tous en PNG à 300 DPI.",
+      "sizes": {
+        "a4": "A4 / A3 — 2480 × 3508 px",
+        "classic": "Classique 8 × 10 po — 2400 × 3000 px",
+        "poster": "Affiche 12 × 18 po — 3600 × 5400 px"
+      },
+      "variants": "Sans bordure pour montage sur verre ou acrylique · Avec marges pour un cadre traditionnel",
+      "note": "Les grands formats sont le même fichier imprimé plus grand — le A3 depuis le A4, le 16 × 20 depuis le Classique, le 24 × 36 depuis l'Affiche."
+    },
+    "audience": {
+      "occasionsLabel": "Conçu pour"
+    }
+  },
+  "Legal": {
+    "privacy": {
+      "meta": {
+        "title": "Politique de confidentialité | Heartfolio",
+        "description": "Comment Heartfolio collecte, utilise et protège vos données personnelles."
+      },
+      "title": "Politique de confidentialité",
+      "updated": "Dernière mise à jour : cette politique est revue avant chaque mise en ligne.",
+      "intro": "Heartfolio collecte le moins d'informations possible, et n'utilise celles qu'il collecte que pour livrer le souvenir demandé et vous accompagner ensuite.",
+      "sections": [
+        {
+          "title": "Ce que nous collectons",
+          "body": [
+            "Les détails que vous saisissez pour personnaliser un souvenir — une date, un lieu, un prénom ou un court message. Ils servent à générer votre œuvre.",
+            "Votre adresse e-mail, pour vous livrer vos fichiers et vous répondre en cas de problème.",
+            "Les informations techniques de base transmises par votre navigateur, comme la langue et le type d'appareil, utilisées pour afficher le site correctement."
+          ]
+        },
+        {
+          "title": "Ce que nous ne collectons pas",
+          "body": [
+            "Nous ne demandons ni ne conservons vos données de carte bancaire. Les paiements sont traités par notre prestataire de paiement, selon ses propres conditions.",
+            "Nous n'utilisons pas vos détails de personnalisation à des fins publicitaires et nous ne les vendons pas."
+          ]
+        },
+        {
+          "title": "Cookies et préférences",
+          "body": [
+            "Nous enregistrons votre choix de langue et votre préférence clair/sombre dans votre navigateur pour que le site s'ouvre comme vous l'avez laissé. Ce sont des préférences fonctionnelles, pas du pistage."
+          ]
+        },
+        {
+          "title": "Vos droits",
+          "body": [
+            "Vous pouvez demander une copie des informations que nous détenons, leur correction ou leur suppression. Écrivez à {email} et nous y donnerons suite."
+          ]
+        },
+        {
+          "title": "Nous contacter",
+          "body": [
+            "Toute question sur la confidentialité peut être adressée à {email}."
+          ]
+        }
+      ]
+    },
+    "terms": {
+      "meta": {
+        "title": "Conditions générales | Heartfolio",
+        "description": "Les conditions applicables à l'achat d'un souvenir numérique personnalisé Heartfolio."
+      },
+      "title": "Conditions générales",
+      "updated": "Dernière mise à jour : ces conditions sont revues avant chaque mise en ligne.",
+      "intro": "Ces conditions précisent ce que vend Heartfolio, ce que vous recevez, et ce dont chacun est responsable.",
+      "sections": [
+        {
+          "title": "Ce que vend Heartfolio",
+          "body": [
+            "Heartfolio vend des œuvres numériques personnalisées — des fichiers à télécharger. Aucun article physique n'est fabriqué, imprimé ni envoyé, et l'impression et l'encadrement ne sont inclus dans aucun prix.",
+            "Chaque souvenir est généré à partir des détails que vous fournissez : il n'en existe pas deux identiques."
+          ]
+        },
+        {
+          "title": "Prix et paiement",
+          "body": [
+            "Les prix sont affichés en dollars américains (USD). Votre banque ou votre prestataire de paiement peut appliquer son propre taux de change ou ses propres frais, hors de notre contrôle.",
+            "Les paiements sont traités par notre prestataire de paiement, qui agit en tant que vendeur officiel (merchant of record) et dont les conditions s'appliquent à la transaction."
+          ]
+        },
+        {
+          "title": "Livraison",
+          "body": [
+            "Les fichiers sont mis à disposition dès que votre souvenir est terminé et le paiement confirmé. La livraison est numérique et immédiate ; il n'y a aucun colis à suivre.",
+            "Si un téléchargement échoue ou qu'un fichier est inutilisable, écrivez à {email} et nous le réémettrons."
+          ]
+        },
+        {
+          "title": "Votre contenu et vos droits",
+          "body": [
+            "Les détails que vous fournissez restent les vôtres. Vous confirmez disposer du droit d'utiliser les noms, photographies ou textes transmis.",
+            "Votre souvenir est à vous : vous pouvez l'imprimer, l'exposer et l'offrir, pour un usage personnel. La revente ou la redistribution des œuvres Heartfolio comme produit propre n'est pas autorisée."
+          ]
+        },
+        {
+          "title": "Disponibilité",
+          "body": [
+            "Certains souvenirs sont encore en développement et signalés par une mention « liste d'attente » ou « bientôt disponible ». Leur présence sur le site ne constitue pas une promesse de date de lancement."
+          ]
+        },
+        {
+          "title": "Contact",
+          "body": [
+            "Toute question sur ces conditions peut être adressée à {email}."
+          ]
+        }
+      ]
+    },
+    "refunds": {
+      "meta": {
+        "title": "Politique de remboursement | Heartfolio",
+        "description": "Comment fonctionnent les remboursements pour les souvenirs numériques personnalisés Heartfolio."
+      },
+      "title": "Politique de remboursement",
+      "updated": "Dernière mise à jour : cette politique est revue avant chaque mise en ligne.",
+      "intro": "Heartfolio vend des fichiers numériques personnalisés, générés pour vous et livrés immédiatement. Cela façonne le fonctionnement des remboursements — mais ne sera jamais un prétexte pour vous laisser avec un fichier défectueux.",
+      "sections": [
+        {
+          "title": "Avant l'achat",
+          "body": [
+            "Vous pouvez modifier chaque détail de votre souvenir — la date, le lieu, le texte, l'ambiance — autant de fois que vous le souhaitez avant de le télécharger. Rien n'est définitif avant ce moment."
+          ]
+        },
+        {
+          "title": "Quand nous corrigeons",
+          "body": [
+            "Si vos fichiers ne se téléchargent pas, arrivent endommagés ou inutilisables, ne correspondent pas à ce que vous avez créé, ou si vous avez été débité plusieurs fois, contactez-nous : nous corrigeons ou remboursons.",
+            "Si un détail a été mal rendu de notre fait, nous corrigeons et réémettons votre souvenir sans frais."
+          ]
+        },
+        {
+          "title": "Produits numériques personnalisés",
+          "body": [
+            "Parce que chaque souvenir est réalisé d'après vos détails et livré en téléchargement immédiat, il ne peut pas être retourné comme un article physique. Un changement d'avis après téléchargement n'ouvre pas automatiquement droit à un remboursement.",
+            "Tout droit de rétractation légal applicable dans votre pays reste inchangé."
+          ]
+        },
+        {
+          "title": "Comment demander",
+          "body": [
+            "Écrivez à {email} en indiquant l'adresse e-mail utilisée et ce qui n'a pas fonctionné. Une capture d'écran aide, sans être obligatoire. Nous lisons et répondons à chaque demande."
+          ]
+        }
+      ]
+    },
+    "contact": {
+      "meta": {
+        "title": "Contact & assistance | Heartfolio",
+        "description": "Obtenez de l'aide pour une commande, un téléchargement, une personnalisation ou un remboursement Heartfolio."
+      },
+      "title": "Contact & assistance",
+      "updated": "Nous lisons chaque message.",
+      "intro": "Quelle que soit la question, elle arrive au même endroit : {email}. Pas de file de tickets à naviguer, pas de serveur vocal.",
+      "sections": [
+        {
+          "title": "Un problème d'achat",
+          "body": [
+            "Débité deux fois, montant inattendu, ou aucune confirmation reçue ? Envoyez-nous l'adresse e-mail utilisée et le moment approximatif, nous retrouverons la trace."
+          ]
+        },
+        {
+          "title": "Un problème de téléchargement",
+          "body": [
+            "Si un fichier ne se télécharge pas ou ne s'ouvre pas, indiquez-nous le souvenir concerné et l'appareil utilisé. Nous pouvons réémettre vos fichiers."
+          ]
+        },
+        {
+          "title": "Un détail de personnalisation est erroné",
+          "body": [
+            "Un prénom mal orthographié, une mauvaise date, une légende qui sonne faux — envoyez-nous la correction. Si l'erreur vient de nous, nous corrigeons et réémettons sans frais."
+          ]
+        },
+        {
+          "title": "Remboursements",
+          "body": [
+            "Les demandes de remboursement se traitent aussi par e-mail. Notre politique de remboursement explique ce que nous pouvons faire, et quand."
+          ]
+        },
+        {
+          "title": "Tout le reste",
+          "body": [
+            "Idées, demandes pour un souvenir que nous ne proposons pas encore, ou presse — la même adresse nous atteint : {email}."
+          ]
+        }
+      ]
+    }
+  },
+  "Studio": {
+    "home": {
+      "title": "Ouvrez un produit pour commencer",
+      "description": "L'atelier s'ouvre depuis le bouton Continuer d'un produit sur heartfolio.com — il n'y a rien à configurer directement ici."
+    },
+    "chrome": {
+      "back": "Retour",
+      "toggleTheme": "Basculer entre le mode clair et sombre",
+      "startingAt": "À partir de {price}",
+      "categories": {
+        "sky": "Ciel étoilé",
+        "map": "Carte",
+        "music": "Musique",
+        "timeline": "Chronologie",
+        "portrait": "Portrait",
+        "memorial": "Hommage",
+        "other": "Souvenir"
+      }
+    },
+    "loading": {
+      "title": "Préparation de votre atelier",
+      "subtitle": "Chargement de votre produit…"
+    },
+    "errors": {
+      "not-found": {
+        "title": "Impossible de trouver ce produit",
+        "description": "Le produit que vous cherchez a peut-être changé de nom ou n'est plus disponible. Retournez choisir parmi les produits actuels.",
+        "cta": "Retour à Heartfolio"
+      },
+      "error": {
+        "title": "Une erreur est survenue",
+        "description": "L'atelier a rencontré un problème en chargeant ce produit. Réessayez dans un instant, ou revenez en arrière.",
+        "cta": "Retour à Heartfolio"
+      },
+      "project-unavailable": {
+        "title": "Ce projet ne peut pas encore être ouvert",
+        "description": "L'enregistrement et la reprise de projets arrivent bientôt. Pour l'instant, démarrez-en un nouveau depuis le bouton Continuer d'un produit.",
+        "cta": "Retour à Heartfolio"
+      }
+    },
+    "preview": {
+      "emptyTitle": "Votre aperçu apparaîtra ici",
+      "emptySubtitle": "Dès que vous ajouterez du contenu, vous le verrez prendre vie en temps réel."
+    },
+    "panels": {
+      "content": {
+        "title": "Contenu",
+        "description": "Les détails qui rendent cette pièce unique. Disponible une fois les champs de ce produit prêts."
+      },
+      "appearance": {
+        "title": "Apparence",
+        "description": "Couleurs, mise en page et style pour ce produit. Bientôt disponible."
+      },
+      "assets": {
+        "title": "Fichiers",
+        "description": "Les photos et fichiers que vous importez apparaîtront ici."
+      },
+      "export": {
+        "title": "Export",
+        "description": "Choisissez comment recevoir la pièce finale. Bientôt disponible."
+      },
+      "pricing": {
+        "total": "Total"
+      },
+      "continue": {
+        "cta": "Continuer",
+        "disabledHint": "Disponible une fois le contenu de ce produit prêt"
+      }
+    }
+  },
+  "FeedbackPage": {
+    "meta": {
+      "title": "Dites-nous ce que vous en pensez — Heartfolio",
+      "description": "Partagez une idée, signalez un problème, ou dites-nous ce qui vous a plu. Chaque message est lu."
+    },
+    "title": "Dites-nous ce que vous en pensez.",
+    "intro": "Une idée, quelque chose qui ne fonctionne pas, un souvenir que vous aimeriez voir exister — tout cela nous est utile, et tout est lu par une vraie personne. Nul besoin d'avoir acheté quoi que ce soit.",
+    "ratingLabel": "Comment trouvez-vous Heartfolio ? (facultatif)",
+    "rateAria": "Noter {n} sur 5",
+    "messageLabel": "Votre message",
+    "messagePlaceholder": "Qu'avez-vous en tête ?",
+    "emailLabel": "E-mail (facultatif)",
+    "emailPlaceholder": "Seulement si vous souhaitez une réponse",
+    "submit": "Envoyer",
+    "sending": "Envoi…",
+    "error": "L'envoi a échoué. Merci de réessayer dans un instant.",
+    "thanksTitle": "Merci.",
+    "thanksBody": "Votre message est bien arrivé et sera lu. Si vous avez laissé un e-mail et qu'une réponse s'impose, vous l'aurez.",
+    "footerLink": "Donner votre avis",
+    "faqPrompt": "Vous ne trouvez pas votre question ?",
+    "faqCta": "Écrivez-nous directement",
+    "nameLabel": "Votre nom (facultatif)",
+    "namePlaceholder": "Affiché uniquement si nous publions votre message"
+  },
+  "GiftIntents": {
+    "printableGifts": {
+      "meta": {
+        "title": "Cadeaux à imprimer et à encadrer — Heartfolio",
+        "description": "Des souvenirs personnalisés livrés en fichiers haute résolution que vous imprimez vous-même — en trois formats, avec ou sans marges, prêts dès le paiement."
+      },
+      "title": "Des cadeaux que vous imprimez, et que vous gardez.",
+      "intro": "Tout ici arrive sous forme de fichier, pas de colis. Vous recevez trois formats d'impression, chacun en deux versions — l'une pour un montage sous verre, l'autre avec marges pour un cadre ordinaire — en 300 DPI, prêtes pour n'importe quel imprimeur. Rien n'est expédié, rien n'arrive en retard, et vous pourrez le réimprimer dans dix ans."
+    },
+    "anniversaryGifts": {
+      "meta": {
+        "title": "Cadeaux d'anniversaire de rencontre, personnalisés — Heartfolio",
+        "description": "Des souvenirs composés à partir de vos propres dates et de vos mots, livrés instantanément."
+      },
+      "title": "Des cadeaux d'anniversaire faits de votre propre histoire.",
+      "intro": "Pas une carte générique avec une année dessus — un souvenir construit à partir des dates qui comptent vraiment pour vous deux."
+    },
+    "weddingGifts": {
+      "meta": {
+        "title": "Cadeaux de mariage personnalisés — Heartfolio",
+        "description": "Des souvenirs personnalisés pour un mariage, livrés en téléchargement immédiat."
+      },
+      "title": "Des cadeaux de mariage que l'on garde.",
+      "intro": "Quelque chose fait pour un couple, plutôt qu'acheté sur une liste."
+    },
+    "giftsForCouples": {
+      "meta": {
+        "title": "Cadeaux pour les couples — Heartfolio",
+        "description": "Des souvenirs numériques personnalisés pour deux personnes qui ont une histoire."
+      },
+      "title": "Des cadeaux pour deux personnes qui ont une histoire.",
+      "intro": "Construits autour des dates, des lieux et des mots qu'eux seuls reconnaîtraient."
+    }
+  },
+  "CookieConsent": {
+    "label": "Choix relatifs aux cookies",
+    "body": "Nous utilisons une mesure d'audience respectueuse de la vie privée, sans cookies et sans identifier personne. Avec votre accord, nous utiliserions aussi Google Analytics, qui dépose des cookies. Refuser ne change rien au fonctionnement du site.",
+    "accept": "Autoriser",
+    "decline": "Non merci",
+    "privacyLink": "Politique de confidentialité"
+  },
+  "Reviews": {
+    "title": "Ce qu'on nous a dit",
+    "summary": "{average} sur 5 · {count} avis",
+    "ratingAria": "Noté {n} sur 5"
+  }
+}

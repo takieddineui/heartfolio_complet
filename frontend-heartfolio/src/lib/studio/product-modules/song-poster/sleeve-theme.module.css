@@ -1,0 +1,152 @@
+/*
+  Ported from `.sv-*`, LANDSCAPE branch only — same as Award,
+  `ratios:['landscape']` in the prototype's own registry means its
+  portrait branch was already dead code there. Canvas: 1200x800.
+
+  ADAPTED: album/year and runtime/momentAt credits are dropped — same
+  reasoning as every theme so far, neither exists in this schema. The
+  footer's names/place/date join becomes the same artist + wordmark
+  line every other theme uses.
+
+  THE SIX SELECTABLE PALETTES ARE NOT WIRED UP. The prototype defines
+  six ground colours (Cream, Mustard, Red, Orange, Black, Blue-grey)
+  as a genuine customer choice — "Ground colour is a live swap… the
+  palette picker sets --bg/--ink." This adaptation uses Cream (the
+  default) only. Building the palette picker itself is real, separate
+  UI work — a colour-selection control, threading a second choice
+  through `themeSelections` alongside `theme` — not something to
+  silently fold into this pass. Noted here rather than left
+  undiscoverable.
+
+  The curved ring text uses real dedication text where the prototype's
+  own fallback chain already does (`doc.fields.lyric || dedication`) —
+  there is no `lyric` field in this schema, so it always falls through
+  to dedication, exactly as the prototype's own logic already handles.
+*/
+
+.sheet {
+  position: relative;
+  width: 1200px;
+  height: 800px;
+  overflow: hidden;
+  /* §material — "Ground colour is a live swap, not six separate
+     stylesheets — the palette picker sets --bg/--ink on this one
+     sheet directly." These custom properties are set inline by
+     `SleeveTheme` from the selected palette (`SLEEVE_PALETTES`); the
+     fallback values here are Cream, the default, so the sheet still
+     renders correctly if nothing sets them (e.g. this CSS module
+     loaded before any palette prop reaches it). */
+  background: var(--sv-bg, #f1ece2);
+  color: var(--sv-ink, #171512);
+  font-family: var(--font-sans, "Archivo", system-ui, sans-serif);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 56px;
+  height: 100%;
+  padding: 0 64px;
+  box-sizing: border-box;
+}
+
+.hearts {
+  position: relative;
+  flex: 0 0 520px;
+  width: 520px;
+  height: 340px;
+}
+.disc {
+  position: absolute;
+  top: 0;
+  width: 300px;
+  height: 300px;
+}
+.discLeft {
+  inset-inline-start: 10px;
+}
+.discRight {
+  inset-inline-end: 10px;
+}
+.disc svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.sleevePhoto {
+  position: absolute;
+  inset-inline-start: 50%;
+  bottom: 0;
+  width: 150px;
+  height: 150px;
+  transform: translate(-50%, 10%) rotate(-16deg);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.28);
+  overflow: hidden;
+  background: #d7d0bc;
+}
+.sleevePhoto img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.head {
+  margin: 0 0 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+.swatches {
+  display: flex;
+  gap: 6px;
+}
+.swatches i {
+  width: 16px;
+  height: 16px;
+  display: block;
+}
+.mark {
+  width: 46px;
+  height: 46px;
+  color: var(--sv-ink, #171512);
+  opacity: 0.85;
+}
+.title {
+  font-weight: 800;
+  font-size: 46px;
+  line-height: 1.04;
+  letter-spacing: -0.015em;
+  margin: 0 0 20px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+.artist {
+  font-size: 15px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--sv-soft, #5c574c);
+  margin: 0;
+}
+
+.foot {
+  position: absolute;
+  inset-inline: 56px;
+  bottom: 40px;
+  text-align: center;
+  display: flex;
+  justify-content: space-between;
+  font-size: 14.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--sv-soft, #5c574c);
+}

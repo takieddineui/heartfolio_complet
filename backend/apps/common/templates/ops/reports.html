@@ -1,0 +1,154 @@
+{% comment %}
+Sales reports (§7a).
+
+Desktop-oriented, per §9 — this is analysis you sit down with, unlike the
+phone-first status page. Plain server-rendered HTML rather than a charting
+library: every figure here is a number someone reads, and a dependency that
+has to be kept current is a poor trade for bar graphics nobody decided they
+needed. If charts are wanted later, the same data is already shaped for them.
+{% endcomment %}
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Sales reports — Heartfolio</title>
+  <style>
+    body { margin:0; padding:32px; background:#f7f5f1; color:#22222a;
+           font:15px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; }
+    .wrap { max-width: 1000px; margin: 0 auto; }
+    h1 { font-size: 26px; margin: 0 0 4px; }
+    .sub { color:#6b6b75; margin:0 0 28px; font-size:13px; }
+    .cards { display:flex; flex-wrap:wrap; gap:12px; margin-bottom:32px; }
+    .card { flex:1 1 200px; background:#fff; border-radius:10px; padding:18px; }
+    .card .k { font-size:12px; text-transform:uppercase; letter-spacing:.06em; color:#7b7b86; }
+    .card .v { font-size:24px; font-weight:600; margin-top:6px; }
+    .card .n { font-size:12px; color:#7b7b86; margin-top:4px; }
+    section { background:#fff; border-radius:10px; padding:20px; margin-bottom:20px; }
+    h2 { font-size:16px; margin:0 0 12px; }
+    table { width:100%; border-collapse:collapse; }
+    th, td { text-align:left; padding:8px 10px; border-bottom:1px solid #ecebe7; font-size:14px; }
+    th { font-size:12px; text-transform:uppercase; letter-spacing:.05em; color:#7b7b86; }
+    td.num, th.num { text-align:right; font-variant-numeric:tabular-nums; }
+    .periods a { margin-right:10px; text-decoration:none; color:#6b6b75; }
+    .periods a.on { color:#22222a; font-weight:600; text-decoration:underline; }
+    .empty { color:#7b7b86; font-size:14px; padding:8px 0; }
+    .opsnav { display:flex; gap:6px; margin-bottom:18px; font-size:14px; flex-wrap:wrap; }
+    .opsnav a { color:#6b6b75; text-decoration:none; padding:7px 12px; border-radius:20px; }
+    .opsnav a:hover { color:#22222a; background:#ececf1; }
+    .opsnav a.active { color:#22222a; background:#e2e2e9; font-weight:600; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  {% include "ops/_nav.html" %}
+  <h1>Sales reports</h1>
+  <p class="sub">Paid orders only. Pending and failed orders appear in the checkout figures below, never in revenue.</p>
+
+  <div class="cards">
+    <div class="card">
+      <div class="k">Average order</div>
+      <div class="v">${{ average_order_value }}</div>
+    </div>
+    <div class="card">
+      <div class="k">Customers</div>
+      <div class="v">{{ customers.new }} new · {{ customers.returning }} returning</div>
+      <div class="n">Joined on email — the closest thing to identity here</div>
+    </div>
+    <div class="card">
+      <div class="k">Checkout</div>
+      <div class="v">{{ payments.failure_rate }}% unpaid</div>
+      <div class="n">{{ payments.paid_orders }} paid of {{ payments.total_orders }} orders</div>
+    </div>
+  </div>
+
+  <section>
+    <h2>Revenue over time</h2>
+    <p class="periods">
+      {% for option in period_options %}
+        <a href="?period={{ option }}" class="{% if option == period %}on{% endif %}">{{ option }}</a>
+      {% endfor %}
+    </p>
+    <table>
+      <tr><th>Period</th><th class="num">Orders</th><th class="num">Revenue</th></tr>
+      {% for point in trend %}
+        <tr>
+          <td>{{ point.period }}</td>
+          <td class="num">{{ point.orders }}</td>
+          <td class="num">${{ point.revenue_cents|floatformat:0 }}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="3" class="empty">No paid orders yet.</td></tr>
+      {% endfor %}
+    </table>
+  </section>
+
+  {% for group in breakdowns %}
+    <section>
+      <h2>{{ group.title }}</h2>
+      <table>
+        <tr><th>{{ group.column }}</th><th class="num">Orders</th><th class="num">Revenue</th></tr>
+        {% for row in group.rows %}
+          <tr>
+            <td>{{ row.label }}</td>
+            <td class="num">{{ row.orders }}</td>
+            <td class="num">${{ row.revenue_cents|floatformat:0 }}</td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="3" class="empty">Nothing to show yet.</td></tr>
+        {% endfor %}
+      </table>
+      {% if group.note %}<p class="sub" style="margin:12px 0 0;">{{ group.note }}</p>{% endif %}
+    </section>
+  {% endfor %}
+
+  {# §7c — two sections, because they answer different questions.
+     "Needs review" is a worklist; "Recent" is a pulse check. Publishing
+     stays in /admin/ — nothing here changes a row, so this screen cannot
+     accidentally put a customer's words on the storefront. #}
+  <section>
+    <h2>Feedback needing review</h2>
+    <table>
+      <tr><th>When</th><th class="num">Rating</th><th>Message</th><th>Product</th><th>Name</th></tr>
+      {% for item in feedback_unreviewed %}
+        <tr>
+          <td>{{ item.created_at|date:"Y-m-d H:i" }}</td>
+          <td class="num">{% if item.rating %}{{ item.rating }}/5{% else %}—{% endif %}</td>
+          <td>{{ item.message|default:"—" }}</td>
+          <td>{{ item.product }}</td>
+          <td>{{ item.display_name|default:"—" }}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="5" class="empty">Nothing waiting for review.</td></tr>
+      {% endfor %}
+    </table>
+    <p class="sub" style="margin:12px 0 0;">
+      Oldest first. Publishing is a deliberate action in the Django admin —
+      this screen only shows.
+    </p>
+  </section>
+
+  <section>
+    <h2>Recent feedback</h2>
+    <table>
+      <tr><th>When</th><th class="num">Rating</th><th>Message</th><th>Product</th><th>Published</th></tr>
+      {% for item in feedback_recent %}
+        <tr>
+          <td>{{ item.created_at|date:"Y-m-d H:i" }}</td>
+          <td class="num">{% if item.rating %}{{ item.rating }}/5{% else %}—{% endif %}</td>
+          <td>{{ item.message|default:"—" }}</td>
+          <td>{{ item.product }}</td>
+          <td>{% if item.is_published %}yes{% else %}no{% endif %}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="5" class="empty">No feedback yet.</td></tr>
+      {% endfor %}
+    </table>
+    <p class="sub" style="margin:12px 0 0;">
+      Newest first, capped at 50 — this page has no pagination.
+    </p>
+  </section>
+</div>
+</body>
+</html>
