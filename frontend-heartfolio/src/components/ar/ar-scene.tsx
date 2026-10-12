@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { WEB_MARK } from "@/lib/site-config";
+import { milestonePhotoSize, milestoneSpacing } from "./ar-timeline-layout";
 
 /**
  * ---------------------------------------------------------------------
@@ -382,7 +383,7 @@ function buildTimelineScene(
   group.add(spine);
 
   const steps = milestones.map((milestone, index) => {
-    const y = 0.42 - index * (0.84 / Math.max(1, milestones.length - 1 || 1));
+    const y = 0.42 - index * milestoneSpacing(milestones.length);
 
     const node = new THREE.Mesh(
       new THREE.PlaneGeometry(0.03, 0.03),
@@ -392,7 +393,9 @@ function buildTimelineScene(
     group.add(node);
 
     const photo = new THREE.Mesh(
-      new THREE.PlaneGeometry(0.26, 0.26),
+      // The usual size, or smaller when the milestones are too close for it:
+      // see `ar-timeline-layout.ts` (they covered each other from five).
+      new THREE.PlaneGeometry(milestonePhotoSize(milestones.length), milestonePhotoSize(milestones.length)),
       new THREE.MeshBasicMaterial({
         color: 0xffffff,
         transparent: true,

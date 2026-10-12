@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
+import { AR_PHOTO_GAP, AR_PHOTO_SIZE, milestonePhotoSize, milestoneSpacing } from "./ar-timeline-layout";
 
 /**
  * ---------------------------------------------------------------------
@@ -176,5 +177,34 @@ describe("the AR scene itself (§14, §15)", () => {
     // The visual milestone still appeared, and §14 says that alone is a
     // complete experience.
     expect(source).toMatch(/play\(\)\.catch/);
+  });
+});
+
+describe("AR timeline layout (§21i)", () => {
+  it("never lets one milestone's photograph cover the next", () => {
+    // From five milestones the 0.26 photographs overlapped (by 0.05 at five,
+    // 0.14 at eight, more than half a photograph): the Studio offered three
+    // until it was raised to eight.
+    for (let count = 1; count <= 8; count += 1) {
+      if (count === 1) continue;
+      const size = milestonePhotoSize(count);
+      expect(size, `${count} milestones`).toBeGreaterThan(0);
+      expect(milestoneSpacing(count) - size, `${count} milestones`).toBeGreaterThanOrEqual(AR_PHOTO_GAP - 1e-9);
+    }
+  });
+
+  it("keeps the usual size wherever it already fitted", () => {
+    // Up to four milestones the photograph is unchanged.
+    for (const count of [2, 3, 4]) expect(milestonePhotoSize(count)).toBeCloseTo(AR_PHOTO_SIZE, 10);
+    expect(milestonePhotoSize(8)).toBeLessThan(AR_PHOTO_SIZE);
+  });
+
+  it("is what the scene builds with", () => {
+    // The scene spaces and sizes through these two functions, not its own
+    // arithmetic (it used to hold `0.84 / ...` and `PlaneGeometry(0.26, 0.26)`).
+    const scene = readFileSync("src/components/ar/ar-scene.tsx", "utf8");
+    expect(scene).toContain("milestoneSpacing(milestones.length)");
+    expect(scene).toContain("milestonePhotoSize(milestones.length)");
+    expect(scene).not.toContain("PlaneGeometry(0.26, 0.26)");
   });
 });

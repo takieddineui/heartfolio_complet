@@ -256,11 +256,20 @@ Two were genuine product bugs: the `layout` default above, and
   - **Neat Stack's preview fixed (7 Oct 2026).** It had hidden milestones
     at 5 and 8, the same bug as Alternating Tilt; Neat Stack is now closed
     on both sides. The shared fit is `FittedTimeline`
-    (`timeline-text-fit.tsx`). **The Studio milestone cap stays at 3**
-    (`maxEvents` in `metadata.ts`) until both horizontal styles are each
-    verified at 8 in preview and print (Dotted Branching now is). Then
-    raise it to 8 and remove the stale comment and the unused
-    `recommendedMin`/`recommendedMax`. No per-layout cap, by decision.
+    (`timeline-text-fit.tsx`). **The Studio milestone cap was raised from 3
+    to 8 on 12 Oct 2026** (`maxEvents` in `metadata.ts`), after all six styles
+    were verified at 8 in preview and print and the other surfaces were
+    checked (guide section 8). That check found the AR scene overlapping its
+    photographs from 5 milestones, fixed in `ar-timeline-layout.ts`. A pack
+    now renders up to 24 moment wallpapers (3 devices x 8) and its download
+    is slower (about 20s against 7s in memory), so watch the pack render
+    time. No per-layout cap, by decision.
+  - **Horizontal Polaroids and Horizontal Circles closed (12 Oct 2026)**,
+    preview and print, with all their styling items; both were broken (70 and
+    66 of 108 prints, text) and Circles' preview axis was at the top of the
+    timeline. See `PRINT-RENDERER-GUIDE.md` §11. `_horizontal_plan` measures
+    and wraps their text; `FittedTimeline` has `fitTo="box"`. **All six styles
+    are now closed.**
   - **Dotted Branching closed (12 Oct 2026)**, preview and print, with all
     its styling items. It was 106 of 108 broken, and its preview cut off
     content at 3 milestones. See `PRINT-RENDERER-GUIDE.md` §10. The date chip
