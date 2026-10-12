@@ -234,6 +234,28 @@ Two were genuine product bugs: the `layout` default above, and
   was reverted. Never rename or retarget a plan that has licenses — create a new
   one. The mapping tests pin 70518 to `complete` and 70543 to the combo.
 
+- **The live page now honours all 8 palettes and the typography axis (12 Oct
+  2026, `components/live/live-theme.ts`).** It had its own CSS palette list that
+  styled 4 of 8 (Terracotta, Gilded and Forest Night fell back to cream) and
+  ignored typography entirely. It now takes colours and fonts from the Studio's
+  tokens in `themes.ts`, so there is one list; `live-theme.test.tsx` pins every
+  palette against the print's table in `data.py`. Arabic headings keep Kufi via
+  an Arabic-only alias face. The page mirrors the Studio preview's fonts, so on
+  the default typography its headings went from the loaded brand serif to
+  Georgia and its body from Georgia to the system sans. The text-scale axis is
+  still ignored on the live page. The live selector (A/B/C scopes) is
+  undecided, pending the owner seeing this fix live.
+- **Known, pre-existing gap, separate from the live-page fix above: the
+  typography tokens name fonts that were never loaded.** `themes.ts` names
+  `'Fraunces'`, `'Inter'` and `'JetBrains Mono'`, none of which is a loaded
+  `@font-face` family (the site loads "Heartfolio Serif" and "Heartfolio
+  Sans"), so the Studio preview and the live page both draw each stack's
+  fallback (Georgia, system sans, a cursive face, monospace), measured by text
+  width on 12 Oct 2026. Deliberately NOT fixed, by decision: correcting the
+  names changes the preview's text widths, which the milestone fit
+  (`FittedTimeline`) and the print-vs-preview work were tuned against, so it is
+  its own task with the same measure-and-verify treatment as a style change,
+  not a tweak to bundle into something else.
 - **Real-R2 pack timing at 8 milestones is UNVERIFIED (12 Oct 2026).** The one
   attempt failed because the company fiber network stalls large HTTPS
   downloads from every host (Cloudflare, Hetzner and OVH too), so it says nothing

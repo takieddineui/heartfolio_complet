@@ -6,6 +6,7 @@ import styles from "./live-keepsake.module.css";
 import { SHOW_MILESTONE_VIDEO } from "@/lib/feature-flags";
 import { OpeningSequence } from "./opening-sequence";
 import { EndingSpark } from "./ending-spark";
+import { liveThemeStyle } from "./live-theme";
 import { RevealGroup, RevealItem } from "@/components/motion/reveal";
 
 /**
@@ -243,7 +244,11 @@ export function LiveKeepsake({
   };
 
   return (
-    <main className={styles.root} data-palette={themeSelections.palette}>
+    // Colours and fonts come from the Studio's own palette and typography
+    // tokens (`live-theme.ts`), so all eight palettes and all four type
+    // choices reach the recipient. `data-palette` stays as a hook for tests
+    // and any future per-palette tweak; it styles nothing by itself.
+    <main className={styles.root} data-palette={themeSelections.palette} style={liveThemeStyle(themeSelections)}>
       {!openingDone && (
         <OpeningSequence
           names={people.join(" & ")}

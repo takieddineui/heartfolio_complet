@@ -2,19 +2,42 @@
    Vertical scrolling because the composition is vertical; §10 says not to
    force the poster's geometry onto the web. */
 
+/* ARABIC HEADINGS KEEP THEIR DESIGNED FACE. Before the heading font came from
+   the theme, the page's h1 and h2 took the site's heading font, which on /ar is
+   Noto Kufi (globals.css, §24). The theme's stacks ('Fraunces', Georgia, ...)
+   have no Arabic, so without this the browser would draw Arabic headings in
+   whatever system serif it found. This is the SAME Kufi file as "Heartfolio
+   Serif" but declared for Arabic characters only, under its own name, so that
+   `live-theme.ts` can slot it into any stack WITHOUT it also supplying the
+   Latin letters (the composite "Heartfolio Serif" would, and that would turn
+   "Romantic Script" and "Typewriter" back into Fraunces). */
+@font-face {
+  font-family: "Heartfolio Live Arabic";
+  src: url("/fonts/noto-kufi-arabic.woff2") format("woff2-variations");
+  font-weight: 300 700;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0600-06FF, U+0750-077F, U+0870-088E, U+0890-0891,
+    U+0898-08E1, U+08E3-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41,
+    U+FB50-FDFF, U+FE70-FE74, U+FE76-FEFC;
+}
+
+/* The values below are only the FALLBACK (the classic palette, Georgia). The
+   page's real colours and fonts are set inline on `.root` from the Studio's own
+   palette and typography tokens by `live-theme.ts`, so there is deliberately no
+   per-palette rule here: a second list is what let three of the eight palettes
+   fall back to this cream. */
 .root {
   --ink: #3a3a38;
   --muted: #8a8578;
   --paper: #f7f1e6;
   --accent: #c9a24b;
+  --live-heading-font: Georgia, "Times New Roman", serif;
+  --live-body-font: Georgia, "Times New Roman", serif;
   background: var(--paper);
   color: var(--ink);
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--live-body-font);
 }
-.root[data-palette="midnight"] { --ink: #f7f1e6; --muted: #8a91a8; --paper: #141b2e; }
-.root[data-palette="blush"] { --ink: #4a2f2b; --muted: #a67f78; --paper: #f3e3e0; --accent: #b5654b; }
-.root[data-palette="sage"] { --ink: #3a4536; --muted: #7f8f74; --paper: #e8ede2; --accent: #6b7a5e; }
-.root[data-palette="monochrome"] { --ink: #141414; --muted: #8a8a8a; --paper: #fff; --accent: #141414; }
 
 .opening {
   min-height: 100svh;
@@ -27,7 +50,7 @@
   gap: 12px;
 }
 .names { letter-spacing: 0.22em; text-transform: uppercase; font-size: 0.78rem; color: var(--muted); }
-.title { font-size: clamp(2.2rem, 8vw, 4rem); font-weight: 400; margin: 0; line-height: 1.1; }
+.title { font-family: var(--live-heading-font); font-size: clamp(2.2rem, 8vw, 4rem); font-weight: 400; margin: 0; line-height: 1.1; }
 .subtitle { color: var(--muted); font-style: italic; margin: 0; }
 .duration { letter-spacing: 0.14em; font-size: 0.85rem; color: var(--accent); margin-top: 8px; }
 
@@ -77,7 +100,7 @@
 }
 
 .stepDate { letter-spacing: .16em; text-transform: uppercase; font-size: .72rem; color: var(--muted); margin: 0; }
-.stepTitle { font-size: clamp(1.3rem, 5vw, 1.9rem); font-weight: 400; margin: 6px 0 0; }
+.stepTitle { font-family: var(--live-heading-font); font-size: clamp(1.3rem, 5vw, 1.9rem); font-weight: 400; margin: 6px 0 0; }
 .stepText { margin: 10px 0 0; line-height: 1.6; color: var(--ink); }
 .stepPlace { margin: 6px 0 0; font-size: .8rem; color: var(--muted); }
 
