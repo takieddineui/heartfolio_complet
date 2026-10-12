@@ -280,24 +280,78 @@ class DottedGeometry:
     The photographs cascade with real overlap, more than 7.1's stack —
     closer to 7.3 — which is why the photo column is narrower here: the
     overlap does the work that width does elsewhere.
+
+    THE ROWS, as Overlapping Cascade (7 Oct 2026): `photo_overlap` is the
+    share of a slot a card reaches past it, and both renderers divide the
+    timeline into `count + photo_overlap` equal slots with half the overlap
+    spare at each end. A card's tilted outline may be (1 + overlap) slots
+    tall, so it overlaps its neighbours and the first and last stay inside.
+    Measured before this: 106 of 108 realistic print renders broken (cards
+    1.03-1.38x their slot, the first over the header rule and the last over
+    the footer in 102), and the preview clipped 10px at 3 milestones.
+
+    THE DATE CHIP is a full date ("Apr 12, 2019"), wider than the gutter
+    between the photographs and the text, so it cannot sit centred on the
+    spine: it did, 21px off it, over the cards' edge. It is the first line
+    of each milestone instead, starting on the spine and running right
+    above the title, over the dotted line and clear of the cards.
     """
 
     photo_column: float = 0.40
     spine_position: float = 0.48
-    text_start: float = 0.545
+    #: Where the text column starts, as a fraction of the content width: a
+    #: little right of the spine. (The print used 0.545 and the preview came
+    #: out at 0.49 once `.timeline`'s 14px gap was added; both are now this.)
+    text_start: float = 0.52
+    #: The dotted line stops this far short of each end of the timeline (CSS
+    #: `inset-block: 5%`).
+    spine_inset: float = 0.05
 
+    #: The CARD's width as a fraction of the photo column, borders included
+    #: (the CSS width is border-box), unless the slot is too short for it.
     photo_width: float = 0.88
+    #: The photograph's height over its width: the preview's `aspect-ratio:
+    #: 1 / 1.12`. The print pasted a SQUARE photo into a card sized for
+    #: this, leaving a blank band.
     photo_aspect: float = 1.12
     #: More than 7.1's stack, less than 7.3's cascade.
     photo_overlap: float = 0.16
+    #: The ODD cards' tilt, `rotate(-3deg)`, anticlockwise; the EVEN cards
+    #: the other way, `rotate(3deg)`. The cards are centred in the column
+    #: (the print used to step them 0/5/10% to the right).
     photo_tilt_deg: float = 3.0
+    photo_tilt_even_deg: float = 3.0
+    #: Polaroid border as a fraction of the photo, read from the preview:
+    #: `padding: 5px 5px 16px` around a 158px photo (the Studio's 540px
+    #: poster, 3 milestones).
+    polaroid_border: float = 0.0316
+    polaroid_bottom_border: float = 0.1013
+    #: `box-shadow: 0 3px 9px rgba(0, 0, 0, 0.15)`, in CSS pixels, converted
+    #: through the photo's width in the preview (`preview_photo_px`).
+    card_shadow_offset_px: float = 3.0
+    card_shadow_blur_px: float = 9.0
+    card_shadow_opacity: float = 0.15
+    preview_photo_px: float = 158.0
+    #: The preview poster's width, for converting fixed CSS sizes that are
+    #: not tied to the photo (the line, the dashes, the heart, the chip's
+    #: padding) into print pixels.
+    preview_poster_px: float = 540.0
+    #: The smallest fraction of its normal size the milestone text shrinks
+    #: to, in the print and in the preview (TIMELINE_TEXT_FIT_FLOOR).
+    text_fit_floor: float = 0.55
 
-    #: Dash pattern, in pixels at 300dpi. The reference reads as a fine
-    #: dotted rule rather than a dashed one.
+    #: Dash pattern, in CSS pixels on the preview's 540px poster; the print
+    #: draws the same share of its width (they were 6px and 8px on a 2480px
+    #: page, nearly invisible). The reference reads as a fine dotted rule.
     dash_length_px: int = 6
     dash_gap_px: int = 8
-    #: The heart preceding each label.
+    spine_width_px: int = 1
+    #: The heart preceding each label, and the space after it.
     heart_size_px: int = 11
+    label_gap_px: int = 5
+    #: The date chip's side padding: it starts this far left of the spine
+    #: and the date itself starts ON the spine.
+    chip_pad_px: int = 4
     #: Photo-led, like 7.2. The reference shows a year on the line and a
     #: single phrase beside a heart — "Engaged", "First Baby".
     shows_description: bool = False

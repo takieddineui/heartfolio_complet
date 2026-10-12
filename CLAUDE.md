@@ -257,10 +257,15 @@ Two were genuine product bugs: the `layout` default above, and
     at 5 and 8, the same bug as Alternating Tilt; Neat Stack is now closed
     on both sides. The shared fit is `FittedTimeline`
     (`timeline-text-fit.tsx`). **The Studio milestone cap stays at 3**
-    (`maxEvents` in `metadata.ts`) until Dotted Branching and both
-    horizontal styles are each verified at 8 in preview and print. Then
+    (`maxEvents` in `metadata.ts`) until both horizontal styles are each
+    verified at 8 in preview and print (Dotted Branching now is). Then
     raise it to 8 and remove the stale comment and the unused
     `recommendedMin`/`recommendedMax`. No per-layout cap, by decision.
+  - **Dotted Branching closed (12 Oct 2026)**, preview and print, with all
+    its styling items. It was 106 of 108 broken, and its preview cut off
+    content at 3 milestones. See `PRINT-RENDERER-GUIDE.md` §10. The date chip
+    is now the first line of each milestone, starting on the spine.
+    `_cascade_layout` became `_overlapping_stack_layout(layout_id, ...)`.
   - **Overlapping Cascade closed (7 Oct 2026)**, preview and print, with
     all its styling items. It was 108 of 108 broken, and its preview cut off
     content at 3 milestones. See `PRINT-RENDERER-GUIDE.md` §9. The names

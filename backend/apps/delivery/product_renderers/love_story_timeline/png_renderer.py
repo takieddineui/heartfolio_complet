@@ -30,6 +30,7 @@ deliberate, documented scope decision, not an oversight.
 
 from __future__ import annotations
 
+import functools
 import io
 import math
 from pathlib import Path
@@ -411,13 +412,15 @@ def render_png(
     # at 130 whatever the names do) keep `heading_font`.
     names_font = heading_font
     if parsed is not None and (
-        timeline.layout not in _LAYOUTS_WITH_THEIR_OWN_TEXT_FIT or timeline.layout == "overlapping-cascade"
+        timeline.layout not in _LAYOUTS_WITH_THEIR_OWN_TEXT_FIT
+        or timeline.layout in ("overlapping-cascade", "dotted-branching")
     ):
         names_font = _names_font_for_milestones(
             draw, timeline, events, locale=locale, fonts=fonts, palette=palette, scale=scale,
             x=x, y=y, max_width=max_width, margin=margin,
             content_left=content_left, content_right=content_right, content_bottom=content_bottom,
-            footer_reserve=footer_reserve, heading_font=heading_font, subheading_font=subheading_font,
+            footer_reserve=footer_reserve, page_width=width,
+            heading_font=heading_font, subheading_font=subheading_font,
             subtitle_font=subtitle_font, body_font=body_font, small_font=small_font,
         )
 
@@ -482,11 +485,12 @@ def render_png(
     elif timeline.layout == "dotted-branching":
         y = _draw_dotted(
             image, draw, timeline, events,
-            customer=customer, palette=palette, scale=scale,
+            customer=customer, palette=palette,
             x=x, y=y, content_right=content_right, margin=margin,
-            slot_height=int(remaining_height // event_count),
-            small_font=event_small_font, body_font=event_body_font,
-            description_max_lines=description_max_lines,
+            # The whole band, divided by the layout itself; unshrunk fonts,
+            # which it fits to its own milestones (`_fit_milestone_text`).
+            band_height=remaining_height,
+            small_font=small_font, body_font=body_font, body_font_file=fonts["body"],
         )
     elif timeline.layout == "alternating-tilt":
         y = _draw_alternating(
@@ -566,7 +570,7 @@ def render_png(
 
 #: Layouts past Neat Stack whose print has been matched to the preview's
 #: centred header and footer. Each is added as it is reviewed.
-_REVIEWED_CENTRED_LAYOUTS = ("alternating-tilt", "overlapping-cascade")
+_REVIEWED_CENTRED_LAYOUTS = ("alternating-tilt", "overlapping-cascade", "dotted-branching")
 
 
 #: Layouts that are NOT Neat Stack — mirrors the dispatch in `render_png`,
@@ -668,7 +672,7 @@ def _line_x(draw, text, font, x, max_width, centered):
 
 def _names_font_for_milestones(
     draw, timeline, events, *, locale, fonts, palette, scale, x, y, max_width, margin,
-    content_left, content_right, content_bottom, footer_reserve,
+    content_left, content_right, content_bottom, footer_reserve, page_width,
     heading_font, subheading_font, subtitle_font, body_font, small_font,
 ):
     """The names heading for a Neat Stack or Overlapping Cascade page —
@@ -691,6 +695,7 @@ def _names_font_for_milestones(
     Overlapping Cascade follows the same rule (7 Oct 2026): the same case,
     eight milestones under two long names at 130 on the 8x10 edged print,
     left its milestones 204px of text in 135px slots at the smallest type.
+    Dotted Branching follows it too (`_dotted_block_height`).
     """
     event_count = max(len(events), 1)
 
@@ -702,13 +707,18 @@ def _names_font_for_milestones(
             body_font=body_font, small_font=small_font, measure_only=True,
         )
         band_height = max(content_bottom - margin - footer_reserve - top, 0)
-        if timeline.layout == "overlapping-cascade":
-            cascade = _cascade_layout(x=x, content_right=content_right, margin=margin,
-                                      band_height=band_height, count=event_count)
-            slot_height = int(cascade["slot"])
+        if timeline.layout in ("overlapping-cascade", "dotted-branching"):
+            stack = _overlapping_stack_layout(
+                timeline.layout, x=x, content_right=content_right, margin=margin,
+                band_height=band_height, count=event_count,
+            )
+            slot_height = int(stack["slot"])
+            block_for = _cascade_block_height
+            if timeline.layout == "dotted-branching":
+                block_for = functools.partial(_dotted_block_height, indent=_dotted_indent(page_width))
             *_, block_height = _fit_milestone_text(
                 draw, events, font_file=fonts["body"], small_size=small_font.size, body_size=body_font.size,
-                width=cascade["text_w"], slot_height=slot_height, block_height=_cascade_block_height,
+                width=stack["text_w"], slot_height=slot_height, block_height=block_for,
             )
             return block_height <= slot_height
         columns = _neat_stack_columns(timeline, x=x, content_left=content_left, content_right=content_right, margin=margin)
@@ -999,7 +1009,7 @@ def _draw_cascade(
     * a CARD, tilted (+2.5/-2.5 here, the preview's rotate(-2.5deg)/
       rotate(2.5deg)), with the preview's shadow and a 1:1.15 photograph,
       sized so its whole tilted outline fits 1 + `photo_overlap` slots, with
-      room for the shadow kept at the two ends (`_cascade_layout`): it
+      room for the shadow kept at the two ends (`_overlapping_stack_layout`): it
       overlaps its neighbours, never the header rule or the footer.
       It used to be sized from the photo, 1.20-1.44x its slot, and crossed
       both in 107 of 108 realistic renders.
@@ -1015,7 +1025,9 @@ def _draw_cascade(
     """
     geometry = geometry_for("overlapping-cascade")
     count = max(len(events), 1)
-    layout = _cascade_layout(x=x, content_right=content_right, margin=margin, band_height=band_height, count=count)
+    layout = _overlapping_stack_layout(
+        "overlapping-cascade", x=x, content_right=content_right, margin=margin, band_height=band_height, count=count,
+    )
     photo_col_w, spine_x, text_x, text_w = layout["photo_col_w"], layout["spine_x"], layout["text_x"], layout["text_w"]
     photo_w, photo_h, border, bottom_border = layout["photo_w"], layout["photo_h"], layout["border"], layout["bottom_border"]
     reserve, slot, spread = layout["reserve"], layout["slot"], layout["spread"]
@@ -1088,11 +1100,12 @@ def _draw_cascade(
     return y + band_height
 
 
-def _cascade_layout(*, x, content_right, margin, band_height, count) -> dict:
-    """Overlapping Cascade's columns, card size and slots — one definition,
+def _overlapping_stack_layout(layout_id, *, x, content_right, margin, band_height, count) -> dict:
+    """The columns, card size and slots of the two portrait layouts whose cards
+    overlap (Overlapping Cascade and Dotted Branching) — one definition,
     shared by the drawing and by `_names_font_for_milestones`'s fit check.
-    See `_draw_cascade` and `CascadeGeometry`."""
-    geometry = geometry_for("overlapping-cascade")
+    See `_draw_cascade` and `CascadeGeometry`; Dotted has no drift."""
+    geometry = geometry_for(layout_id)
     content_width = content_right - x - margin
     photo_col_w = int(content_width * geometry.photo_column)
     spine_x = x + int(content_width * geometry.spine_position)
@@ -1135,7 +1148,7 @@ def _cascade_layout(*, x, content_right, margin, band_height, count) -> dict:
     # (the preview: `min(22cqw, 100cqw - tilted width)`).
     card_w, card_h = photo_w + 2 * border, photo_h + border + bottom_border
     tilted_w = card_w * math.cos(tilt) + card_h * math.sin(tilt)
-    spread = max(0.0, min(photo_col_w * geometry.drift, photo_col_w - tilted_w - 2))
+    spread = max(0.0, min(photo_col_w * getattr(geometry, "drift", 0.0), photo_col_w - tilted_w - 2))
 
     return {
         "photo_col_w": photo_col_w, "spine_x": spine_x, "text_x": text_x, "text_w": text_w,
@@ -1342,111 +1355,137 @@ def _draw_heart(image, centre_x, centre_y, size, fill) -> None:
     image.paste(ImageColor.getrgb(fill), (int(centre_x - size / 2), int(centre_y - size / 2)), mask)
 
 
+def _dotted_indent(page_width) -> int:
+    """How far a Dotted milestone's title starts right of the text column: the
+    heart and the space after it, at the preview's share of the page."""
+    geometry = geometry_for("dotted-branching")
+    to_poster = page_width / geometry.preview_poster_px
+    return round(geometry.heart_size_px * to_poster) + round(geometry.label_gap_px * to_poster)
+
+
+def _dotted_block_height(draw, event, small_font, body_font, width, description_lines, indent=0) -> int:
+    """The height `_draw_dotted` advances through for one milestone: the date
+    chip's line, the title (wrapped to the width left of the heart) and the
+    location (wrapped). Descriptions are not drawn on this layout."""
+    height = int(small_font.size * 1.5)
+    height += max(1, len(_wrap_text(draw, event.title, body_font, max(1, width - indent)))) * int(body_font.size * 1.35)
+    if event.location:
+        height += len(_wrap_text(draw, event.location, small_font, width)) * int(small_font.size * 1.35)
+    return height
+
+
 def _draw_dotted(
-    image, draw, timeline, events, *, customer, palette, scale,
-    x, y, content_right, margin, slot_height,
-    small_font, body_font, description_max_lines,
+    image, draw, timeline, events, *, customer, palette,
+    x, y, content_right, margin, band_height,
+    small_font, body_font, body_font_file,
 ) -> int:
     """§7.4 — Dotted Branching. Mirrors `.layoutDotted` in the CSS.
 
-    Distinguished from 7.1 by a dotted, faint spine with the YEAR sitting on
-    the line and interrupting it.
+    Distinguished from 7.1 by a dotted, faint spine with the date sitting on
+    the line and interrupting it, and a heart before each label.
 
-    Pillow has no dash support, so the line is drawn as a loop of short
-    segments using the dash figures from `compositions.py` — the same
-    numbers the CSS gradient uses. The year is then drawn over a small
-    background-filled rectangle, which is how the interruption is produced
-    on both sides: the line runs continuously underneath and the label
-    punches through it.
+    Laid out as Overlapping Cascade (see `CascadeGeometry`, `_draw_cascade`):
+    `count + photo_overlap` equal slots with half the overlap spare at each
+    end. In its slot each milestone gets
+
+    * a CARD, centred in the photo column and tilted (+3/-3 here, the
+      preview's rotate(-3deg)/rotate(3deg)) with the preview's shadow and a
+      1:1.12 photograph, whose whole tilted outline fits 1 + `photo_overlap`
+      slots. It used to be 1.03-1.38x its slot (the first over the header
+      rule and the last over the footer in 102 of 108 renders), stepped
+      0/5/10% to the right, flat, with a square photo in a 1:1.12 card;
+    * TEXT measured and fitted (`_fit_milestone_text`), wrapped and never
+      cut, centred on the slot as the preview centres it: the date, then the
+      heart and the title, then the location. (Titles were one unwrapped
+      line, off the page in 19 renders; text started at fixed offsets.)
+
+    THE DATE CHIP is the first line of the milestone, starting on the spine
+    and running right with the page background behind it, so it punches
+    through the dotted line, which runs unbroken underneath. The full date is
+    wider than the gutter between the cards and the text, which is why it
+    cannot be centred on the spine as it was: it sat 21px off it, over the
+    cards' edge, in the preview, and reached into both columns in the print.
     """
     geometry = geometry_for("dotted-branching")
-    content_width = content_right - x - margin
+    count = max(len(events), 1)
+    layout = _overlapping_stack_layout(
+        "dotted-branching", x=x, content_right=content_right, margin=margin, band_height=band_height, count=count,
+    )
+    photo_col_w, spine_x, text_x, text_w = layout["photo_col_w"], layout["spine_x"], layout["text_x"], layout["text_w"]
+    photo_w, photo_h, border, bottom_border = layout["photo_w"], layout["photo_h"], layout["border"], layout["bottom_border"]
+    reserve, slot = layout["reserve"], layout["slot"]
+    overlap = geometry.photo_overlap
+    to_poster = image.width / geometry.preview_poster_px
+    to_print = photo_w / geometry.preview_photo_px
 
-    photo_col_w = int(content_width * geometry.photo_column)
-    spine_x = x + int(content_width * geometry.spine_position)
-    text_x = x + int(content_width * geometry.text_start)
-    text_w = max(40, (content_right - margin) - text_x)
-
-    dash = max(2, int(geometry.dash_length_px * scale))
-    gap = max(2, int(geometry.dash_gap_px * scale))
-    span_top = y + int(slot_height * 0.05)
-    span_bottom = y + (slot_height * len(events)) - int(slot_height * 0.05)
-
-    cursor = span_top
+    # The dotted line, at the preview's share of the page width: the dash
+    # figures are CSS pixels on its 540px poster.
+    dash = max(2, round(geometry.dash_length_px * to_poster))
+    gap = max(2, round(geometry.dash_gap_px * to_poster))
+    line_width = max(1, round(geometry.spine_width_px * to_poster))
+    inset = int(band_height * geometry.spine_inset)
+    cursor, span_bottom = y + inset, y + band_height - inset
     while cursor < span_bottom:
         end = min(cursor + dash, span_bottom)
-        draw.line([(spine_x, cursor), (spine_x, end)], fill=palette["line"], width=max(1, int(scale)))
+        draw.line([(spine_x, cursor), (spine_x, end)], fill=palette["line"], width=line_width)
         cursor = end + gap
 
-    photo_w = int(photo_col_w * geometry.photo_width)
-    photo_h = min(int(slot_height * (1 + geometry.photo_overlap)), int(photo_w * geometry.photo_aspect))
-    photo_w = min(photo_w, int(photo_h / geometry.photo_aspect))
+    indent = _dotted_indent(image.width)
+    heart = max(4, round(geometry.heart_size_px * to_poster))
+    chip_pad = max(2, round(geometry.chip_pad_px * to_poster))
+    small_font, body_font, description_lines, _ = _fit_milestone_text(
+        draw, events, font_file=body_font_file, small_size=small_font.size, body_size=body_font.size,
+        width=text_w, slot_height=int(slot), block_height=functools.partial(_dotted_block_height, indent=indent),
+    )
+    row_height = int(small_font.size * 1.5)
 
     for index, event in enumerate(events):
-        middle = y + (index * slot_height) + (slot_height // 2)
+        middle = y + reserve + round(slot * (index + 0.5 + overlap / 2))
 
         if event.photo_asset_id and customer is not None:
-            border = int(photo_w * 0.05)
-            bottom_border = int(photo_w * 0.16)
-            card_w = photo_w + border * 2
-            card_h = photo_h + border + bottom_border
-            # Cascading, not stacked: each photograph steps further in than
-            # the last, which is what 7.4's reference shows and what
-            # separates it from 7.1's aligned column.
-            step = int(photo_col_w * 0.05) * (index % 3)
-            card_x = x + step + ((photo_col_w - card_w) // 3)
-            card_y = middle - (card_h // 2)
-            draw.rectangle([card_x, card_y, card_x + card_w, card_y + card_h], fill="#ffffff")
-            _paste_photo(
+            # CSS rotates clockwise for a positive angle and Pillow
+            # anticlockwise: the preview's rotate(-3deg) on odd cards is +3
+            # here, rotate(3deg) on even cards is -3.
+            tilt_deg = geometry.photo_tilt_deg if index % 2 == 0 else -geometry.photo_tilt_even_deg
+            _paste_polaroid(
                 image, customer=customer, asset_id=event.photo_asset_id,
-                x=card_x + border, y=card_y + border, size=photo_w,
+                centre_x=x + photo_col_w // 2, centre_y=middle,
+                photo_size=photo_w, photo_height=photo_h, border=border, bottom_border=bottom_border,
+                tilt_deg=tilt_deg,
+                shadow_offset=round(geometry.card_shadow_offset_px * to_print),
+                shadow_sigma=geometry.card_shadow_blur_px / 2 * to_print,
+                shadow_opacity=geometry.card_shadow_opacity,
             )
 
-        # The year, punched through the dotted line.
-        year_text = format_event_date(event.date)
-        year_y = middle - int(slot_height * 0.22)
-        try:
-            bbox = draw.textbbox((0, 0), year_text, font=small_font)
-            year_w = bbox[2] - bbox[0]
-            year_h = bbox[3] - bbox[1]
-        except Exception:  # noqa: BLE001 - very old Pillow
-            year_w, year_h = len(year_text) * 8, small_font.size
-        pad = max(2, int(4 * scale))
+        block = _dotted_block_height(draw, event, small_font, body_font, text_w, description_lines, indent)
+        top = middle - block // 2
+
+        # The date chip: its text starts on the spine, its background (the
+        # page's own) starts `chip_pad` before it and ends `chip_pad` after.
+        date = format_event_date(event.date)
+        advance = draw.textlength(date, font=small_font)
         draw.rectangle(
-            [spine_x - year_w // 2 - pad, year_y - pad,
-             spine_x + year_w // 2 + pad, year_y + year_h + pad],
-            fill=palette["bg"],
+            [spine_x - chip_pad, top, spine_x + advance + chip_pad, top + row_height], fill=palette["bg"],
         )
-        draw.text((spine_x - year_w // 2, year_y), year_text, font=small_font, fill=palette["muted"])
+        draw.text((spine_x, top), date, font=small_font, fill=palette["muted"])
 
-        # Heart, then the label.
-        heart = max(4, int(geometry.heart_size_px * scale / 2))
-        label_y = middle - int(slot_height * 0.02)
-        draw.ellipse(
-            [text_x, label_y + 2, text_x + heart, label_y + 2 + heart],
-            fill=palette["accent"],
+        # The heart, level with the title's first line, then the title.
+        label_top = top + row_height
+        glyphs = draw.textbbox((0, label_top), "Ag", font=body_font)
+        _draw_heart(image, text_x + heart // 2, (glyphs[1] + glyphs[3]) // 2, heart, palette["accent"])
+        text_y = _draw_wrapped(
+            draw, event.title, body_font, x=text_x + indent, y=label_top, max_width=max(1, text_w - indent),
+            max_lines=_NO_LINE_LIMIT, fill=palette["text"], line_spacing=int(body_font.size * 1.35),
         )
-        draw.text((text_x + heart + int(6 * scale), label_y), event.title, font=body_font, fill=palette["text"])
-
-        text_y = label_y + int(body_font.size * 1.4)
-        if geometry.shows_description and event.description:
-            text_y = _draw_wrapped(
-                draw, event.description, small_font,
-                x=text_x, y=text_y,
-                max_width=text_w, max_lines=description_max_lines,
-                fill=palette["muted"], line_spacing=int(small_font.size * 1.35),
-            )
-        # The location was never printed on this layout, though the preview
-        # shows it under the milestone — a customer's place silently gone
-        # from the paid print. Drawn as Neat Stack draws it: muted, after
-        # the description, wrapped and never cut.
+        # The location, muted, under the title, wrapped and never cut. The
+        # description is omitted by design on both sides ("photo-led").
         if event.location:
             _draw_wrapped(
                 draw, event.location, small_font, x=text_x, y=text_y, max_width=text_w,
                 max_lines=_NO_LINE_LIMIT, fill=palette["muted"], line_spacing=int(small_font.size * 1.35),
             )
 
-    return y + (slot_height * len(events))
+    return y + band_height
 
 
 def _draw_horizontal(

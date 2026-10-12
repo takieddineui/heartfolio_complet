@@ -133,8 +133,8 @@ scale 130 with long names, and outright overlap with 8 milestones.
 Neat Stack no longer uses it. `_fit_neat_stack_text` measures each
 milestone's real wrapped height with the drawing's own fonts and widths,
 plus one line of separation; Alternating Tilt now does the same
-(`_fit_milestone_text`, §7), and so does Overlapping Cascade (§9).
-**Dotted Branching and both Horizontal styles still use the old formula
+(`_fit_milestone_text`, §7), and so do Overlapping Cascade (§9) and Dotted
+Branching (§10). **Both Horizontal styles still use the old formula
 unchanged.** Assume it is
 wrong for them, in either direction (it overcounted on Alternating Tilt). Check by instrumenting estimate against actual: exec a copy of
 the module in memory with a probe line after `slot_height = ...`, and
@@ -164,9 +164,9 @@ white strip.
 
 Fixed by capping the **whole card**, and once tilted the **rotated
 bounding box** (`h·cos θ + w·sin θ`), at the slot minus a gap. The other
-styles' card code (`_draw_dotted`, `_draw_horizontal`) sizes from the
-photo too. Overlapping Cascade did, at 1.20–1.44× its slot, until 7 Oct
-(§9). Alternating Tilt did as well, at 1.01–1.14× its
+styles' card code (`_draw_horizontal`) sizes from the photo too.
+Overlapping Cascade did, at 1.20–1.44× its slot, until 7 Oct (§9), and
+Dotted Branching, at 1.03–1.38×, until 12 Oct (§10). Alternating Tilt did as well, at 1.01–1.14× its
 slot, until 7 Oct (§7); its fix also counts the shadow. Check every style
 with photo cards.
 
@@ -308,7 +308,7 @@ Do all of these. Each item was learned from a bug.
 | Alternating Tilt | Done (7 Oct) | See §7. Accepted (7 Oct): printed cards fill about 77% of a slot against the preview's 88%, because the shadow must stay clear of text. Deferred: spine width (2px in print, about 9px if scaled like the hearts) |
 | Alternating Tilt (before 7 Oct, for the record) | was: not reviewed | Old text estimate (§3a); card overflow: its last card runs into the footer, and cards cover text in 23 renders now that locations print (§3b); unwrapped titles (§3c); descriptions omitted by design on both sides ("photo-led", §1); cards flat, no shadow (preview ±4°, `0 3px 10px` at 0.16); header left-aligned |
 | Overlapping Cascade | Done (7 Oct) | See §9. Was 108 of 108 broken (cards 1.20–1.44× their slot, first card over the header rule and last at the footer in 107, unwrapped titles, square photo in a 1:1.15 card, preview clipping at 3). Accepted: the preview's text overlaps by 7px at the 55% floor with 8 maximum-length milestones at scale 1.3 (full descriptions in the preview; deferred description item). Legacy 1080×1080 and 1920×1080 still crowd at 8, as before |
-| Dotted Branching | Investigated 7 Oct, not fixed | **106 of 108** print renders broken, all three photo shapes. Cards 1.03–1.38× their slot: the first crosses the header rule in 105 and the last covers "To be continued…" in 102. Titles unwrapped: 27 past the margin, 19 off the canvas. The full-date chip on the spine is wider than the gutter: into the text column in 51, into the photo column in 16, over a card in 17. The shared estimate OVERcounts (text is 0.41–0.70 of it). Square photo in a 1:1.12 card (blank band). Worst header 1 of 12. Locations confirmed printed whole in all 324 renders, and shown in the preview. Preview: 10px clipped at 3 (1 of 3 cards whole), 389px at 5, 959px at 8; `.timeline`'s 14px gap applies here too; the date chip sits 21px left of the spine, over the cards' edge. Styling: cards flat with no shadow (preview ±3°, `0 3px 9px` at 0.15), border 5%/16% against 3.2%/10.1%, print steps cards right by 0/5/10% of the column while the preview centres them, heart drawn as a ~5px dot (preview 11px heart), spine and dashes not scaled to the page, text starts at 54.5% (preview 49%), header left |
+| Dotted Branching | Done (12 Oct) | See §10. Was 106 of 108 broken (cards 1.03–1.38× their slot, the full-date chip wider than the gutter, unwrapped titles, square photo in a 1:1.12 card, preview clipping at 3). Accepted: legacy 1920×1080 and 1080×1080 targets still crowd with 8 or 5 milestones at scale 100–130 (see §10). Deferred styling: fonts, weights, date case and tracking, descriptions (omitted by design) |
 | Horizontal Polaroids | Not reviewed | §3a, §3b, §3c; cards flat (preview ±1.5°, `0 2px 7px` at 0.15) |
 | Horizontal Circles | Not reviewed | §3a, §3c (circles are untilted by design) |
 
@@ -316,6 +316,7 @@ The subtitle and dedication fixes apply to all six (shared header). The
 photo shape (landscape, portrait or square) was confirmed to have no effect
 on Neat Stack's card placement. Header and footer
 centring applies to the reviewed styles only (`_REVIEWED_CENTRED_LAYOUTS`).
+Only the two horizontal styles are left unreviewed.
 
 ---
 
@@ -382,7 +383,7 @@ inside the preview's clipped timeline box:
 | Neat Stack | fits | was 266px clipped, 2 of 5 fully visible; **fixed 7 Oct**: fits | was 767px clipped, 2 of 8; **fixed 7 Oct**: fits |
 | Alternating Tilt | fits (fixed 7 Oct) | fits | fits |
 | Overlapping Cascade | was 90px clipped (3rd card and location cut); **fixed 7 Oct**: fits | was 518px clipped, 2 of 5; **fixed 7 Oct**: fits | was 1,161px clipped, 2 of 8; **fixed 7 Oct**: fits |
-| Dotted Branching | 10px clipped already | 390px clipped, 1 of 5 | 959px clipped, 1 of 8 |
+| Dotted Branching | was 10px clipped (1 of 3 cards whole); **fixed 12 Oct**: fits | was 389px clipped, 1 of 5; **fixed 12 Oct**: fits | was 959px clipped, 1 of 8; **fixed 12 Oct**: fits |
 | Horizontal Polaroids | no vertical clipping (cards poke past the box edge) | same | same |
 | Horizontal Circles | fits | no vertical clipping | no vertical clipping |
 
@@ -400,7 +401,7 @@ inside its row. Known limit: 8 milestones of maximum-length text at scale
 1.3 is 2px over even at the 55% floor, because the preview shows each
 140-character description in full while the print cuts it to one line
 there (that cutting is the deferred item). Overlapping Cascade was fixed
-the same way on 7 Oct (§9). Dotted Branching needs it in its own review.
+the same way on 7 Oct (§9), and Dotted Branching on 12 Oct (§10).
 
 Overlapping Cascade re-measured 7 Oct in layout pixels (after the unit bug
 below was found): 90, 518 and 1,161px, the same as the table, so those
@@ -444,7 +445,7 @@ section of `composition-parity.test.ts`.
   first and last stay inside. In CSS this is flex rows plus two `flex: 0.11`
   spacers (`::before`/`::after`), with each card in a size-container cell:
   `--card-w: min(80cqw, (122cqh - 9.49px) / 1.1925)`.
-- **The shadow is reserved at the ends only** (`_cascade_layout`). Counting
+- **The shadow is reserved at the ends only** (`_overlapping_stack_layout`). Counting
   it in every card, as Alternating Tilt does, left neighbours overlapping by
   5% of a slot against the preview's 22%; between cards the shadow just
   falls on the next card. Printed neighbours now overlap by 0.18–0.20 of a
@@ -497,3 +498,61 @@ section of `composition-parity.test.ts`.
   - The legacy 1080×1080 and 1920×1080 targets still crowd at 8 milestones,
     as they did before and as Neat Stack's do. 14 of 90 legacy renders have
     problems, down from 28.
+
+---
+
+## 10. Dotted Branching (done 12 Oct 2026): what was different
+
+Investigated against this guide first (7 Oct): 106 of 108 realistic print
+renders broken, and the preview clipping at 3 milestones. Now 108 of 108
+clean with landscape, portrait and square photos, and the fullest header
+(8 milestones + 60-character subtitle + scale 130) clean in 12 of 12.
+Guarded by `DottedBranchingTests`,
+`DottedBranchingNamesGiveUpRoomOnlyWhenNeededTests` and the Dotted section of
+`composition-parity.test.ts`. Decisions (the owner's, 12 Oct): the whole
+styling table except fonts and case; keep the FULL date; cards centred as in
+the preview; the overlap model of Overlapping Cascade.
+
+- **Same model as Cascade (§9).** `_overlapping_stack_layout(layout_id, ...)`
+  is now shared: `count + 0.16` slots with half the overlap spare at each
+  end, a tilted card of up to 1.16 slots, shadow room at the two ends only.
+  Dotted has no drift. In CSS: flex rows, two `flex: 0.08` spacers, a
+  size-container cell, `width: min(88cqw, (116cqh - 9.79px) / 1.1708)`.
+- **The date chip is the first line of the milestone.** The full date
+  ("Apr 12, 2019") is wider than the gutter between the cards and the text,
+  so it could not sit centred on the spine; it did, 21px off it, over the
+  cards' edge in the preview, and reached into both columns in the print
+  (text column 51, photo column 16, over a card 17). It now starts on the
+  spine and runs right above the title, with the page background behind it,
+  so it still punches through the dotted line. Because it is in flow, the
+  text fit counts it. In CSS: `margin-inline-start: calc(-4cqw - 4px)` (the 4%
+  between the spine and the text column, plus its padding), which needs
+  `container-type: inline-size` on `.layoutDotted`, and `position: relative`
+  so it paints over the positioned line.
+- **The shared estimate overcounted here** (text was 0.41–0.70 of it),
+  because it budgets descriptions this photo-led layout never draws. Replaced
+  by a measured fit (`_dotted_block_height`: chip line, wrapped title beside
+  its heart, wrapped location).
+- **Text starts at 52% of the width on both sides.** The print used 54.5% and
+  the preview came out at 49% once `.timeline`'s 14px gap was added (it
+  applies to this grid, as it did to Cascade's: `gap: 0` now).
+- **Dash, line, heart and chip padding are CSS pixels on the 540px poster**
+  and the print draws them at the same share of its width: dashes were 6px and
+  8px on a 2480px page, the line 1px, the heart a 5px dot. The heart is the
+  preview's SVG heart (`_draw_heart`), 11px, level with the title's first
+  line.
+- **Styling matched in the same pass:**
+  - tilt ±3° and the `0 3px 9px` shadow at 0.15;
+  - border 5/16px of a 158px photo and a 1:1.12 photograph (a square photo
+    was pasted into a card sized for 1:1.12);
+  - cards centred in the column (they were stepped 0/5/10% right);
+  - centred header and footer;
+  - the names heading gives up room on sold prints (`_names_font_for_milestones`
+    now covers Neat Stack, Cascade and Dotted).
+- **Accepted:** the legacy `*-png` targets that cannot hold a vertical stack
+  still crowd, as Neat Stack's and Cascade's do: `landscape-png` (1920×1080)
+  at 5 or 8 milestones with large text, and `square-png` at 8 with 130%
+  text. These got a little worse for Dotted (date line now its own line:
+  landscape-png 9 of 18 renders collide, was 5; square-png 1 of 18, was 0),
+  while story-png, portrait-png and print-png went from 4/2/4 broken to 0.
+  Not fixed, by the legacy decision (6 Oct).

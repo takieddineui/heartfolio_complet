@@ -413,10 +413,27 @@ describe("Alternating Tilt geometry (§7.2)", () => {
 
 describe("Dotted Branching geometry (§7.4)", () => {
   const dotted = (field: string) => pythonValue(field, "DottedGeometry");
+  const padding = () => {
+    const [, top, side, bottom] = cssRule(".dottedPhoto").match(/padding:\s*(\d+)px (\d+)px (\d+)px/)!.map(Number);
+    return { top: top!, side: side!, bottom: bottom! };
+  };
 
   it("uses the same column split and spine position", () => {
-    expect(css).toContain(`grid-template-columns: ${Math.round(dotted("photo_column") * 100)}%`);
-    expect(css).toContain(`inset-inline-start: ${dotted("spine_position") * 100}%`);
+    expect(cssRule(".layoutDotted")).toContain(`grid-template-columns: ${Math.round(dotted("photo_column") * 100)}%`);
+    const spine = cssRule(".dottedSpine");
+    expect(spine).toContain(`inset-inline-start: ${dotted("spine_position") * 100}%`);
+    expect(spine).toContain(`inset-block: ${dotted("spine_inset") * 100}%`);
+    expect(spine).toContain(`width: ${dotted("spine_width_px")}px`);
+  });
+
+  it("starts the text where Pillow starts it", () => {
+    // The text column begins after the photo column plus its own inset, as
+    // a share of the remaining width. `.timeline`'s 14px gap used to push it
+    // (and the dotted line's chips) 14px further than the print draws it.
+    expect(cssRule(".layoutDotted")).toContain("gap: 0");
+    const inset = Number(cssRule(".dottedEntries").match(/padding-inline-start:\s*([\d.]+)%/)![1]) / 100;
+    const photoColumn = dotted("photo_column");
+    expect(photoColumn + inset * (1 - photoColumn)).toBeCloseTo(dotted("text_start"), 3);
   });
 
   it("uses the same dash rhythm on both sides", () => {
@@ -425,16 +442,95 @@ describe("Dotted Branching geometry (§7.4)", () => {
     // exactly the kind of thing that drifts silently.
     const dash = dotted("dash_length_px");
     const gap = dotted("dash_gap_px");
-    expect(css).toContain(`var(--p-line) 0 ${dash}px`);
-    expect(css).toContain(`transparent ${dash}px ${dash + gap}px`);
+    expect(cssRule(".dottedSpine")).toContain(`var(--p-line) 0 ${dash}px`);
+    expect(cssRule(".dottedSpine")).toContain(`transparent ${dash}px ${dash + gap}px`);
   });
 
-  it("puts the year on the spine, not in the text column", () => {
+  it("puts the date on the spine as the first line of the milestone", () => {
     // The detail that most distinguishes 7.4 from 7.1. Both sides draw a
     // background-filled chip so the line is punched through rather than
-    // segmented.
-    expect(css).toContain(".dottedYear");
-    expect(css).toContain("background: var(--p-bg)");
+    // segmented. The full date is wider than the gutter between the cards
+    // and the text, so the chip starts ON the spine (the text column's offset
+    // from it, plus its own padding) and runs right above the title; it used
+    // to be centred on the spine, 21px off it, over the cards' edge.
+    const chip = cssRule(".dottedYear");
+    const offset = Math.round((dotted("text_start") - dotted("spine_position")) * 100);
+    expect(chip).toContain(`margin-inline-start: calc(-${offset}cqw - ${dotted("chip_pad_px")}px)`);
+    expect(chip).toContain(`padding: 0 ${dotted("chip_pad_px")}px`);
+    expect(chip).toContain("background: var(--p-bg)");
+    expect(chip).toContain("align-self: flex-start");
+    // Painted over the dotted line, which is positioned.
+    expect(chip).toContain("position: relative");
+    expect(chip).not.toContain("position: absolute");
+    // 1cqw is 1% of the timeline's width.
+    expect(cssRule(".layoutDotted")).toContain("container-type: inline-size");
+  });
+
+  it("gives every milestone an equal row, with half the overlap spare at each end", () => {
+    // Rows of height / (count + overlap), as the print divides its band; a
+    // card may be (1 + overlap) rows tall, so it overlaps its neighbours and
+    // the first and last still fit. This used to be a column of fixed-width
+    // cards that grew past the clipped timeline: 10px at 3 milestones, 389px
+    // at 5, 959px at 8.
+    expect(cssRule(".layoutDotted")).toContain("grid-template-rows: minmax(0, 1fr)");
+    for (const spacer of [".dottedPhotos::before", ".dottedPhotos::after", ".dottedEntries::before", ".dottedEntries::after"]) {
+      expect(cssRule(spacer)).toContain(`flex: ${dotted("photo_overlap") / 2} 1 0`);
+    }
+    expect(cssRule(".dottedPhotoCell")).toContain("flex: 1 1 0");
+    expect(cssRule(".dottedPhotoCell")).toContain("container-type: size");
+    expect(cssRule(".dottedEntry")).toContain("flex: 1 1 0");
+  });
+
+  it("sizes the tilted card to fit (1 + overlap) rows, as Pillow does", () => {
+    // The card is `photo_width` of the column, or as wide as its tilted
+    // outline can be inside 1 + overlap rows. A photo 1.12x as tall as wide
+    // makes the card aspect x width + (top + bottom - aspect x 2 sides) tall;
+    // tilted, (aspect cos + sin) x width + that constant x cos.
+    const { top, side, bottom } = padding();
+    const aspect = dotted("photo_aspect");
+    const tilt = (Math.max(dotted("photo_tilt_deg"), dotted("photo_tilt_even_deg")) * Math.PI) / 180;
+    const extra = top + bottom - aspect * 2 * side;
+    const rows = Math.round((1 + dotted("photo_overlap")) * 100);
+    expect(cssRule(".dottedPhoto")).toContain(
+      `width: min(${Math.round(dotted("photo_width") * 100)}cqw, calc((${rows}cqh - ${(extra * Math.cos(tilt)).toFixed(2)}px) / ${(aspect * Math.cos(tilt) + Math.sin(tilt)).toFixed(4)}))`
+    );
+    expect(cssRule(".dottedPhoto img")).toContain(`aspect-ratio: 1 / ${aspect}`);
+  });
+
+  it("centres the cards in the column, as the preview does", () => {
+    // The print used to step them 0/5/10% to the right.
+    expect(cssRule(".dottedPhotoCell")).toContain("justify-content: center");
+    expect(css).not.toMatch(/\.dottedPhoto:nth-child/);
+  });
+
+  it("tilts the odd and even cards by the same two angles", () => {
+    expect(cssRule(".dottedPhotoCell:nth-child(odd) .dottedPhoto")).toContain(`transform: rotate(-${dotted("photo_tilt_deg")}deg)`);
+    expect(cssRule(".dottedPhotoCell:nth-child(even) .dottedPhoto")).toContain(`transform: rotate(${dotted("photo_tilt_even_deg")}deg)`);
+  });
+
+  it("gives the cards the same shadow and border", () => {
+    expect(cssRule(".dottedPhoto")).toContain(
+      `box-shadow: 0 ${dotted("card_shadow_offset_px")}px ${dotted("card_shadow_blur_px")}px rgba(0, 0, 0, ${dotted("card_shadow_opacity")})`
+    );
+    const { top, bottom } = padding();
+    expect(Math.round(dotted("polaroid_border") * dotted("preview_photo_px"))).toBe(top);
+    expect(Math.round(dotted("polaroid_bottom_border") * dotted("preview_photo_px"))).toBe(bottom);
+  });
+
+  it("draws the same heart, with the same space after it", () => {
+    expect(cssRule(".dottedHeart")).toContain(`width: ${dotted("heart_size_px")}px`);
+    expect(cssRule(".dottedLabel")).toContain(`gap: ${dotted("label_gap_px")}px`);
+  });
+
+  it("fits the text to its row as the print does, keeping milestones apart", async () => {
+    const { TIMELINE_TEXT_FIT_FLOOR } = await import("./timeline-text-fit");
+    expect(TIMELINE_TEXT_FIT_FLOOR).toBe(dotted("text_fit_floor"));
+    const entry = cssRule(".dottedEntry");
+    expect(entry).toContain("--text-scale: calc(var(--base-text-scale, 1) * var(--text-fit, 1))");
+    // Half a date line at each end: the print keeps one date line between
+    // milestones (`_fit_milestone_text`'s separation).
+    const dateSize = Number(cssRule(".dottedYear").match(/font-size:\s*calc\(([\d.]+)px/)![1]);
+    expect(entry).toContain(`padding-block: calc(${dateSize / 2}px * var(--text-scale, 1))`);
   });
 
   it("overlaps more than 7.1 and less than 7.3", () => {

@@ -401,11 +401,16 @@ function AlternatingComposition({
 /**
  * §7.4 — Dotted Branching.
  *
- * The year is rendered as an absolutely-positioned chip sitting ON the
- * spine with the page background behind it, which is what produces the
- * "interrupted line" the reference shows. Drawing the spine as one dotted
- * run and letting the years punch through it is simpler and more robust
- * than segmenting the line between each pair of milestones.
+ * The date is the first line of each milestone, starting on the spine and
+ * running right above the title, with the page background behind it, which
+ * is what produces the "interrupted line" the reference shows: the dotted
+ * line runs unbroken underneath and the chip paints over it. (It used to be
+ * absolutely positioned centred on the spine. The full date is wider than
+ * the gutter between the photographs and the text, so it sat off the spine
+ * over the cards' edge.)
+ *
+ * Both columns give every milestone an equal row (see `.layoutDotted`), as
+ * the print gives each an equal slot, and the text is fitted to its row.
  */
 function DottedComposition({
   events,
@@ -417,21 +422,27 @@ function DottedComposition({
   className: string | undefined;
 }) {
   return (
-    <div className={`${styles.timeline} ${className ?? ""}`}>
+    <FittedTimeline
+      className={`${styles.timeline} ${className ?? ""}`}
+      textClassName={styles.dottedEntry!}
+      cellClassName={styles.dottedEntry!}
+    >
       <span className={styles.dottedSpine} aria-hidden="true" />
 
       <div className={styles.dottedPhotos}>
         {events.map((event, i) => (
-          <span key={i} className={styles.dottedPhoto}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={
-                event.photo?.url ??
-                "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
-              }
-              alt=""
-            />
-          </span>
+          <div key={i} className={styles.dottedPhotoCell}>
+            <span className={styles.dottedPhoto}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={
+                  event.photo?.url ??
+                  "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+                }
+                alt=""
+              />
+            </span>
+          </div>
         ))}
       </div>
 
@@ -452,7 +463,7 @@ function DottedComposition({
           </li>
         ))}
       </ol>
-    </div>
+    </FittedTimeline>
   );
 }
 

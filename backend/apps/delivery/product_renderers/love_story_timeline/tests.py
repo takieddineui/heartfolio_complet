@@ -1676,10 +1676,11 @@ class NeatStackMatchesThePreviewTests(TestCase):
                             self.assertAlmostEqual(x + advance / 2, centre, delta=2, msg=f"{value!r} is not centred")
 
     def test_other_layouts_are_untouched_until_they_are_reviewed(self):
-        # Scope guard: the compositions not yet reviewed (Alternating Tilt
-        # and Overlapping Cascade have been, since) still left-align and
-        # still draw their own cards; each is matched when it is reviewed.
-        _, texts, rules, cards = self._render(layout="dotted-branching")
+        # Scope guard: the compositions not yet reviewed (Alternating Tilt,
+        # Overlapping Cascade and Dotted Branching have been, since) still
+        # left-align and still draw their own cards; each is matched when it
+        # is reviewed.
+        _, texts, rules, cards = self._render(layout="horizontal-polaroid")
         left, _, rule_y = rules[0]
         self.assertEqual(cards, [])
         for value, (x, _), _ in [t for t in texts if t[1][1] < rule_y]:
@@ -1875,19 +1876,22 @@ class OverlappingCascadeTests(TestCase):
     NAME_SETS = AlternatingTiltTests.NAME_SETS
     MONTHS = AlternatingTiltTests.MONTHS
 
+    #: Three short milestones, then five at every field's maximum length.
+    ROWS = [
+        ("2019-04-12", "We Met", "A rainy afternoon, a shared umbrella.", "Lisbon"),
+        ("2020-06-20", "First Trip Together", "Three days, one tiny car.", "Andalusia"),
+        ("2022-09-03", "He Proposed", "On the beach, at sunset.", "Cascais"),
+    ] + [
+        (f"2023-{month:02d}-15", "The weekend we finally painted the kitch",  # 40
+         "We spent the whole weekend arguing about colours, gave up, ordered takeaway, and painted it "
+         "white anyway. Best decision we ever made, honest",  # 140
+         "Our first flat, Rua das Flores 12, Porto")  # 40
+        for month in range(1, 6)
+    ]
+
     def setUp(self):
         self.customer = make_customer()
-        self.rows = [
-            ("2019-04-12", "We Met", "A rainy afternoon, a shared umbrella.", "Lisbon"),
-            ("2020-06-20", "First Trip Together", "Three days, one tiny car.", "Andalusia"),
-            ("2022-09-03", "He Proposed", "On the beach, at sunset.", "Cascais"),
-        ] + [
-            (f"2023-{month:02d}-15", "The weekend we finally painted the kitch",  # 40
-             "We spent the whole weekend arguing about colours, gave up, ordered takeaway, and painted it "
-             "white anyway. Best decision we ever made, honest",  # 140
-             "Our first flat, Rua das Flores 12, Porto")  # 40
-            for month in range(1, 6)
-        ]
+        self.rows = self.ROWS
         self.events = self._events((1600, 1200))
 
     def _events(self, size):
@@ -2140,6 +2144,8 @@ class OverlappingCascadeNamesGiveUpRoomOnlyWhenNeededTests(SimpleTestCase):
     smallest milestone type.
     """
 
+    LAYOUT = "overlapping-cascade"
+
     def _sizes(self, names, count, scale, target_id):
         from unittest import mock
 
@@ -2160,7 +2166,7 @@ class OverlappingCascadeNamesGiveUpRoomOnlyWhenNeededTests(SimpleTestCase):
             "endingText": "To be continued\u2026", "showDuration": True, "events": events,
         }
         timeline = validate_and_normalize(
-            values, {"palette": "classic", "typography": "modern", "layout": "overlapping-cascade", "scale": scale}
+            values, {"palette": "classic", "typography": "modern", "layout": self.LAYOUT, "scale": scale}
         )
         drawn = []
         original = ImageDraw.ImageDraw.text
@@ -2196,6 +2202,292 @@ class OverlappingCascadeNamesGiveUpRoomOnlyWhenNeededTests(SimpleTestCase):
         for target_id in ("landscape-png", "story-png"):
             with self.subTest(target_id=target_id):
                 self.assertEqual(self._sizes(long, 8, 130, target_id), self._sizes(long, 3, 130, target_id))
+
+
+class DottedBranchingTests(TestCase):
+    """§7.4 Dotted Branching: fits its slots and matches the preview.
+
+    Before this, 106 of the 108 realistic renders below were broken. Cards
+    sized from the photo were 1.03-1.38x their slot: the first crossed the
+    header rule in 105 and the last covered "To be continued..." in 102.
+    Titles were one unwrapped line (off the page in 19). The full-date chip on
+    the spine was wider than the gutter between the columns: into the text
+    column in 51, the photo column in 16, over a card in 17. The photo was
+    pasted SQUARE into a card sized for 1:1.12 (a blank band), the cards were
+    flat and stepped 0/5/10% to the right, the heart was a 5px dot.
+
+    The preview's values, read live (renderer.module.css): cards centred in
+    the column, rotate(-3deg)/rotate(3deg), `box-shadow: 0 3px 9px
+    rgba(0,0,0,0.15)`, padding 5px/16px around a 158px photo 1.12x as tall as
+    wide, an 11px heart, a dotted 1px line at 48% with 6px dashes and 8px
+    gaps on the 540px poster, text starting at 52%, the full date as the
+    first line of each milestone starting on the line, header and footer
+    centred. Each milestone gets an equal slot of height / (count + 0.16) and
+    a card overlaps its neighbours by up to 0.16 of a slot.
+    composition-parity.test.ts holds the CSS to the same numbers.
+    """
+
+    TARGETS = AlternatingTiltTests.TARGETS
+    NAME_SETS = AlternatingTiltTests.NAME_SETS
+    MONTHS = AlternatingTiltTests.MONTHS
+
+    def setUp(self):
+        self.customer = make_customer()
+        self.rows = OverlappingCascadeTests.ROWS
+        self.events = self._events((1600, 1200))
+
+    def _events(self, size):
+        events = []
+        for index, (date, title, description, location) in enumerate(self.rows):
+            buf = io.BytesIO()
+            Image.new("RGB", size, (40 + index * 20, 120, 190)).save(buf, format="JPEG", quality=90)
+            asset = upload_asset(
+                self.customer, SimpleUploadedFile(f"d{index}.jpg", buf.getvalue(), content_type="image/jpeg")
+            )
+            events.append({"date": date, "title": title, "description": description,
+                           "location": location, "photo": {"assetId": str(asset.id)}})
+        return events
+
+    def _render(self, names, scale, count, target_id, events=None, subtitle=""):
+        from unittest import mock
+
+        from PIL import ImageDraw
+
+        from . import png_renderer
+        from .data import PALETTES
+
+        values = {
+            "storyType": "couple", "people": [{"name": n} for n in names], "posterTitle": "Our Love Story",
+            "subtitle": subtitle, "dedication": "Every love story is beautiful, but ours is my favorite.",
+            "endingText": "To be continued\u2026", "showDuration": True, "autoSort": True,
+            "events": (events or self.events)[:count],
+        }
+        timeline = validate_and_normalize(
+            values, {"palette": "classic", "typography": "modern", "layout": "dotted-branching", "scale": scale}
+        )
+        background = PALETTES["classic"]["bg"]
+        texts, cards, hearts, lines, chips = [], [], [], [], []
+        text, line, rectangle = ImageDraw.ImageDraw.text, ImageDraw.ImageDraw.line, ImageDraw.ImageDraw.rectangle
+        polaroid, heart = png_renderer._paste_polaroid, png_renderer._draw_heart
+
+        def spy_text(draw, xy, value, *args, **kwargs):
+            font = kwargs.get("font")
+            texts.append((value, draw.textbbox(xy, value, font=font), xy, draw.textlength(value, font=font), draw.im.size))
+            return text(draw, xy, value, *args, **kwargs)
+
+        def spy_line(draw, xy, *args, **kwargs):
+            lines.append((tuple(map(tuple, xy)), kwargs.get("width")))
+            return line(draw, xy, *args, **kwargs)
+
+        def spy_rectangle(draw, xy, *args, **kwargs):
+            if kwargs.get("fill") == background:
+                chips.append(tuple(xy))
+            return rectangle(draw, xy, *args, **kwargs)
+
+        def spy_polaroid(*args, **kwargs):
+            placed = polaroid(*args, **kwargs)
+            cards.append({"tilt": kwargs["tilt_deg"], "card": placed["card"], "shadow": placed["shadow"],
+                          "photo": (kwargs["photo_size"], kwargs["photo_height"]), "centre_x": kwargs["centre_x"]})
+            return placed
+
+        def spy_heart(image, centre_x, centre_y, size, fill):
+            hearts.append((centre_x, centre_y, size))
+            return heart(image, centre_x, centre_y, size, fill)
+
+        with mock.patch.object(ImageDraw.ImageDraw, "text", spy_text), \
+                mock.patch.object(ImageDraw.ImageDraw, "line", spy_line), \
+                mock.patch.object(ImageDraw.ImageDraw, "rectangle", spy_rectangle), \
+                mock.patch.object(png_renderer, "_paste_polaroid", spy_polaroid), \
+                mock.patch.object(png_renderer, "_draw_heart", spy_heart):
+            content = render_png(timeline, target_id=target_id, customer=self.customer)
+        rule = next(l for l, _ in lines if l[0][1] == l[1][1])
+        dashes = [(l, w) for l, w in lines if l[0][0] == l[1][0]]
+        texts = [t for t in texts if "heartfolio" not in t[0]]
+        return {"image": content, "texts": texts, "cards": cards, "hearts": hearts, "chips": chips,
+                "rule": rule, "dashes": dashes}
+
+    @staticmethod
+    def _hit(a, b):
+        return a[0] < b[2] and b[0] < a[2] and a[1] < b[3] and b[1] < a[3]
+
+    def _blocks(self, texts):
+        starts = [i for i, t in enumerate(texts) if t[0][:3] in self.MONTHS and t[0][-4:].isdigit()]
+        footer = next(i for i, t in enumerate(texts) if t[0].startswith("To be continued"))
+        return [texts[a:b] for a, b in zip(starts, starts[1:] + [footer])], texts[footer]
+
+    def _problems(self, names, scale, count, target_id, events=None, subtitle=""):
+        from .compositions import DOTTED
+
+        drawn = self._render(names, scale, count, target_id, events, subtitle)
+        texts, cards, hearts, chips = drawn["texts"], drawn["cards"], drawn["hearts"], drawn["chips"]
+        (left, rule_y), (right, _) = drawn["rule"]
+        width = texts[0][4][0]
+        to_poster = width / DOTTED.preview_poster_px
+        spine_x = drawn["dashes"][0][0][0][0]
+        column = (left, left + int((right - left) * DOTTED.photo_column))
+        blocks, footer = self._blocks(texts)
+        problems = []
+        for i, (value, box, _, _, (w, h)) in enumerate(texts):
+            if box[0] < 0 or box[2] > w or box[3] > h:
+                problems.append(f"{value!r} runs off the page")
+            elif box[2] > right + 1:
+                problems.append(f"{value!r} runs past the margin")
+            for other, other_box, _, _, _ in texts[i + 1:]:
+                if self._hit(box, other_box):
+                    problems.append(f"{value!r} overlaps {other!r}")
+        for k, block in enumerate(blocks):
+            joined = " ".join(t[0] for t in block)
+            if self.rows[k][1] not in joined or self.rows[k][3] not in joined:
+                problems.append(f"milestone {k + 1}'s title or location is cut")
+            if self.rows[k][2][:20] in joined:
+                problems.append("a description was printed on a photo-led layout")
+            top, bottom = block[0][1][1], max(t[1][3] for t in block)
+            if k + 1 < len(blocks):
+                inner = max((block[j + 1][1][1] - block[j][1][3] for j in range(len(block) - 1)), default=0)
+                if blocks[k + 1][0][1][1] - bottom <= inner:
+                    problems.append(f"milestones {k + 1} and {k + 2} are no further apart than lines within one")
+            if top <= rule_y or bottom >= footer[1][1]:
+                problems.append(f"milestone {k + 1}'s text leaves the timeline")
+            # The date starts ON the spine, and its chip a pad before it.
+            if abs(block[0][2][0] - spine_x) > 1:
+                problems.append("a date does not start on the spine")
+        if len(chips) != count or len(hearts) != count:
+            problems.append("a chip or a heart is missing")
+        pad = max(2, round(DOTTED.chip_pad_px * to_poster))
+        for chip in chips:
+            if abs(chip[0] - (spine_x - pad)) > 1:
+                problems.append("a chip does not start a pad before the spine")
+            for card in cards:
+                for region in (card["card"], card["shadow"]):
+                    if self._hit(chip, region):
+                        problems.append("a date chip touches a card or its shadow")
+        if [c["tilt"] for c in cards] != [3.0 if i % 2 == 0 else -3.0 for i in range(count)]:
+            problems.append(f"tilts {[c['tilt'] for c in cards]}")
+        for card in cards:
+            if abs(card["centre_x"] - (column[0] + (column[1] - column[0]) // 2)) > 1:
+                problems.append("a card is not centred in the photo column")
+            if card["card"][0] < column[0] or card["card"][2] > column[1]:
+                problems.append("a card leaves the photo column")
+            for region in (card["card"], card["shadow"]):
+                if region[1] <= rule_y:
+                    problems.append("a card or its shadow crosses the header rule")
+                for value, box, _, _, _ in texts:
+                    if self._hit(region, box):
+                        problems.append(f"a card or its shadow covers {value!r}")
+        # Centred on its card's row, as the preview centres each entry in a
+        # row level with the card (it used to start a fixed 22% of a slot
+        # above the middle). Within one date line: drawn glyph extents are
+        # not the advances the layout measures.
+        for k, (block, card) in enumerate(zip(blocks, cards)):
+            top, bottom = block[0][1][1], max(t[1][3] for t in block)
+            card_middle = (card["card"][1] + card["card"][3]) / 2
+            if abs((top + bottom) / 2 - card_middle) > block[0][1][3] - block[0][1][1]:
+                problems.append(f"milestone {k + 1}'s text is not centred on its card")
+        # Each heart is level with its title's first line.
+        for block, (_, centre_y, _) in zip(blocks, hearts):
+            title = block[1][1]
+            if abs(centre_y - (title[1] + title[3]) / 2) > (title[3] - title[1]):
+                problems.append("a heart is not level with its title")
+        centre = (left + right) / 2
+        for value, box, (x, _), advance, _ in texts:
+            if box[3] <= rule_y or value.startswith("To be continued"):
+                if abs(x + advance / 2 - centre) > 2:
+                    problems.append(f"{value!r} is not centred")
+        return sorted(set(problems))
+
+    def test_fits_and_matches_the_preview_across_the_realistic_range(self):
+        for count in (3, 5, 8):
+            for names in self.NAME_SETS:
+                for scale in (70, 100, 130):
+                    for target_id in self.TARGETS:
+                        with self.subTest(milestones=count, names=names[0], scale=scale, target_id=target_id):
+                            self.assertEqual(self._problems(names, scale, count, target_id), [])
+
+    def test_the_fullest_header_still_fits(self):
+        subtitle = "Twelve years, three cities and one very patient dog, Biscuit"  # 60, the maximum
+        for names in self.NAME_SETS:
+            for target_id in self.TARGETS:
+                with self.subTest(names=names[0], target_id=target_id):
+                    self.assertEqual(self._problems(names, 130, 8, target_id, subtitle=subtitle), [])
+
+    def test_photo_shape_does_not_move_or_resize_the_cards(self):
+        for size in ((1200, 1600), (1500, 1500)):
+            others = self._events(size)
+            for count, target_id in ((3, "print-poster-edged"), (5, "print-a4-edged"), (8, "print-classic-frameless")):
+                with self.subTest(size=size, milestones=count, target_id=target_id):
+                    expected = self._render(self.NAME_SETS[1], 130, count, target_id)["cards"]
+                    actual = self._render(self.NAME_SETS[1], 130, count, target_id, others)["cards"]
+                    self.assertEqual([c["card"] for c in actual], [c["card"] for c in expected])
+                    self.assertEqual(self._problems(self.NAME_SETS[1], 130, count, target_id, others), [])
+
+    def test_cards_overlap_their_neighbours_as_the_preview_does(self):
+        from .compositions import DOTTED
+
+        # 5 and 8 milestones: the slots are short, so the card is limited by
+        # its slot and overlaps by most of `photo_overlap`. (At 3 the column
+        # width limits it, as in the preview.)
+        for count, target_id in ((5, "print-poster-frameless"), (8, "print-classic-edged")):
+            with self.subTest(milestones=count, target_id=target_id):
+                cards = [c["card"] for c in self._render(self.NAME_SETS[0], 100, count, target_id)["cards"]]
+                slot = ((cards[-1][1] + cards[-1][3]) - (cards[0][1] + cards[0][3])) / 2 / (count - 1)
+                for upper, lower in zip(cards, cards[1:]):
+                    overlap = (upper[3] - lower[1]) / slot
+                    self.assertGreater(overlap, 0.08)
+                    self.assertLessEqual(overlap, DOTTED.photo_overlap + 0.01)
+
+    def test_the_photographs_are_the_previews_shape(self):
+        from .compositions import DOTTED
+
+        drawn = self._render(self.NAME_SETS[0], 100, 3, "print-a4-edged")
+        for card in drawn["cards"]:
+            width, height = card["photo"]
+            self.assertAlmostEqual(height / width, DOTTED.photo_aspect, delta=0.01)
+
+    def test_the_cards_cast_the_previews_shadow(self):
+        drawn = self._render(self.NAME_SETS[0], 100, 3, "print-a4-edged")
+        image = Image.open(io.BytesIO(drawn["image"])).convert("RGB")
+        background = image.getpixel((5, 5))
+        for card in drawn["cards"]:
+            left, top, right, bottom = card["card"]
+            self.assertIsNotNone(card["shadow"], "a card has no shadow")
+            self.assertGreater(card["shadow"][3] - bottom, top - card["shadow"][1])
+        left, _, right, bottom = drawn["cards"][-1]["card"]
+        pixel = image.getpixel(((left + right) // 2, bottom + 3))
+        self.assertLess(sum(pixel), sum(background), "no shadow under the card")
+        self.assertGreater(sum(pixel), sum(background) * 0.7, "the shadow is far heavier than the preview's")
+
+    def test_the_line_hearts_and_chip_are_drawn_at_the_previews_share_of_the_page(self):
+        from .compositions import DOTTED
+
+        drawn = self._render(self.NAME_SETS[0], 100, 3, "print-a4-edged")
+        width = Image.open(io.BytesIO(drawn["image"])).width
+        to_poster = width / DOTTED.preview_poster_px
+        dashes = drawn["dashes"]
+        self.assertTrue(all(w == round(DOTTED.spine_width_px * to_poster) for _, w in dashes))
+        lengths = [l[1][1] - l[0][1] for l, _ in dashes[:-1]]
+        self.assertTrue(all(length == round(DOTTED.dash_length_px * to_poster) for length in lengths))
+        starts = [l[0][1] for l, _ in dashes]
+        self.assertTrue(all(b - a == round((DOTTED.dash_length_px + DOTTED.dash_gap_px) * to_poster)
+                            or b - a == round(DOTTED.dash_length_px * to_poster) + round(DOTTED.dash_gap_px * to_poster)
+                            for a, b in zip(starts, starts[1:])))
+        for _, _, size in drawn["hearts"]:
+            self.assertEqual(size, round(DOTTED.heart_size_px * to_poster))
+
+    def test_the_date_is_the_first_line_and_the_titles_start_after_the_heart(self):
+        drawn = self._render(self.NAME_SETS[0], 100, 3, "print-a4-edged")
+        blocks, _ = self._blocks(drawn["texts"])
+        for block, (heart_x, _, size) in zip(blocks, drawn["hearts"]):
+            date, title = block[0], block[1]
+            self.assertLess(date[1][3], title[1][1] + 1, "the date is not above the title")
+            self.assertGreaterEqual(title[2][0], heart_x + size / 2, "the title starts under its heart")
+
+
+class DottedBranchingNamesGiveUpRoomOnlyWhenNeededTests(OverlappingCascadeNamesGiveUpRoomOnlyWhenNeededTests):
+    """Dotted Branching follows the same names rule as Neat Stack and
+    Overlapping Cascade: the heading shrinks only when the milestones cannot
+    otherwise fit, only on a sold print, never to the title's size."""
+
+    LAYOUT = "dotted-branching"
 
 
 class NeatStackCardsFitTheirSlotsTests(TestCase):

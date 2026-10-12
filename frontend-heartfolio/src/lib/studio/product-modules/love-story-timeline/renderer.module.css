@@ -512,10 +512,26 @@
    border, because a border cannot host the year labels that break it. The
    dash figures come from compositions.py, so Pillow's manual dash loop and
    this gradient stay in step. */
+/* THE ROWS, as Overlapping Cascade: every milestone gets an equal row, and a
+   card is taller than its row by `photo_overlap` (0.16 in compositions.py),
+   so it overlaps its neighbours; half the overlap is left empty at the top
+   and bottom of each column (the `::before`/`::after` spacers), so the first
+   and last cards stay inside the timeline. This used to be a column of
+   fixed-width cards pulled together with a negative margin that grew past the
+   clipped timeline: 10px at 3 milestones, 389px at 5, 959px at 8. */
 .layoutDotted {
   display: grid;
   grid-template-columns: 40% 1fr;
+  grid-template-rows: minmax(0, 1fr);
+  /* No gap: `.timeline`'s 14px gap pushed the text column 14px past the
+     print's (52% of the width, `text_start`). */
+  gap: 0;
   position: relative;
+  /* Makes `cqw` below mean 1% of the timeline's width. */
+  container-type: inline-size;
+  /* The poster's text scale, captured here so `.dottedEntry` can multiply
+     its fit into it without referring to itself. */
+  --base-text-scale: var(--text-scale, 1);
 }
 
 .dottedSpine {
@@ -533,42 +549,85 @@
 .dottedPhotos {
   display: flex;
   flex-direction: column;
+  min-height: 0;
+}
+.dottedPhotos::before,
+.dottedPhotos::after,
+.dottedEntries::before,
+.dottedEntries::after {
+  content: "";
+  flex: 0.08 1 0;
+}
+/* One row, and a size container, so the card can be sized against the
+   ROW's height (cqh) as well as the column (cqw). Flex centring lets the
+   card overflow its row equally above and below. */
+.dottedPhotoCell {
+  flex: 1 1 0;
+  min-height: 0;
+  container-type: size;
+  display: flex;
   align-items: center;
-  justify-content: space-around;
+  justify-content: center;
 }
 .dottedPhoto {
   background: #fff;
   padding: 5px 5px 16px;
   box-shadow: 0 3px 9px rgba(0, 0, 0, 0.15);
-  width: 88%;
+  /* 88% of the column, or less if the row is short. The photo is 1.12x as
+     tall as wide, so the card is 1.12 x width + 9.8px tall (16px + 5px of
+     padding, less 1.12 x the 10px of side padding). Tilted 3deg its outline
+     is (1.12 cos + sin) x width + 9.8 cos = 1.1708 x width + 9.79px tall,
+     which must fit 1.16 rows. */
+  width: min(88cqw, calc((116cqh - 9.79px) / 1.1708));
+  flex: none;
   box-sizing: border-box;
-  margin-block-start: -4%;
 }
-.dottedPhoto:first-child { margin-block-start: 0; }
 .dottedPhoto img {
   display: block;
   width: 100%;
   aspect-ratio: 1 / 1.12;
   object-fit: cover;
 }
-.dottedPhoto:nth-child(odd) { transform: rotate(-3deg); }
-.dottedPhoto:nth-child(even) { transform: rotate(3deg); }
+/* On the CELL's position: each card is the only child of its cell. The
+   cards are centred in the column, not stepped. */
+.dottedPhotoCell:nth-child(odd) .dottedPhoto { transform: rotate(-3deg); }
+.dottedPhotoCell:nth-child(even) .dottedPhoto { transform: rotate(3deg); }
 
+/* The text column starts at 52% of the timeline: the photo column's 40%
+   plus 20% of the remaining 60%. */
 .dottedEntries {
   display: flex;
   flex-direction: column;
-  justify-content: space-around;
-  padding-inline-start: 11%;
+  padding-inline-start: 20%;
   text-align: start;
+  min-height: 0;
 }
-.dottedEntry { position: relative; }
-/* The year sits ON the spine, interrupting it — the detail that most
-   distinguishes this layout from 7.1. */
+/* One equal row per milestone, level with its card, the text centred in
+   it. `--text-fit` is set by FittedTimeline (timeline-text-fit.tsx) when the
+   text is taller than its row. */
+.dottedEntry {
+  flex: 1 1 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  --text-scale: calc(var(--base-text-scale, 1) * var(--text-fit, 1));
+  /* Half a date line of space at each end, so fitted text keeps one date
+     line between milestones, as the print does (`_fit_milestone_text`'s
+     separation). */
+  padding-block: calc(4.5px * var(--text-scale, 1));
+  box-sizing: border-box;
+}
+/* The date chip is the first line of the milestone. It starts on the spine
+   (4cqw = the 4% between the spine and the text column, plus its own 4px of
+   padding) and runs right, above the title: the full date is wider than the
+   gutter between the cards and the text, so it used to sit 21px off the
+   spine over the cards' edge. `position: relative` paints it over the
+   dotted line, which is how the year interrupts the line. */
 .dottedYear {
-  position: absolute;
-  inset-inline-start: -11%;
-  top: -0.9em;
-  transform: translateX(-50%);
+  position: relative;
+  align-self: flex-start;
+  margin-inline-start: calc(-4cqw - 4px);
   background: var(--p-bg);
   padding: 0 4px;
   font-size: calc(9px * var(--text-scale, 1));
