@@ -545,32 +545,165 @@ describe("Dotted Branching geometry (§7.4)", () => {
   });
 });
 
-describe("Landscape compositions (§7.5, §7.6)", () => {
+/**
+ * The Circles instance overrides three fields of the shared dataclass
+ * (`HORIZONTAL_CIRCLES = HorizontalGeometry(circular=True, ...)`), so its
+ * values are read from that call, the rest from the class defaults.
+ */
+function circlesValue(field: string): number {
+  const call = python.match(/HORIZONTAL_CIRCLES = HorizontalGeometry\(([^)]*)\)/);
+  if (!call) throw new Error("compositions.py has no HORIZONTAL_CIRCLES");
+  const own = call[1]!.match(new RegExp(`${field}=([\\d.]+)`));
+  return own ? parseFloat(own[1]!) : pythonValue(field, "HorizontalGeometry");
+}
+
+describe("Horizontal Polaroids geometry (§7.5)", () => {
   const h = (field: string) => pythonValue(field, "HorizontalGeometry");
+  const px = (value: number) => Number(value.toFixed(2));
+  const caption = () => {
+    const rule = cssRule(".hPolaroidCaption");
+    return {
+      rule,
+      font: Number(rule.match(/font-size:\s*calc\(([\d.]+)px/)![1]),
+      pad: rule.match(/padding:\s*(\d+)px (\d+)px (\d+)px/)!.slice(1).map(Number) as [number, number, number],
+    };
+  };
 
-  it("uses the same photo width and gap on both sides", () => {
-    expect(css).toContain(`width: ${Math.round(h("photo_width") * 100)}%`);
-    expect(css).toContain(`column-gap: 2%`);
-  });
-
-  it("lays milestones out as columns, not rows", () => {
+  it("lays milestones out as columns, 2% apart, top-aligned", () => {
     // The structural difference from the four portrait layouts: adding a
-    // milestone makes every milestone narrower rather than making the page
-    // taller. It is why these are strongest at 5-7.
-    expect(css).toContain("grid-auto-flow: column");
-    expect(css).toContain("grid-auto-columns: 1fr");
+    // milestone makes every milestone narrower rather than the page taller.
+    const grid = cssRule(".layoutHorizontal");
+    expect(grid).toContain("grid-auto-flow: column");
+    expect(grid).toContain("grid-auto-columns: 1fr");
+    expect(grid).toContain("align-items: start");
+    expect(grid).toContain(`column-gap: ${h("column_gap") * 100}%`);
   });
 
-  it("uses smaller type than the portrait layouts", () => {
+  it("limits the card by the timeline's height as well as its column", () => {
+    // 88% of the column, or the widest card whose milestone (one caption
+    // line, the date below, the tilt's half-width above) fits the box: at
+    // text scale 1.3 three milestones used to clip the date by 10px.
+    expect(cssRule(".layoutHorizontal")).toContain("container-type: size");
+    const [, top, side] = cssRule(".hPolaroid").match(/padding:\s*(\d+)px (\d+)px (\d+)(?:px)?/)!.map(Number);
+    const { font } = caption();
+    const aspect = h("photo_aspect");
+    const tilt = (Math.max(h("photo_tilt_deg"), h("photo_tilt_even_deg")) * Math.PI) / 180;
+    const fixed = top! - 2 * side! * aspect + (h("caption_pad_top_em") + h("caption_pad_bottom_em") + h("date_gap_em")) * font;
+    const perScale = (h("caption_line_height") + h("date_line_height")) * font;
+    expect(cssRule(".hPolaroid")).toContain(
+      `width: min(${Math.round(h("photo_width") * 100)}%, calc((100cqh - ${px(fixed)}px - ${px(perScale)}px * var(--base-text-scale, 1)) / ${(aspect + Math.sin(tilt) / 2).toFixed(4)}))`
+    );
+    expect(cssRule(".hPolaroid img")).toContain(`aspect-ratio: 1 / ${aspect}`);
+  });
+
+  it("tilts the odd and even cards by the same two angles", () => {
+    expect(cssRule(".hPolaroid")).toContain(`transform: rotate(-${h("photo_tilt_deg")}deg)`);
+    expect(cssRule(".hMilestone:nth-child(even) .hPolaroid")).toContain(`transform: rotate(${h("photo_tilt_even_deg")}deg)`);
+  });
+
+  it("gives the cards the same shadow and border", () => {
+    expect(cssRule(".hPolaroid")).toContain(
+      `box-shadow: 0 ${h("card_shadow_offset_px")}px ${h("card_shadow_blur_px")}px rgba(0, 0, 0, ${h("card_shadow_opacity")})`
+    );
+    const [, top, side] = cssRule(".hPolaroid").match(/padding:\s*(\d+)px (\d+)px (\d+)(?:px)?/)!.map(Number);
+    expect(Math.round(h("polaroid_border") * h("preview_photo_px"))).toBe(top);
+    expect(top).toBe(side);
+  });
+
+  it("puts the caption inside the lower border as a BLOCK, tilting with the card", () => {
+    // It was an inline span, so its lines took the card's 24px line height:
+    // a 40-character title's lines sat 24px apart and a card at 8 milestones
+    // was 148px tall for 60px of text.
+    const { rule, font, pad } = caption();
+    expect(rule).toContain("display: block");
+    expect(rule).toContain(`line-height: ${h("caption_line_height")}`);
+    expect(pad).toEqual([
+      Math.round(h("caption_pad_top_em") * font),
+      Math.round(h("caption_pad_side_em") * font),
+      Math.round(h("caption_pad_bottom_em") * font),
+    ]);
+    // Inside the card (the card is its parent), not a sibling below it.
+    const renderer = readFileSync("src/lib/studio/product-modules/love-story-timeline/renderer.tsx", "utf8");
+    expect(renderer).toMatch(/<span className=\{styles\.hPolaroidCaption\}>\{event\.title\}<\/span>\s*<\/span>/);
+  });
+
+  it("puts the date below the card with the same gap", () => {
+    const { font } = caption();
+    expect(cssRule(".hDate")).toContain(`margin-top: ${Math.round(h("date_gap_em") * font)}px`);
+  });
+
+  it("fits the text to the timeline no further than the print does", async () => {
+    const { TIMELINE_TEXT_FIT_FLOOR } = await import("./timeline-text-fit");
+    expect(TIMELINE_TEXT_FIT_FLOOR).toBe(h("text_fit_floor"));
+    expect(cssRule(".hMilestone")).toContain("--text-scale: calc(var(--base-text-scale, 1) * var(--text-fit, 1))");
+    const renderer = readFileSync("src/lib/studio/product-modules/love-story-timeline/renderer.tsx", "utf8");
+    expect(renderer).toContain('fitTo="box"');
+  });
+});
+
+describe("Horizontal Circles geometry (§7.6)", () => {
+  const h = circlesValue;
+  const labelFont = () => Number(cssRule(".hLabel").match(/font-size:\s*calc\(([\d.]+)px/)![1]);
+  const dateFont = () => Number(cssRule(".hDate").match(/font-size:\s*calc\(([\d.]+)px/)![1]);
+
+  it("draws a circle 78% of its column, untilted", () => {
+    const circle = cssRule(".hCircle");
+    expect(circle).toContain(`width: ${Math.round(h("photo_width") * 100)}%`);
+    expect(circle).toContain("aspect-ratio: 1");
+    expect(circle).toContain("border-radius: 50%");
+    expect(h("photo_tilt_deg")).toBe(0);
+  });
+
+  it("joins the axis to the tops of the ticks, under the circles", () => {
+    // The axis had no `top`, so it ran across the TOP of the timeline, above
+    // the circles: 186px, 107px and 63px from the ticks at 3, 5 and 8
+    // milestones. Its top is a circle's diameter: the circle's share of a
+    // column, a column being the box less the gaps, over the count.
+    const axis = cssRule(".hAxis");
+    const gap = h("column_gap") * 100;
+    expect(axis).toContain(`inset-inline: ${h("axis_inset") * 100}%`);
+    expect(axis).toContain(
+      `top: calc(${h("photo_width")} * (100cqw - ${gap}cqw * (var(--count, 1) - 1)) / var(--count, 1))`
+    );
+    expect(axis).toContain(`height: ${h("axis_width_px")}px`);
+    expect(cssRule(".layoutHorizontal")).toContain("container-type: size");
+    const renderer = readFileSync("src/lib/studio/product-modules/love-story-timeline/renderer.tsx", "utf8");
+    expect(renderer).toContain('"--count": events.length');
+  });
+
+  it("hangs a tick of the same height from the axis under each circle", () => {
+    const tick = cssRule(".hTick");
+    expect(tick).toContain(`height: ${h("tick_height_px")}px`);
+    expect(tick).toContain("width: 1px");
+  });
+
+  it("puts the label, then the date, below the tick with the same gaps", () => {
+    expect(cssRule(".hLabel")).toContain(`margin-top: ${Math.round(h("label_gap_em") * labelFont())}px`);
+    expect(cssRule(".hDate")).toContain(`margin-top: ${Math.round(h("date_gap_em") * dateFont())}px`);
+  });
+
+  it("lays milestones out as columns, 2% apart, and fits their text to the timeline", async () => {
+    const grid = cssRule(".layoutHorizontal");
+    expect(grid).toContain("grid-auto-flow: column");
+    expect(grid).toContain("grid-auto-columns: 1fr");
+    expect(grid).toContain(`column-gap: ${h("column_gap") * 100}%`);
+    const { TIMELINE_TEXT_FIT_FLOOR } = await import("./timeline-text-fit");
+    expect(TIMELINE_TEXT_FIT_FLOOR).toBe(h("text_fit_floor"));
+    expect(cssRule(".hMilestone")).toContain("--text-scale: calc(var(--base-text-scale, 1) * var(--text-fit, 1))");
+  });
+});
+
+describe("Horizontal layouts' shared text-size rule", () => {
+  it("uses smaller type than the portrait layouts, in the preview", () => {
     // At eight milestones a landscape page gives each barely an eighth of
-    // its width, so the portrait layouts' sizes would not fit.
+    // its width, so the portrait layouts' sizes would not fit. (The PRINT
+    // does not copy these sizes: 7px on an 810px poster would print as 2.5mm.)
     expect(css).toContain("font-size: calc(7px * var(--text-scale, 1))");
   });
 
   it("puts the caption inside the Polaroid for 7.5 only", () => {
     // From the reference: 7.5's caption sits in the lower border, 7.6's
-    // label sits under the axis. Confusing the two would make them the
-    // same composition with different photo shapes.
+    // label sits under the axis.
     expect(css).toContain(".hPolaroidCaption");
     expect(css).toContain(".hAxis");
   });

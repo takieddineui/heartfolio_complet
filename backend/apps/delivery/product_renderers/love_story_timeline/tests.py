@@ -1675,16 +1675,26 @@ class NeatStackMatchesThePreviewTests(TestCase):
                         for value, (x, _), advance in header + footer:
                             self.assertAlmostEqual(x + advance / 2, centre, delta=2, msg=f"{value!r} is not centred")
 
-    def test_other_layouts_are_untouched_until_they_are_reviewed(self):
-        # Scope guard: the compositions not yet reviewed (Alternating Tilt,
-        # Overlapping Cascade and Dotted Branching have been, since) still
-        # left-align and still draw their own cards; each is matched when it
-        # is reviewed.
-        _, texts, rules, cards = self._render(layout="horizontal-polaroid")
-        left, _, rule_y = rules[0]
-        self.assertEqual(cards, [])
-        for value, (x, _), _ in [t for t in texts if t[1][1] < rule_y]:
-            self.assertEqual(x, left, f"{value!r} moved on a layout not yet reviewed")
+    def test_every_layout_centres_its_header_and_footer_as_the_preview_does(self):
+        # All six compositions have been reviewed against the preview, whose
+        # `.header` and `.footer` are `text-align: center`. (This used to be a
+        # scope guard asserting the unreviewed layouts were still left-aligned,
+        # until the last of them was reviewed.)
+        for layout in ("neat-stack", "alternating-tilt", "overlapping-cascade", "dotted-branching",
+                       "horizontal-polaroid", "horizontal-circles"):
+            with self.subTest(layout=layout):
+                _, texts, rules, _ = self._render(layout=layout)
+                left, right, rule_y = rules[0]
+                centre = (left + right) / 2
+                # (a Polaroid's caption is drawn on its card layer, whose y is the
+                # card's own; the header is what sits above the rule on the page)
+                header = [t for t in texts if t[1][1] < rule_y and (
+                    t[0] in ("Emma & James", "Our Love Story") or t[0].startswith("“")
+                    or t[0].endswith("days together"))]
+                footer = [t for t in texts if t[0].startswith("To be continued")]
+                self.assertTrue(header and footer)
+                for value, (x, _), advance in header + footer:
+                    self.assertAlmostEqual(x + advance / 2, centre, delta=2, msg=f"{value!r} is not centred")
 
 
 class AlternatingTiltTests(TestCase):
@@ -2488,6 +2498,444 @@ class DottedBranchingNamesGiveUpRoomOnlyWhenNeededTests(OverlappingCascadeNamesG
     otherwise fit, only on a sold print, never to the title's size."""
 
     LAYOUT = "dotted-branching"
+
+
+class _HorizontalHarness:
+    """Renders a Horizontal composition with real photos and records what it
+    draws. Shared by the two Horizontal test classes ONLY as a harness: what
+    each class asserts is its own."""
+
+    TARGETS = AlternatingTiltTests.TARGETS
+    NAME_SETS = AlternatingTiltTests.NAME_SETS
+    MONTHS = AlternatingTiltTests.MONTHS
+    LAYOUT = None
+    #: Landscape pages are at least 3000px wide; a card layer is at most 88% of
+    #: a column, so a text drawn on a wider image is a page text.
+    PAGE = 2900
+
+    def setUp(self):
+        self.customer = make_customer()
+        self.rows = OverlappingCascadeTests.ROWS
+        self.events = self._events((1600, 1200))
+
+    def _events(self, size):
+        events = []
+        for index, (date, title, description, location) in enumerate(self.rows):
+            buf = io.BytesIO()
+            Image.new("RGB", size, (40 + index * 20, 120, 190)).save(buf, format="JPEG", quality=90)
+            asset = upload_asset(
+                self.customer, SimpleUploadedFile(f"h{index}.jpg", buf.getvalue(), content_type="image/jpeg")
+            )
+            events.append({"date": date, "title": title, "description": description,
+                           "location": location, "photo": {"assetId": str(asset.id)}})
+        return events
+
+    def _render(self, names, scale, count, target_id, events=None, subtitle=""):
+        from unittest import mock
+
+        from PIL import ImageDraw
+
+        from . import png_renderer
+
+        values = {
+            "storyType": "couple", "people": [{"name": n} for n in names], "posterTitle": "Our Love Story",
+            "subtitle": subtitle, "dedication": "Every love story is beautiful, but ours is my favorite.",
+            "endingText": "To be continued\u2026", "showDuration": True, "autoSort": True,
+            "events": (events or self.events)[:count],
+        }
+        timeline = validate_and_normalize(
+            values, {"palette": "classic", "typography": "modern", "layout": self.LAYOUT, "scale": scale}
+        )
+        texts, lines, cards, circles, plans = [], [], [], [], []
+        text, line = ImageDraw.ImageDraw.text, ImageDraw.ImageDraw.line
+        polaroid, photo, plan = png_renderer._paste_polaroid, png_renderer._paste_photo, png_renderer._horizontal_plan
+
+        def spy_text(draw, xy, value, *args, **kwargs):
+            if draw.im.size[0] > self.PAGE:
+                font = kwargs.get("font")
+                texts.append((value, draw.textbbox(xy, value, font=font), xy, draw.textlength(value, font=font), draw.im.size))
+            return text(draw, xy, value, *args, **kwargs)
+
+        def spy_line(draw, xy, *args, **kwargs):
+            if draw.im.size[0] > self.PAGE:
+                lines.append((tuple(map(tuple, xy)), kwargs.get("width"), kwargs.get("fill")))
+            return line(draw, xy, *args, **kwargs)
+
+        def spy_polaroid(*args, **kwargs):
+            placed = polaroid(*args, **kwargs)
+            cards.append({"tilt": kwargs["tilt_deg"], "card": placed["card"], "shadow": placed["shadow"],
+                          "photo": kwargs["photo_size"], "photo_h": kwargs["photo_height"], "border": kwargs["border"],
+                          "band": kwargs["bottom_border"], "caption": kwargs["caption"], "centre_x": kwargs["centre_x"]})
+            return placed
+
+        def spy_photo(image, **kwargs):
+            if kwargs.get("circular"):
+                circles.append((kwargs["x"], kwargs["y"], kwargs["x"] + kwargs["size"], kwargs["y"] + kwargs["size"], kwargs["size"]))
+            return photo(image, **kwargs)
+
+        def spy_plan(*args, **kwargs):
+            result = plan(*args, **kwargs)
+            plans.append({"plan": result, "band": kwargs["band_height"], "col_w": kwargs["col_w"],
+                          "small": kwargs["small_size"]})
+            return result
+
+        with mock.patch.object(ImageDraw.ImageDraw, "text", spy_text), \
+                mock.patch.object(ImageDraw.ImageDraw, "line", spy_line), \
+                mock.patch.object(png_renderer, "_paste_polaroid", spy_polaroid), \
+                mock.patch.object(png_renderer, "_paste_photo", spy_photo), \
+                mock.patch.object(png_renderer, "_horizontal_plan", spy_plan):
+            content = render_png(timeline, target_id=target_id, customer=self.customer)
+        texts = [t for t in texts if "heartfolio" not in t[0]]
+        rules = [l for l in lines if l[0][0][1] == l[0][1][1]]
+        verticals = [l for l in lines if l[0][0][0] == l[0][1][0]]
+        return {"image": content, "texts": texts, "rules": rules, "verticals": verticals, "cards": cards,
+                "circles": circles, "plan": plans[0]}
+
+    @staticmethod
+    def _hit(a, b):
+        return a[0] < b[2] and b[0] < a[2] and a[1] < b[3] and b[1] < a[3]
+
+    def _columns(self, count, left, right):
+        from .compositions import geometry_for
+
+        geometry = geometry_for(self.LAYOUT)
+        gap = round((right - left) * geometry.column_gap)
+        width = (right - left - gap * (count - 1)) / count
+        return [(left + round(i * (width + gap)), left + round(i * (width + gap)) + width) for i in range(count)]
+
+    def _shared_problems(self, drawn, count):
+        """What every landscape page must satisfy, whichever composition."""
+        texts = drawn["texts"]
+        (left, rule_y), (right, _) = drawn["rules"][0][0]
+        footer = next(t for t in texts if t[0].startswith("To be continued"))
+        below = [t for t in texts if t[1][1] > rule_y and t is not footer]
+        problems = []
+        for value, box, _, _, (w, h) in texts:
+            if box[0] < 0 or box[2] > w or box[3] > h:
+                problems.append(f"{value!r} runs off the page")
+            elif box[2] > right + 1 and box[1] > rule_y:
+                problems.append(f"{value!r} runs past the margin")
+        for i, (value, box, _, _, _) in enumerate(below):
+            for other, other_box, _, _, _ in below[i + 1:]:
+                if self._hit(box, other_box):
+                    problems.append(f"{value!r} overlaps {other!r}")
+        centre = (left + right) / 2
+        for value, box, (x, _), advance, _ in texts:
+            if box[3] <= rule_y or value.startswith("To be continued"):
+                if abs(x + advance / 2 - centre) > 2:
+                    problems.append(f"{value!r} is not centred")
+        if max(t[1][3] for t in below) >= footer[1][1]:
+            problems.append("the milestones reach the closing line")
+        return problems, (left, right, rule_y), footer, below
+
+    def _fits_the_floor(self, drawn):
+        plan = drawn["plan"]
+        return plan["plan"]["font"].size >= int(plan["small"] * 0.55) - 1
+
+
+class HorizontalPolaroidsTests(_HorizontalHarness, TestCase):
+    """§7.5 Horizontal Polaroids: wraps its text and matches the preview.
+
+    Before this, 70 of the 108 realistic renders below were broken, all at 5
+    or 8 milestones: a title and a date were each ONE unwrapped line in a
+    column 1/count of the page wide (66 titles wider than their column, 70
+    captions wider than their card, 62 collisions, 33 runs off the canvas),
+    sized by the shared estimate, which divides the page HEIGHT by the
+    milestone count although milestones are columns here. The card was flat,
+    a square photograph with a 30% caption band, and the caption did not tilt.
+
+    The preview's values, read live (renderer.module.css): cards `88%` of a
+    column, rotate(-1.5deg) on the 1st, 3rd... and rotate(1.5deg) on the 2nd,
+    4th..., `box-shadow: 0 2px 7px rgba(0,0,0,0.15)`, a photograph 1:1.15
+    with `padding: 4px 4px 0`, the caption inside the lower border and
+    tilting with the card, the date below, columns 2% of the box apart,
+    everything top-aligned, header and footer centred. composition-parity
+    .test.ts holds the CSS to the same numbers.
+    """
+
+    LAYOUT = "horizontal-polaroid"
+
+    def _problems(self, names, scale, count, target_id, events=None, subtitle=""):
+        from PIL import ImageDraw
+
+        from .compositions import HORIZONTAL_POLAROID as G
+
+        drawn = self._render(names, scale, count, target_id, events, subtitle)
+        problems, (left, right, rule_y), footer, below = self._shared_problems(drawn, count)
+        cards = drawn["cards"]
+        columns = self._columns(count, left, right)
+        probe = ImageDraw.Draw(Image.new("RGB", (10, 10)))
+        if [c["tilt"] for c in cards] != [1.5 if i % 2 == 0 else -1.5 for i in range(count)]:
+            problems.append(f"tilts {[c['tilt'] for c in cards]}")
+        for k, card in enumerate(cards):
+            column_left, column_right = columns[k]
+            caption = card["caption"]
+            if " ".join(caption["lines"]) != self.rows[k][1]:
+                problems.append(f"milestone {k + 1}'s caption is cut or altered")
+            side = round(G.caption_pad_side_em * caption["font"].size)
+            if any(probe.textlength(l, font=caption["font"]) > card["photo"] - 2 * side + 1 for l in caption["lines"]):
+                problems.append("a caption line is wider than its card")
+            if abs(card["photo_h"] / card["photo"] - G.photo_aspect) > 0.01:
+                problems.append("a photograph is not 1:1.15")
+            if abs(card["centre_x"] - (column_left + int(column_right - column_left) // 2)) > 1:
+                problems.append("a card is not centred in its column")
+            if card["card"][0] < column_left - 1 or card["card"][2] > column_right + 1:
+                problems.append("a card leaves its column")
+            if (card["photo"] + 2 * card["border"]) / (column_right - column_left) > G.photo_width + 0.005:
+                problems.append("a card is wider than 88% of its column")
+            for region in (card["card"], card["shadow"]):
+                if region is None:
+                    problems.append("a card has no shadow")
+                    continue
+                if region[1] <= rule_y:
+                    problems.append("a card or its shadow crosses the header rule")
+                if region[3] >= footer[1][1]:
+                    problems.append("a card or its shadow reaches the closing line")
+            # The date is below its card, centred in its column.
+            dates = [t for t in below if column_left - 2 <= t[1][0] and t[1][2] <= column_right + 2]
+            if not dates:
+                problems.append(f"milestone {k + 1}'s date is missing or outside its column")
+            for value, box, (x, _), advance, _ in dates:
+                if abs(x + advance / 2 - (column_left + column_right) / 2) > 3:
+                    problems.append("a date is not centred in its column")
+                if box[1] < card["card"][1]:
+                    problems.append("a date is above its card")
+        for upper, lower in zip(cards, cards[1:]):
+            if self._hit(upper["card"], lower["card"]):
+                problems.append("two cards overlap")
+        if not self._fits_the_floor(drawn):
+            problems.append("the text shrank below the 55% floor")
+        return sorted(set(problems))
+
+    def test_fits_and_matches_the_preview_across_the_realistic_range(self):
+        for count in (3, 5, 8):
+            for names in self.NAME_SETS:
+                for scale in (70, 100, 130):
+                    for target_id in self.TARGETS:
+                        with self.subTest(milestones=count, names=names[0], scale=scale, target_id=target_id):
+                            self.assertEqual(self._problems(names, scale, count, target_id), [])
+
+    def test_the_fullest_header_still_fits(self):
+        subtitle = "Twelve years, three cities and one very patient dog, Biscuit"  # 60, the maximum
+        for names in self.NAME_SETS:
+            for target_id in self.TARGETS:
+                with self.subTest(names=names[0], target_id=target_id):
+                    self.assertEqual(self._problems(names, 130, 8, target_id, subtitle=subtitle), [])
+
+    def test_photo_shape_does_not_move_or_resize_the_cards(self):
+        for size in ((1200, 1600), (1500, 1500)):
+            others = self._events(size)
+            for count, target_id in ((3, "print-poster-edged"), (5, "print-a4-edged"), (8, "print-classic-frameless")):
+                with self.subTest(size=size, milestones=count, target_id=target_id):
+                    expected = self._render(self.NAME_SETS[1], 130, count, target_id)["cards"]
+                    actual = self._render(self.NAME_SETS[1], 130, count, target_id, others)["cards"]
+                    self.assertEqual([c["card"] for c in actual], [c["card"] for c in expected])
+                    self.assertEqual(self._problems(self.NAME_SETS[1], 130, count, target_id, others), [])
+
+    def test_the_caption_is_drawn_on_the_card_so_it_tilts_with_it(self):
+        # Page-level texts are the dates (and the header and footer): a caption
+        # drawn flat on the page would show up here, and it would not tilt.
+        drawn = self._render(self.NAME_SETS[0], 100, 5, "print-a4-edged")
+        page_text = " ".join(t[0] for t in drawn["texts"])
+        for card, row in zip(drawn["cards"], self.rows):
+            self.assertNotIn(row[1], page_text)
+            self.assertEqual(" ".join(card["caption"]["lines"]), row[1])
+            self.assertNotEqual(card["tilt"], 0)
+
+    def test_a_short_band_gives_a_narrower_card_not_one_that_spills(self):
+        # The widest card whose single-line milestone fits (the preview's
+        # `min(88%, ...cqh...)`): at 3 milestones on a short page it is
+        # narrower than 88% of its column, and everything still fits.
+        from .compositions import HORIZONTAL_POLAROID as G
+
+        short = self._render(self.NAME_SETS[1], 130, 3, "print-a4-edged")
+        card_w = short["plan"]["plan"]["card_w"]
+        col_w = short["plan"]["col_w"]
+        self.assertLess(card_w, int(G.photo_width * col_w), "the band was not short enough to need a narrower card")
+        self.assertEqual(self._problems(self.NAME_SETS[1], 130, 3, "print-a4-edged"), [])
+        # ... and a tall one leaves it at the column's 88%.
+        tall = self._render(self.NAME_SETS[0], 100, 3, "print-a4-edged")
+        self.assertEqual(tall["plan"]["plan"]["card_w"], int(G.photo_width * tall["plan"]["col_w"]))
+
+    def test_the_cards_cast_the_previews_shadow(self):
+        drawn = self._render(self.NAME_SETS[0], 100, 3, "print-a4-edged")
+        image = Image.open(io.BytesIO(drawn["image"])).convert("RGB")
+        background = image.getpixel((5, 5))
+        for card in drawn["cards"]:
+            left, top, right, bottom = card["card"]
+            self.assertIsNotNone(card["shadow"], "a card has no shadow")
+            self.assertGreater(card["shadow"][3] - bottom, top - card["shadow"][1])
+        left, _, right, bottom = drawn["cards"][0]["card"]
+        pixel = image.getpixel(((left + right) // 2, bottom + 2))
+        self.assertLess(sum(pixel), sum(background) * 1.0, "no shadow under the card")
+        self.assertGreater(sum(pixel), sum(background) * 0.7, "the shadow is far heavier than the preview's")
+
+    def test_text_shrinks_only_when_a_milestone_does_not_fit(self):
+        full = self._render(self.NAME_SETS[0], 100, 3, "print-a4-edged")["plan"]
+        self.assertEqual(full["plan"]["font"].size, full["small"], "text shrank although it fit")
+        tight = self._render(self.NAME_SETS[1], 130, 8, "print-classic-edged")["plan"]
+        self.assertLess(tight["plan"]["font"].size, tight["small"], "this case must need smaller text")
+        self.assertGreaterEqual(tight["plan"]["font"].size, int(tight["small"] * 0.55) - 1)
+
+
+class HorizontalCirclesTests(_HorizontalHarness, TestCase):
+    """§7.6 Horizontal Circles: wraps its text and matches the preview.
+
+    Before this, 66 of the 108 realistic renders below were broken, all at 5
+    or 8 milestones: a label and a date were each ONE unwrapped line in a
+    column 1/count of the page wide (66 labels wider than their column, 62
+    collisions, 33 runs off the canvas), sized by the shared estimate (which
+    divides the page height by the milestone count). The axis was 1px and the
+    ticks `18 * text scale` px on a 3000px page, the circle 69% of its column.
+    In the PREVIEW the axis ran across the TOP of the timeline, above the
+    circles, instead of joining the tick tops (the print had that right).
+
+    The preview's values, read live (renderer.module.css): circles `78%` of a
+    column, an axis `inset-inline: 2%` at the circles' bottoms, 1px wide, a
+    18px tick from it under each circle, then the label (`margin-top: 5px`
+    under 8px type) and the date, all centred, columns 2% of the box apart,
+    everything top-aligned, header and footer centred.
+    """
+
+    LAYOUT = "horizontal-circles"
+
+    def _problems(self, names, scale, count, target_id, events=None, subtitle=""):
+        from apps.delivery.attribution import blend
+
+        from .compositions import HORIZONTAL_CIRCLES as G
+        from .data import PALETTES
+
+        drawn = self._render(names, scale, count, target_id, events, subtitle)
+        problems, (left, right, rule_y), footer, below = self._shared_problems(drawn, count)
+        circles, verticals = drawn["circles"], drawn["verticals"]
+        columns = self._columns(count, left, right)
+        width = Image.open(io.BytesIO(drawn["image"])).width
+        to_poster = width / G.preview_poster_px
+        palette = PALETTES["classic"]
+        axes = drawn["rules"][1:]
+        if len(circles) != count:
+            problems.append("a circle is missing")
+        if len(axes) != 1:
+            problems.append("the axis is missing or drawn twice")
+        else:
+            (x0, axis_y), (x1, _), = axes[0][0]
+            inset = round((right - left) * G.axis_inset)
+            if abs(x0 - (left + inset)) > 1 or abs(x1 - (right - inset)) > 1:
+                problems.append("the axis is not inset 2% from each side")
+            if axes[0][1] != max(1, round(G.axis_width_px * to_poster)):
+                problems.append("the axis is not at the preview's share of the page")
+            if any(abs(axis_y - c[3]) > 1 for c in circles):
+                problems.append("the axis is not at the circles' bottoms")
+            if tuple(axes[0][2]) != blend(palette["text"], palette["bg"], 0.85):
+                problems.append("the axis is not the preview's 85% line")
+        for k, circle in enumerate(circles):
+            column_left, column_right = columns[k]
+            if abs(circle[4] / (column_right - column_left) - G.photo_width) > 0.01:
+                problems.append("a circle is not 78% of its column")
+            if circle[0] < column_left - 1 or circle[2] > column_right + 1:
+                problems.append("a circle leaves its column")
+            if abs((circle[0] + circle[2]) / 2 - (column_left + column_right) / 2) > 2:
+                problems.append("a circle is not centred in its column")
+            if circle[1] <= rule_y:
+                problems.append("a circle crosses the header rule")
+        tick = max(2, round(G.tick_height_px * to_poster))
+        if len(verticals) != count:
+            problems.append("a tick is missing")
+        for k, vertical in enumerate(verticals):
+            (x0, y0), (x1, y1) = vertical[0]
+            column_left, column_right = columns[k]
+            if abs(x0 - (column_left + int(column_right - column_left) // 2)) > 1:
+                problems.append("a tick is not under its circle's centre")
+            if abs((y1 - y0) - tick) > 1:
+                problems.append("a tick is not at the preview's share of the page")
+        for k in range(count):
+            column_left, column_right = columns[k]
+            here = sorted((t for t in below if column_left - 2 <= t[1][0] and t[1][2] <= column_right + 2),
+                          key=lambda t: t[1][1])
+            label_lines = next((n for n in range(1, len(here) + 1)
+                                if " ".join(t[0] for t in here[:n]) == self.rows[k][1]), None)
+            if label_lines is None:
+                problems.append(f"milestone {k + 1}'s label is cut, altered or outside its column")
+                continue
+            if len(here) == label_lines:
+                problems.append(f"milestone {k + 1}'s date is missing")
+            for value, box, (x, _), advance, _ in here:
+                if abs(x + advance / 2 - (column_left + column_right) / 2) > 3:
+                    problems.append("a label or date is not centred in its column")
+            if k < len(verticals) and here[0][1][1] < verticals[k][0][1][1] - 1:
+                problems.append("a label starts above its tick's end")
+        if not self._fits_the_floor(drawn):
+            problems.append("the text shrank below the 55% floor")
+        return sorted(set(problems))
+
+    def test_fits_and_matches_the_preview_across_the_realistic_range(self):
+        for count in (3, 5, 8):
+            for names in self.NAME_SETS:
+                for scale in (70, 100, 130):
+                    for target_id in self.TARGETS:
+                        with self.subTest(milestones=count, names=names[0], scale=scale, target_id=target_id):
+                            self.assertEqual(self._problems(names, scale, count, target_id), [])
+
+    def test_the_fullest_header_still_fits(self):
+        subtitle = "Twelve years, three cities and one very patient dog, Biscuit"  # 60, the maximum
+        for names in self.NAME_SETS:
+            for target_id in self.TARGETS:
+                with self.subTest(names=names[0], target_id=target_id):
+                    self.assertEqual(self._problems(names, 130, 8, target_id, subtitle=subtitle), [])
+
+    def test_photo_shape_does_not_move_or_resize_the_circles(self):
+        for size in ((1200, 1600), (1500, 1500)):
+            others = self._events(size)
+            for count, target_id in ((3, "print-poster-edged"), (5, "print-a4-edged"), (8, "print-classic-frameless")):
+                with self.subTest(size=size, milestones=count, target_id=target_id):
+                    expected = self._render(self.NAME_SETS[1], 130, count, target_id)["circles"]
+                    actual = self._render(self.NAME_SETS[1], 130, count, target_id, others)["circles"]
+                    self.assertEqual(actual, expected)
+                    self.assertEqual(self._problems(self.NAME_SETS[1], 130, count, target_id, others), [])
+
+    def test_the_axis_joins_the_tops_of_the_ticks_under_the_circles(self):
+        # The preview's axis ran across the TOP of the timeline: 186px, 107px
+        # and 63px from the ticks at 3, 5 and 8 milestones.
+        for count in (3, 5, 8):
+            with self.subTest(milestones=count):
+                drawn = self._render(self.NAME_SETS[0], 100, count, "print-a4-edged")
+                axis_y = drawn["rules"][1][0][0][1]
+                for circle in drawn["circles"]:
+                    self.assertEqual(circle[3], axis_y)
+                for vertical in drawn["verticals"]:
+                    self.assertEqual(vertical[0][0][1], axis_y)
+
+    def test_the_height_the_fit_plans_is_the_height_the_drawing_uses(self):
+        # The fit sizes the text from each milestone's planned height. If the
+        # plan wrapped the label differently from the drawing, the text would
+        # shrink more (or less) than it needs to, with nothing visibly broken.
+        for count, names, scale, target_id in ((5, self.NAME_SETS[1], 100, "print-a4-edged"),
+                                               (8, self.NAME_SETS[1], 100, "print-classic-frameless")):
+            with self.subTest(milestones=count, target_id=target_id):
+                drawn = self._render(names, scale, count, target_id)
+                plan = drawn["plan"]["plan"]
+                (left, _), (right, _) = drawn["rules"][0][0]
+                columns = self._columns(count, left, right)
+                for k, (circle, block) in enumerate(zip(drawn["circles"], plan["blocks"])):
+                    column_left, column_right = columns[k]
+                    here = sorted((t for t in drawn["texts"]
+                                   if column_left - 2 <= t[1][0] and t[1][2] <= column_right + 2 and t[1][1] > circle[3]
+                                   and not t[0].startswith("To be continued")),
+                                  key=lambda t: t[2][1])
+                    drawn_bottom = here[-1][2][1] + block["line_h"]
+                    self.assertAlmostEqual(drawn_bottom - circle[1], block["height"], delta=3)
+
+    def test_the_circles_are_not_tilted_or_given_cards(self):
+        drawn = self._render(self.NAME_SETS[0], 100, 5, "print-a4-edged")
+        self.assertEqual(drawn["cards"], [])
+        self.assertEqual(len(drawn["circles"]), 5)
+
+    def test_text_shrinks_only_when_a_milestone_does_not_fit(self):
+        full = self._render(self.NAME_SETS[0], 100, 3, "print-a4-edged")["plan"]
+        self.assertEqual(full["plan"]["font"].size, full["small"], "text shrank although it fit")
+        tight = self._render(self.NAME_SETS[1], 130, 8, "print-a4-frameless")["plan"]
+        self.assertLess(tight["plan"]["font"].size, tight["small"], "this case must need smaller text")
+        self.assertGreaterEqual(tight["plan"]["font"].size, int(tight["small"] * 0.55) - 1)
 
 
 class NeatStackCardsFitTheirSlotsTests(TestCase):

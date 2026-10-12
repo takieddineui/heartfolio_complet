@@ -1,6 +1,6 @@
 "use client";
 
-import { useLayoutEffect, useRef, type ReactNode } from "react";
+import { useLayoutEffect, useRef, type CSSProperties, type ReactNode } from "react";
 
 /**
  * The smallest fraction of its normal size milestone text may shrink to.
@@ -52,16 +52,24 @@ function neededHeight(text: HTMLElement): number {
  *
  * `cellClassName` names an element whose height is one row; it may be the
  * text element itself when the text block is the row (Neat Stack).
+ *
+ * `fitTo="box"` is for the horizontal layouts, whose milestones are COLUMNS:
+ * there is no row, and what must fit is the tallest milestone in the
+ * timeline's own height (`cellClassName` is then not used).
  */
 export function FittedTimeline({
   className,
   textClassName,
   cellClassName,
+  fitTo = "row",
+  style,
   children,
 }: {
   className: string;
   textClassName: string;
   cellClassName: string;
+  fitTo?: "row" | "box";
+  style?: CSSProperties;
   children: ReactNode;
 }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -72,10 +80,13 @@ export function FittedTimeline({
 
     const fitsAt = (scale: number) => {
       timeline.style.setProperty("--text-fit", scale.toFixed(3));
-      const row = timeline.querySelector<HTMLElement>(`.${cellClassName}`)?.clientHeight ?? 0;
+      const box = fitTo === "box";
+      const row = box ? timeline.clientHeight : timeline.querySelector<HTMLElement>(`.${cellClassName}`)?.clientHeight ?? 0;
       const tallest = Math.max(
         0,
-        ...Array.from(timeline.querySelectorAll<HTMLElement>(`.${textClassName}`), neededHeight)
+        ...Array.from(timeline.querySelectorAll<HTMLElement>(`.${textClassName}`), (text) =>
+          box ? text.offsetHeight : neededHeight(text)
+        )
       );
       return !row || tallest <= row;
     };
@@ -119,7 +130,7 @@ export function FittedTimeline({
   });
 
   return (
-    <div ref={ref} className={className}>
+    <div ref={ref} className={className} style={style}>
       {children}
     </div>
   );

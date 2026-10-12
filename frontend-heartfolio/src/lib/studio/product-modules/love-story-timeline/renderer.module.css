@@ -662,12 +662,24 @@
   align-items: start;
   column-gap: 2%;
   position: relative;
+  /* A size container, so a card can be limited by the timeline's HEIGHT
+     (cqh) as well as its column's width: at text scale 1.3 three milestones
+     used to clip the date, because the card sized itself from the column
+     alone. */
+  container-type: size;
+  /* The poster's text scale, captured here so `.hMilestone` can multiply its
+     fit into it without referring to itself. */
+  --base-text-scale: var(--text-scale, 1);
 }
 
+/* `--text-fit` is set by FittedTimeline (timeline-text-fit.tsx, fitTo="box")
+   when the tallest milestone is taller than the timeline; it shrinks the
+   caption, label and date. */
 .hMilestone {
   display: flex;
   flex-direction: column;
   align-items: center;
+  --text-scale: calc(var(--base-text-scale, 1) * var(--text-fit, 1));
 }
 
 /* 7.5 — Polaroid with the caption inside its lower border. */
@@ -675,7 +687,16 @@
   background: #fff;
   padding: 4px 4px 0;
   box-shadow: 0 2px 7px rgba(0, 0, 0, 0.15);
-  width: 88%;
+  /* 88% of the column, or less if the timeline is short. The photograph is
+     1.15x as tall as the card is wide, less its 8px of side padding, so with
+     one caption line and the date below the layout is 1.15 x width + 7.8px +
+     19.25px x text scale tall (7.8 = 4px top padding - 1.15 x 8px + the
+     caption's 4px + 7px padding + the date's 2px gap; 19.25 = a caption line
+     of 8.75px + a date line of 10.5px, per unit of text scale), plus the
+     half-width of the tilt (sin 1.5deg / 2 = 0.0131 x width) the card
+     pokes above the box. That must fit the box. `--base-text-scale`, not the
+     fitted scale: a card that grew as the text shrank would never settle. */
+  width: min(88%, calc((100cqh - 7.8px - 19.25px * var(--base-text-scale, 1)) / 1.1631));
   box-sizing: border-box;
   transform: rotate(-1.5deg);
 }
@@ -686,7 +707,12 @@
   aspect-ratio: 1 / 1.15;
   object-fit: cover;
 }
+/* A BLOCK, not the inline span it was: inline, its lines took the 24px line
+   height of the card's 16px text (the lines of a wrapped 40-character title
+   sat 24px apart, so a card at 8 milestones was 148px tall for 60px of
+   text). */
 .hPolaroidCaption {
+  display: block;
   font-size: calc(7px * var(--text-scale, 1));
   line-height: 1.25;
   text-align: center;
@@ -704,10 +730,16 @@
 }
 .hCircle img { display: block; width: 100%; height: 100%; object-fit: cover; }
 
-/* The axis, with a downward tick under each milestone (7.6). */
+/* The axis, with a downward tick under each milestone (7.6). It joins the
+   TOPS of the ticks, which hang from the circles' bottoms: `top` is the
+   circle's diameter, 78% of a column, a column being
+   (100cqw - 2% x (count - 1)) / count (`--count` is set in renderer.tsx).
+   It had no `top`, so it ran across the top of the timeline, above the
+   circles, 186px / 107px / 63px from the ticks at 3 / 5 / 8 milestones. */
 .hAxis {
   position: absolute;
   inset-inline: 2%;
+  top: calc(0.78 * (100cqw - 2cqw * (var(--count, 1) - 1)) / var(--count, 1));
   height: 1px;
   background: var(--p-text);
   opacity: 0.85;

@@ -380,25 +380,78 @@ class HorizontalGeometry:
     one gets narrower as they are added — where a vertical layout simply
     gets taller. Three milestones on a landscape page leave a lot of space;
     eight are tight. That is why §7 records these as strongest at 5–7.
+
+    MEASURED 12 Oct 2026 (both styles broken in the print, 70 and 66 of 108
+    realistic renders: titles and dates were one unwrapped line each in a
+    column 1/count of the page wide, at 5 and 8 milestones; the preview's
+    Circles axis ran across the TOP of the timeline instead of joining the
+    ticks). Both renderers now share the numbers below. Text SIZES are not
+    among them: the preview's 7px on an 810px poster would print as 2.5mm
+    text, so the print keeps its own sizes, wraps, and shrinks to
+    `text_fit_floor` when a milestone does not fit. Everything else is the
+    preview's, in its CSS pixels (a 810 x 540 poster).
     """
 
-    #: Fraction of content height given to the photograph row.
-    photo_row: float = 0.52
-    #: Gap between milestones, as a fraction of the per-milestone width.
-    column_gap: float = 0.12
-    #: Photograph size within its column.
+    #: The gap between columns, as a fraction of the content width (CSS
+    #: `column-gap: 2%`). The print used 12% of a column.
+    column_gap: float = 0.02
+    #: The CARD's (7.5) or CIRCLE's (7.6) width as a fraction of its column:
+    #: CSS `width: 88%` / `78%`, borders included.
     photo_width: float = 0.88
+    #: 7.5's photograph is 1.15x as tall as wide (`aspect-ratio: 1 / 1.15`).
+    #: The print pasted a SQUARE photo and a 30% caption band.
+    photo_aspect: float = 1.15
 
-    #: 7.5 tilts its Polaroids very slightly; 7.6's circles do not tilt.
+    #: 7.5 tilts its Polaroids very slightly: the 1st, 3rd... card
+    #: `rotate(-1.5deg)` (anticlockwise), the 2nd, 4th... `rotate(1.5deg)`.
+    #: 7.6's circles do not tilt.
     photo_tilt_deg: float = 1.5
+    photo_tilt_even_deg: float = 1.5
     #: 7.6 — circular crop and a ticked axis instead of Polaroids.
     circular: bool = False
-    #: Height of the downward tick under each milestone (7.6).
+
+    #: 7.5's border, as a fraction of the photograph: `padding: 4px 4px 0`
+    #: around the 202px photograph the Studio draws at 3 milestones. The
+    #: bottom border is the caption: its padding is `4px 2px 7px` around
+    #: 7px type, here as multiples of the caption font's size.
+    polaroid_border: float = 0.0198
+    caption_pad_top_em: float = 0.5714
+    caption_pad_side_em: float = 0.2857
+    caption_pad_bottom_em: float = 1.0
+    caption_line_height: float = 1.25
+    #: `box-shadow: 0 2px 7px rgba(0, 0, 0, 0.15)`, converted through the
+    #: photograph's width in the preview (`preview_photo_px`).
+    card_shadow_offset_px: float = 2.0
+    card_shadow_blur_px: float = 7.0
+    card_shadow_opacity: float = 0.15
+    preview_photo_px: float = 202.0
+
+    #: The date under each milestone: a gap, then lines (`margin-top: 2px`
+    #: under 7px type, in the preview).
+    date_gap_em: float = 0.2857
+    date_line_height: float = 1.5
+
+    #: 7.6 — the axis runs from 2% in from each side (`inset-inline: 2%`),
+    #: a downward tick hangs from it under each circle, and the label sits
+    #: below the tick (`margin-top: 5px` under 8px type). Pixels are on the
+    #: preview's 810px-wide poster; the print draws them at the same share of
+    #: its width (they were 1px and `18 * text scale` px on a 3000px page).
+    axis_inset: float = 0.02
+    axis_width_px: int = 1
     tick_height_px: int = 18
+    label_gap_em: float = 0.625
+
+    #: The preview poster's width, for converting those pixels.
+    preview_poster_px: float = 810.0
+    #: The smallest fraction of its normal size the text shrinks to, in the
+    #: print and in the preview (TIMELINE_TEXT_FIT_FLOOR).
+    text_fit_floor: float = 0.55
 
 
 HORIZONTAL_POLAROID = HorizontalGeometry()
-HORIZONTAL_CIRCLES = HorizontalGeometry(circular=True, photo_tilt_deg=0.0, photo_width=0.78)
+HORIZONTAL_CIRCLES = HorizontalGeometry(
+    circular=True, photo_tilt_deg=0.0, photo_tilt_even_deg=0.0, photo_width=0.78
+)
 
 #: Every composition's geometry, keyed by layout id (§7). The five not yet
 #: built fall back to Neat Stack, matching the frontend — a half-built

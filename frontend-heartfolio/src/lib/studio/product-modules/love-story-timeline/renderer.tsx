@@ -495,7 +495,13 @@ function HorizontalComposition({
     "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==";
 
   return (
-    <div className={`${styles.timeline} ${className ?? ""}`}>
+    <FittedTimeline
+      className={`${styles.timeline} ${className ?? ""}`}
+      textClassName={styles.hMilestone!}
+      cellClassName={styles.hMilestone!}
+      fitTo="box"
+      style={{ "--count": events.length } as React.CSSProperties}
+    >
       {circular && <span className={styles.hAxis} aria-hidden="true" />}
 
       {events.map((event, i) => (
@@ -525,7 +531,7 @@ function HorizontalComposition({
           )}
         </div>
       ))}
-    </div>
+    </FittedTimeline>
   );
 }
 

@@ -478,9 +478,12 @@ def render_png(
     if timeline.layout in ("horizontal-polaroid", "horizontal-circles"):
         y = _draw_horizontal(
             image, draw, timeline, events,
-            customer=customer, palette=palette, scale=scale,
-            x=x, y=y, content_right=content_right, content_bottom=content_bottom,
-            margin=margin, small_font=event_small_font, body_font=event_body_font,
+            customer=customer, palette=palette,
+            x=x, y=y, content_right=content_right, margin=margin,
+            # The whole band under the header and above the closing line;
+            # unshrunk fonts, which it fits to its own milestones.
+            band_height=remaining_height,
+            small_font=small_font, body_font_file=fonts["body"], page_width=width,
         )
     elif timeline.layout == "dotted-branching":
         y = _draw_dotted(
@@ -570,7 +573,9 @@ def render_png(
 
 #: Layouts past Neat Stack whose print has been matched to the preview's
 #: centred header and footer. Each is added as it is reviewed.
-_REVIEWED_CENTRED_LAYOUTS = ("alternating-tilt", "overlapping-cascade", "dotted-branching")
+_REVIEWED_CENTRED_LAYOUTS = (
+    "alternating-tilt", "overlapping-cascade", "dotted-branching", "horizontal-polaroid", "horizontal-circles",
+)
 
 
 #: Layouts that are NOT Neat Stack — mirrors the dispatch in `render_png`,
@@ -866,7 +871,7 @@ def _draw_neat_stack(
 
 def _paste_polaroid(
     image, *, customer, asset_id, centre_x, centre_y, photo_size, border, bottom_border,
-    tilt_deg, shadow_offset, shadow_sigma, shadow_opacity, photo_height=None,
+    tilt_deg, shadow_offset, shadow_sigma, shadow_opacity, photo_height=None, caption=None,
 ) -> dict:
     """A tilted Polaroid with its drop shadow, centred on (`centre_x`,
     `centre_y`) — the preview rotates about the card's centre (CSS
@@ -880,6 +885,11 @@ def _paste_polaroid(
     The photograph is `photo_size` wide and `photo_height` tall (square if
     omitted).
 
+    `caption`, if given, is drawn on the card before it is rotated, centred
+    in the card, so it tilts with it as the preview's does (Horizontal
+    Polaroids): `{"lines": [...], "font": ..., "fill": ..., "top": the y of
+    the first line inside the card, "line_height": ...}`.
+
     Returns the card's bounding box and the shadow's visible bounding box,
     so callers and tests can check what the card actually covers.
     """
@@ -888,6 +898,13 @@ def _paste_polaroid(
     card_h = photo_height + border + bottom_border
     card = Image.new("RGBA", (card_w, card_h), (255, 255, 255, 255))
     _paste_photo(card, customer=customer, asset_id=asset_id, x=border, y=border, size=photo_size, height=photo_height)
+    if caption:
+        layer = ImageDraw.Draw(card)
+        line_y = caption["top"]
+        for line in caption["lines"]:
+            advance = layer.textlength(line, font=caption["font"])
+            layer.text(((card_w - advance) / 2, line_y), line, font=caption["font"], fill=caption["fill"])
+            line_y += caption["line_height"]
     if tilt_deg:
         card = card.convert("RGBa").rotate(tilt_deg, resample=Image.BICUBIC, expand=True).convert("RGBA")
     left, top = centre_x - card.width // 2, centre_y - card.height // 2
@@ -1488,90 +1505,220 @@ def _draw_dotted(
     return y + band_height
 
 
+def _horizontal_columns(geometry, *, x, content_right, margin, count):
+    """The content width, the gap between columns and one column's width:
+    CSS `column-gap: 2%` of the box and `grid-auto-columns: 1fr`."""
+    content_width = content_right - x - margin
+    gap = round(content_width * geometry.column_gap)
+    return content_width, gap, (content_width - gap * (count - 1)) / count
+
+
+def _polaroid_card(geometry, card_w):
+    """Photograph width, border and the card's own width for a card up to
+    `card_w` wide (borders included, as the CSS width is border-box)."""
+    photo = max(8, int(card_w / (1 + 2 * geometry.polaroid_border)))
+    border = max(1, round(photo * geometry.polaroid_border))
+    return photo, border, photo + 2 * border
+
+
+def _polaroid_extent(geometry, font, card_w, caption_lines, date_lines):
+    """What one Polaroid milestone occupies at `font`, from the top of its
+    row: the room the tilted card and its shadow need ABOVE the layout top
+    (`top_pad`), the card's height, the date's height. The caption is the
+    card's bottom border, so it makes the card taller, as in the preview."""
+    photo, border, card_w = _polaroid_card(geometry, card_w)
+    photo_h = round(photo * geometry.photo_aspect)
+    line_h = int(font.size * geometry.caption_line_height)
+    pad_top = round(geometry.caption_pad_top_em * font.size)
+    band = pad_top + caption_lines * line_h + round(geometry.caption_pad_bottom_em * font.size)
+    card_h = border + photo_h + band
+    date_gap = round(geometry.date_gap_em * font.size)
+    date_h = date_gap + date_lines * int(font.size * geometry.date_line_height)
+    tilt = math.radians(max(geometry.photo_tilt_deg, geometry.photo_tilt_even_deg))
+    to_print = photo / geometry.preview_photo_px
+    sigma = geometry.card_shadow_blur_px / 2 * to_print
+    reach = (card_h * math.cos(tilt) + card_w * math.sin(tilt) - card_h) / 2
+    reach += max(0.0, 2.25 * sigma - round(geometry.card_shadow_offset_px * to_print))
+    return {
+        "photo": photo, "photo_h": photo_h, "border": border, "card_w": card_w, "band": band, "card_h": card_h,
+        "pad_top": pad_top, "line_h": line_h, "date_gap": date_gap, "date_h": date_h,
+        "top_pad": math.ceil(max(reach, 0)),
+    }
+
+
+def _widest(draw, lines, font) -> float:
+    """The advance of the widest of `lines`."""
+    return max((draw.textlength(line, font=font) for line in lines), default=0)
+
+
+def _horizontal_plan(draw, events, geometry, *, font_file, small_size, col_w, band_height, page_width):
+    """Sizes for the landscape compositions, fitted to the band.
+
+    Both Horizontal styles drew each title and date as ONE line in a column
+    1/count of the page wide, and sized their text with the shared estimate,
+    which divides the page HEIGHT by the milestone count although milestones
+    are columns here: 70 and 66 of 108 realistic renders collided or ran off
+    the page, all at 5 or 8 milestones. Now the text wraps to its column (or
+    to the card) and shrinks in steps to `text_fit_floor` until the tallest
+    milestone fits the band: the preview does the same with `FittedTimeline`.
+
+    The CARD (7.5) is the column's 88%, or less when the band is short: the
+    widest card whose milestone, with a ONE-line caption and a one-line date
+    at the UNSHRUNK size, fits. Like the preview, it does not grow back as
+    the text shrinks. A CIRCLE (7.6) is the column's 78%, as in the preview.
+    """
+    steps = [step for step in _NEAT_STACK_SHRINK_STEPS if step >= geometry.text_fit_floor]
+    base = _font(font_file, small_size)
+    to_poster = page_width / geometry.preview_poster_px
+
+    if geometry.circular:
+        diameter = round(geometry.photo_width * col_w)
+        tick_h = max(2, round(geometry.tick_height_px * to_poster))
+        axis_w = max(1, round(geometry.axis_width_px * to_poster))
+        # The label and the date are lines of the same height.
+        for step in steps:
+            font = _font(font_file, max(10, int(small_size * step)))
+            line_h = int(font.size * geometry.date_line_height)
+            label_gap = round(geometry.label_gap_em * font.size)
+            date_gap = round(geometry.date_gap_em * font.size)
+            blocks, widest = [], 0
+            for event in events:
+                label = _wrap_text(draw, event.title, font, max(1, int(col_w))) or [""]
+                date = _wrap_text(draw, format_event_date(event.date), font, max(1, int(col_w))) or [""]
+                widest = max(widest, _widest(draw, label + date, font))
+                blocks.append({
+                    "label_gap": label_gap, "date_gap": date_gap, "line_h": line_h,
+                    "height": diameter + tick_h + label_gap + len(label) * line_h + date_gap + len(date) * line_h,
+                })
+            # A word cannot wrap: a line wider than the column also means
+            # "does not fit", and the text shrinks until it does.
+            if max(b["height"] for b in blocks) <= band_height and widest <= col_w:
+                break
+        return {"font": font, "diameter": diameter, "tick_h": tick_h, "axis_w": axis_w, "blocks": blocks}
+
+    def single_line(card_w):
+        extent = _polaroid_extent(geometry, base, card_w, 1, 1)
+        return extent["top_pad"] + extent["card_h"] + extent["date_h"]
+
+    low, high = 24, max(24, int(geometry.photo_width * col_w))
+    while low < high:
+        middle = (low + high + 1) // 2
+        if single_line(middle) <= band_height:
+            low = middle
+        else:
+            high = middle - 1
+    card_w = low
+    for step in steps:
+        font = _font(font_file, max(10, int(small_size * step)))
+        photo, border, _ = _polaroid_card(geometry, card_w)
+        side = round(geometry.caption_pad_side_em * font.size)
+        blocks, too_wide = [], False
+        for event in events:
+            caption = _wrap_text(draw, event.title, font, max(1, photo - 2 * side)) or [""]
+            date = _wrap_text(draw, format_event_date(event.date), font, max(1, int(col_w))) or [""]
+            too_wide = too_wide or _widest(draw, caption, font) > photo - 2 * side or _widest(draw, date, font) > col_w
+            extent = _polaroid_extent(geometry, font, card_w, len(caption), len(date))
+            blocks.append({**extent, "caption": caption, "date": date})
+        top_pad = max(b["top_pad"] for b in blocks)
+        # A word cannot wrap: a line wider than its card (or the date wider
+        # than the column) also means "does not fit".
+        if max(top_pad + b["card_h"] + b["date_h"] for b in blocks) <= band_height and not too_wide:
+            break
+    return {"font": font, "card_w": card_w, "top_pad": top_pad, "blocks": blocks}
+
+
 def _draw_horizontal(
-    image, draw, timeline, events, *, customer, palette, scale,
-    x, y, content_right, content_bottom, margin, small_font, body_font,
+    image, draw, timeline, events, *, customer, palette,
+    x, y, content_right, margin, band_height, small_font, body_font_file, page_width,
 ) -> int:
     """§7.5 / §7.6 — the landscape compositions. Mirrors `.layoutHorizontal`.
 
     Milestones become COLUMNS. Adding one makes every milestone narrower
     rather than making the page taller, which is the structural difference
     from the four portrait layouts and the reason these are recorded as
-    strongest at 5–7.
+    strongest at 5-7.
 
-    7.5 draws a tilted Polaroid with its caption inside the lower border;
-    7.6 draws a circular photograph above a ticked axis with the label
-    below. `circular` in the geometry selects between them.
+    7.5 draws a Polaroid, tilted (+1.5/-1.5 here, the preview's
+    rotate(-1.5deg)/rotate(1.5deg)) with the preview's shadow and a 1:1.15
+    photograph, the caption wrapped inside its lower border and tilting with
+    it, and the date below. 7.6 draws a circular photograph above a ticked
+    axis with the label and date below. `circular` in the geometry selects
+    between them. Everything is top-aligned, as the preview's grid is.
     """
     geometry = geometry_for(timeline.layout)
-    content_width = content_right - x - margin
-    available_height = content_bottom - y - margin
-
     count = max(1, len(events))
-    column_w = content_width // count
-    gap = int(column_w * geometry.column_gap)
-    photo_box = min(int(column_w - gap), int(available_height * geometry.photo_row))
-    photo_size = int(photo_box * geometry.photo_width)
-
-    row_top = y + int(available_height * 0.06)
+    content_width, gap, col_w = _horizontal_columns(
+        geometry, x=x, content_right=content_right, margin=margin, count=count,
+    )
+    plan = _horizontal_plan(
+        draw, events, geometry, font_file=body_font_file, small_size=small_font.size,
+        col_w=col_w, band_height=band_height, page_width=page_width,
+    )
+    font = plan["font"]
 
     if geometry.circular:
-        axis_y = row_top + photo_size + int(18 * scale)
+        axis_y = y + plan["diameter"]
+        inset = round(content_width * geometry.axis_inset)
         draw.line(
-            [(x, axis_y), (content_right - margin, axis_y)],
-            fill=palette["text"], width=max(1, int(scale)),
+            [(x + inset, axis_y), (x + content_width - inset, axis_y)],
+            fill=blend(palette["text"], palette["bg"], 0.85), width=plan["axis_w"],
         )
 
     for index, event in enumerate(events):
-        col_x = x + (index * column_w)
-        centre_x = col_x + (column_w // 2)
-
-        if event.photo_asset_id and customer is not None:
-            if geometry.circular:
-                _paste_photo(
-                    image, customer=customer, asset_id=event.photo_asset_id,
-                    x=centre_x - photo_size // 2, y=row_top, size=photo_size,
-                    circular=True,
-                )
-            else:
-                border = max(2, int(photo_size * 0.045))
-                # The caption sits INSIDE the lower border, so the card is
-                # taller than the photograph by more than a plain frame.
-                caption_band = int(photo_size * 0.30)
-                card_w = photo_size + border * 2
-                card_h = photo_size + border + caption_band
-                card_x = centre_x - card_w // 2
-                draw.rectangle([card_x, row_top, card_x + card_w, row_top + card_h], fill="#ffffff")
-                _paste_photo(
-                    image, customer=customer, asset_id=event.photo_asset_id,
-                    x=card_x + border, y=row_top + border, size=photo_size,
-                )
-                _draw_centered(
-                    draw, event.title, small_font,
-                    centre_x=centre_x, y=row_top + border + photo_size + int(6 * scale),
-                    fill=palette["text"],
-                )
+        col_x = x + round(index * (col_w + gap))
+        centre_x = col_x + int(col_w) // 2
+        block = plan["blocks"][index]
 
         if geometry.circular:
-            tick_h = max(6, int(geometry.tick_height_px * scale))
+            diameter = plan["diameter"]
+            if event.photo_asset_id and customer is not None:
+                _paste_photo(
+                    image, customer=customer, asset_id=event.photo_asset_id,
+                    x=centre_x - diameter // 2, y=y, size=diameter, circular=True,
+                )
             draw.line(
-                [(centre_x, axis_y), (centre_x, axis_y + tick_h)],
-                fill=palette["text"], width=max(1, int(scale)),
+                [(centre_x, axis_y), (centre_x, axis_y + plan["tick_h"])],
+                fill=blend(palette["text"], palette["bg"], 0.7), width=plan["axis_w"],
             )
-            label_y = axis_y + tick_h + int(8 * scale)
-            _draw_centered(draw, event.title, small_font, centre_x=centre_x, y=label_y, fill=palette["text"])
-            _draw_centered(
-                draw, format_event_date(event.date), small_font,
-                centre_x=centre_x, y=label_y + int(small_font.size * 1.5), fill=palette["muted"],
+            label_y = axis_y + plan["tick_h"] + block["label_gap"]
+            label_y = _draw_wrapped(
+                draw, event.title, font, x=col_x, y=label_y, max_width=int(col_w), max_lines=_NO_LINE_LIMIT,
+                fill=palette["text"], line_spacing=block["line_h"], centered=True,
             )
-        else:
-            _draw_centered(
-                draw, format_event_date(event.date), small_font,
-                centre_x=centre_x, y=row_top + photo_size + int(photo_size * 0.34),
-                fill=palette["muted"],
+            _draw_wrapped(
+                draw, format_event_date(event.date), font, x=col_x, y=label_y + block["date_gap"],
+                max_width=int(col_w), max_lines=_NO_LINE_LIMIT,
+                fill=palette["muted"], line_spacing=block["line_h"], centered=True,
             )
+            continue
 
-    return content_bottom - margin
+        card_top = y + plan["top_pad"]
+        if event.photo_asset_id and customer is not None:
+            # CSS rotates clockwise for a positive angle and Pillow
+            # anticlockwise: the preview's rotate(-1.5deg) on the 1st, 3rd...
+            # card is +1.5 here, rotate(1.5deg) on the 2nd, 4th... is -1.5.
+            tilt_deg = geometry.photo_tilt_deg if index % 2 == 0 else -geometry.photo_tilt_even_deg
+            to_print = block["photo"] / geometry.preview_photo_px
+            _paste_polaroid(
+                image, customer=customer, asset_id=event.photo_asset_id,
+                centre_x=centre_x, centre_y=card_top + block["card_h"] // 2,
+                photo_size=block["photo"], photo_height=block["photo_h"],
+                border=block["border"], bottom_border=block["band"], tilt_deg=tilt_deg,
+                shadow_offset=round(geometry.card_shadow_offset_px * to_print),
+                shadow_sigma=geometry.card_shadow_blur_px / 2 * to_print,
+                shadow_opacity=geometry.card_shadow_opacity,
+                caption={
+                    "lines": block["caption"], "font": font, "fill": palette["text"],
+                    "top": block["border"] + block["photo_h"] + block["pad_top"], "line_height": block["line_h"],
+                },
+            )
+        _draw_wrapped(
+            draw, format_event_date(event.date), font, x=col_x,
+            y=card_top + block["card_h"] + block["date_gap"], max_width=int(col_w), max_lines=_NO_LINE_LIMIT,
+            fill=palette["muted"], line_spacing=int(font.size * geometry.date_line_height), centered=True,
+        )
+
+    return y + band_height
 
 
 def _draw_centered(draw, text, font, *, centre_x, y, fill):
