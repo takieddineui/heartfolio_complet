@@ -369,15 +369,30 @@ plus the Alternating section of `composition-parity.test.ts`.
 
 ## 8. Studio milestone cap and the other previews (measured 7 Oct 2026)
 
-**The Studio allows 3 to 8 milestones (raised 12 Oct 2026).** It allowed
-exactly 3 from 20 Sep 2026 (`minEvents: 3, maxEvents: 3`; it had been 8 from 12
-Sep). The backend always accepted 3-8 (`MAX_EVENTS` in `data.py`). The old
-comment called the cap "a product decision rather than a technical limit"; the
-owner recalled it as a workaround for overflow. `recommendedMin` and
-`recommendedMax` sat above the cap and were read nowhere, so they were removed
-with the comment. The cap was held until every style was fixed and verified at 8
-(the table below), then the other surfaces were checked at 8 on 12 Oct (see
-"Other surfaces at 8 milestones" at the end of this section).
+**The Studio allows 3 to 5 milestones (a product decision, 12 Oct 2026).** It
+allowed exactly 3 from 20 Sep 2026 (`minEvents: 3, maxEvents: 3`; it had been 8
+from 12 Sep). The cap was raised to 8 on 12 Oct, after every style was fixed and
+verified at 8 (the table below) and the other surfaces were checked (see "Other
+surfaces at 8 milestones" at the end of this section), and the same day the owner
+dialled it back to 5. Everything below was verified up to 8 and is still true:
+the 5 is a choice, not something the renderers could not do. `recommendedMin` and
+`recommendedMax` sat above the old cap and were read nowhere, so they were
+removed.
+
+**The backend still accepts 3 to 8 (`MAX_EVENTS` in `data.py`), on purpose.** It
+is what the renderers accept, not what the Studio offers. A saved project or a
+paid order made with 6 to 8 milestones (the Studio allowed up to 8 until 20 Sep)
+must keep rendering and downloading; lowering `MAX_EVENTS` would turn those into
+failed downloads after payment, the same class as the two known unrenderable
+orders in PROJECT-STATE.md. The Studio's cap stops it ADDING past 5; it removes
+nothing, and a draft that already holds 6 to 8 keeps them (the form only checks the
+minimum). `milestone-cap.test.ts` pins this relationship: the form uses the cap,
+the backend is at least the cap, and the backend is still 8. Customer-facing copy
+that states the range (the product page's description, story and FAQ, in
+en/fr/ar) says three to five.
+
+For NEW projects the heaviest pack is now 5 milestones (15 moment wallpapers), not
+8 (24). The 8-milestone figures below still apply to older projects and orders.
 
 **Every preview had to show every milestone before the cap could rise.**
 Measured in the Studio by duplicating rows; "fully visible" counts photos entirely

@@ -266,14 +266,18 @@ Two were genuine product bugs: the `layout` default above, and
   - **Neat Stack's preview fixed (7 Oct 2026).** It had hidden milestones
     at 5 and 8, the same bug as Alternating Tilt; Neat Stack is now closed
     on both sides. The shared fit is `FittedTimeline`
-    (`timeline-text-fit.tsx`). **The Studio milestone cap was raised from 3
-    to 8 on 12 Oct 2026** (`maxEvents` in `metadata.ts`), after all six styles
+    (`timeline-text-fit.tsx`). **The Studio milestone cap is 5** (`maxEvents`
+    in `metadata.ts`): raised from 3 to 8 on 12 Oct 2026, after all six styles
     were verified at 8 in preview and print and the other surfaces were
-    checked (guide section 8). That check found the AR scene overlapping its
-    photographs from 5 milestones, fixed in `ar-timeline-layout.ts`. A pack
-    now renders up to 24 moment wallpapers (3 devices x 8) and its download
-    is slower (about 20s against 7s in memory), so watch the pack render
-    time. No per-layout cap, by decision.
+    checked (guide section 8), then dialled back to 5 the same day as a
+    **product decision**, not a limit. That check found the AR scene
+    overlapping its photographs from 5 milestones, fixed in
+    `ar-timeline-layout.ts`. **The backend `MAX_EVENTS` stays 8 on purpose** so
+    saved projects and paid orders with 6 to 8 milestones keep rendering
+    (`milestone-cap.test.ts` pins it); never lower it with the Studio cap. A
+    pack renders up to 24 moment wallpapers at 8 (3 devices x 8), 15 at 5, and
+    is slower at 8 (about 20s against 7s in memory). No per-layout cap, by
+    decision.
   - **Horizontal Polaroids and Horizontal Circles closed (12 Oct 2026)**,
     preview and print, with all their styling items; both were broken (70 and
     66 of 108 prints, text) and Circles' preview axis was at the top of the

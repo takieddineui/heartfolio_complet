@@ -19,8 +19,10 @@ import type { PrintOrientation } from "@/lib/studio/print-sizes";
  * an A4 simply renders the other way up for those two.
  *
  * `idealMin`/`idealMax` are RECOMMENDATIONS, never limits. §19 requires all
- * six to adapt across the full 3–8 range; these steer the customer toward
- * the count a composition flatters, and drive nothing else.
+ * six to adapt across the whole range the Studio offers (`metadata.ts`); these
+ * steer the customer toward the count a composition flatters, and drive
+ * nothing else. Some `idealMax` values sit above the Studio's current cap of
+ * five; they are inert until the cap rises again, and were left as designed.
  */
 
 export interface TimelineLayout {

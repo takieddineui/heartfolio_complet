@@ -32,8 +32,12 @@ from datetime import date as date_cls
 
 from apps.common.exceptions.api_errors import LoveStoryTimelineInvalidData
 
-# §4 — mirrors `metadata.ts`. A timeline with one point is not a timeline;
-# above eight, no composition holds its shape.
+# §4 — the floor mirrors `metadata.ts`: a timeline with one point is not a
+# timeline. The ceiling is what the RENDERERS accept, not what the Studio
+# offers: the Studio stops at five (`maxEvents` in `metadata.ts`, a product
+# decision of 12 Oct 2026), but every composition is verified to eight, and a
+# saved project or paid order made with six to eight milestones must keep
+# rendering. Lowering this would turn those into failed downloads.
 MIN_EVENTS = 3
 MAX_EVENTS = 8
 

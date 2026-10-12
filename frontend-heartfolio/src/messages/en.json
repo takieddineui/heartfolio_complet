@@ -341,7 +341,7 @@
     "loveStoryTimeline": {
       "name": "Love Story Timeline",
       "shortDescription": "Your milestones, told as one continuous story.",
-      "fullDescription": "Three to eight milestones — dates, photos, and the words only the two of you would use — laid out as a single keepsake timeline.",
+      "fullDescription": "Three to five milestones — dates, photos, and the words only the two of you would use — laid out as a single keepsake timeline.",
       "meta": {
         "title": "Personalized Love Story Timeline | Heartfolio",
         "description": "Turn your relationship's most meaningful moments into a beautiful personalized digital keepsake. From {price}, delivered instantly.",
@@ -349,11 +349,11 @@
         "descriptionNoPrice": "Turn your relationship's most meaningful moments into a beautiful personalized digital keepsake, delivered instantly."
       },
       "storyTitle": "One line, five moments, a whole story.",
-      "story": "Most relationships are remembered as a handful of dates that mean nothing to anyone else. The Love Story Timeline puts three to eight of them on a single line — the day you met, the day you moved, the day you decided — each with its own photo and short caption, laid out so it reads as one continuous story rather than a list.",
+      "story": "Most relationships are remembered as a handful of dates that mean nothing to anyone else. The Love Story Timeline puts three to five of them on a single line — the day you met, the day you moved, the day you decided — each with its own photo and short caption, laid out so it reads as one continuous story rather than a list.",
       "faq": [
         {
           "question": "How many moments can I include?",
-          "answer": "Between three and eight. Fewer than three isn't a timeline; more than eight starts to crowd the page. Four to six is where most stories sit comfortably."
+          "answer": "Between three and five. Fewer than three isn't a timeline. Four or five is where most stories sit comfortably."
         },
         {
           "question": "Can I use photos?",

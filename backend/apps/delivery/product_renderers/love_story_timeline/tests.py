@@ -242,10 +242,26 @@ class DataValidationTests(TestCase):
             validate_and_normalize(values, VALID_THEME)
 
     def test_too_many_events_rejected(self):
-        events = [{"date": f"2020-01-{i:02d}", "title": f"Event {i}"} for i in range(1, 7)]  # 6 > MAX_EVENTS(5)
+        """One more than the renderers accept, each event otherwise VALID (a
+        date, a title and a photo), so the count is the only possible reason
+        to refuse. This used to send six events with no photos, which fail on
+        the missing photos whatever the limit is, and so guarded nothing."""
+        from .data import MAX_EVENTS
+
+        events = [
+            {"date": f"2020-01-{i:02d}", "title": f"Event {i}", "photo": {"assetId": f"asset-{i}"}}
+            for i in range(1, MAX_EVENTS + 2)
+        ]
         values = {**VALID_VALUES, "events": events}
-        with self.assertRaises(LoveStoryTimelineInvalidData):
+        with self.assertRaises(LoveStoryTimelineInvalidData) as ctx:
             validate_and_normalize(values, VALID_THEME)
+        self.assertEqual(
+            [e for e in ctx.exception.details["errors"] if "events" in e and "must be a list" in e],
+            [f"'events' must be a list of 3-{MAX_EVENTS} items."],
+        )
+        # And exactly MAX_EVENTS of the same events is accepted.
+        accepted = validate_and_normalize({**VALID_VALUES, "events": events[:MAX_EVENTS]}, VALID_THEME)
+        self.assertEqual(len(accepted.events), MAX_EVENTS)
 
     def test_invalid_event_structure_rejected(self):
         values = {**VALID_VALUES, "events": ["not-a-dict"]}

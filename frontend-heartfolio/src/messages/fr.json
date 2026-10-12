@@ -341,7 +341,7 @@
     "loveStoryTimeline": {
       "name": "Chronologie d'histoire d'amour",
       "shortDescription": "Vos jalons, racontés comme une seule histoire continue.",
-      "fullDescription": "De trois à huit moments — dates, photos et les mots que vous seuls employez — disposés en une seule frise souvenir.",
+      "fullDescription": "De trois à cinq moments — dates, photos et les mots que vous seuls employez — disposés en une seule frise souvenir.",
       "meta": {
         "title": "Frise d'histoire d'amour personnalisée | Heartfolio",
         "description": "Transformez les moments les plus marquants de votre relation en un souvenir numérique personnalisé. À partir de {price}, livré instantanément.",
@@ -349,11 +349,11 @@
         "descriptionNoPrice": "Transformez les moments les plus marquants de votre relation en un souvenir numérique personnalisé, livré instantanément."
       },
       "storyTitle": "Une ligne, cinq moments, toute une histoire.",
-      "story": "La plupart des histoires se résument à quelques dates qui ne disent rien à personne d'autre. La frise d'histoire d'amour en place de trois à huit sur une même ligne — le jour de la rencontre, le jour du déménagement, le jour de la décision — chacune avec sa photo et sa légende, disposées pour se lire comme une histoire continue plutôt qu'une liste.",
+      "story": "La plupart des histoires se résument à quelques dates qui ne disent rien à personne d'autre. La frise d'histoire d'amour en place de trois à cinq sur une même ligne — le jour de la rencontre, le jour du déménagement, le jour de la décision — chacune avec sa photo et sa légende, disposées pour se lire comme une histoire continue plutôt qu'une liste.",
       "faq": [
         {
           "question": "Combien de moments puis-je inclure ?",
-          "answer": "Entre trois et huit. En dessous de trois, ce n'est pas une frise ; au-delà de huit, la page se charge. La plupart des histoires tiennent confortablement entre quatre et six."
+          "answer": "Entre trois et cinq. En dessous de trois, ce n'est pas une frise. La plupart des histoires tiennent confortablement à quatre ou cinq moments."
         },
         {
           "question": "Puis-je utiliser des photos ?",

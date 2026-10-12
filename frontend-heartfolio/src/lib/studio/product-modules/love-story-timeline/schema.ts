@@ -20,8 +20,9 @@ import { SHOW_MILESTONE_VIDEO } from "@/lib/feature-flags";
  * and a family story may name just one person. The story type decides what
  * they are called; the count is 1–2 for every type (`MAX_PEOPLE`).
  *
- * Milestones are 3–8, not 1–5 (§4). A timeline with one point is not a
- * timeline; every composition is a sequence.
+ * Milestones are 3 to `timelineMetadata.maxEvents`, not 1–5 (§4). A
+ * timeline with one point is not a timeline; every composition is a
+ * sequence. The upper bound lives in `metadata.ts`, with its history.
  *
  * A milestone photo is now REQUIRED (§4). This reverses an earlier decision
  * where it was optional, and it is a real narrowing — a customer with dates
