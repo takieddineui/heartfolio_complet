@@ -427,6 +427,51 @@ cards are fully visible.
 | Story wallpaper | Works, and is a design change rather than a defect: the photographs become thin bands (about 1/8 of the usable height each on a phone or tablet) or eight narrow strips on a desktop, where three were thirds. |
 | **AR scene** (the camera experience) | **Was broken from 5.** It spaced the photographs evenly down a 0.84 card but drew each 0.26 square, so they overlapped (0.05 at 5, 0.14 at 8: more than half a photograph) and later ones, which also rise further off the card, covered earlier ones. Fixed 12 Oct: `ar-timeline-layout.ts` (`milestonePhotoSize`) keeps 0.26 up to four milestones and shrinks to the spacing less a 0.02 gap above that. Verified by tests of the geometry, not in a camera session. |
 
+### Pack download time at 8 milestones (12 Oct 2026): the real-R2 number is still missing
+
+**Measured in isolation** (throwaway Postgres, mock storage, synthetic photos, a
+full Complete-shaped pack through the real streaming path, one fresh process per
+scenario). This is the CPU and memory cost only; it has no storage latency in it.
+
+| Scenario | Wall | Of which moment wallpapers | Peak memory |
+|---|---|---|---|
+| 3 milestones | 22.3s | 8.8s | 414MB |
+| 8 milestones, six layouts | 36.5-40.4s | about 23.5s | 384-409MB |
+| 8 milestones, 1 vCPU | 38.7s | 23.9s | 390MB |
+| 8 milestones, 0.75 vCPU | 52.5s | 32.4s | 391MB |
+| 3 milestones, 0.75 vCPU | 30.5s | 12.1s | 402MB |
+
+The worst CPU-only case is 44% of gunicorn's 120s. The layout does not matter.
+
+**The photo cache cap is what bites at 8 milestones.** `asset_bytes_cache` holds
+`ASSET_BYTES_CACHE_MAX_MB` (code default 64) per request. Eight photos totalling
+40MB or 59MB were read from storage 8 times (once each). Eight photos totalling
+73MB were read **97 times**: the cache filled, and the same photos went back to
+R2, which is the original "3 photos read 18 times" problem triggered by the
+milestone count. Uploads are re-encoded at quality 92 with no downscaling and the
+upload limit is 10MB, so eight photos from a modern phone can pass 64MB. The owner
+set `ASSET_BYTES_CACHE_MAX_MB=128` in `.env.docker` on 12 Oct (a container reads
+that file only when it is created: `docker compose up -d --force-recreate api`,
+not `restart`). **The VPS environment needs the same value**, and the code default
+is still 64.
+
+**Real-R2 timing is UNVERIFIED. Do not read the one failed run as a result.** The
+run on 12 Oct (`backend/scripts/time_pack_download.py`, read-only against Supabase
+and R2) failed at about 100s with `r2_read_budget_exhausted`, before any render
+could use the cache. The owner then ran `backend/scripts/net_probe.py`, which
+downloads from hosts that have nothing to do with Heartfolio (Cloudflare, Hetzner,
+OVH): they stalled too, from the same network, so the cause was that network (the
+company fiber, which had also broken Supabase DNS), not R2 and not the code. The
+survey mode showed the customer's photos were ordinary (about the same median as
+every customer's), so it was not the data either.
+
+**To close it:** run `MODE=probe`, then the 3-milestone baseline, then the
+8-milestone run from a network that passes `net_probe.py` (phone tethering), and
+again on the VPS before go-live. The VPS run is the one that counts. What a pass
+looks like: reads equal to distinct photos, wall well under 120s, no silence of
+more than a few seconds. The scripts retry a dropped Supabase connection and
+print what they read when a run fails.
+
 ### Measuring the preview: units and triggers (learned 7 Oct)
 
 - **The Studio draws the poster scaled down (about 0.8) with a CSS

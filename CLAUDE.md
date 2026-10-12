@@ -234,6 +234,16 @@ Two were genuine product bugs: the `layout` default above, and
   was reverted. Never rename or retarget a plan that has licenses — create a new
   one. The mapping tests pin 70518 to `complete` and 70543 to the combo.
 
+- **Real-R2 pack timing at 8 milestones is UNVERIFIED (12 Oct 2026).** The one
+  attempt failed because the company fiber network stalls large HTTPS
+  downloads from every host (Cloudflare, Hetzner and OVH too), so it says nothing
+  about R2 or the code. Re-run `backend/scripts/time_pack_download.py`
+  (`MODE=probe`, then the 3- and 8-milestone runs; read-only) from a network that
+  passes `backend/scripts/net_probe.py` (phone tethering), and again on the VPS
+  before go-live; the VPS number is the one that counts. Isolated CPU numbers and
+  the photo-cache finding are in `PRINT-RENDERER-GUIDE.md` section 8. Set
+  `ASSET_BYTES_CACHE_MAX_MB=128` in the VPS environment (code default 64; at
+  8 photos totalling 73MB the cache overflowed and photos were read 97 times).
 - Deploy and test backend zips 24, 26, 32 — these were queued behind the
   Railway deploy window, which no longer exists; they now wait on the VPS
   deploy (or can be tried on local Docker)
