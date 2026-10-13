@@ -175,11 +175,37 @@ describe("the italic option is named for what it draws", () => {
     expect(tokens(italic!)["--poster-heading-style"]).toBe("italic");
   });
 
-  it.each(["en", "fr", "ar"])("shows 'Romantic Italic' in the %s Studio, and never 'Script'", (locale) => {
-    // French and Arabic define no typography labels, so they resolve to the
-    // English name (the same as their three sibling options).
+  it("is 'Romantic Italic' in English", () => {
+    expect(resolveModuleText(italic!.label, "en", timelineMessages)).toBe("Romantic Italic");
+  });
+
+  it.each([
+    ["fr", "Italique romantique", /script|cursive|manuscrit/i],
+    ["ar", "مائل رومانسي", /خط يد|مخطوط/],
+  ] as const)("is %s '%s', a real translation that does not promise a script", (locale, expected, promisesScript) => {
     const label = resolveModuleText(italic!.label, locale, timelineMessages);
-    expect(label).toBe("Romantic Italic");
-    expect(label).not.toMatch(/script/i);
+    expect(label).toBe(expected);
+    expect(label).not.toMatch(promisesScript);
+  });
+});
+
+describe("the typography selector is translated, not an English island", () => {
+  // French and Arabic once defined NO typography labels, so the heading and all
+  // four options silently fell back to English inside a localized Studio. Look
+  // in each locale's OWN dictionary (not through the fallback, which would pass
+  // with English) for the heading and every option the axis offers.
+  const keys = [typography.label, ...OPTIONS.map((option) => option.label)];
+
+  it.each(["fr", "ar"] as const)("has its own %s entry, different from the English, for every label", (locale) => {
+    for (const key of keys) {
+      const own = timelineMessages[locale]?.[key];
+      expect(own, `${locale} is missing ${key}`).toBeTruthy();
+      expect(own, `${locale} ${key} is just the English`).not.toBe(timelineMessages.en![key]);
+    }
+  });
+
+  it.each(["fr", "ar"] as const)("gives the four %s options four different names", (locale) => {
+    const names = OPTIONS.map((option) => resolveModuleText(option.label, locale, timelineMessages));
+    expect(new Set(names).size).toBe(OPTIONS.length);
   });
 });

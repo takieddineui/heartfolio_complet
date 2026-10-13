@@ -253,8 +253,13 @@ Two were genuine product bugs: the `layout` default above, and
   SLANTED (`--poster-heading-style`, because the print draws DejaVu Serif Italic;
   renamed from "Romantic Script" on 13 Oct 2026 because it promised a cursive face
   that was never built; label only, the option id stays `script` since saved
-  projects store it, and French and Arabic have no typography labels, so all four
-  options show their English names there); Typewriter =
+  projects store it). French and Arabic had NO typography labels at all (the
+  heading and all four options fell back to English inside a localized Studio);
+  they now have their own, pinned by `typography-fonts.test.ts`, which checks each
+  locale's own dictionary and not the English fallback. The Arabic names are a
+  plain translation that has not had a native speaker's review. Still English in
+  fr and ar as of 13 Oct 2026: the eight palette option names and the "Text
+  Scale" label (not checked beyond what the Studio showed); Typewriter =
   JetBrains Mono (`public/fonts/jetbrains-mono-latin.woff2`, ~40KB, OFL text beside
   it). `typography-fonts.test.ts` fails if a token names an unregistered family or
   its file is missing, and pins each option's kind (serif/sans/mono, slant) to the
