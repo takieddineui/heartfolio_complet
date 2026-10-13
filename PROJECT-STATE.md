@@ -1177,8 +1177,11 @@ space, arcade, museum and summit are not.**
 - **End to end, in a browser, on a throwaway database:** Studio form (chapters
   on and off) -> six uploads (one Ogg Opus voice file) -> project -> order ->
   mock payment -> promoted audio, named gift QR card, and the purchased page.
-- Test totals: frontend 767 passed / 24 skipped (was 676 / 24); backend
-  968 -> see CLAUDE.md for the pre-existing 23 failures, none new.
+- Test totals: frontend 767 passed / 24 skipped (was 676 / 24). Backend 1011
+  ran (968 before, +43 new): 22 failures, every one in the pre-existing set
+  inventoried above, none new. A 23rd of that set (`test_probing_cannot_hang_a_worker`,
+  timing-sensitive) failed in the baseline run and passed in the final one.
+  `next build` succeeds; `tsc` and `eslint` are clean (3 pre-existing warnings).
 
 ### Not done / unverified
 
