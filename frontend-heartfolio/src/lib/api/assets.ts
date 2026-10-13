@@ -53,6 +53,9 @@ export const ALLOWED_IMAGE_MIME_TYPES = ["image/jpeg", "image/png", "image/webp"
 export const ALLOWED_MEDIA_MIME_TYPES = [
   "video/mp4", "video/quicktime", "video/webm",
   "audio/mpeg", "audio/mp4", "audio/aac", "audio/wav", "audio/webm",
+  // WhatsApp voice notes (.opus/.ogg), iPhone .m4a and .mp3 - the files a
+  // graduation organiser RECEIVES. The backend re-encodes all audio to AAC.
+  "audio/ogg", "audio/opus", "audio/x-m4a", "audio/mp3",
 ] as const;
 export const ALLOWED_ASSET_MIME_TYPES = [...ALLOWED_IMAGE_MIME_TYPES, ...ALLOWED_MEDIA_MIME_TYPES] as const;
 

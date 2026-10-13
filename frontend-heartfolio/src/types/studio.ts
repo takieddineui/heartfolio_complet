@@ -114,6 +114,22 @@ export interface MediaFieldSchema extends FieldSchemaBase {
   type: "image" | "gallery" | "audio" | "video" | "file";
   maxItems?: number;
   accept?: string;
+  /**
+   * `audio` only. An audio field is RECORD-ONLY by default (Love Story
+   * Timeline's voice note: "a message you would like them to hear" should
+   * not be satisfied by any audio file lying around). A product whose audio
+   * is something the customer RECEIVED from someone else — Graduation
+   * Keepsake's voice messages arrive as WhatsApp/iPhone files — sets this to
+   * add a file picker beside the recorder.
+   */
+  allowUpload?: boolean;
+  /**
+   * `audio` only. A recording stops by itself at this length, and an
+   * uploaded file longer than this is refused at pick time. The backend
+   * enforces its own cap (`MAX_AUDIO_SECONDS`) authoritatively; this is so
+   * the customer finds out immediately, not at checkout.
+   */
+  maxSeconds?: number;
 }
 
 export interface GroupFieldSchema extends FieldSchemaBase {
@@ -432,6 +448,9 @@ export interface HostedDeliveryConfig {
 
 export interface InteractiveDeliveryConfig {
   description?: string;
+  /** Translation key into the module's own `messages`, preferred over the
+   * plain-English `description` so the panel reads in the active locale. */
+  descriptionKey?: string;
 }
 
 export type DeliveryConfig =
@@ -456,6 +475,17 @@ export interface ProductModuleConfig<TValues = unknown> {
    * `minItems` checks (e.g. "no two milestones share a date"). Optional
    * — the Shell's generic schema validation always runs regardless. */
   validate?: (values: TValues) => ValidationResult;
+  /**
+   * Which preview tabs this product offers, in order; the first is the one
+   * shown on load. Omitted = today's behaviour for every existing product:
+   * `flat` and `framed`, plus `live` when `livePreview` is set.
+   *
+   * A product whose ONLY deliverable is the hosted page (Graduation
+   * Keepsake) has no poster to show flat or framed, so it declares
+   * `["live"]`; the tab strip is not drawn for a single mode. Config, never a
+   * product id inside the Shell.
+   */
+  previewModes?: ("flat" | "framed" | "live")[];
   /**
    * §16 — a real interactive Digital preview, for products that have a
    * Live pack. Optional and product-agnostic on purpose: a product with

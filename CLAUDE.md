@@ -97,6 +97,28 @@ and imports production settings, so `DJANGO_ALLOWED_HOSTS` and
 nothing uses their values. `/app` is root-owned by `WORKDIR`, so
 `staticfiles` is created and chowned before `USER heartfolio`.
 
+**Media promotion is per product.** `apps/commerce/media_promotion.py`
+reads each product's own keys (`_COLLECTORS`); the default reader finds only
+Love Story Timeline's `events[].video/audio`. A product with audio or video
+that is not registered there loses it to `expire_provisional_assets` a week
+after the customer has paid. Likewise `live_views.py` needs the product in
+`_LIVE_PAYLOAD_BUILDERS` and `bonuses.py` needs a branch for the card title.
+See ADDING-A-PRODUCT.md, "A LIVE-ONLY product".
+
+**A hidden field no longer blocks the form.** `formEngine.validate` now skips
+a field whose `visibleWhen` fails (evaluated against `{values, theme}`, and
+against the item for a group's fields), because `GenericForm` already hid it
+and Continue stayed disabled with nothing on screen to fix. Every other
+module is unaffected (none had a `required` field behind `visibleWhen`).
+
+**`.env.example` used to set `ALLOWED_ASSET_MIME_TYPES` to images only.**
+Anyone who copied it rejected every voice note at the server while the Studio
+let the customer pick one. It is now commented out; the default in
+`base.py` is the source of truth, and `media-values.test.ts` pins the
+frontend's list to it. If a real environment has the images-only value set
+(not checked), voice notes and Graduation Keepsake voice messages never worked
+there.
+
 **Migrations and seeding are deliberately manual.** No deploy runs them.
 
 **`backend/.dockerignore` strips `tests_*.py` and `**/tests.py`**, so
@@ -285,6 +307,43 @@ Two were genuine product bugs: the `layout` default above, and
   the preview's visual rhythm for every customer and were left alone.
   Horizontal Circles' own overflow is geometric (the circle is a fixed 78% of its
   column in the preview and the print), not spacing.
+- **Graduation Keepsake (13 Oct 2026): built, hidden, airline journey only.**
+  Live-only (one pack, `live`, target `__live__`), `graduation-keepsake`. Backend
+  (`apps/delivery/product_renderers/graduation_keepsake/`), Studio module
+  (`lib/studio/product-modules/graduation-keepsake/`), live page
+  (`components/live-graduation/`: a shell plus one lazy-loaded journey per
+  registry entry), catalog row and tests all exist. Verified: the full mock
+  checkout in a real browser against a throwaway database (six uploads including
+  an Ogg Opus voice message re-encoded to AAC, project, order, payment,
+  `media_assets_promoted`, the recipient QR card carrying the graduate's name,
+  and the purchased `/live/<id>` page rendering from the real payload), the
+  airline journey in English and in Arabic (right-to-left) at phone width,
+  embedded in a short frame, and under reduced motion (the French wording is
+  covered by a test, not looked at). NOT done, and why:
+  - **Not for sale.** `hidden: true`, and the seed row is `coming_soon`. There is
+    no Freemius plan for `graduation-keepsake:live`; the price (1599) is a
+    placeholder. Create and map the plan, flip the seed status, un-hide, and add
+    the slug to `catalog.test.ts`'s visible list (ADDING-A-PRODUCT.md, 7-10).
+  - **One journey of five.** The data model, validator and Studio are shared by
+    all five; space, arcade, museum and summit are registry entries still to
+    build (`journeys/registry.ts`, `journeys.ts`, backend `JOURNEYS`; a test
+    pins the last two together).
+  - **No reply, no activity report.** The graduate cannot reply and the creator
+    receives nothing back: that needs endpoints, a model and an order-page
+    view, and no reply UI ships (the prototype stored replies in
+    `localStorage`, which would be a lie). Message collection links, scheduled
+    delivery and post-purchase editing are out of scope by decision.
+  - **Not run:** `seed_catalog.py`, `migrate` or a sandbox checkout against
+    Supabase (they write to the real database); the production `next build` was
+    run, the Freemius flow was not. Real R2 and a physical phone were not used,
+    so a voice file's URL was seen in the payload but not played from R2, and
+    iOS Safari playback of the re-encoded AAC is expected, not observed.
+  - **Voice messages are re-encoded by the backend's ffmpeg** (it exists in the
+    image); audio may now run 60 seconds (`MAX_AUDIO_SECONDS`), video stays 30.
+  - **Photos are not resized** (the flagged live-page item above still holds):
+    this product can show 15+ images, so they carry `loading="lazy"`,
+    `decoding="async"` and intrinsic sizes, but a 12MP upload is still decoded
+    at full size.
 - **The live page's motion (13 Oct 2026).** A milestone now fades, rises and
   scales in as it is reached (opacity 0.25, 16px down, scale 0.985 -> rest, 700ms
   on the brand ease), its photograph settles from 1.04 inside a clipping frame

@@ -53,7 +53,7 @@ describe("other products (§10)", () => {
     // correctly absent from every result, same as a hidden one.
     for (const purchased of ["love-story-timeline", "heart-map", "star-map"]) {
       const slugs = othersFor(purchased).map((p) => p.slug);
-      for (const hidden of ["star-map", "where-we-met", "song-poster"]) {
+      for (const hidden of ["star-map", "where-we-met", "song-poster", "graduation-keepsake"]) {
         expect(slugs).not.toContain(hidden);
       }
     }

@@ -153,7 +153,7 @@ describe("buildMerchantFeedItems", () => {
     // star-map: deleted from the registry outright now, not merely
     // hidden — still correctly absent from the feed for the same
     // reason (never in `getAllProducts()` at all).
-    for (const withdrawn of ["star-map", "where-we-met", "heart-map", "song-poster"]) {
+    for (const withdrawn of ["star-map", "where-we-met", "heart-map", "song-poster", "graduation-keepsake"]) {
       expect(slugs).not.toContain(withdrawn);
     }
   });

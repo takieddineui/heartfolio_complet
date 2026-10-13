@@ -163,6 +163,39 @@ export function KeepsakeVisual({
     );
   }
 
+  if (productId === "graduation-keepsake") {
+    // A boarding pass with a tear-off stub: the airline journey, the first
+    // one built. Static on purpose - this is a card thumbnail, and a
+    // storefront image should not move.
+    return (
+      <div
+        className={wrapper}
+        style={{ background: "linear-gradient(155deg, #0f2742 0%, #173a5e 60%, #e9845f 100%)" }}
+      >
+        <svg viewBox="0 0 200 120" className="h-3/5 w-5/6" aria-hidden="true">
+          <rect x="14" y="22" width="172" height="76" rx="8" fill="#fffaf1" />
+          <line x1="132" y1="22" x2="132" y2="98" stroke="#0f2742" strokeWidth="1" strokeDasharray="3 3" opacity="0.4" />
+          <text x="26" y="48" fontSize="18" fontWeight="800" fill="#0f2742" fontFamily="system-ui, sans-serif">
+            KID
+          </text>
+          <text x="92" y="48" fontSize="18" fontWeight="800" fill="#0f2742" fontFamily="system-ui, sans-serif">
+            NXT
+          </text>
+          <path d="M70 41h14M80 37l5 4-5 4" stroke="#ff6b4a" strokeWidth="1.6" fill="none" strokeLinecap="round" />
+          <rect x="26" y="62" width="84" height="4" rx="2" fill="#0f2742" opacity="0.18" />
+          <rect x="26" y="72" width="56" height="4" rx="2" fill="#0f2742" opacity="0.18" />
+          <g fill="#0f2742">
+            {Array.from({ length: 12 }).map((_, i) => (
+              <rect key={i} x={142 + i * 3.4} y="32" width={i % 3 === 0 ? 1.8 : 1} height="34" />
+            ))}
+          </g>
+          <circle cx="132" cy="22" r="4" fill="#173a5e" />
+          <circle cx="132" cy="98" r="4" fill="#173a5e" />
+        </svg>
+      </div>
+    );
+  }
+
   if (productId === "love-story-timeline") {
     // A horizontal spine with five marked moments — the shape of the
     // product, readable at card size and at hero size.

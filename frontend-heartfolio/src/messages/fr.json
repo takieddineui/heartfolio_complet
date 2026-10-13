@@ -306,6 +306,33 @@
         }
       ]
     },
+    "graduationKeepsake": {
+      "name": "Souvenir de remise de diplôme",
+      "shortDescription": "Toute son histoire, racontée comme un voyage à ouvrir.",
+      "fullDescription": "Un cadeau de remise de diplôme qui est une expérience : les années, les réussites et les proches qui ont applaudi, racontés comme un voyage que le diplômé ouvre depuis un lien ou une carte QR.",
+      "meta": {
+        "title": "Souvenir numérique de remise de diplôme | Heartfolio",
+        "description": "Un cadeau de remise de diplôme personnalisé : son histoire, ses réussites et les messages de ceux qui l'aiment, racontés comme un voyage interactif, à partir de {price}.",
+        "imageAlt": "Un souvenir de remise de diplôme Heartfolio qui s'ouvre comme une carte d'embarquement",
+        "descriptionNoPrice": "Un cadeau de remise de diplôme personnalisé : son histoire, ses réussites et les messages de ceux qui l'aiment, racontés comme un voyage interactif."
+      },
+      "storyTitle": "Pas une carte. Un voyage.",
+      "story": "Vous racontez l'histoire du diplôme une seule fois : les premières années, les étapes, les réussites, les messages de la famille et des amis, une lettre. Puis vous choisissez le voyage qui la raconte, avec son ouverture, ses interactions et ses sons. Le diplômé l'ouvre depuis un lien ou une carte QR et traverse tout ce qu'il a fallu pour en arriver là.",
+      "faq": [
+        {
+          "question": "Comment le diplômé le reçoit-il ?",
+          "answer": "Sous forme de lien, et de carte QR à imprimer ou à envoyer. Rien à télécharger, et cela fonctionne sur tous les téléphones."
+        },
+        {
+          "question": "Les proches peuvent-ils ajouter leurs messages ?",
+          "answer": "Pas encore. Rassemblez leurs messages, et leurs enregistrements vocaux si vous le souhaitez, avant de créer le souvenir, puis ajoutez-les vous-même."
+        },
+        {
+          "question": "Y a-t-il de la musique ?",
+          "answer": "Pas de musique de fond. Chaque voyage a ses propres effets sonores très courts, que le diplômé peut couper."
+        }
+      ]
+    },
     "whereWeMet": {
       "name": "Là où nous nous sommes rencontrés",
       "shortDescription": "L'endroit exact où tout a commencé.",

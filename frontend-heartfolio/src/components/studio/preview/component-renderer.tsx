@@ -36,7 +36,11 @@ function ComponentRenderer({ config }: RendererProps) {
   const { values, tokens, themeSelections, locale, t, registerExportTarget, session } = useProductState();
   const rendererConfig = config as ComponentRendererConfig;
   const Product = rendererConfig.component;
-  const [mode, setMode] = useState<PreviewMode>("flat");
+  // Which tabs this product offers, in order (first = shown on load). Most
+  // products leave `previewModes` unset and get today's behaviour; a product
+  // whose only deliverable is the hosted page declares `["live"]`.
+  const configuredModes = session.module.previewModes;
+  const [mode, setMode] = useState<PreviewMode>(configuredModes?.[0] ?? "flat");
   const [device, setDevice] = useState<DeviceKind>("phone");
   // Lock vs home screen (§4's two safe zones). Meaningless for desktop,
   // which has no lock-screen concept — see the note on `DeviceScreen`.
@@ -158,6 +162,7 @@ function ComponentRenderer({ config }: RendererProps) {
         onWallpaperKindChange={setWallpaperKind}
         onLiveViewChange={setLiveView}
         hasLivePreview={Boolean(LivePreview)}
+        modes={configuredModes}
         t={st}
       />
       <div className="flex flex-1 items-center justify-center overflow-hidden">
@@ -242,6 +247,7 @@ function PreviewModeTabs({
   onWallpaperKindChange,
   onLiveViewChange,
   hasLivePreview,
+  modes: configuredModes,
   t,
 }: {
   mode: PreviewMode;
@@ -264,6 +270,8 @@ function PreviewModeTabs({
   onWallpaperKindChange: (kind: "story" | number) => void;
   onLiveViewChange: (view: "keepsake" | "qr") => void;
   hasLivePreview: boolean;
+  /** `ProductModuleConfig.previewModes`; undefined = the default set. */
+  modes?: PreviewMode[];
   t: (key: string) => string;
 }) {
   // §16 — "live" only exists as a tab for a product that actually declared
@@ -281,7 +289,8 @@ function PreviewModeTabs({
   // component-renderer.tsx is now genuinely unreachable, not just
   // hard to reach — left in place rather than removed, since this is a
   // hide, not a deletion.
-  const modes: PreviewMode[] = hasLivePreview ? ["flat", "framed", "live"] : ["flat", "framed"];
+  const modes: PreviewMode[] =
+    configuredModes ?? (hasLivePreview ? ["flat", "framed", "live"] : ["flat", "framed"]);
 
   /**
    * TWO TIERS, STACKED — not one wrapping row.
@@ -301,10 +310,12 @@ function PreviewModeTabs({
    */
   return (
     <div className="border-b border-subtle px-3 py-2">
+      {/* A single mode is not a choice: no tab strip for it. */}
       <div
         role="tablist"
         aria-label={t("preview.modes.label")}
         className="flex justify-center gap-1"
+        hidden={modes.length < 2}
       >
         {modes.map((option) => (
           <button

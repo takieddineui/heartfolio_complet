@@ -46,7 +46,9 @@ export function ExportSection() {
           <h2 className="text-[15px] font-medium text-heading">{t("title")}</h2>
         </div>
         <p className="text-sm text-body/60">
-          {delivery.interactive.description ?? "This product stays interactive rather than being exported."}
+          {delivery.interactive.descriptionKey
+            ? moduleT(delivery.interactive.descriptionKey)
+            : (delivery.interactive.description ?? "This product stays interactive rather than being exported.")}
         </p>
       </Card>
     );

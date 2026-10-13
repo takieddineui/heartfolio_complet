@@ -1142,3 +1142,49 @@ says a whole-page skeleton is better than the blank page that preceded it, and
 that the better fix for the homepage is to wrap only the catalog-dependent
 sections in `<Suspense>` so the rest streams immediately. So removing the file is
 not a free fix, and the options have not been evaluated.
+
+---
+
+## 2026-10-13 - Graduation Keepsake: a live-only product, built and hidden
+
+A third product, built from a single-file prototype (five "journeys" that each
+tell one graduation story with their own opening, look, wording, interactions,
+finale and sound effects; the field spec is in
+`frontend-heartfolio/docs/graduation/`). Ported, not pasted: React components,
+CSS modules, shared tokens, tests. **Airline ("Next Chapter Airways") is built;
+space, arcade, museum and summit are not.**
+
+### Built AND verified
+
+- **Backend** `graduation_keepsake/` (`data.py` validator, `renderer.py`,
+  `live_payload.py`): 43 new tests, including the regression below and a
+  mutation check (removing the fix fails it).
+- **A real bug found by building this, fixed for everyone:**
+  `media_promotion._media_asset_ids` read only Love Story Timeline's keys, so a
+  paid order of any other product with audio/video would have had it deleted by
+  `expire_provisional_assets`. It is now per product (`_COLLECTORS`).
+  `live_views.py` likewise fell through to Love Story Timeline's payload builder
+  for any unnamed product; it now has a registry and an unknown product logs.
+- **Studio:** `previewModes`, `descriptionKey`, a voice field that can be
+  uploaded as well as recorded (`allowUpload`, `maxSeconds`), nested-group
+  error display, `visibleWhen`-aware validation, input/label association (the
+  generic form's labels pointed at nothing), a per-scope duplicate-id check.
+- **Live page:** a shell (flow, overlays, particles, sound, voice, photo
+  viewer) plus one lazy journey; nothing positioned against the window, nothing
+  written to `<html>`/`<body>`, no scroll listener, logical CSS only (checked in
+  Arabic), scripted effects gated on `useReducedMotion() === false`, fonts
+  self-hosted and loaded only with the journey.
+- **End to end, in a browser, on a throwaway database:** Studio form (chapters
+  on and off) -> six uploads (one Ogg Opus voice file) -> project -> order ->
+  mock payment -> promoted audio, named gift QR card, and the purchased page.
+- Test totals: frontend 767 passed / 24 skipped (was 676 / 24); backend
+  968 -> see CLAUDE.md for the pre-existing 23 failures, none new.
+
+### Not done / unverified
+
+Not for sale (no Freemius plan, placeholder price, hidden, seeded
+`coming_soon`); four journeys; replies and the creator's activity report;
+anything against Supabase or real R2; a physical phone (iOS Safari playback of
+the re-encoded voice messages); `.env.example` had restricted uploads to images
+(fixed in the file; whether any real environment still sets it is unknown).
+Also unchanged and still true: the live page's photographs are not resized.

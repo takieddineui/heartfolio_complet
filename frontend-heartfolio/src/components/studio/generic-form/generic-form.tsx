@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useId, type ReactNode } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import type { FieldSchema, FormSchemaConfig, ThemeSelections, ValidationError } from "@/types/studio";
 import { evaluateConditions } from "@/lib/studio/conditions";
@@ -59,14 +59,17 @@ export function GenericForm({ schema, values, themeSelections, errors, onChange 
 
   return (
     <div className="space-y-8">
-      {schema.sections.map((section) => (
-        <section key={section.id} className="space-y-4">
-          <h3 className="text-xs font-medium uppercase tracking-[0.1em] text-body/50">{t(section.title)}</h3>
-          <div className="space-y-4">
-            <AnimatePresence initial={false}>
-              {section.fields
-                .filter((field) => evaluateConditions(field.visibleWhen, visibilityContext))
-                .map((field) => (
+      {schema.sections.map((section) => {
+        const visibleFields = section.fields.filter((field) => evaluateConditions(field.visibleWhen, visibilityContext));
+        // A section whose every field is hidden (a switched-off chapter, a
+        // journey-only block under another journey) draws no header either.
+        if (visibleFields.length === 0) return null;
+        return (
+          <section key={section.id} className="space-y-4">
+            <h3 className="text-xs font-medium uppercase tracking-[0.1em] text-body/50">{t(section.title)}</h3>
+            <div className="space-y-4">
+              <AnimatePresence initial={false}>
+                {visibleFields.map((field) => (
                   <AnimatedField key={field.id} id={field.id}>
                     <FieldRow
                       field={field}
@@ -81,10 +84,11 @@ export function GenericForm({ schema, values, themeSelections, errors, onChange 
                     />
                   </AnimatedField>
                 ))}
-            </AnimatePresence>
-          </div>
-        </section>
-      ))}
+              </AnimatePresence>
+            </div>
+          </section>
+        );
+      })}
     </div>
   );
 }
@@ -113,6 +117,9 @@ function FieldRow({
   resolveError: (error?: ValidationError) => string | undefined;
   onChange: (value: unknown) => void;
 }) {
+  // Called before the group branch returns so the hook order never changes.
+  const inputId = useId();
+
   if (field.type === "group") {
     const items = Array.isArray(value) ? (value as Record<string, unknown>[]) : [];
 
@@ -163,6 +170,14 @@ function FieldRow({
                           field={itemField}
                           value={item[itemField.id]}
                           errorText={resolveError(nestedErrors?.[`${nestedErrorPrefix}.${index}.${itemField.id}`])}
+                          // Passed down so a group NESTED inside a group item
+                          // (Graduation Keepsake: message groups -> people)
+                          // can look up its own items' errors, keyed
+                          // `${group}.${i}.${nestedGroup}.${j}.${field}` by the
+                          // form engine. Without these a nested group's errors
+                          // were computed and never shown.
+                          nestedErrors={nestedErrors}
+                          nestedErrorPrefix={`${nestedErrorPrefix}.${index}.${itemField.id}`}
                           visibilityContext={visibilityContext}
                           t={t}
                           resolveError={resolveError}
@@ -182,11 +197,11 @@ function FieldRow({
 
   return (
     <div className="space-y-1.5">
-      <label htmlFor={field.id} className="text-sm font-medium text-heading">
+      <label htmlFor={inputId} className="text-sm font-medium text-heading">
         {t(field.label)}
         {field.required && <span className="text-error-warm"> *</span>}
       </label>
-      <FieldInput field={field} value={value} onChange={onChange} t={t} />
+      <FieldInput id={inputId} field={field} value={value} onChange={onChange} t={t} />
       {field.helpText && field.type !== "boolean" && <p className="text-xs text-body/50">{t(field.helpText)}</p>}
       {errorText && <p className="text-xs text-error-warm">{errorText}</p>}
     </div>

@@ -20,6 +20,7 @@ vi.mock("next-intl/server", () => ({ setRequestLocale: () => {} }));
 // The page's own components are irrelevant to the fetch path under test.
 vi.mock("@/components/live/live-keepsake", () => ({ LiveKeepsake: () => null }));
 vi.mock("@/components/live-song/song-live-keepsake", () => ({ SongLiveKeepsake: () => null }));
+vi.mock("@/components/live-graduation/live-graduation", () => ({ LiveGraduation: () => null }));
 
 import LivePage from "./page";
 
@@ -57,5 +58,45 @@ describe("LivePage — backend origin", () => {
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("ECONNREFUSED")));
 
     await expect(LivePage({ params: params() })).rejects.toBeInstanceOf(NotFoundSignal);
+  });
+});
+
+describe("LivePage - payload dispatch", () => {
+  const payload = (body: unknown) =>
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(JSON.stringify(body), { status: 200 })));
+
+  it("renders the graduation keepsake for a graduation payload, in a full-viewport frame, with its own values", async () => {
+    payload({
+      productId: "graduation-keepsake",
+      locale: "fr",
+      values: { gradName: "Maya" },
+      themeSelections: { journey: "airline" },
+    });
+
+    const element = (await LivePage({ params: params("g1") })) as React.ReactElement<{
+      style: { height: string };
+      children: React.ReactElement<{ values: unknown; themeSelections: unknown; locale: string }>;
+    }>;
+
+    // `dvh`, not `vh`: a phone's address bar must not hide the bottom of it.
+    expect(element.props.style.height).toBe("100dvh");
+    const keepsake = element.props.children;
+    expect(keepsake.props.values).toEqual({ gradName: "Maya" });
+    expect(keepsake.props.themeSelections).toEqual({ journey: "airline" });
+    expect(keepsake.props.locale).toBe("fr");
+  });
+
+  it("still gives a Love Story Timeline payload to the original keepsake", async () => {
+    payload({
+      productId: "love-story-timeline",
+      locale: "en",
+      scene: "s",
+      level: "l",
+      values: {},
+      themeSelections: {},
+      media: { backgroundMusic: null, milestones: [] },
+    });
+    const element = (await LivePage({ params: params("l1") })) as React.ReactElement;
+    expect((element.type as { name?: string }).name).toBe("LiveKeepsake");
   });
 });

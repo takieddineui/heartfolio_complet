@@ -1,3 +1,6 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+import { backendRoot } from "../../../test/backend-root";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   __resetPendingFiles,
@@ -11,7 +14,7 @@ import {
   uploadPendingMedia,
   type MediaValue,
 } from "./media-values";
-import { checkFileAccepted, MAX_ASSET_SIZE_BYTES } from "@/lib/api/assets";
+import { ALLOWED_ASSET_MIME_TYPES, checkFileAccepted, MAX_ASSET_SIZE_BYTES } from "@/lib/api/assets";
 
 function jsonResponse(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
@@ -83,9 +86,22 @@ describe("client-side file checks mirror the backend's limits", () => {
       "image/jpeg", "image/png", "image/webp",
       "video/mp4", "video/quicktime", "video/webm",
       "audio/mpeg", "audio/mp4", "audio/aac", "audio/wav", "audio/webm",
+      // Voice messages people RECEIVE (Graduation Keepsake): WhatsApp, iPhone, .mp3.
+      "audio/ogg", "audio/opus", "audio/x-m4a", "audio/mp3",
     ]) {
       expect(checkFileAccepted(fakeFile("f", type))).toBeNull();
     }
+  });
+
+  it("lists exactly the audio types the backend setting accepts", () => {
+    // The backend's default `ALLOWED_ASSET_MIME_TYPES` is the source of
+    // truth; a hand-kept client list drifted from it once already.
+    const settings = readFileSync(join(backendRoot(), "config", "settings", "base.py"), "utf8");
+    const block = settings.slice(settings.indexOf("ALLOWED_ASSET_MIME_TYPES = env.list("));
+    const backend = [...block.slice(0, block.indexOf("]")).matchAll(/"((?:audio|video|image)\/[a-z0-9.+-]+)"/g)].map(
+      (m) => m[1]!
+    );
+    expect([...ALLOWED_ASSET_MIME_TYPES].sort()).toEqual([...backend].sort());
   });
 
   it("gives audio/video the larger media size ceiling, not the image one", () => {

@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { setRequestLocale } from "next-intl/server";
 import { LiveKeepsake } from "@/components/live/live-keepsake";
 import { SongLiveKeepsake } from "@/components/live-song/song-live-keepsake";
+import { LiveGraduation } from "@/components/live-graduation/live-graduation";
 import { getBackendOrigin } from "@/lib/backend-origin";
 
 
@@ -62,7 +63,20 @@ interface SongPosterLivePayload {
   };
 }
 
-type LivePayload = LoveStoryTimelinePayload | SongPosterLivePayload;
+/**
+ * Graduation Keepsake: the Studio's own `values` shape (flat keys, groups as
+ * arrays) with every media value already turned into a fresh `{ url }` by the
+ * backend (`graduation_keepsake/live_payload.py`), plus the chosen journey.
+ * Not Love Story Timeline's shape and not Song Poster's: a third one.
+ */
+interface GraduationLivePayload {
+  productId: "graduation-keepsake";
+  locale: string;
+  values: Record<string, unknown>;
+  themeSelections: { journey: string };
+}
+
+type LivePayload = LoveStoryTimelinePayload | SongPosterLivePayload | GraduationLivePayload;
 
 /**
  * An EXPLICIT type predicate, not a bare `payload.productId ===
@@ -78,6 +92,10 @@ type LivePayload = LoveStoryTimelinePayload | SongPosterLivePayload;
  */
 function isSongPosterPayload(payload: LivePayload): payload is SongPosterLivePayload {
   return payload.productId === "song-poster";
+}
+
+function isGraduationPayload(payload: LivePayload): payload is GraduationLivePayload {
+  return payload.productId === "graduation-keepsake";
 }
 
 /**
@@ -146,6 +164,24 @@ export default async function LivePage({ params }: { params: Params }) {
   // shape with fields left empty.
   if (isSongPosterPayload(payload)) {
     return <SongLiveKeepsake values={payload.values} />;
+  }
+
+  if (isGraduationPayload(payload)) {
+    // The keepsake is a self-contained frame that fills whatever height it is
+    // given (it is also embedded in the Studio, where the preview pane gives it
+    // one), so on this page that height is the whole viewport. `dvh`, not `vh`:
+    // on a phone the address bar must not hide the bottom of the keepsake.
+    return (
+      <div style={{ height: "100dvh" }}>
+        <LiveGraduation
+          values={payload.values}
+          themeSelections={payload.themeSelections}
+          // The keepsake's own language (chosen by the creator) wins inside
+          // the component; this is only the fallback when none was chosen.
+          locale={payload.locale}
+        />
+      </div>
+    );
   }
 
   return (

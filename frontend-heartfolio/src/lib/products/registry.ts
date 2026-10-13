@@ -222,6 +222,39 @@ export const PRODUCT_REGISTRY: ProductEntry[] = [
      */
     offerings: [],
   },
+  {
+    id: "graduation-keepsake",
+    slug: "graduation-keepsake",
+    i18nKey: "graduationKeepsake",
+    // No `graduation` category: `Product.category` is guarded by a database
+    // CHECK constraint, so a new value is a migration (run by hand).
+    category: "other",
+    currency: PRICE_CURRENCY,
+    ogImage: null, // TODO: /og/graduation-keepsake.png
+    icon: "GraduationCap",
+    featured: true,
+    // BUILT BUT NOT FOR SALE. The Studio module, the backend renderer, the
+    // live page and the Django catalog row all exist; what does not is a
+    // Freemius plan for `graduation-keepsake:live` (FREEMIUS_PLAN_MAPPING has
+    // no entry, so checkout would raise FreemiusPlanNotConfigured), and a
+    // final price. `hidden` is the one switch Django cannot override (see
+    // Song Poster's entry above for why `status` alone is not a kill
+    // switch). To launch: create and map the plan, set the seed row's status
+    // to `available` and run it, then remove `hidden` and set `status:
+    // "available"` here, and add the slug to `catalog.test.ts`'s visible
+    // list. ADDING-A-PRODUCT.md, steps 7-10.
+    status: "coming_soon",
+    hidden: true,
+    order: 6,
+    tags: ["graduation", "gift", "photos", "messages"],
+    faqCount: 3,
+    /**
+     * INTENTIONALLY EMPTY - Django owns this product's commercial data (the
+     * `live` pack and its price), joined on in `lib/products/catalog.ts`.
+     * Nothing commercial may live here.
+     */
+    offerings: [],
+  },
 ];
 
 /**

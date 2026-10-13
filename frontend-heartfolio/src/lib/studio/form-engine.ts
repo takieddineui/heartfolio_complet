@@ -1,4 +1,5 @@
-import type { FieldSchema, FormSchemaConfig, ValidationResult } from "@/types/studio";
+import type { FieldSchema, FormSchemaConfig, ThemeSelections, ValidationResult } from "@/types/studio";
+import { evaluateConditions } from "./conditions";
 import type { FormEngine } from "./extension-points";
 
 function isEmpty(value: unknown): boolean {
@@ -17,9 +18,18 @@ function isEmpty(value: unknown): boolean {
 function validateFields(
   fields: FieldSchema[],
   values: Record<string, unknown>,
-  errors: ValidationResult["errors"]
+  errors: ValidationResult["errors"],
+  theme: ThemeSelections
 ) {
   for (const field of fields) {
+    // A field the customer cannot see cannot block them. `GenericForm` hides
+    // a field whose `visibleWhen` fails, so validating it anyway left the
+    // Continue button disabled with no visible reason (a switched-off
+    // chapter's required fields, for example). Evaluated against the same
+    // `{ values, theme }` context the form uses: for a top-level field
+    // `values` is the whole form, for a group item's field it is the item.
+    if (!evaluateConditions(field.visibleWhen, { values, theme })) continue;
+
     const value = values[field.id];
 
     if (field.type === "group") {
@@ -30,7 +40,7 @@ function validateFields(
       items.forEach((item, index) => {
         const itemValues = (item ?? {}) as Record<string, unknown>;
         const itemErrors: ValidationResult["errors"] = {};
-        validateFields(field.itemFields, itemValues, itemErrors);
+        validateFields(field.itemFields, itemValues, itemErrors, theme);
         for (const [key, error] of Object.entries(itemErrors)) {
           errors[`${field.id}.${index}.${key}`] = error;
         }
@@ -52,11 +62,11 @@ function validateFields(
 }
 
 export const formEngine: FormEngine = {
-  validate(schema: FormSchemaConfig, values: unknown): ValidationResult {
+  validate(schema: FormSchemaConfig, values: unknown, themeSelections: ThemeSelections = {}): ValidationResult {
     const errors: ValidationResult["errors"] = {};
     const valuesObj = (values ?? {}) as Record<string, unknown>;
     for (const section of schema.sections) {
-      validateFields(section.fields, valuesObj, errors);
+      validateFields(section.fields, valuesObj, errors, themeSelections);
     }
     return { valid: Object.keys(errors).length === 0, errors };
   },

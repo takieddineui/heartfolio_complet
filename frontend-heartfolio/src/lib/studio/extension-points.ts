@@ -5,6 +5,7 @@ import type {
   PricingConfig,
   PricingResult,
   ThemeEngineConfig,
+  ThemeSelections,
   ValidationResult,
 } from "@/types/studio";
 
@@ -23,7 +24,7 @@ import type {
  * engine logic, so it doesn't belong on this interface at all.
  */
 export interface FormEngine {
-  validate(schema: FormSchemaConfig, values: unknown): ValidationResult;
+  validate(schema: FormSchemaConfig, values: unknown, themeSelections?: ThemeSelections): ValidationResult;
 }
 
 export interface ThemeEngine {

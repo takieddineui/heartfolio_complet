@@ -306,6 +306,33 @@
         }
       ]
     },
+    "graduationKeepsake": {
+      "name": "Graduation Keepsake",
+      "shortDescription": "Their whole story, told as a journey they can open.",
+      "fullDescription": "A graduation gift that is an experience: the years, the achievements and the people who cheered, told as a journey the graduate opens from a link or a QR card.",
+      "meta": {
+        "title": "Digital Graduation Keepsake | Heartfolio",
+        "description": "A personalized graduation gift: their story, achievements and messages from the people who love them, told as an interactive journey, from {price}.",
+        "imageAlt": "A Heartfolio graduation keepsake opening as a boarding pass",
+        "descriptionNoPrice": "A personalized graduation gift: their story, achievements and messages from the people who love them, told as an interactive journey."
+      },
+      "storyTitle": "Not a card. A journey.",
+      "story": "You tell the graduation story once: the early years, the milestones, the achievements, the messages from home and friends, a letter. Then you choose the journey that tells it, with its own opening, its own interactions and its own sounds. The graduate opens it from a link or a QR card and travels through everything it took to get here.",
+      "faq": [
+        {
+          "question": "How does the graduate receive it?",
+          "answer": "As a link, and as a QR card you can print or send. There is nothing to download, and it works on any phone."
+        },
+        {
+          "question": "Can friends and family add their own messages?",
+          "answer": "Not yet. Gather their messages, and voice recordings if you like, before you create the keepsake, then add them yourself."
+        },
+        {
+          "question": "Does it have music?",
+          "answer": "No background music. Each journey has its own short sound effects, and the graduate can mute them."
+        }
+      ]
+    },
     "whereWeMet": {
       "name": "Where We Met",
       "shortDescription": "The exact spot it began.",

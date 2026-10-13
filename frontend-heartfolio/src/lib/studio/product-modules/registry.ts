@@ -36,6 +36,10 @@ export const productModuleRegistry: Record<string, ProductModuleLoader> = {
   // decision is made; it changes nothing about what a customer can see
   // before then.
   "song-poster": async () => (await import("./song-poster")).songPosterModule,
+  // Live-only (no print yet). Registered here but NOT customer-facing: its
+  // entry in `lib/products/registry.ts` is `hidden: true` until a Freemius
+  // plan exists for `graduation-keepsake:live` (ADDING-A-PRODUCT.md, step 7).
+  "graduation-keepsake": async () => (await import("./graduation-keepsake")).graduationKeepsakeModule,
 };
 
 export function getProductModuleLoader(slug: string): ProductModuleLoader | undefined {

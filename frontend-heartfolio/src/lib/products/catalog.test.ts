@@ -136,7 +136,13 @@ describe("withdrawn products (§1, §14)", () => {
   // true` — reversible. A deleted entry doesn't fit that any more; see
   // `test_deleted_products_resolve_to_undefined_the_same_way_withdrawn_
   // ones_do` below for what's still worth asserting about it.
-  const WITHDRAWN = ["where-we-met", "song-poster"];
+  //
+  // graduation-keepsake: built end to end but NOT for sale until a Freemius
+  // plan exists for it, so it is hidden from day one. It is listed here (not
+  // only absent from the visible list below) so the day someone un-hides it,
+  // this test names it and forces the visible list to be updated on purpose -
+  // ADDING-A-PRODUCT.md step 10.
+  const WITHDRAWN = ["where-we-met", "song-poster", "graduation-keepsake"];
 
   it("keeps them defined, so the decision stays reversible", () => {
     const all = getAllProductsIncludingHidden().map((p) => p.slug);

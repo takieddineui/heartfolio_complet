@@ -25,13 +25,19 @@ interface FieldInputProps {
   value: unknown;
   onChange: (value: unknown) => void;
   t: Translator;
+  /** The id the row's <label htmlFor> points at. Unique per rendered input
+   * (`useId` in `FieldRow`), not the schema field id, which repeats inside
+   * every item of a group. Without it the label was associated with
+   * nothing. */
+  id?: string;
 }
 
-export function FieldInput({ field, value, onChange, t }: FieldInputProps) {
+export function FieldInput({ field, value, onChange, t, id }: FieldInputProps) {
   switch (field.type) {
     case "text":
       return (
         <input
+          id={id}
           type="text"
           className={inputClass}
           value={(value as string) ?? ""}
@@ -44,6 +50,7 @@ export function FieldInput({ field, value, onChange, t }: FieldInputProps) {
     case "textarea":
       return (
         <textarea
+          id={id}
           className={cn(inputClass, "h-auto min-h-20 resize-none py-2")}
           value={(value as string) ?? ""}
           maxLength={field.maxLength}
@@ -55,6 +62,7 @@ export function FieldInput({ field, value, onChange, t }: FieldInputProps) {
     case "date":
       return (
         <input
+          id={id}
           type="date"
           className={inputClass}
           value={(value as string) ?? ""}
@@ -66,6 +74,7 @@ export function FieldInput({ field, value, onChange, t }: FieldInputProps) {
       return (
         <label className="flex items-center gap-2 text-sm text-body">
           <input
+            id={id}
             type="checkbox"
             checked={Boolean(value)}
             onChange={(e) => onChange(e.target.checked)}
@@ -77,7 +86,7 @@ export function FieldInput({ field, value, onChange, t }: FieldInputProps) {
 
     case "select":
       return (
-        <select className={inputClass} value={(value as string) ?? ""} onChange={(e) => onChange(e.target.value)}>
+        <select id={id} className={inputClass} value={(value as string) ?? ""} onChange={(e) => onChange(e.target.value)}>
           {field.options.map((opt) => (
             <option key={opt.value} value={opt.value}>
               {t(opt.label)}
@@ -179,6 +188,29 @@ interface UploadedMedia {
   assetId?: string;
 }
 
+/**
+ * Best-effort length of an audio file, read from its metadata without
+ * playing it. `null` when the browser cannot tell (an unsupported codec, a
+ * file with no duration header): the caller then lets the file through, and
+ * the backend — which probes with ffprobe — remains the authority.
+ */
+function readAudioDuration(file: File): Promise<number | null> {
+  return new Promise((resolve) => {
+    const url = URL.createObjectURL(file);
+    const audio = new Audio();
+    const finish = (seconds: number | null) => {
+      URL.revokeObjectURL(url);
+      resolve(seconds);
+    };
+    audio.preload = "metadata";
+    audio.onloadedmetadata = () => finish(Number.isFinite(audio.duration) ? audio.duration : null);
+    audio.onerror = () => finish(null);
+    // A file that never reports must not hold the form up.
+    window.setTimeout(() => finish(null), 4000);
+    audio.src = url;
+  });
+}
+
 function MediaFieldInput({
   field,
   value,
@@ -218,6 +250,17 @@ function MediaFieldInput({
     let rejection: string | null = null;
 
     for (const file of Array.from(files)) {
+      if (field.type === "audio" && field.maxSeconds) {
+        const seconds = await readAudioDuration(file);
+        if (seconds !== null && seconds > field.maxSeconds + 0.5) {
+          rejection = resolveValidationMessage(
+            { code: "media.tooLong", params: { maxSeconds: String(field.maxSeconds), filename: file.name } },
+            locale,
+            session.module.messages
+          );
+          continue;
+        }
+      }
       const reason = checkFileAccepted(file);
       if (reason) {
         /**
@@ -283,6 +326,7 @@ function MediaFieldInput({
   const [recording, setRecording] = useState(false);
   const recorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<BlobPart[]>([]);
+  const recordTimerRef = useRef<number | null>(null);
 
   const canRecord =
     field.type === "audio" &&
@@ -331,6 +375,11 @@ function MediaFieldInput({
       recorder.start();
       recorderRef.current = recorder;
       setRecording(true);
+      // A recording stops itself at the field's cap rather than producing a
+      // file the backend would refuse.
+      if (field.maxSeconds) {
+        recordTimerRef.current = window.setTimeout(() => stopRecording(), field.maxSeconds * 1000);
+      }
     } catch {
       // Denied permission, or no microphone. `media.*` are SHELL
       // VALIDATION strings (`SHELL_VALIDATION_MESSAGES`), not checkout
@@ -345,6 +394,10 @@ function MediaFieldInput({
   }
 
   function stopRecording() {
+    if (recordTimerRef.current !== null) {
+      window.clearTimeout(recordTimerRef.current);
+      recordTimerRef.current = null;
+    }
     recorderRef.current?.stop();
     recorderRef.current = null;
   }
@@ -353,7 +406,9 @@ function MediaFieldInput({
   // §5's voice note is recording-only: a customer records the message they
   // want heard, and a file picker beside it would let them attach any
   // audio file lying around, which is not what "a message you would like
-  // them to hear" asks for. Every other media type keeps the picker.
+  // them to hear" asks for. Every other media type keeps the picker — and so
+  // does an audio field that opts in with `allowUpload` (Graduation Keepsake,
+  // whose voice messages are files the organiser received from other people).
   const isAudio = field.type === "audio";
 
   return (
@@ -373,7 +428,7 @@ function MediaFieldInput({
           </div>
         )
       )}
-      {!isAudio && (
+      {(!isAudio || field.allowUpload) && (
         <label className="flex h-14 w-14 cursor-pointer items-center justify-center rounded-[var(--radius-sm)] border border-dashed border-subtle text-body/50 hover:border-champagne-gold hover:text-champagne-gold">
           <Upload className="h-4 w-4" strokeWidth={1.75} />
           <input
@@ -409,7 +464,7 @@ function MediaFieldInput({
           browser that DOES support recording. With the file-picker
           fallback removed above, this browser genuinely has no way to
           supply one, so it says so rather than showing an empty field. */}
-      {isAudio && !canRecord && (
+      {isAudio && !canRecord && !field.allowUpload && (
         <p className="flex h-14 max-w-[14rem] items-center rounded-[var(--radius-sm)] border border-dashed border-subtle px-3 text-xs text-body/50">
           {resolveShellValidationText("media.recordingNotSupported", locale)}
         </p>

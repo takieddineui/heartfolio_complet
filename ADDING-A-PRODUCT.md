@@ -93,6 +93,62 @@ about whether the storefront is.
     point of this step is to do that check as part of launching, not
     as debugging afterward.)
 
+## A LIVE-ONLY product (Graduation Keepsake is the precedent)
+
+Love Story Timeline and Song Poster both have print targets. A product whose
+only deliverable is the hosted page (`__live__`) skips step 1's Pillow work and
+needs these instead - found by building Graduation Keepsake, and each one
+would have been a silent failure:
+
+- **Renderer.** `render()` has nothing to do (delivery short-circuits
+  `__live__` to the live URL) so it refuses every target loudly; what matters
+  is `validate_project_data`, `create_order`'s pre-payment gate. Its
+  `data.py` is the one place that interprets `values`.
+- **Live payload: register a builder.** `live_views.py` dispatches through
+  `_LIVE_PAYLOAD_BUILDERS` (product slug -> builder). Before this it fell
+  through to Love Story Timeline's builder for any product it did not name, so
+  a new product's live page was a silent 404. An unknown product now logs
+  `live_experience_product_has_no_payload_builder`. Add your product to the
+  registry, build a payload from the SAME `values` shape the Studio produces
+  (so the Studio's Live tab and the purchased page are one component), and
+  generate every media URL fresh per request, in one query.
+- **Media promotion: register a collector.** `apps/commerce/media_promotion.py`
+  decides which audio/video a PAID order keeps. It used to read only Love Story
+  Timeline's `events[].video/audio` for every product, so a new product's voice
+  or video would be deleted by `expire_provisional_assets` a week after
+  purchase, with the order paid and nothing logged. Add the product to
+  `_COLLECTORS`, and test it (a paid order keeps its audio; an unpaid one
+  expires). Photos are never provisional and need nothing.
+- **Gift card title.** `_qr_caption_for_order` in `bonuses.py` has a per-slug
+  branch that names the recipient's QR card. Without one the card is nameless.
+- **Both `supported_targets` maps.** `seed_catalog.py` and
+  `apps/products/admin.py` each hardcode a product's targets. For a live-only
+  product it is `{"__live__"}`. `admin.py` returned `None` (validate nothing)
+  for a product it did not list - Song Poster was missing - so a bad pack saved
+  unchecked.
+- **Category.** `Product.category` is guarded by a CHECK constraint
+  (`ck_products_category_valid`); a new value is a migration, which is run by
+  hand. Use `other` unless the category drives UI.
+- **Studio shell.** `ProductModuleConfig.previewModes` (`["live"]`) makes the
+  Live tab the only preview and hides the tab strip; `delivery.mode:
+  "interactive"` with a `descriptionKey` replaces the export list. Both are
+  config, never a product id in the Shell.
+- **Seed status.** Seed the Django row as `coming_soon` (not `available`) when
+  there is no Freemius plan yet, so nothing can be ordered that cannot be paid
+  for; flip it with the un-hide.
+- **Freemius.** One plan per pack, mapped as `"product:pack"` in
+  `FREEMIUS_PLAN_MAPPING`. Do not invent an id: `stage_freemius_checkout`
+  raises `FreemiusPlanNotConfigured` until the plan exists, which is the right
+  failure for a hidden product.
+
+### Fonts for a product with its own look
+
+Fonts are self-hosted woff2 in `public/fonts` with their OFL text beside them,
+never a Google Fonts link. Declare a journey's `@font-face` rules in its OWN
+CSS module, loaded with the journey's lazy chunk, so a visitor downloads only
+the faces of the experience they were sent (and the browser fetches a face only
+when a glyph needs it). `live-graduation/hygiene.test.ts` pins this.
+
 ## If a product should stay hidden a while longer
 
 That's what `hidden: true` is *for*. Steps 1–6 can happen well before

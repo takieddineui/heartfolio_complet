@@ -1,10 +1,24 @@
 import type { FieldSchema, ResolvedProductModuleConfig } from "@/types/studio";
 
-function collectFieldIds(fields: FieldSchema[], out: string[]) {
+/** Every field id in `fields`, walking into groups. Ids are collected PER
+ * SCOPE - the form's top level, then each group's own item fields on their
+ * own - because that is what the message below promises and what the form
+ * needs: an item field's id is a key inside THAT item (`stops[0].code` and
+ * `goals[0].code` do not collide), whereas two top-level fields sharing an id
+ * would overwrite each other. Flattening everything into one list reported the
+ * legitimate case as a bug. Returns the top-level ids and records any
+ * duplicate found inside a nested scope. */
+function collectFieldIds(fields: FieldSchema[], out: string[], duplicates: string[] = []): string[] {
   for (const field of fields) {
     out.push(field.id);
-    if (field.type === "group") collectFieldIds(field.itemFields, out);
+    if (field.type === "group") {
+      const nestedIds: string[] = [];
+      collectFieldIds(field.itemFields, nestedIds, duplicates);
+      const inner = firstDuplicate(nestedIds);
+      if (inner) duplicates.push(inner);
+    }
   }
+  return duplicates;
 }
 
 function firstDuplicate(ids: string[]): string | undefined {
@@ -28,8 +42,9 @@ export function assertModuleIntegrity(productSlug: string, module: ResolvedProdu
   const warn = (message: string) => console.warn(`[Product Module: ${productSlug}] ${message}`);
 
   const fieldIds: string[] = [];
-  for (const section of module.formSchema.sections) collectFieldIds(section.fields, fieldIds);
-  const duplicateField = firstDuplicate(fieldIds);
+  const nestedDuplicates: string[] = [];
+  for (const section of module.formSchema.sections) collectFieldIds(section.fields, fieldIds, nestedDuplicates);
+  const duplicateField = firstDuplicate(fieldIds) ?? nestedDuplicates[0];
   if (duplicateField) {
     warn(`Duplicate field id "${duplicateField}" — field ids must be unique within their own section/group.`);
   }

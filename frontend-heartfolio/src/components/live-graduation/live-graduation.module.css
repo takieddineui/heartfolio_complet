@@ -1,0 +1,243 @@
+/* The shell every journey runs inside. Everything is positioned INSIDE the
+   frame - never `position: fixed` - because the Studio embeds this page; the
+   parent gives the frame a height. Journey colours arrive as --gj-* custom
+   properties set by the journey's own root class (journeys/<id>/*.module.css);
+   the fallbacks below only matter for the instant before it loads. */
+
+.frame {
+  position: relative;
+  height: 100%;
+  min-height: 480px;
+  overflow: hidden;
+  isolation: isolate;
+  background: var(--gj-bg, #f3ece0);
+  color: var(--gj-ink, #0f2742);
+  font-family: var(--gj-body, system-ui, sans-serif);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.scroller {
+  position: absolute;
+  inset: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+  overscroll-behavior: contain;
+}
+.scroller[data-hidden="true"] {
+  visibility: hidden;
+}
+
+.startLayer {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  transition: opacity 0.7s ease;
+}
+.startLayer[data-leaving="true"] {
+  opacity: 0;
+  pointer-events: none;
+}
+.startFoot {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 16px;
+  z-index: 3;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0.4rem 1rem;
+  border-radius: 999px;
+  border: 1.5px solid rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+  font: 700 0.86rem/1 system-ui, sans-serif;
+  cursor: pointer;
+}
+
+.controls {
+  position: absolute;
+  top: 10px;
+  inset-inline-end: 10px;
+  z-index: 60;
+  display: flex;
+  gap: 6px;
+}
+.iconButton {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  border: 1.5px solid rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.92);
+  color: #1f2a44;
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+
+.fx {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 58;
+  pointer-events: none;
+}
+
+/* ending message + actions (the journey's finale reveals this) */
+.ending {
+  text-align: center;
+}
+.endingLine {
+  font-family: var(--gj-display, inherit);
+  font-weight: var(--gj-display-weight, 800);
+  font-size: clamp(2rem, 9vw, 3.4rem);
+  line-height: 1.08;
+  margin: 10px 0 0;
+}
+.endingSub {
+  font-size: 1.2rem;
+  color: var(--gj-soft, inherit);
+  margin: 0.4rem 0 1.4rem;
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+}
+.btnPrimary,
+.btnGhost {
+  min-height: 48px;
+  padding: 0.7rem 1.3rem;
+  border-radius: 999px;
+  border: 2px solid transparent;
+  font: 800 0.98rem/1 system-ui, sans-serif;
+  cursor: pointer;
+}
+.btnPrimary {
+  background: var(--gj-accent, #ff6b4a);
+  color: #fff;
+}
+.btnGhost {
+  background: transparent;
+  color: inherit;
+  border-color: color-mix(in srgb, currentColor 35%, transparent);
+  margin-top: 0;
+}
+.brand {
+  margin-top: 26px;
+  font: 0.8rem/1.2 system-ui, sans-serif;
+  opacity: 0.65;
+}
+
+/* photo viewer */
+.lightbox {
+  position: absolute;
+  inset: 0;
+  z-index: 90;
+  background: rgba(10, 15, 30, 0.94);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 64px 12px 28px;
+}
+.lightboxPanel {
+  position: static;
+  max-width: 100%;
+  outline: none;
+}
+.lightboxFigure {
+  margin: 0;
+  max-width: min(92%, 620px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  color: #fff;
+  font: 700 1rem/1.3 system-ui, sans-serif;
+  text-align: center;
+}
+.lightboxFigure img {
+  max-width: 100%;
+  max-height: calc(100% - 120px);
+  border-radius: 10px;
+}
+.lightboxClose,
+.lightboxNav {
+  position: absolute;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+  font-size: 1.4rem;
+  cursor: pointer;
+}
+.lightboxClose {
+  top: 12px;
+  inset-inline-end: 12px;
+}
+.lightboxNav {
+  top: 50%;
+  transform: translateY(-50%);
+}
+.lightboxPrev {
+  inset-inline-start: 10px;
+}
+.lightboxNext {
+  inset-inline-end: 10px;
+}
+/* arrows point the way pages turn, which flips right-to-left */
+.frame[dir="rtl"] .lightboxNav {
+  scale: -1 1;
+}
+
+.toast {
+  position: absolute;
+  inset-inline: 0;
+  margin-inline: auto;
+  width: max-content;
+  max-width: 90%;
+  bottom: 24px;
+  z-index: 100;
+  background: #1f2a44;
+  color: #fff;
+  padding: 0.7rem 1.2rem;
+  border-radius: 999px;
+  font: 700 0.95rem/1.2 system-ui, sans-serif;
+  opacity: 0;
+  transform: translateY(24px);
+  pointer-events: none;
+  transition: opacity 0.3s, transform 0.3s;
+}
+.toast[data-show="true"] {
+  opacity: 1;
+  transform: none;
+}
+
+:focus-visible {
+  outline: 3px solid var(--gj-accent, #ff6b4a);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scroller {
+    scroll-behavior: auto;
+  }
+  .startLayer,
+  .toast {
+    transition-duration: 0.01ms;
+  }
+}
