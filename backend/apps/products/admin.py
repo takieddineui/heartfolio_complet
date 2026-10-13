@@ -46,12 +46,14 @@ def _supported_targets(product_slug: str) -> set[str] | None:
     """
     from apps.delivery.ar_support import supported_ar_targets
     from apps.delivery.delivery_types import LIVE_TARGET_SENTINEL
+    from apps.delivery.print_sizes import print_target_dimensions
     from apps.delivery.product_renderers.love_story_timeline.png_renderer import (
         TARGET_DIMENSIONS as LOVE_STORY_TIMELINE_TARGETS,
     )
     from apps.delivery.product_renderers.where_we_met_map.png_renderer import (
         TARGET_DIMENSIONS as WHERE_WE_MET_MAP_TARGETS,
     )
+    from apps.delivery.wallpaper_devices import wallpaper_target_dimensions
 
     supported = {
         # Love Story Timeline additionally has a real HTML (digital)
@@ -60,6 +62,14 @@ def _supported_targets(product_slug: str) -> set[str] | None:
         # Where We Met Map is PNG-only — no digital/HTML renderer exists,
         # so `__live__` is deliberately absent here.
         "heart-map": set(WHERE_WE_MET_MAP_TARGETS),
+        # Song Poster was missing from this map: for it `supported` was
+        # `None` and the admin validated nothing. It shares the print and
+        # wallpaper catalog both other products are built from, plus the
+        # hosted page - the same set `seed_catalog.supported_targets` uses.
+        "song-poster": set(print_target_dimensions()) | set(wallpaper_target_dimensions()) | {LIVE_TARGET_SENTINEL},
+        # Live-only: the hosted page is the only thing Graduation Keepsake
+        # can deliver. Widen together with a print renderer.
+        "graduation-keepsake": {LIVE_TARGET_SENTINEL},
     }
     if product_slug not in supported:
         return None

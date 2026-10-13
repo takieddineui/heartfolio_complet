@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<title>Maya Chen · Class of 2027 🎓</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f2742">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@400..900&family=IBM+Plex+Mono:wght@400;600&family=Gochi+Hand&family=Exo+2:wght@400..800&family=Share+Tech+Mono&family=Press+Start+2P&family=VT323&family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..800;1,6..96,400..700&family=Libre+Franklin:wght@400..700&family=Alegreya:ital,wght@0,400..700;1,400..700&family=Alegreya+Sans:wght@400;500;700;800&display=swap" rel="stylesheet">
+
+<!-- ════════════════════════════════════════════════════════════════════════
+     1. DATA — one graduation story, told as five different journeys.
+     The same GRAD data drives every journey; only the look, words,
+     interactions and sounds change (see JOURNEYS below).
+     In production: GRAD = GET /api/keepsakes/:id ; nothing else changes.
+     ════════════════════════════════════════════════════════════════════════ -->
+<script>
+const GRAD = {
+  meta: { id: 'grad-maya-2027', lang: 'en', dir: 'ltr', locale: 'en-GB' },
+  journey: 'airline',          // airline | space | arcade | museum | summit
+
+  // Which chapters appear, in order. Remove an id to hide it.
+  sections: ['path', 'achievements', 'messages', 'goals', 'letter'],
+
+  grad: { name: 'Maya', fullName: 'Maya Chen', year: 2027, degree: 'BA (Hons) Architecture', school: 'University of Edinburgh', date: '2027-07-02',
+          photo: { src: null, art: 'grad', palette: ['#dff1fb', '#ffb547', '#0f2742'] } },
+
+  // Then → through the years → Now → What's next
+  path: {
+    then: { year: '2005', text: 'A five-year-old who drew houses on every wall in the flat.', photo: { art: 'kid', palette: ['#fde9cf', '#ffb547', '#3d4a6b'] } },
+    stops: [
+      { year: '2010', caption: 'First day of school', code: 'SCH', photo: { art: 'kid', palette: ['#e6f3ea', '#ff6b4a', '#3d4a6b'] } },
+      { year: '2014', caption: 'The Lego city phase', code: 'LEG', photo: { art: 'blocks', palette: ['#eef6ff', '#ff6b4a', '#2f7fd8'] } },
+      { year: '2018', caption: 'Art prize, age 13', code: 'ART', photo: { art: 'kid', palette: ['#f1e9fb', '#9b6bc9', '#3d3a5c'] } },
+      { year: '2023', caption: 'Studio all-nighter no. 47', code: 'UNI', photo: { art: 'city', palette: ['#0f2742', '#2f4f7a', '#ffb547'] } }
+    ],
+    now: { year: '2027', text: 'An architect, with a first-class degree to prove it.' },
+    next: { text: 'A junior designer role at a studio in Copenhagen, starting in September.', photo: { art: 'city', palette: ['#fde6d8', '#ff6b4a', '#2f4858'] } }
+  },
+
+  // Up to 10
+  achievements: [
+    { title: 'First-class honours', detail: 'Top of the year in design studio', place: 'EDINBURGH' },
+    { title: "Dean's list", detail: 'Three years running', place: 'ACADEMIA' },
+    { title: 'RIBA award shortlist', detail: 'For the riverside library project', place: 'LONDON' },
+    { title: 'Exchange year', detail: 'And surprisingly good Danish', place: 'COPENHAGEN' },
+    { title: 'Society president', detail: 'Forty sketchers, one worn sketchbook', place: 'STUDIO 4' },
+    { title: '47 all-nighters', detail: 'Fuelled entirely by toast', place: 'THE LIBRARY' }
+  ],
+
+  messages: [
+    { label: 'From home', people: [
+      { name: 'Mum', color: '#ff6b4a', emoji: '🏡', message: 'I still have every drawing you ever stuck on the fridge. Now I get to see your buildings on real streets. I am so, so proud of you.',
+        voice: { src: null, durationSec: 8, transcript: [ { t: 0, text: 'My clever girl.' }, { t: 2.2, text: 'Congratulations, Maya.' }, { t: 4.6, text: 'Call me when you land in Copenhagen!' } ] } },
+      { name: 'Dad', color: '#2f7fd8', emoji: '☕', message: "You worked harder than anyone I know, and you stayed kind while you did it. That's the real achievement. Well done, kiddo." },
+      { name: 'Kai', color: '#ffb547', emoji: '🌳', message: 'Can you design me a treehouse with a slide. And a zip line. Well done Maya.', drawing: { src: null, art: 'drawing', palette: ['#fffdf6', '#2f7fd8', '#ff6b4a'] } }
+    ] },
+    { label: 'From friends', people: [
+      { name: 'Jonah', color: '#2fae86', emoji: '✏️', message: 'Four years of sharing a desk, a kettle and about a thousand deadlines. Copenhagen has no idea what is coming. So proud of you!' },
+      { name: 'Priya', color: '#c95ab0', emoji: '🎉', message: "You're the only person I know who sketches the queue at the supermarket. Never stop. Love you, superstar.",
+        voice: { src: null, durationSec: 9, transcript: [ { t: 0, text: 'MAYA! You did it!' }, { t: 2.4, text: 'I’m so proud I could cry.' }, { t: 5.4, text: 'Actually, I am crying.' } ] } },
+      { name: 'Sam', color: '#7a5cd6', emoji: '🏫', message: 'From drawing on the walls to designing actual walls. Ten-year-old me would be very impressed.' }
+    ] }
+  ],
+
+  goals: [
+    { text: 'Start at the studio in Copenhagen', code: 'CPH' },
+    { text: 'Become a fully qualified architect', code: 'ARB' },
+    { text: 'Learn to cycle in Copenhagen without getting lost', code: 'BKE' },
+    { text: 'Build Kai that treehouse', code: 'TRE' },
+    { text: 'Visit every Alvar Aalto building', code: 'AAL' }
+  ],
+
+  letter: {
+    greeting: 'Dear Maya,',
+    body: [
+      'Today you are wearing a cap and gown, but we still see the little girl with crayon all over her hands, explaining exactly where the front door of her house would go.',
+      'You did this through late nights, hard days and more toast than any person should eat. We could not be prouder of who you have become.',
+      'The world is about to get a little more beautiful. Go and build it.'
+    ],
+    signoff: 'With all our love,', signatures: ['Mum', 'Dad', 'Kai']
+  },
+
+  ending: { line: 'Congratulations, Maya!', sub: 'Your next chapter starts now.' },
+
+  // Airline journey only: what is printed on the boarding pass
+  flight: { airline: 'Next Chapter Airways', number: 'NC 2027', seat: '1A', cabin: 'First Class Honours', from: { code: 'KID', city: 'Childhood' }, to: { code: 'NXT', city: 'What’s next' } },
+
+  reply: { enabled: true, reactions: [ { emoji: '🥹', text: 'I’m crying' }, { emoji: '🎓', text: 'We did it!' }, { emoji: '🙏', text: 'Thank you all' }, { emoji: '🌳', text: 'Treehouse incoming' } ] },
+  sound: { enabled: true },          // each journey has its own sound effects; no background music
+  share: { enabled: true, url: null },
+  branding: { show: true, text: 'Made with Heartfolio' }
+};
+</script>
+
+<!-- ════════════════════════════════════════════════════════════════════════
+     2. JOURNEYS — this product's own looks. Each one has its own words for
+     every chapter, its own opening, interactions, finale and sounds.
+     ════════════════════════════════════════════════════════════════════════ -->
+<script>
+const JOURNEYS = {
+  airline: { name: 'Next Chapter Airways', tag: 'Tear the boarding pass, stamp a passport, take off', swatch: '✈️', theme: '#0f2742',
+    words: { start: '✂ Tear to board', path: 'Your flight path', then: 'Departure', now: 'Now boarding', next: 'Destination', ach: 'Your passport', achHint: 'Tap each page to stamp it', achCount: '{n} of {t} stamped',
+      msg: 'Postcards for the journey', msgHint: 'Tap a postcard to turn it over', goals: 'Your itinerary', goalTag: 'Planned', letter: 'A note from your crew', finale: 'Ready for take-off', reply: 'Send a postcard back', welcome: 'Welcome aboard, {name}' } },
+  space: { name: 'Mission: Graduation', tag: 'Countdown, decode transmissions, launch', swatch: '🚀', theme: '#070b1f',
+    words: { start: 'Begin countdown', path: 'Flight trajectory', then: 'Launch site', now: 'Current orbit', next: 'Next destination', ach: 'Mission patches', achHint: 'Tap a patch to dock it', achCount: '{n} of {t} docked',
+      msg: 'Incoming transmissions', msgHint: 'Tap a signal to decode it', goals: 'Mission objectives', goalTag: 'Pending', letter: 'A message from Mission Control', finale: 'Hold to launch', reply: 'Transmit a reply', welcome: 'Commander {name}' } },
+  arcade: { name: 'Level Complete', tag: 'Press start, unlock achievements, talk to your party', swatch: '👾', theme: '#1b1036',
+    words: { start: 'PRESS START', path: 'World map', then: 'World 1', now: 'Final boss: defeated', next: 'New game +', ach: 'Achievements', achHint: 'Tap a trophy to unlock it', achCount: '{n}/{t} unlocked',
+      msg: 'Your party', msgHint: 'Tap a character to talk', goals: 'Next quests', goalTag: 'New', letter: 'Message from Player 2', finale: 'Claim your reward', reply: 'Reply to your party', welcome: 'Player 1: {name}' } },
+  museum: { name: 'The Retrospective', tag: 'Cut the ribbon, tour the gallery, use the audio guide', swatch: '🖼️', theme: '#23382f',
+    words: { start: '✂ Cut the ribbon', path: 'The collection', then: 'Early works', now: 'Masterpiece', next: 'Forthcoming exhibition', ach: 'Hall of honours', achHint: 'Tap a plinth to light it', achCount: '{n} of {t} lit',
+      msg: 'Audio guide', msgHint: 'Tap a number to listen', goals: 'Future exhibitions', goalTag: 'Coming soon', letter: 'Curator’s note', finale: 'Open the doors', reply: 'Sign the visitors’ book', welcome: 'The {name} Collection' } },
+  summit: { name: 'The Summit', tag: 'Climb your years, plant flags, watch the sunrise', swatch: '⛰️', theme: '#30476b',
+    words: { start: 'Start the climb', path: 'The trail', then: 'Base camp', now: 'Summit', next: 'Next peak', ach: 'Flags planted', achHint: 'Tap a ridge to plant a flag', achCount: '{n} of {t} planted',
+      msg: 'Notes in the cairn', msgHint: 'Tap a stone to read the note', goals: 'Peaks ahead', goalTag: 'Ahead', letter: 'In the summit register', finale: 'Reach the top', reply: 'Leave a note back', welcome: '{name} made it' } }
+};
+
+const UI = {
+  journeys: 'Journeys', journeysTitle: 'Choose a journey', journeysNote: 'Preview only. The journey is picked when the keepsake is made.',
+  soundOn: 'Sound on', soundOff: 'Sound off', share: 'Share', copied: 'Link copied', copyFailed: 'Could not copy the link', again: 'Start again', close: 'Close',
+  voicePlay: 'Play voice message', voicePause: 'Pause voice message', voiceDemo: 'Demo: the recording plays here', greetings: 'Greetings from',
+  send: 'Send', sending: 'Sending…', sentTitle: 'Sent', sentSub: 'Everyone who wrote will see it on their Heartfolio page.', replyPlaceholder: 'Write something back…', replyEmpty: 'Pick a reaction or write a few words first.',
+  proto: 'Prototype: replies are saved in this browser only.', prev: 'Previous photo', next: 'Next photo',
+  passenger: 'Passenger', flight: 'Flight', gate: 'Gate', seat: 'Seat', boarding: 'Boarding', cabin: 'Class', decoding: 'Decoding…', score: 'Score', altitude: 'Altitude', exhibit: 'Exhibit', tapToTalk: '▶ Talk'
+};
+</script>
+
+<!-- ════════════════════════════════════════════════════════════════════════
+     3. PRESENTATION
+     ════════════════════════════════════════════════════════════════════════ -->
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--hand:'Gochi Hand',cursive}
+html[data-j="airline"]{--bg:#d9f0fb;--ink:#0f2742;--soft:#4b5d74;--accent:#ff6b4a;--accent2:#ffb547;--card:#fffaf1;--line:rgba(15,39,66,.14);--display:'Red Hat Display',system-ui,sans-serif;--body:'Red Hat Display',system-ui,sans-serif;--mono:'IBM Plex Mono',monospace;--dw:900;color-scheme:light}
+html[data-j="space"]{--bg:#070b1f;--ink:#e8f3ff;--soft:rgba(232,243,255,.7);--accent:#ff8a3d;--accent2:#7cf3ff;--card:rgba(124,243,255,.06);--line:rgba(124,243,255,.22);--display:'Exo 2',system-ui,sans-serif;--body:'Exo 2',system-ui,sans-serif;--mono:'Share Tech Mono',monospace;--dw:800;color-scheme:dark}
+html[data-j="arcade"]{--bg:#1b1036;--ink:#f4ecff;--soft:#bfaee6;--accent:#ff4fd8;--accent2:#3df5ff;--card:#2a1a52;--line:#5b3fa0;--display:'Press Start 2P',monospace;--body:'VT323',monospace;--mono:'VT323',monospace;--dw:400;color-scheme:dark}
+html[data-j="museum"]{--bg:#23382f;--ink:#f4efe4;--soft:rgba(244,239,228,.72);--accent:#c9a24d;--accent2:#e9dfc9;--card:#fbf8f1;--line:rgba(201,162,77,.45);--display:'Bodoni Moda',Georgia,serif;--body:'Libre Franklin',system-ui,sans-serif;--mono:'Libre Franklin',system-ui,sans-serif;--dw:600;color-scheme:dark}
+html[data-j="summit"]{--bg:#e9eef3;--ink:#1f2f45;--soft:#55667c;--accent:#e2553b;--accent2:#f2b56b;--card:#fffdf8;--line:rgba(31,47,69,.15);--display:'Alegreya Sans',system-ui,sans-serif;--body:'Alegreya',Georgia,serif;--mono:'Alegreya Sans',system-ui,sans-serif;--dw:800;color-scheme:light}
+
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+body{margin:0;font-family:var(--body);font-size:1.06rem;line-height:1.6;color:var(--ink);background:var(--bg);overflow-x:hidden;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
+html[data-j="arcade"] body{font-size:1.35rem;line-height:1.3}
+body.hold{overflow:hidden}
+h1,h2,h3,p,figure,ol,ul{margin:0}
+button{font:inherit;color:inherit;cursor:pointer}
+img,svg{max-width:100%}
+[hidden]{display:none!important}
+:focus-visible{outline:3px solid var(--accent);outline-offset:3px;border-radius:6px}
+.ic{width:1.2em;height:1.2em;flex:none}
+.mono{font-family:var(--mono)}
+@keyframes rise{to{opacity:1;transform:none}}
+@keyframes breathe{50%{opacity:.45}}
+@keyframes blink{50%{opacity:0}}
+@keyframes drift{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+@keyframes twinkle{50%{opacity:.3}}
+#fx{position:fixed;inset:0;width:100%;height:100%;z-index:58;pointer-events:none}
+
+/* page backgrounds */
+html[data-j="space"] body{background:radial-gradient(1px 1px at 20% 30%,#fff 50%,transparent),radial-gradient(1px 1px at 70% 10%,#fff 50%,transparent),radial-gradient(1.5px 1.5px at 40% 70%,#cfe 50%,transparent),radial-gradient(1px 1px at 85% 55%,#fff 50%,transparent),radial-gradient(1px 1px at 10% 85%,#fff 50%,transparent) 0 0/300px 300px,radial-gradient(80% 40% at 50% 0%,#16204a,transparent),var(--bg)}
+html[data-j="arcade"] body{background:linear-gradient(rgba(255,255,255,.03) 50%,transparent 50%) 0 0/100% 4px,var(--bg)}
+html[data-j="museum"] body{background:radial-gradient(60% 30% at 50% 0%,rgba(255,240,200,.12),transparent 70%),linear-gradient(180deg,#2a4438,#1c2e26)}
+html[data-j="summit"] body{background:linear-gradient(180deg,#f7d9b8 0%,#dfe7ef 30%,#e9eef3 100%)}
+
+/* ── Start screen ───────────────────────────────────────────────── */
+.start{position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;overflow:hidden}
+.start-foot{position:absolute;left:0;right:0;bottom:calc(env(safe-area-inset-bottom,0px) + 16px);display:flex;justify-content:center;gap:8px;flex-wrap:wrap;z-index:3}
+.chip{display:inline-flex;align-items:center;gap:.45rem;min-height:40px;padding:.4rem .9rem;border-radius:999px;border:1.5px solid rgba(255,255,255,.35);background:rgba(255,255,255,.12);color:#fff;font-family:system-ui,sans-serif;font-weight:700;font-size:.86rem}
+html[data-j="summit"] .chip{border-color:rgba(31,47,69,.25);background:rgba(255,255,255,.7);color:#1f2f45}
+.st-btn{min-height:54px;padding:.8rem 1.6rem;border-radius:999px;border:0;font-weight:800;font-size:1.05rem}
+
+/* airline gate */
+.s-airline{background:linear-gradient(180deg,#0f2742 0%,#173a5e 55%,#e9845f 100%)}
+.gate-top{color:#fff;margin-bottom:18px}.gate-top b{display:block;font-family:'Red Hat Display',sans-serif;font-weight:900;font-size:clamp(1.4rem,6vw,1.8rem)}.gate-top span{font-family:'IBM Plex Mono',monospace;font-size:.82rem;opacity:.75}
+.pass{position:relative;width:min(88vw,360px);filter:drop-shadow(0 24px 40px rgba(0,0,0,.35));cursor:pointer;text-align:start;font-family:'Red Hat Display',sans-serif;color:#0f2742}
+.pass-main,.pass-stub{background:#fffaf1;padding:18px 20px}
+.pass-main{position:relative;border-radius:18px 18px 0 0}
+.pass-main::before,.pass-main::after{content:"";position:absolute;bottom:-12px;width:24px;height:24px;border-radius:50%;background:#1b4064;z-index:2}
+.pass-main::before{left:-12px}.pass-main::after{right:-12px}
+.pass-stub{border-radius:0 0 18px 18px;border-top:2px dashed rgba(15,39,66,.3);transform-origin:15% 0}
+.airline{display:flex;justify-content:space-between;font-weight:800;font-size:.95rem;color:#ff6b4a}
+.airline svg{width:22px;height:22px;fill:#ff6b4a}
+.route{display:grid;grid-template-columns:1fr auto 1fr;align-items:end;gap:8px;margin:14px 0 6px}
+.route .code{font-weight:900;font-size:clamp(2.6rem,13vw,3.4rem);line-height:.9}
+.route .city{display:block;font-size:.8rem;color:#4b5d74;font-weight:600}
+.route .to{text-align:end}
+.route .arrow svg{width:34px;height:34px;fill:#ff6b4a;transform:rotate(90deg)}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px 8px;margin-top:12px}
+.g3 small{display:block;font-family:'IBM Plex Mono',monospace;font-size:.66rem;letter-spacing:.06em;color:#4b5d74;text-transform:uppercase}
+.g3 b{display:block;font-weight:800;font-size:.95rem;line-height:1.2}
+.g3 .w{grid-column:span 3}
+.barcode{height:44px;background:repeating-linear-gradient(90deg,#0f2742 0 2px,transparent 2px 4px,#0f2742 4px 5px,transparent 5px 8px,#0f2742 8px 11px,transparent 11px 12px)}
+.tear{margin-top:10px;text-align:center;font-weight:800;color:#ff6b4a;animation:breathe 2.2s ease-in-out infinite}
+/* space start */
+.s-space{background:radial-gradient(80% 50% at 50% 100%,#1a2556,transparent),#070b1f;color:#e8f3ff;font-family:'Exo 2',sans-serif}
+.s-space .patch{width:150px;height:150px;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle,#16204a 58%,#ff8a3d 59% 63%,#16204a 64% 70%,#7cf3ff 71% 73%,transparent 74%);font-size:3.4rem;margin-bottom:16px}
+.s-space h1{font-weight:800;font-size:clamp(1.6rem,7vw,2.4rem);letter-spacing:.06em;text-transform:uppercase}
+.s-space .sub{font-family:'Share Tech Mono',monospace;color:#7cf3ff;margin:6px 0 22px}
+.count{font-family:'Share Tech Mono',monospace;font-size:clamp(6rem,30vw,10rem);line-height:1;color:#ff8a3d;text-shadow:0 0 30px rgba(255,138,61,.6);min-height:1em}
+.s-space .st-btn{background:#ff8a3d;color:#070b1f;font-family:'Exo 2',sans-serif;letter-spacing:.06em;text-transform:uppercase}
+/* arcade start */
+.s-arcade{background:linear-gradient(rgba(255,255,255,.04) 50%,transparent 50%) 0 0/100% 4px,radial-gradient(60% 40% at 50% 40%,#3a1f7a,#1b1036);color:#f4ecff}
+.s-arcade .logo{font-family:'Press Start 2P',monospace;font-size:clamp(1.3rem,6.6vw,2.2rem);line-height:1.4;color:#ffe14d;text-shadow:4px 4px 0 #ff4fd8,8px 8px 0 #3d1a7a}
+.s-arcade .who{font-family:'VT323',monospace;font-size:1.6rem;color:#3df5ff;margin:14px 0 28px}
+.s-arcade .press{font-family:'Press Start 2P',monospace;font-size:1rem;color:#fff;background:none;border:0;animation:blink 1s steps(1) infinite;padding:12px}
+.s-arcade .coins{font-family:'VT323',monospace;font-size:1.3rem;color:#bfaee6;margin-top:18px}
+/* museum start */
+.s-museum{background:radial-gradient(60% 40% at 50% 30%,#3a5a4a,#1c2e26);color:#f4efe4;font-family:'Libre Franklin',sans-serif}
+.s-museum .placard{font-family:'Bodoni Moda',serif;font-size:clamp(1.8rem,8vw,2.8rem);line-height:1.1;font-weight:600}
+.s-museum .placard small{display:block;font-family:'Libre Franklin',sans-serif;font-size:.8rem;letter-spacing:.2em;text-transform:uppercase;color:#c9a24d;margin-bottom:10px}
+.ribbon-wrap{position:relative;width:min(90vw,420px);height:120px;margin:30px 0 10px}
+.posts{position:absolute;inset:0;display:flex;justify-content:space-between;align-items:flex-end}
+.posts i{width:14px;height:90px;border-radius:7px 7px 2px 2px;background:linear-gradient(90deg,#b08a3a,#f2d98f,#b08a3a)}
+.rib{position:absolute;top:30px;height:26px;background:linear-gradient(180deg,#c0283c,#8e1b30);box-shadow:0 4px 8px rgba(0,0,0,.3);will-change:transform}
+.rib.l{left:7px;width:calc(50% - 7px);transform-origin:0 50%;border-radius:0 3px 3px 0}
+.rib.r{right:7px;width:calc(50% - 7px);transform-origin:100% 50%;border-radius:3px 0 0 3px}
+.bow{position:absolute;left:50%;top:22px;width:40px;height:40px;margin-left:-20px;border-radius:50%;background:radial-gradient(circle,#e0465a 30%,#8e1b30 32%);z-index:2}
+.s-museum .st-btn{background:transparent;color:#f4efe4;border:1.5px solid #c9a24d;font-family:'Libre Franklin',sans-serif;letter-spacing:.1em;text-transform:uppercase;font-size:.9rem}
+/* summit start */
+.s-summit{background:linear-gradient(180deg,#30476b 0%,#7e8fb5 45%,#f2b56b 80%,#f7d9b8 100%);color:#fff;font-family:'Alegreya Sans',sans-serif}
+.s-summit .peaks{position:absolute;left:0;right:0;bottom:0;height:46%}
+.s-summit .peaks svg{width:100%;height:100%}
+.s-summit .sign{position:relative;z-index:2;background:#7a4f2a;border:4px solid #5a3818;border-radius:8px;padding:14px 20px;box-shadow:0 10px 20px rgba(0,0,0,.3);font-weight:800;font-size:clamp(1.3rem,6vw,1.8rem);line-height:1.2}
+.s-summit .sign small{display:block;font-weight:500;font-size:.9rem;opacity:.85}
+.s-summit .st-btn{position:relative;z-index:2;margin-top:22px;background:#e2553b;color:#fff;font-family:'Alegreya Sans',sans-serif}
+
+/* ── Controls ───────────────────────────────────────────────────── */
+.ctl{position:fixed;top:calc(env(safe-area-inset-top,0px) + 10px);inset-inline-end:10px;z-index:60;display:flex;gap:6px;opacity:0;pointer-events:none;transition:opacity .6s}
+body[data-screen="page"] .ctl{opacity:1;pointer-events:auto}
+.ib{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;background:rgba(255,255,255,.9);color:#1f2a44;border:1.5px solid rgba(0,0,0,.1)}
+html[data-j="space"] .ib,html[data-j="arcade"] .ib,html[data-j="museum"] .ib{background:rgba(0,0,0,.45);color:#fff;border-color:rgba(255,255,255,.25)}
+html[data-j="arcade"] .ib{border-radius:0;box-shadow:0 0 0 2px #ff4fd8}
+.ib .ic{width:20px;height:20px}
+
+/* ── Hero ───────────────────────────────────────────────────────── */
+.hero{position:relative;min-height:100svh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:80px 18px 60px;overflow:hidden}
+.hero .rv{opacity:0;transform:translateY(16px);animation:rise 1s cubic-bezier(.2,.8,.2,1) forwards;animation-delay:var(--d,0s)}
+.hero h1{font-family:var(--display);font-weight:var(--dw);font-size:clamp(2rem,9vw,3.2rem);line-height:1.08;margin-top:22px}
+.hero .deg{font-weight:700;margin-top:8px}
+.hero .meta{font-family:var(--mono);font-size:.9rem;color:var(--soft);margin-top:4px}
+.hframe{position:relative;width:min(62vw,240px)}
+.hframe img{display:block;width:100%;aspect-ratio:1;object-fit:cover}
+/* airline: cabin window */
+html[data-j="airline"] .hero{background:linear-gradient(180deg,#f3ece0,#e8dfd0)}
+html[data-j="airline"] .hframe{aspect-ratio:3/4;border-radius:44%/34%;padding:14px;background:linear-gradient(145deg,#fdfaf4,#d8cfbf);box-shadow:0 20px 40px rgba(60,40,20,.2)}
+html[data-j="airline"] .hframe .glass{position:relative;width:100%;height:100%;border-radius:44%/34%;overflow:hidden;background:linear-gradient(180deg,#8fd0f5,#d9f0fb);box-shadow:inset 0 0 0 6px #cfc5b4}
+html[data-j="airline"] .hframe img{position:absolute;left:10%;top:16%;width:80%;height:72%;border-radius:12px}
+html[data-j="airline"] .shade{position:absolute;inset:0;background:linear-gradient(180deg,#e9e1d2,#d9cfbe);will-change:transform}
+html[data-j="airline"] .tagpill{margin-top:20px;display:inline-flex;gap:8px;padding:.45rem 1rem;border-radius:999px;background:#2b2b2b;color:#ffd27a;font-family:var(--mono);font-size:.8rem}
+/* space: helmet visor */
+html[data-j="space"] .hframe{border-radius:50%;padding:12px;background:linear-gradient(145deg,#f2f5fa,#9aa7bb);box-shadow:0 0 0 6px #2a3560,0 0 60px rgba(124,243,255,.25)}
+html[data-j="space"] .hframe img{border-radius:50%;filter:saturate(1.1)}
+html[data-j="space"] .hframe::after{content:"";position:absolute;inset:12px;border-radius:50%;background:linear-gradient(135deg,rgba(124,243,255,.35),transparent 45%,transparent 60%,rgba(255,138,61,.25))}
+html[data-j="space"] .hero h1{text-transform:uppercase;letter-spacing:.04em}
+html[data-j="space"] .tagpill{margin-top:18px;font-family:var(--mono);color:#7cf3ff;border:1px solid var(--line);padding:.4rem 1rem;border-radius:4px}
+/* arcade: character select */
+html[data-j="arcade"] .hframe{padding:8px;background:#2a1a52;box-shadow:0 0 0 4px #ff4fd8,0 0 0 8px #1b1036,0 0 0 12px #3df5ff}
+html[data-j="arcade"] .hframe img{image-rendering:pixelated}
+html[data-j="arcade"] .hero h1{font-size:clamp(1.1rem,5vw,1.6rem);line-height:1.6;color:#ffe14d}
+html[data-j="arcade"] .stats{margin-top:16px;display:grid;grid-template-columns:auto 1fr;gap:4px 12px;text-align:start;font-size:1.4rem}
+html[data-j="arcade"] .bar{display:inline-block;height:12px;background:repeating-linear-gradient(90deg,#3df5ff 0 10px,transparent 10px 12px);vertical-align:middle}
+/* museum: gilded portrait */
+html[data-j="museum"] .hframe{padding:16px;background:linear-gradient(135deg,#8a6a2a,#f2d98f 30%,#b08a3a 50%,#f2d98f 70%,#8a6a2a);box-shadow:0 30px 60px rgba(0,0,0,.5),inset 0 0 0 4px rgba(0,0,0,.2)}
+html[data-j="museum"] .hframe img{aspect-ratio:4/5;box-shadow:inset 0 0 0 2px rgba(0,0,0,.4)}
+html[data-j="museum"] .hero::before{content:"";position:absolute;top:0;left:50%;width:70%;height:70%;transform:translateX(-50%);background:radial-gradient(ellipse 50% 70% at 50% 0%,rgba(255,240,200,.18),transparent 70%);pointer-events:none}
+html[data-j="museum"] .label{margin-top:22px;background:#fbf8f1;color:#2a2a2a;padding:12px 18px;text-align:start;max-width:320px;box-shadow:0 6px 14px rgba(0,0,0,.3)}
+html[data-j="museum"] .label b{display:block;font-family:'Bodoni Moda',serif;font-size:1.3rem}
+html[data-j="museum"] .label span{display:block;font-size:.85rem;color:#555}
+html[data-j="museum"] .hero h1{display:none}
+/* summit: photo pinned on a map */
+html[data-j="summit"] .hero{background:linear-gradient(180deg,#f7d9b8 0%,#dfe7ef 60%)}
+html[data-j="summit"] .hframe{padding:8px;background:#fff;box-shadow:0 14px 28px rgba(31,47,69,.25);transform:rotate(-2deg)}
+html[data-j="summit"] .alt{position:fixed;left:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 12px);z-index:55;padding:.45rem .8rem;border-radius:10px;background:rgba(31,47,69,.85);color:#fff;font-family:'Alegreya Sans',sans-serif;font-weight:800;font-variant-numeric:tabular-nums;opacity:0;transition:opacity .5s}
+html[data-j="summit"] body[data-screen="page"] .alt{opacity:1}
+
+/* ── Chapters (shared skeleton) ─────────────────────────────────── */
+.ch{position:relative;padding:clamp(64px,11vw,100px) 16px}
+.wrap{max-width:820px;margin:0 auto}
+.h2{font-family:var(--display);font-weight:var(--dw);font-size:clamp(1.7rem,7vw,2.4rem);line-height:1.15;text-align:center;margin-bottom:1.3rem;text-wrap:balance}
+html[data-j="arcade"] .h2{font-size:clamp(1rem,4.6vw,1.4rem);line-height:1.6;color:#3df5ff}
+html[data-j="space"] .h2{text-transform:uppercase;letter-spacing:.06em;font-size:clamp(1.3rem,5.6vw,1.9rem)}
+html[data-j="museum"] .h2{font-style:italic;font-weight:500}
+html[data-j="museum"] .h2::after{content:"";display:block;width:60px;height:1px;margin:.5em auto 0;background:var(--accent)}
+.hint{text-align:center;color:var(--soft);margin:-8px 0 1.5rem;font-size:.95rem}
+.count-line{text-align:center;margin-top:16px;font-family:var(--mono);color:var(--soft)}
+.card{background:var(--card);color:var(--ink);border:1px solid var(--line)}
+html[data-j="airline"] .card,html[data-j="summit"] .card{border:0;box-shadow:0 12px 30px rgba(15,39,66,.12);border-radius:16px}
+html[data-j="arcade"] .card{border:0;box-shadow:0 0 0 3px #5b3fa0,0 0 0 6px #1b1036;border-radius:0}
+html[data-j="museum"] .card{color:#2a2a2a;border:0}
+
+/* PATH: one structure, five skins */
+.path{position:relative;max-width:640px;margin:0 auto;padding-left:58px}
+.path-line{position:absolute;left:22px;top:10px;bottom:10px;border-left:3px dashed var(--line)}
+.mover{position:absolute;left:6px;top:0;width:34px;height:34px;display:grid;place-items:center;font-size:1.6rem;z-index:2;will-change:transform}
+.mover svg{width:100%;height:100%;fill:var(--accent);transform:rotate(180deg)}
+.stop{position:relative;margin-bottom:22px}
+.stop::before{content:"";position:absolute;left:-43px;top:14px;width:14px;height:14px;border-radius:50%;background:var(--bg);border:3px solid var(--ink)}
+.stop .tag{font-family:var(--mono);font-size:.85rem;color:var(--soft);margin-bottom:6px;display:flex;gap:10px;align-items:baseline}
+.stop .tag b{font-family:var(--display);font-weight:var(--dw);color:var(--ink);font-size:1.2rem}
+.big{overflow:hidden}
+.big img{display:block;width:100%;aspect-ratio:16/10;object-fit:cover}
+.big .tx{padding:14px 16px 16px}
+.lbl{display:inline-block;font-family:var(--mono);font-size:.75rem;letter-spacing:.06em;text-transform:uppercase;padding:.15rem .5rem;border-radius:4px;background:var(--ink);color:var(--bg);margin-bottom:6px}
+.stop.now .big{outline:3px solid var(--accent)}
+.stop.now .lbl{background:var(--accent);color:#fff}
+.mini{display:flex;align-items:center;gap:12px;width:100%;border:0;padding:8px;text-align:start}
+.mini img{width:74px;height:74px;object-fit:cover;flex:none;border-radius:10px}
+.mini b{display:block;line-height:1.3}
+.mini small{font-family:var(--mono);color:var(--soft)}
+html[data-j="space"] .path-line{border-left:2px solid rgba(124,243,255,.35);box-shadow:0 0 12px rgba(124,243,255,.4)}
+html[data-j="space"] .stop::before{border-color:#7cf3ff;box-shadow:0 0 10px #7cf3ff}
+html[data-j="space"] .big img,html[data-j="space"] .mini img{border-radius:6px}
+html[data-j="arcade"] .path-line{border-left:6px dotted #ffe14d}
+html[data-j="arcade"] .stop::before{border-radius:0;border-color:#ff4fd8;background:#ff4fd8}
+html[data-j="arcade"] .mini img,html[data-j="arcade"] .big img{border-radius:0;image-rendering:pixelated}
+html[data-j="museum"] .path{padding-left:0}
+html[data-j="museum"] .path-line,html[data-j="museum"] .mover,html[data-j="museum"] .stop::before{display:none}
+html[data-j="museum"] .stop{text-align:center;margin-bottom:46px}
+html[data-j="museum"] .big,html[data-j="museum"] .mini{display:inline-block;max-width:100%;padding:14px;background:linear-gradient(135deg,#8a6a2a,#f2d98f 30%,#b08a3a 50%,#f2d98f 70%,#8a6a2a);box-shadow:0 20px 40px rgba(0,0,0,.45)}
+html[data-j="museum"] .mini{width:min(70%,320px)}
+html[data-j="museum"] .mini img{width:100%;height:auto;aspect-ratio:1;border-radius:0}
+html[data-j="museum"] .mini > span{display:none}
+html[data-j="museum"] .big .tx{display:none}
+html[data-j="museum"] .stop .tag{display:none}
+html[data-j="museum"] .wl{display:inline-block;margin-top:14px;background:#fbf8f1;color:#2a2a2a;padding:10px 14px;text-align:start;max-width:300px;font-size:.92rem;box-shadow:0 6px 12px rgba(0,0,0,.3)}
+html[data-j="museum"] .wl b{display:block;font-family:'Bodoni Moda',serif;font-size:1.1rem}
+html[data-j="museum"] .wl i{color:#666}
+.wl{display:none}
+html[data-j="summit"] .path-line{border-left:4px dotted #8a6a4a}
+html[data-j="summit"] .stop::before{border-color:#30476b;background:#f2b56b}
+
+/* ACHIEVEMENTS: five reveals */
+.achs{display:grid;grid-template-columns:repeat(2,1fr);gap:16px 14px;max-width:600px;margin:0 auto}
+.ach{position:relative;display:grid;place-items:center;min-height:140px;border:2px dashed var(--line);border-radius:12px;background:transparent;padding:8px;text-align:center}
+.ach .q{font-family:var(--mono);color:var(--soft)}
+.ach .rv2{position:absolute;inset:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;opacity:0;transform:scale(1.5)}
+.ach.on{border-color:transparent}
+.ach.on .q{opacity:0}
+.ach.on .rv2{opacity:1;transform:none;transition:transform .3s cubic-bezier(.3,1.5,.5,1),opacity .15s}
+.ach b{font-weight:800;line-height:1.15;font-size:.95rem}
+.ach em{font-style:normal;font-size:.76rem;opacity:.85;line-height:1.25}
+.ach small{font-family:var(--mono);font-size:.65rem;letter-spacing:.08em}
+/* airline stamps */
+html[data-j="airline"] .achs{padding:22px 18px;border-radius:14px;background:repeating-radial-gradient(circle,rgba(47,127,216,.06) 0 2px,transparent 2px 9px),linear-gradient(180deg,#f4f1e6,#ece6d6);box-shadow:0 18px 40px rgba(15,39,66,.18)}
+html[data-j="airline"] .ach .rv2{color:var(--sc);border:3px solid var(--sc);transform:rotate(var(--r)) scale(1.6)}
+html[data-j="airline"] .ach.on .rv2{transform:rotate(var(--r))}
+html[data-j="airline"] .ach:nth-child(3n+1) .rv2{border-radius:50%}
+html[data-j="airline"] .ach b{text-transform:uppercase}
+/* space patches */
+html[data-j="space"] .ach{border-radius:50%;aspect-ratio:1;min-height:0;border-color:rgba(124,243,255,.25)}
+html[data-j="space"] .ach .rv2{inset:4px;border-radius:50%;background:radial-gradient(circle,#16204a 60%,var(--sc) 61% 66%,#0b1230 67% 74%,#e8f3ff 75% 77%,#0b1230 78%);color:#e8f3ff;padding:18%;transform:rotate(-200deg) scale(.3)}
+html[data-j="space"] .ach.on .rv2{transform:none;transition:transform .7s cubic-bezier(.3,1.2,.4,1),opacity .2s}
+html[data-j="space"] .ach b{font-size:.78rem;text-transform:uppercase;letter-spacing:.03em}
+html[data-j="space"] .ach em{font-size:.66rem}
+/* arcade trophies */
+html[data-j="arcade"] .ach{border:0;border-radius:0;background:#2a1a52;box-shadow:0 0 0 3px #5b3fa0}
+html[data-j="arcade"] .ach .q{font-size:2.4rem;filter:grayscale(1) brightness(.5)}
+html[data-j="arcade"] .ach .rv2{color:#ffe14d;transform:translateY(20px)}
+html[data-j="arcade"] .ach.on{box-shadow:0 0 0 3px #ffe14d,0 0 20px rgba(255,225,77,.4)}
+html[data-j="arcade"] .ach.on .rv2{transform:none}
+html[data-j="arcade"] .ach b{font-family:'Press Start 2P',monospace;font-size:.6rem;line-height:1.6}
+html[data-j="arcade"] .ach em{font-size:1.05rem;color:#f4ecff}
+html[data-j="arcade"] .ach .tro{font-size:2rem}
+/* museum plinths */
+html[data-j="museum"] .ach{border:0;border-radius:0;min-height:180px;align-items:end;background:linear-gradient(180deg,transparent 55%,#e9dfc9 55% 58%,#d6c9ad 58% 100%)}
+html[data-j="museum"] .ach::before{content:"";position:absolute;left:50%;top:-20px;width:110%;height:120%;transform:translateX(-50%);background:radial-gradient(ellipse 40% 60% at 50% 0%,rgba(255,240,200,.5),transparent 70%);opacity:0;transition:opacity .6s;pointer-events:none}
+html[data-j="museum"] .ach.on::before{opacity:1}
+html[data-j="museum"] .ach .q{position:absolute;bottom:12px;left:0;right:0;color:#6a5a3a;font-family:'Bodoni Moda',serif}
+html[data-j="museum"] .ach .rv2{inset:auto 6px 46% 6px;color:#f4efe4;transform:translateY(10px)}
+html[data-j="museum"] .ach.on .rv2{transform:none;transition:all .8s ease}
+html[data-j="museum"] .ach .tro{font-size:2.2rem;filter:drop-shadow(0 4px 6px rgba(0,0,0,.4))}
+html[data-j="museum"] .ach b{font-family:'Bodoni Moda',serif;font-weight:600;font-size:.98rem}
+/* summit flags */
+html[data-j="summit"] .ach{border:0;align-items:end;min-height:150px;background:linear-gradient(160deg,transparent 52%,#8ea4bf 52.5%) no-repeat,linear-gradient(200deg,transparent 52%,#6d84a3 52.5%);border-radius:0}
+html[data-j="summit"] .ach .q{position:absolute;bottom:8px;left:0;right:0;color:#fff;font-family:var(--mono);font-weight:800}
+html[data-j="summit"] .ach .rv2{inset:0 0 34% 0;transform:translateY(30px);justify-content:flex-start;padding-top:4px}
+html[data-j="summit"] .ach.on .rv2{transform:none}
+html[data-j="summit"] .ach .flag{position:relative;width:4px;height:44px;background:#5a3818;margin-bottom:4px}
+html[data-j="summit"] .ach .flag::after{content:"";position:absolute;left:4px;top:0;width:30px;height:20px;background:var(--sc);clip-path:polygon(0 0,100% 50%,0 100%)}
+html[data-j="summit"] .ach b{font-family:'Alegreya Sans',sans-serif;color:#1f2f45}
+html[data-j="summit"] .ach em{color:#55667c}
+
+/* MESSAGES */
+.mgroup{margin-bottom:26px}
+.mgroup h3{font-family:var(--mono);font-size:.85rem;letter-spacing:.08em;text-transform:uppercase;color:var(--soft);margin-bottom:12px;text-align:center}
+.mlist{display:grid;grid-template-columns:1fr;gap:14px;max-width:560px;margin:0 auto}
+@media (min-width:640px){.mlist{grid-template-columns:repeat(2,1fr);max-width:820px}}
+/* airline postcards */
+.pc{position:relative;width:100%;aspect-ratio:3/2;border:0;padding:0;background:none;text-align:start}
+.pc-face{position:absolute;inset:0;border-radius:6px;overflow:hidden;box-shadow:0 12px 26px rgba(15,39,66,.18)}
+.pc .front{background:linear-gradient(160deg,color-mix(in srgb,var(--pc) 70%,#fff),var(--pc));display:flex;align-items:flex-end;padding:14px;color:#fff}
+.pc .front img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.pc .front .gr{position:relative;font-weight:900;font-size:clamp(1.4rem,6.4vw,1.9rem);line-height:1}
+.pc .front .gr small{display:block;font-family:var(--hand);font-weight:400;font-size:1.1rem}
+.pc .front.drawn .gr{color:#0f2742;background:rgba(255,250,241,.88);padding:6px 10px;border-radius:6px}
+.pc .back{display:none;background:#fffaf1;padding:14px 16px;grid-template-columns:1fr 70px;gap:8px}
+.pc.on .front{display:none}.pc.on .back{display:grid}
+.pc .msgt{font-family:var(--hand);font-size:clamp(1rem,4.2vw,1.18rem);line-height:1.3;color:#2a3a52;overflow:auto;border-right:1.5px solid rgba(15,39,66,.14);padding-right:8px}
+.pc .msgt b{display:block;margin-top:6px;font-size:1.3rem;color:var(--pc);font-weight:400}
+.pc .side{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.pc .stp{width:54px;height:64px;display:grid;place-items:center;font-size:1.6rem;background:color-mix(in srgb,var(--pc) 20%,#fff);outline:2px dashed var(--pc);outline-offset:-5px}
+/* space transmissions */
+.tx-card{width:100%;border:1px solid rgba(124,243,255,.3);border-radius:8px;background:rgba(124,243,255,.05);padding:14px 16px;text-align:start;color:#e8f3ff}
+.tx-card .hd{display:flex;align-items:center;justify-content:space-between;gap:8px;font-family:'Share Tech Mono',monospace;color:#7cf3ff}
+.tx-card .wave{height:26px;margin:10px 0;background:repeating-linear-gradient(90deg,rgba(124,243,255,.7) 0 2px,transparent 2px 5px);-webkit-mask:linear-gradient(90deg,transparent,#000 10%,#000 90%,transparent);mask:linear-gradient(90deg,transparent,#000 10%,#000 90%,transparent);transform-origin:50% 50%;animation:wave 1.2s ease-in-out infinite}
+@keyframes wave{50%{transform:scaleY(.35)}}
+.tx-card .body{font-family:'Share Tech Mono',monospace;font-size:1rem;line-height:1.5;min-height:1.5em;white-space:pre-wrap}
+.tx-card.on .wave{animation:none;transform:scaleY(.1);opacity:.4}
+/* arcade party, museum audio guide, summit cairn → open a sheet */
+.who{display:flex;align-items:center;gap:12px;width:100%;padding:12px 14px;text-align:start}
+.who .av{flex:none;width:52px;height:52px;display:grid;place-items:center;font-size:1.7rem}
+.who b{display:block;font-family:var(--display);font-weight:var(--dw)}
+.who small{color:var(--soft);font-family:var(--mono)}
+html[data-j="arcade"] .who .av{background:var(--pc);box-shadow:0 0 0 3px #1b1036,0 0 0 6px var(--pc);image-rendering:pixelated}
+html[data-j="arcade"] .who b{font-size:.75rem;line-height:1.6}
+html[data-j="museum"] .who{background:#fbf8f1;color:#2a2a2a;border-radius:4px}
+html[data-j="museum"] .who .av{border-radius:50%;background:#23382f;color:#f4efe4;font-family:'Bodoni Moda',serif;font-size:1.4rem;font-weight:700}
+html[data-j="museum"] .who small{color:#666}
+html[data-j="summit"] .stones{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;max-width:560px;margin:0 auto}
+html[data-j="summit"] .who{width:auto;flex-direction:column;gap:4px;padding:18px 20px;border-radius:46% 54% 50% 50%/60% 55% 45% 40%;background:linear-gradient(145deg,#b9c2cc,#8b96a3);color:#1f2f45;box-shadow:inset 0 -6px 0 rgba(0,0,0,.12),0 8px 14px rgba(31,47,69,.2);text-align:center;border:0}
+html[data-j="summit"] .who .av{width:auto;height:auto;font-size:1.5rem}
+html[data-j="summit"] .who small{color:#33445a}
+
+/* GOALS */
+.goals{max-width:560px;margin:0 auto;padding:0;list-style:none;overflow:hidden}
+.goals li{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;padding:14px 16px;border-top:1.5px dashed var(--line)}
+.goals li:first-child{border-top:0}
+.goals .c{font-family:var(--display);font-weight:var(--dw)}
+.goals .s{font-family:var(--mono);font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;padding:.2rem .5rem;border-radius:4px;background:color-mix(in srgb,var(--accent) 18%,transparent);color:var(--accent)}
+html[data-j="arcade"] .goals .c{color:#ffe14d;font-size:.7rem}
+html[data-j="arcade"] .goals .s{border-radius:0;font-size:1rem}
+html[data-j="museum"] .goals{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;background:none;box-shadow:none}
+html[data-j="museum"] .goals li{grid-template-columns:1fr;border:0;background:#fbf8f1;color:#2a2a2a;text-align:center;padding:20px 12px;font-family:'Bodoni Moda',serif;font-size:1.05rem}
+html[data-j="museum"] .goals .c{display:none}
+html[data-j="summit"] .goals li{grid-template-columns:44px 1fr auto}
+html[data-j="summit"] .goals .c{width:44px;height:30px;background:#6d84a3;clip-path:polygon(0 100%,35% 20%,55% 55%,75% 0,100% 100%);color:transparent}
+
+/* LETTER */
+.letter{max-width:600px;margin:0 auto;padding:clamp(26px,6vw,44px);font-size:1.08rem;line-height:1.7}
+.letter .g{font-family:var(--display);font-weight:var(--dw);font-size:1.4rem;margin-bottom:.6em}
+.letter p{margin-bottom:1em}
+.letter .so{font-style:italic;margin-top:1.2em}
+.sigs{display:flex;flex-wrap:wrap;gap:4px 18px}
+.sigs span{font-family:var(--hand);font-size:1.9rem;color:var(--accent);line-height:1.1}
+html[data-j="space"] .letter{font-family:'Share Tech Mono',monospace;font-size:1rem}
+html[data-j="space"] .letter .g::before{content:"▶ ";color:#ff8a3d}
+html[data-j="arcade"] .letter{font-size:1.4rem;line-height:1.3}
+html[data-j="arcade"] .letter .g{font-size:.9rem;line-height:1.6;color:#ffe14d}
+html[data-j="museum"] .letter{color:#2a2a2a;font-family:'Libre Franklin',sans-serif;border-left:4px solid #c9a24d}
+html[data-j="museum"] .letter .g{font-family:'Bodoni Moda',serif;font-style:italic}
+html[data-j="summit"] .letter{background:repeating-linear-gradient(0deg,rgba(31,47,69,.08) 0 1px,transparent 1px 30px),#fffdf8;line-height:30px}
+
+/* FINALES */
+.finale{position:relative;min-height:100svh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:60px 18px calc(env(safe-area-inset-bottom,0px) + 60px);overflow:hidden}
+.fin-act{min-height:56px;padding:.8rem 1.6rem;margin-top:18px;border-radius:999px;border:0;font-weight:800;font-size:1.1rem;user-select:none;-webkit-user-select:none;touch-action:none}
+.fin-msg{opacity:0;pointer-events:none;transition:opacity 1s}
+.finale.done .fin-msg{opacity:1;pointer-events:auto}
+.finale.done .fin-act{display:none}
+.fin-msg h2{font-family:var(--display);font-weight:var(--dw);font-size:clamp(2.2rem,10vw,3.6rem);line-height:1.05;margin-top:10px}
+.fin-msg p{font-size:1.2rem;color:var(--soft);margin:.4rem 0 1.4rem}
+html[data-j="arcade"] .fin-msg h2{font-size:clamp(1.2rem,6vw,2rem);line-height:1.5;color:#ffe14d}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:.5rem;min-height:48px;padding:.7rem 1.3rem;border-radius:999px;border:2px solid transparent;font-weight:800;font-size:.98rem;font-family:system-ui,sans-serif}
+.btn .ic{width:1.1em;height:1.1em}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-ghost{background:transparent;border-color:color-mix(in srgb,currentColor 35%,transparent)}
+html[data-j="arcade"] .btn{border-radius:0}
+.actions{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+.brand{margin-top:26px;font-size:.8rem;opacity:.65;font-family:system-ui,sans-serif}
+.f-airline{background:linear-gradient(180deg,#7fc6f0 0%,#cfeaf8 55%,#f6d7b0 100%)}
+.f-airline .fin-act{background:#0f2742;color:#fff}
+.f-space{background:radial-gradient(60% 30% at 50% 100%,#2a1a10,transparent),transparent}
+.f-space .fin-act{position:relative;overflow:hidden;background:#2a3560;color:#fff;font-family:'Exo 2',sans-serif;text-transform:uppercase;letter-spacing:.06em}
+.f-space .fin-act i{position:absolute;left:0;top:0;bottom:0;width:0;background:#ff8a3d;z-index:0}
+.f-space .fin-act span{position:relative;z-index:1}
+.rocket{width:90px;will-change:transform}
+.f-arcade .fin-act{background:#ff4fd8;color:#1b1036;font-family:'Press Start 2P',monospace;font-size:.75rem;border-radius:0;box-shadow:4px 4px 0 #3df5ff}
+.tally{font-family:'Press Start 2P',monospace;font-size:clamp(1.4rem,7vw,2.4rem);color:#3df5ff;margin:10px 0}
+.tally small{display:block;font-size:.7rem;color:#bfaee6;margin-bottom:8px}
+.f-museum{background:#1c2e26}
+.curtain{position:absolute;top:0;bottom:0;width:51%;background:repeating-linear-gradient(90deg,#7a1222 0 20px,#9a1c30 20px 40px);box-shadow:inset 0 -40px 60px rgba(0,0,0,.4);z-index:3;will-change:transform}
+.curtain.l{left:0}.curtain.r{right:0}
+.f-museum .fin-act{position:relative;z-index:4;background:#c9a24d;color:#1c2e26;font-family:'Libre Franklin',sans-serif;letter-spacing:.1em;text-transform:uppercase;font-size:.9rem}
+.f-summit{background:linear-gradient(180deg,#30476b 0%,#7e8fb5 40%,#f2b56b 75%,#f7d9b8 100%);color:#1f2f45}
+.f-summit .sun{position:absolute;left:50%;bottom:18%;width:120px;height:120px;margin-left:-60px;border-radius:50%;background:radial-gradient(circle,#fff3c4,#ffbf5a 60%,rgba(255,191,90,0) 72%);transform:translateY(160px);will-change:transform}
+.f-summit .mts{position:absolute;left:0;right:0;bottom:0;height:40%}
+.f-summit .mts svg{width:100%;height:100%}
+.f-summit .fin-act{position:relative;z-index:2;background:#e2553b;color:#fff}
+.f-summit .fin-msg{position:relative;z-index:2}
+.f-summit .fin-msg p{color:#1f2f45}
+
+/* sheets, lightbox, toast */
+.sheet-bg{position:fixed;inset:0;z-index:80;background:rgba(10,15,30,.5);display:flex;align-items:flex-end;justify-content:center;opacity:0;visibility:hidden;transition:opacity .3s,visibility .3s}
+.sheet-bg.open{opacity:1;visibility:visible}
+.sheet{position:relative;width:min(100%,500px);max-height:90svh;overflow:auto;background:#fffdf8;color:#1f2a44;border-radius:22px 22px 0 0;padding:24px 18px calc(env(safe-area-inset-bottom,0px) + 22px);transform:translateY(40px);transition:transform .35s cubic-bezier(.3,.8,.3,1);font-family:system-ui,sans-serif}
+.sheet-bg.open .sheet{transform:none}
+.sheet h3{font-weight:800;font-size:1.3rem;text-align:center;margin-bottom:12px}
+.sheet-x{position:absolute;top:10px;right:10px;width:40px;height:40px;border:0;border-radius:50%;background:transparent;display:grid;place-items:center}
+html[data-j="arcade"] #msg-bg .sheet{background:#1b1036;color:#f4ecff;border-radius:0;box-shadow:0 0 0 4px #fff,0 0 0 8px #1b1036;font-family:'VT323',monospace;font-size:1.5rem;line-height:1.3;margin:0 10px 10px}
+html[data-j="arcade"] #msg-bg .sheet-x{color:#fff}
+html[data-j="museum"] #msg-bg .sheet{background:#fbf8f1;font-family:'Libre Franklin',sans-serif}
+html[data-j="summit"] #msg-bg .sheet{background:repeating-linear-gradient(0deg,rgba(31,47,69,.08) 0 1px,transparent 1px 30px),#fffdf8;font-family:'Alegreya',serif}
+.m-head{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.m-head .av{width:54px;height:54px;border-radius:50%;display:grid;place-items:center;font-size:1.7rem;background:color-mix(in srgb,var(--pc) 22%,#fff);border:3px solid var(--pc)}
+html[data-j="arcade"] .m-head .av{border-radius:0;background:var(--pc);border:0}
+.m-head b{display:block;font-size:1.3rem}
+html[data-j="arcade"] .m-head b{font-family:'Press Start 2P',monospace;font-size:.8rem;color:#ffe14d}
+.m-text{font-size:1.08rem;line-height:1.6;min-height:3em}
+html[data-j="arcade"] .m-text{font-size:1.5rem;line-height:1.3}
+html[data-j="arcade"] .m-text::after{content:" ▼";animation:blink 1s steps(1) infinite;color:#3df5ff}
+html[data-j="summit"] .m-text{font-family:var(--hand);font-size:1.35rem;line-height:30px}
+.m-draw img{display:block;width:100%;margin-top:12px;border-radius:8px}
+.voice{display:flex;align-items:center;gap:12px;margin-top:14px;padding:10px 12px;border-radius:14px;background:color-mix(in srgb,var(--pc,#ff6b4a) 12%,transparent)}
+.vb{flex:none;width:44px;height:44px;border-radius:50%;border:0;background:var(--pc,#ff6b4a);color:#fff;display:grid;place-items:center}
+html[data-j="arcade"] .vb{border-radius:0}
+.vb .ic{width:20px;height:20px}
+.vcap{flex:1;font-weight:700;font-size:.95rem;min-height:1.2em}
+.th-list{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.th{display:flex;gap:14px;align-items:center;width:100%;padding:12px;border-radius:16px;border:2px solid #e8e6ef;background:transparent;text-align:start}
+.th[aria-pressed="true"]{border-color:#1f2a44;background:#f4f5fa}
+.th-sw{flex:none;width:54px;height:54px;border-radius:14px;display:grid;place-items:center;font-size:26px}
+.th-t{display:flex;flex-direction:column;line-height:1.3}.th-t b{font-size:1rem}.th-t small{font-size:.82rem;opacity:.7}
+.note-s{font-size:.82rem;opacity:.7;text-align:center;margin-top:10px}
+.reacts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.react{display:flex;align-items:center;gap:8px;min-height:50px;padding:.5rem .8rem;border-radius:14px;border:1.5px solid #e6e4ee;background:transparent;text-align:start;font-weight:700;font-size:.95rem}
+.react span{font-size:1.3rem}
+.react[aria-pressed="true"]{background:#1f2a44;color:#fff;border-color:#1f2a44}
+.sheet textarea{width:100%;min-height:96px;padding:12px 14px;border-radius:14px;border:1.5px solid #e6e4ee;background:#fff;font:inherit;resize:vertical}
+.sheet .btn-primary{width:100%;margin-top:12px;min-height:52px;background:#1f2a44}
+.sent{text-align:center}.sent .em{font-size:3rem}
+.lb{position:fixed;inset:0;z-index:90;background:rgba(10,15,30,.94);display:flex;align-items:center;justify-content:center;padding:70px 12px 30px}
+.lb figure{max-width:min(92vw,620px);display:flex;flex-direction:column;align-items:center;gap:12px;color:#fff;font-weight:700;text-align:center;font-family:system-ui,sans-serif}
+.lb img{max-width:100%;max-height:calc(100svh - 200px);border-radius:10px}
+.lb-x{position:absolute;top:calc(env(safe-area-inset-top,0px) + 12px);right:12px}
+.lb-nav{position:absolute;top:50%;transform:translateY(-50%);width:46px;height:46px;border-radius:50%;border:0;background:rgba(255,255,255,.15);color:#fff;display:grid;place-items:center}
+.lb-nav.prev{left:10px}.lb-nav.next{right:10px}
+.toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 24px);z-index:100;transform:translate(-50%,24px);background:#1f2a44;color:#fff;padding:.7rem 1.2rem;border-radius:999px;font-family:system-ui,sans-serif;font-weight:700;font-size:.95rem;opacity:0;pointer-events:none;transition:opacity .3s,transform .3s}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.unlock{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 14px);z-index:95;transform:translate(-50%,-120%);display:flex;align-items:center;gap:10px;padding:10px 14px;background:#1b1036;color:#fff;box-shadow:0 0 0 3px #ffe14d;font-family:'VT323',monospace;font-size:1.3rem;transition:transform .35s steps(4)}
+.unlock.show{transform:translate(-50%,0)}
+.unlock b{font-family:'Press Start 2P',monospace;font-size:.55rem;color:#ffe14d;display:block}
+
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{animation-duration:.01ms!important;animation-delay:0s!important;animation-iteration-count:1!important;transition-duration:.01ms!important;transition-delay:0s!important}
+}
+</style>
+</head>
+<body data-screen="start" class="hold">
+<main id="page" hidden></main>
+<div id="start"></div>
+<canvas id="fx" aria-hidden="true"></canvas>
+<div id="chrome"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div class="unlock" id="unlock" aria-live="polite"></div>
+
+<script>
+/* ════════════════════════════════════════════════════════════════════════
+   4. DATA ACCESS — the only code that would talk to a backend.
+   ════════════════════════════════════════════════════════════════════════ */
+const API = {
+  key: k => 'grad:' + GRAD.meta.id + ':' + k,
+  track(event) { try { const k = this.key('events'), a = JSON.parse(localStorage.getItem(k) || '[]'); a.push({ event, at: new Date().toISOString() }); localStorage.setItem(k, JSON.stringify(a)); } catch (e) {} },
+  async sendReply(p) { await new Promise(r => setTimeout(r, 800)); const rec = { ...p, at: new Date().toISOString() }; try { localStorage.setItem(this.key('reply'), JSON.stringify(rec)); } catch (e) {} return rec; }
+};
+
+/* ════════════════════════════════════════════════════════════════════════
+   5. APP
+   ════════════════════════════════════════════════════════════════════════ */
+(() => {
+'use strict';
+const G = GRAD, MAX_ACH = 10, ACH = G.achievements.filter(a => a && a.title).slice(0, MAX_ACH);
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const wait = ms => new Promise(r => setTimeout(r, ms));
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const fill = (s, v) => { for (const x in v) s = s.replace('{' + x + '}', v[x]); return s; };
+const anim = (el, frames, opts) => el && typeof el.animate === 'function' ? el.animate(frames, { fill: 'both', ...opts }) : null;
+const done = a => a ? a.finished.catch(() => {}) : Promise.resolve();
+const state = { j: JOURNEYS[G.journey] ? G.journey : 'airline', sound: G.sound.enabled, started: false, lb: 0, reaction: null };
+const J = () => JOURNEYS[state.j], W = k => J().words[k];
+const toastEl = $('#toast'); let toastT;
+const toast = m => { toastEl.textContent = m; toastEl.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => toastEl.classList.remove('show'), 2600); };
+const pageURL = () => { if (G.share.url) return G.share.url; try { const u = new URL(location.href); u.hash = ''; return u.toString(); } catch (e) { return location.href; } };
+const fmtD = d => new Intl.DateTimeFormat(G.meta.locale, { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(d + 'T12:00:00'));
+const INK = ['#2f7fd8', '#d64545', '#1f8a5f', '#7a5cd6', '#c2410c', '#0f2742', '#b8860b', '#c95ab0', '#2fae86', '#ff6b4a'];
+const TROPHIES = ['🏆', '🥇', '🏅', '⭐', '💎', '👑', '🎖️', '🌟', '🔥', '🎯'];
+const PLANE = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z"/></svg>';
+const ICONS = {
+  share: '<circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M8.2 10.8l7.6-3.6M8.2 13.2l7.6 3.6"/>', close: '<path d="M6 6l12 12M18 6L6 18"/>', send: '<path d="M4 12l16-8-6 16-3-6z"/>', replay: '<path d="M4 12a8 8 0 1 0 2.4-5.7M4 4v4h4"/>',
+  play: '<path d="M8 5.5v13l10.5-6.5z" fill="currentColor"/>', pause: '<path d="M8 5v14M16 5v14" stroke-width="3"/>', left: '<path d="M15 5l-7 7 7 7"/>', right: '<path d="M9 5l7 7-7 7"/>',
+  on: '<path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11"/>', off: '<path d="M4 9v6h4l5 4V5L8 9z"/><path d="M17 9l5 6M22 9l-5 6"/>', map: '<path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z"/><path d="M9 4v14M15 6v14"/>'
+};
+const icon = n => `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[n] || ''}</svg>`;
+
+/* ── placeholder art (production: every photo has a real `src`) ── */
+function rng(seed) { return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function artSVG(kind, pal, seed) {
+  const w = 480, h = 360, R = rng(seed * 7919 + 3), [c0, c1, c2] = pal;
+  let b = `<defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${c0}"/><stop offset="1" stop-color="#fff"/></linearGradient></defs><rect width="${w}" height="${h}" fill="url(#g)"/>`;
+  const person = (x, y, s, c) => `<circle cx="${x}" cy="${y}" r="${18*s}" fill="${c}"/><path d="M${x-30*s} ${y+80*s} q${30*s} -${70*s} ${60*s} 0z" fill="${c}"/>`;
+  if (kind === 'grad') b += `<path d="M0 290 Q240 250 480 290 V360 H0Z" fill="#7cc46b"/>` + person(240, 160, 1.5, c2) + `<path d="M240 104 L298 126 L240 148 L182 126Z" fill="${c2}"/><path d="M240 126 L282 136 V162" stroke="${c1}" stroke-width="4" fill="none"/>`;
+  else if (kind === 'kid') b += `<path d="M0 290 H480 V360 H0Z" fill="${c1}" opacity=".5"/>` + person(250, 180, 1.1, c2) + `<path d="M70 120 h70 v56 h-70z M70 120 l35 -28 l35 28" stroke="${c1}" stroke-width="5" fill="none"/>`;
+  else if (kind === 'city') { b = `<rect width="${w}" height="${h}" fill="${c0}"/>`; for (let i = 0; i < 11; i++) { const x = i * 44, bh = 90 + R() * 180; b += `<rect x="${x}" y="${h - bh}" width="38" height="${bh}" fill="${c2}" opacity=".85"/>`; for (let k = 0; k < 6; k++) b += `<rect x="${x + 7 + (k % 2) * 14}" y="${h + 10 - bh + Math.floor(k / 2) * 26}" width="8" height="12" fill="${c1}" opacity=".85"/>`; } }
+  else if (kind === 'blocks') { for (let i = 0; i < 18; i++) { const x = 60 + (i % 6) * 60, y = 270 - Math.floor(i / 6) * 50 - (i % 2) * 8; b += `<rect x="${x}" y="${y}" width="54" height="44" rx="4" fill="${[c1, c2, '#ffb547'][i % 3]}"/>`; } }
+  else if (kind === 'drawing') b = `<rect width="${w}" height="${h}" fill="${c0}"/><g fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="7"><path d="M90 340 V170 M390 340 V170" stroke="#8a5a2a"/><path d="M70 170 h340" stroke="#8a5a2a"/><path d="M150 170 v-70 h180 v70 M140 100 l100 -56 l100 56" stroke="${c1}"/><path d="M330 190 Q380 260 430 340" stroke="${c2}"/><path d="M60 120 L420 60" stroke="#555" stroke-width="3"/></g>`;
+  return 'data:image/svg+xml;utf8,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" preserveAspectRatio="xMidYMid slice">${b}</svg>`);
+}
+const artSrc = (p, s) => (p && p.src) || artSVG((p && p.art) || 'grad', (p && p.palette) || ['#dff1fb', '#ffb547', '#0f2742'], s);
+
+/* ════════════ SOUND EFFECTS — a different kit for each journey ════════════ */
+const SFX = {
+  ctx: null, noise: null,
+  ok() { if (!state.sound) return null; if (!this.ctx) { const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return null; this.ctx = new AC(); const b = this.ctx.createBuffer(1, this.ctx.sampleRate * 2, this.ctx.sampleRate), d = b.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; this.noise = b; } try { this.ctx.resume(); } catch (e) {} return this.ctx; },
+  tone(f, at, dur, vol, type = 'sine', slide) { const c = this.ctx, t = c.currentTime + at, o = c.createOscillator(), g = c.createGain(); o.type = type; o.frequency.setValueAtTime(f, t); if (slide) o.frequency.exponentialRampToValueAtTime(slide, t + dur); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + .008); g.gain.exponentialRampToValueAtTime(.0001, t + dur); o.connect(g); g.connect(c.destination); o.start(t); o.stop(t + dur + .05); },
+  hiss(at, dur, vol, type, f, f2, loop) { const c = this.ctx, t = c.currentTime + at, s = c.createBufferSource(), fl = c.createBiquadFilter(), g = c.createGain(); s.buffer = this.noise; s.loop = !!loop; fl.type = type; fl.frequency.setValueAtTime(f, t); if (f2) fl.frequency.linearRampToValueAtTime(f2, t + dur * .7); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + Math.min(.05, dur / 4)); g.gain.linearRampToValueAtTime(vol * .8, t + dur * .7); g.gain.exponentialRampToValueAtTime(.0001, t + dur); s.connect(fl); fl.connect(g); g.connect(c.destination); s.start(t, Math.random()); s.stop(t + dur + .05); },
+  play(kind, arg) {
+    if (!this.ok()) return; const j = state.j;
+    const kits = {
+      airline: { start: () => { this.hiss(0, .4, .25, 'bandpass', 1800, 4200); this.tone(988, .5, 1.4, .16); this.tone(784, 1, 1.8, .16); }, ach: () => this.hiss(0, .18, .6, 'lowpass', 380), msg: () => this.hiss(0, .12, .08, 'highpass', 3000), finale: () => this.hiss(0, 3.2, .4, 'lowpass', 200, 1400, true), win: () => { this.tone(988, 0, 1.4, .16); this.tone(784, .5, 1.8, .16); } },
+      space: { start: () => { [0, 1, 2].forEach(k => this.tone(880, k, .15, .12, 'square')); this.tone(1320, 3, .5, .14, 'square'); this.hiss(3, 2.5, .35, 'lowpass', 150, 900, true); }, ach: () => { this.tone(660, 0, .1, .1, 'square'); this.tone(990, .1, .25, .1, 'square'); }, msg: () => this.hiss(0, .8, .12, 'bandpass', 2400), tick: () => this.tone(1200, 0, .03, .03, 'square'), finale: () => this.hiss(0, 4, .5, 'lowpass', 120, 1600, true), win: () => [523, 659, 784, 1046].forEach((f, k) => this.tone(f, k * .12, .5, .1, 'triangle')) },
+      arcade: { start: () => { this.tone(988, 0, .08, .1, 'square'); this.tone(1319, .08, .3, .1, 'square'); }, ach: () => [523, 659, 784, 1047].forEach((f, k) => this.tone(f, k * .07, .12, .08, 'square')), msg: () => this.tone(440, 0, .06, .06, 'square'), tick: () => this.tone(880 + Math.random() * 200, 0, .025, .03, 'square'), finale: () => {}, coin: () => this.tone(1500, 0, .04, .05, 'square'), win: () => [523, 523, 523, 659, 784, 659, 784, 1047].forEach((f, k) => this.tone(f, k * .1, .14, .09, 'square')) },
+      museum: { start: () => { this.hiss(0, .15, .3, 'highpass', 4000); this.hiss(.18, .15, .3, 'highpass', 4500); [523, 659, 784, 1047, 1319].forEach((f, k) => this.tone(f, .4 + k * .08, 1.6, .05, 'triangle')); }, ach: () => this.tone(196, 0, 1.2, .1, 'sine'), msg: () => this.tone(1046, 0, .4, .05, 'sine'), finale: () => this.hiss(0, 2, .15, 'lowpass', 600), win: () => [392, 523, 659, 784].forEach((f, k) => this.tone(f, k * .15, 2, .06, 'triangle')) },
+      summit: { start: () => this.hiss(0, 2.4, .2, 'bandpass', 500, 900), ach: () => { this.hiss(0, .5, .2, 'bandpass', 1200, 2500); this.tone(320, 0, .12, .1, 'triangle'); }, msg: () => this.tone(220, 0, .15, .08, 'triangle'), finale: () => this.hiss(0, 3, .18, 'bandpass', 400, 900), win: () => [392, 494, 587, 784].forEach((f, k) => this.tone(f, k * .25, 2.4, .07, 'sine')) }
+    };
+    const f = kits[j][kind]; if (f) f(arg);
+  }
+};
+
+/* ── particles: one burst shape per journey ── */
+const FX = (() => {
+  const cv = $('#fx'); let ctx = null; try { ctx = cv.getContext('2d'); } catch (e) {}
+  let Wd = 0, H = 0, Pt = [], running = false, last = 0; const R = (a, b) => a + Math.random() * (b - a);
+  const PAL = { airline: ['#ff6b4a', '#ffb547', '#2f7fd8', '#ffffff'], space: ['#ff8a3d', '#7cf3ff', '#ffffff', '#ffe14d'], arcade: ['#ff4fd8', '#3df5ff', '#ffe14d', '#7cff6b'], museum: ['#c9a24d', '#f2d98f', '#fbf8f1'], summit: ['#e2553b', '#f2b56b', '#ffffff', '#6d84a3'] };
+  const size = () => { if (!ctx) return; const d = Math.min(2, devicePixelRatio || 1); Wd = innerWidth; H = innerHeight; cv.width = Math.round(Wd * d); cv.height = Math.round(H * d); ctx.setTransform(d, 0, 0, d, 0, 0); };
+  function burst(x, y, n = 30) { if (!ctx) return; const cols = PAL[state.j]; for (let i = 0; i < (reduce ? 10 : n); i++) { const a = R(-Math.PI * .95, -Math.PI * .05), sp = R(3, 9); Pt.push({ x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, s: R(5, 10), rot: R(0, 6.3), vr: R(-.2, .2), c: cols[i % cols.length], age: 0, life: R(80, 130) }); } if (!running) { running = true; last = 0; requestAnimationFrame(frame); } }
+  function shape(p) {
+    const s = p.s, j = state.j;
+    if (j === 'airline' && p.c !== '#ffffff') { ctx.beginPath(); ctx.moveTo(s, 0); ctx.lineTo(-s, -s * .55); ctx.lineTo(-s * .45, 0); ctx.lineTo(-s, s * .55); ctx.closePath(); ctx.fill(); }
+    else if (j === 'space') { ctx.beginPath(); ctx.moveTo(0, -s); ctx.quadraticCurveTo(0, 0, s, 0); ctx.quadraticCurveTo(0, 0, 0, s); ctx.quadraticCurveTo(0, 0, -s, 0); ctx.quadraticCurveTo(0, 0, 0, -s); ctx.fill(); }
+    else if (j === 'arcade') { ctx.rotate(-p.rot); const q = Math.round(s / 3) * 3; ctx.fillRect(-q / 2, -q / 2, q, q); }
+    else if (j === 'summit') { ctx.beginPath(); ctx.ellipse(0, 0, s * .4, s, 0, 0, 6.29); ctx.fill(); }
+    else { ctx.scale(Math.cos(p.age * .08), 1); ctx.fillRect(-s / 2, -s / 4, s, s / 2); }
+  }
+  function frame(now) {
+    if (!running) return; requestAnimationFrame(frame); const f = Math.min(3, (now - (last || now)) / 16.67 || 1); last = now; ctx.clearRect(0, 0, Wd, H);
+    for (let i = Pt.length - 1; i >= 0; i--) { const p = Pt[i]; p.age += f; p.vx *= .985; p.vy = p.vy * .985 + .14 * f; p.x += p.vx * f; p.y += p.vy * f; p.rot += p.vr * f; const a = 1 - p.age / p.life; if (a <= 0) { Pt.splice(i, 1); continue; } ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot); ctx.globalAlpha = a; ctx.fillStyle = p.c; shape(p); ctx.restore(); }
+    if (!Pt.length) { running = false; ctx.clearRect(0, 0, Wd, H); }
+  }
+  size(); addEventListener('resize', size);
+  return { burst };
+})();
+const burstAt = (el, n) => { if (!el) return; const r = el.getBoundingClientRect(); FX.burst(r.left + r.width / 2, r.top + r.height / 2, n); };
+const cheer = () => [.25, .5, .75].forEach((x, k) => setTimeout(() => FX.burst(innerWidth * x, innerHeight - 40, 34), k * 160));
+
+/* ════════════ START SCREENS (one per journey) ════════════ */
+const g = G.grad;
+const START = {
+  airline: {
+    html: () => { const F = G.flight; return `<section class="start s-airline" id="start-s"><div class="gate-top"><b>${esc(fill(W('welcome'), { name: g.name }))}</b><span>${esc(F.airline)} · ${esc(g.school)}</span></div>
+      <div class="pass" id="startbtn" role="button" tabindex="0" data-act="start"><div class="pass-main"><div class="airline"><span>${esc(F.airline)}</span>${PLANE}</div>
+        <div class="route"><div><span class="code">${esc(F.from.code)}</span><span class="city">${esc(F.from.city)}</span></div><div class="arrow">${PLANE}</div><div class="to"><span class="code">${esc(F.to.code)}</span><span class="city">${esc(F.to.city)}</span></div></div>
+        <div class="g3"><div class="w"><small>${UI.passenger}</small><b>${esc(g.fullName.toUpperCase())}</b></div><div><small>${UI.flight}</small><b>${esc(F.number)}</b></div><div><small>${UI.seat}</small><b>${esc(F.seat)}</b></div><div><small>${UI.boarding}</small><b>${esc(fmtD(g.date))}</b></div>
+        <div class="w"><small>${UI.cabin}</small><b>${esc(F.cabin)}</b></div><div class="w"><small>${UI.gate}</small><b>${esc(g.school)}</b></div></div></div>
+        <div class="pass-stub" id="stub"><div class="barcode"></div><p class="tear">${esc(W('start'))}</p></div></div>${foot()}</section>`; },
+    async go() { SFX.play('start'); await done(anim($('#stub'), [{ transform: 'none' }, { transform: 'rotate(4deg) translateY(6px)', offset: .3 }, { transform: 'rotate(24deg) translate(30px,120vh)' }], { duration: reduce ? 1 : 1100, easing: 'cubic-bezier(.5,0,.8,.4)' })); anim($('.pass-main'), [{ opacity: 1 }, { opacity: 0, transform: 'translateY(-30px)' }], { duration: 500 }); }
+  },
+  space: {
+    html: () => `<section class="start s-space" id="start-s"><div class="patch" aria-hidden="true">🚀</div><h1>${esc(fill(W('welcome'), { name: g.fullName }))}</h1><p class="sub">${esc(g.school)} · ${esc(g.year)}</p>
+      <div class="count" id="count" aria-live="assertive"></div><button class="st-btn" id="startbtn" data-act="start">${esc(W('start'))}</button>${foot()}</section>`,
+    async go() { $('#startbtn').hidden = true; SFX.play('start'); const c = $('#count'); for (const n of ['3', '2', '1']) { c.textContent = n; anim(c, [{ transform: 'scale(1.4)', opacity: 0 }, { transform: 'scale(1)', opacity: 1 }], { duration: 300 }); await wait(reduce ? 50 : 1000); } c.textContent = 'GO'; await wait(reduce ? 50 : 700); }
+  },
+  arcade: {
+    html: () => `<section class="start s-arcade" id="start-s"><p class="logo">LEVEL<br>COMPLETE</p><p class="who">${esc(fill(W('welcome'), { name: g.name.toUpperCase() }))} · ${esc(g.year)}</p>
+      <button class="press" id="startbtn" data-act="start">${esc(W('start'))}</button><p class="coins">CREDIT 01 · ${esc(g.school.toUpperCase())}</p>${foot()}</section>`,
+    async go() { SFX.play('start'); const p = $('#startbtn'); p.style.animation = 'none'; for (let k = 0; k < 6; k++) { p.style.visibility = k % 2 ? 'visible' : 'hidden'; await wait(reduce ? 0 : 90); } await wait(reduce ? 0 : 300); }
+  },
+  museum: {
+    html: () => `<section class="start s-museum" id="start-s"><p class="placard"><small>Now open · ${esc(g.school)}</small>${esc(fill(W('welcome'), { name: g.fullName }))}</p>
+      <div class="ribbon-wrap" aria-hidden="true"><div class="posts"><i></i><i></i></div><div class="rib l"></div><div class="rib r"></div><div class="bow"></div></div>
+      <button class="st-btn" id="startbtn" data-act="start">${esc(W('start'))}</button>${foot()}</section>`,
+    async go() { SFX.play('start'); $('#startbtn').hidden = true; anim($('.bow'), [{ opacity: 1 }, { opacity: 0, transform: 'translateY(60px) scale(.5)' }], { duration: 500 }); anim($('.rib.l'), [{ transform: 'none' }, { transform: 'rotate(70deg)' }], { duration: reduce ? 1 : 900, easing: 'cubic-bezier(.5,0,.5,1.3)' }); await done(anim($('.rib.r'), [{ transform: 'none' }, { transform: 'rotate(-70deg)' }], { duration: reduce ? 1 : 900, easing: 'cubic-bezier(.5,0,.5,1.3)' })); burstAt($('.ribbon-wrap'), 30); await wait(reduce ? 0 : 500); }
+  },
+  summit: {
+    html: () => `<section class="start s-summit" id="start-s"><div class="peaks" aria-hidden="true"><svg viewBox="0 0 400 200" preserveAspectRatio="none"><path d="M0 200 L70 90 L120 140 L200 30 L270 120 L320 80 L400 150 V200Z" fill="#4b5f84"/><path d="M200 30 L218 58 L206 54 L196 66 L186 52Z" fill="#fff"/><path d="M0 200 L90 140 L170 170 L260 120 L400 180 V200Z" fill="#30476b"/></svg></div>
+      <div class="sign">${esc(g.fullName)}<small>Trail to ${esc(g.degree)} · ${esc(g.year)}</small></div><button class="st-btn" id="startbtn" data-act="start">🥾 ${esc(W('start'))}</button>${foot()}</section>`,
+    async go() { SFX.play('start'); $('#startbtn').hidden = true; await done(anim($('.peaks'), [{ transform: 'none' }, { transform: 'translateY(30%) scale(1.3)' }], { duration: reduce ? 1 : 1500, easing: 'ease-in' })); }
+  }
+};
+function foot() { return `<div class="start-foot"><button class="chip" data-act="sound" aria-pressed="${state.sound}">${icon(state.sound ? 'on' : 'off')} ${state.sound ? UI.soundOn : UI.soundOff}</button><button class="chip" data-act="journeys">${icon('map')} ${UI.journeys}</button></div>`; }
+
+/* ════════════ PAGE ════════════ */
+const page = $('#page'), startEl = $('#start'), chrome = $('#chrome');
+function heroHTML() {
+  const j = state.j, img = `<img src="${artSrc(g.photo, 1)}" alt="${esc(g.fullName)}">`;
+  const frame = j === 'airline' ? `<div class="hframe rv" style="--d:.1s"><div class="glass">${img}<div class="shade" id="shade"></div></div></div>` : `<div class="hframe rv" style="--d:.1s">${img}</div>`;
+  const extra = {
+    airline: `<p class="tagpill rv" style="--d:.8s">🔔 ${esc(G.flight.seat)} · ${esc(G.flight.cabin)}</p>`,
+    space: `<p class="tagpill rv" style="--d:.8s">MISSION ${esc(g.year)} · STATUS: COMPLETE</p>`,
+    arcade: `<div class="stats rv" style="--d:.8s"><span>LVL</span><span>${esc(g.year)}</span><span>XP</span><span><i class="bar" style="width:140px"></i> MAX</span><span>CLASS</span><span>${esc(g.degree)}</span></div>`,
+    museum: `<div class="label rv" style="--d:.5s"><b>${esc(g.fullName)}</b><span>${esc(g.degree)}</span><span>${esc(g.school)}, ${esc(g.year)}</span><span><i>Mixed media: hard work, toast and talent</i></span></div>`,
+    summit: ''
+  }[j];
+  return `<header class="hero" id="top">${frame}<h1 class="rv" style="--d:.4s">${esc(fill(W('welcome'), { name: j === 'space' ? g.name : g.name }))}</h1>
+    ${j !== 'museum' ? `<p class="deg rv" style="--d:.55s">${esc(g.degree)} · ${esc(g.school)}</p><p class="meta rv" style="--d:.65s">${esc(fmtD(g.date))}</p>` : ''}${extra}</header>${j === 'summit' ? `<div class="alt" id="alt">${UI.altitude}: 0 m</div>` : ''}`;
+}
+const sec = (id, title, inner) => `<section class="ch" id="${id}" aria-label="${esc(title)}"><div class="wrap"><h2 class="h2">${esc(title)}</h2>${inner}</div></section>`;
+const CH = {
+  path: () => {
+    const P = G.path, j = state.j, mover = { airline: PLANE, space: '🛰️', arcade: '🕹️', summit: '🥾' }[j] || '';
+    const tagFor = (s, i, kind) => j === 'airline' ? (s.code || ['KID', 'GRD', 'NXT'][kind] || '') : j === 'arcade' ? (kind === 0 ? W('then') : kind === 1 ? 'STAGE ' + (P.stops.length + 2) : kind === 2 ? W('next') : `${i + 2}-1`) : j === 'space' ? (kind === 0 ? 'T-0' : kind === 2 ? 'NEXT' : 'STAGE ' + (i + 1)) : j === 'summit' ? ((kind === 0 ? 0 : kind === 1 ? 4000 : kind === 2 ? 4800 : (i + 1) * 800) + ' m') : '';
+    const label = { 0: W('then'), 1: W('now'), 2: W('next') };
+    const big = (s, cls, k, kind) => `<div class="stop ${cls}"><p class="tag"><b>${esc(tagFor(s, 0, kind))}</b>${esc(s.year || '')}</p><div class="big card">${s.photo ? `<img src="${artSrc(s.photo, k)}" alt="" loading="lazy">` : ''}<div class="tx"><span class="lbl">${esc(label[kind])}</span><p>${esc(s.text)}</p></div></div>
+      <div class="wl"><b>${esc(label[kind])}</b>${esc(s.year || '')}<br><i>${esc(s.text)}</i></div></div>`;
+    return sec('path', W('path'), `<div class="path" id="pathbox"><span class="path-line"></span>${mover ? `<span class="mover" id="mover">${mover}</span>` : ''}
+      ${big(P.then, '', 2, 0)}
+      ${P.stops.map((s, i) => `<div class="stop"><p class="tag"><b>${esc(tagFor(s, i, 9))}</b>${esc(s.year)}</p><button class="mini card" data-act="lb" data-i="${i}"><img src="${artSrc(s.photo, 10 + i)}" alt="${esc(s.caption)}" loading="lazy"><span><b>${esc(s.caption)}</b><small>${esc(s.year)}</small></span></button>
+        <div class="wl"><b>${esc(s.caption)}</b>${esc(s.year)}<br><i>${UI.exhibit} ${i + 1}</i></div></div>`).join('')}
+      ${big({ ...P.now, photo: g.photo }, 'now', 1, 1)}
+      ${big(P.next, 'dest', 3, 2)}</div>`);
+  },
+  achievements: () => {
+    const j = state.j;
+    const inner = (a, i) => ({
+      airline: `<small>${esc(a.place || '')}</small><b>${esc(a.title)}</b>${a.detail ? `<em>${esc(a.detail)}</em>` : ''}<small>${esc(g.year)}</small>`,
+      space: `<b>${esc(a.title)}</b>${a.detail ? `<em>${esc(a.detail)}</em>` : ''}`,
+      arcade: `<span class="tro">${TROPHIES[i % 10]}</span><b>${esc(a.title)}</b>${a.detail ? `<em>${esc(a.detail)}</em>` : ''}`,
+      museum: `<span class="tro">${TROPHIES[i % 10]}</span><b>${esc(a.title)}</b>${a.detail ? `<em>${esc(a.detail)}</em>` : ''}`,
+      summit: `<span class="flag"></span><b>${esc(a.title)}</b>${a.detail ? `<em>${esc(a.detail)}</em>` : ''}`
+    })[j];
+    const q = (i) => ({ airline: i + 1, space: '◌', arcade: '🔒', museum: ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'][i], summit: `${(i + 1) * 500} m` })[j];
+    return sec('achievements', W('ach'), `<p class="hint">${esc(W('achHint'))}</p><div class="achs">${ACH.map((a, i) => `<button class="ach" data-act="ach" data-i="${i}" style="--sc:${INK[i % INK.length]};--r:${[-12, 8, -5, 14, -9, 6][i % 6]}deg" aria-label="${esc(a.title)}"><span class="q">${q(i)}</span><span class="rv2">${inner(a, i)}</span></button>`).join('')}</div>
+      <p class="count-line" id="achcount">${esc(fill(W('achCount'), { n: 0, t: ACH.length }))}</p>`);
+  },
+  messages: () => {
+    const j = state.j;
+    const one = (p, gi, i) => {
+      if (j === 'airline') return `<button class="pc" data-act="card" style="--pc:${esc(p.color)}"><span class="pc-face front ${p.drawing ? 'drawn' : ''}">${p.drawing ? `<img src="${artSrc(p.drawing, 70 + i)}" alt="">` : ''}<span class="gr"><small>${UI.greetings}</small>${esc(p.name)}</span></span>
+        <span class="pc-face back"><span class="msgt">${esc(p.message)}<b>${esc(p.name)}</b></span><span class="side"><span class="stp">${esc(p.emoji || '✉️')}</span>${p.voice ? `<span class="vb" role="button" tabindex="0" data-voice="${gi}-${i}" aria-label="${UI.voicePlay}">${icon('play')}</span>` : ''}</span></span></button>`;
+      if (j === 'space') return `<button class="tx-card" data-act="decode" data-g="${gi}" data-i="${i}"><span class="hd"><span>◉ ${esc(p.name.toUpperCase())}</span><span>${esc(p.emoji || '')}</span></span><span class="wave" aria-hidden="true"></span><span class="body">${UI.decoding.replace('…', '')} ▸</span></button>`;
+      return `<button class="who card" data-act="msg" data-g="${gi}" data-i="${i}" style="--pc:${esc(p.color)}"><span class="av" aria-hidden="true">${j === 'museum' ? (gi * 10 + i + 1) : esc(p.emoji || '🙂')}</span><span><b>${esc(p.name)}</b><small>${j === 'arcade' ? UI.tapToTalk : j === 'museum' ? '🎧' : '✉'}</small></span></button>`;
+    };
+    const wrapCls = j === 'summit' ? 'stones' : 'mlist';
+    return sec('messages', W('msg'), `<p class="hint">${esc(W('msgHint'))}</p>${G.messages.map((grp, gi) => `<div class="mgroup"><h3>${esc(grp.label)}</h3><div class="${wrapCls}">${grp.people.map((p, i) => one(p, gi, i)).join('')}</div></div>`).join('')}`);
+  },
+  goals: () => sec('goals', W('goals'), `<ul class="goals card">${G.goals.map((x, i) => `<li><span class="c">${esc(state.j === 'arcade' ? 'Q' + (i + 1) : x.code || '')}</span><span>${esc(x.text)}</span><span class="s">${esc(W('goalTag'))}</span></li>`).join('')}</ul>`),
+  letter: () => { const L = G.letter; return sec('letter', W('letter'), `<div class="letter card"><p class="g">${esc(L.greeting)}</p>${L.body.map(p => `<p>${esc(p)}</p>`).join('')}<p class="so">${esc(L.signoff)}</p><div class="sigs">${L.signatures.map(s => `<span>${esc(s)}</span>`).join('')}</div></div>`); }
+};
+function finaleHTML() {
+  const j = state.j, msg = `<div class="fin-msg"><h2>${esc(j === 'arcade' ? 'LEVEL COMPLETE!' : G.ending.line)}</h2><p>${esc(j === 'arcade' ? G.ending.line : G.ending.sub)}</p>
+    <div class="actions">${G.reply.enabled ? `<button class="btn btn-primary" data-act="reply">${esc(W('reply'))}</button>` : ''}${G.share.enabled ? `<button class="btn btn-ghost" data-act="share">${icon('share')} ${UI.share}</button>` : ''}</div>
+    <p style="margin-top:12px"><button class="btn btn-ghost" data-act="again">${icon('replay')} ${j === 'arcade' ? 'NEW GAME +' : UI.again}</button></p>${G.branding.show ? `<p class="brand">${esc(G.branding.text)}</p>` : ''}</div>`;
+  const scene = {
+    airline: `<svg viewBox="0 0 520 220" style="width:min(96vw,520px);overflow:visible" aria-hidden="true"><path d="M0 190 H520 V220 H0Z" fill="#4a5560"/><path d="M0 205 H520" stroke="#fff" stroke-width="3" stroke-dasharray="26 18"/><g id="jet" transform="translate(40 150)"><path d="M0 22 Q10 12 40 12 H120 Q138 12 146 20 Q138 30 120 30 H40 Q14 30 0 22Z" fill="#fffaf1" stroke="#0f2742" stroke-width="2"/><path d="M70 20 L50 -6 H64 L96 20Z" fill="#ff6b4a"/><path d="M6 20 L0 2 H12 L22 18Z" fill="#ff6b4a"/></g></svg>
+      <button class="fin-act" data-act="finale">✈ ${esc(W('finale'))}</button>`,
+    space: `<svg class="rocket" id="rocket" viewBox="0 0 60 120" aria-hidden="true"><path d="M30 0 Q50 30 46 80 H14 Q10 30 30 0Z" fill="#e8f3ff"/><circle cx="30" cy="42" r="8" fill="#7cf3ff" stroke="#2a3560" stroke-width="3"/><path d="M14 64 L0 96 L14 90Z M46 64 L60 96 L46 90Z" fill="#ff8a3d"/><path d="M20 80 H40 L36 92 H24Z" fill="#9aa7bb"/><path id="flame" d="M24 92 Q30 125 36 92Z" fill="#ffb547" opacity="0"/></svg>
+      <button class="fin-act" id="holdbtn" data-hold="1"><i id="holdfill"></i><span>${esc(W('finale'))}</span></button>`,
+    arcade: `<div class="tally" id="tally" hidden><small>${UI.score}</small><span id="score">0</span></div><button class="fin-act" data-act="finale">${esc(W('finale'))}</button>`,
+    museum: `<div class="curtain l" id="cl"></div><div class="curtain r" id="cr"></div><button class="fin-act" data-act="finale">${esc(W('finale'))}</button>`,
+    summit: `<div class="sun" id="sun"></div><div class="mts" aria-hidden="true"><svg viewBox="0 0 400 160" preserveAspectRatio="none"><path d="M0 160 L80 70 L140 110 L200 20 L260 100 L330 60 L400 120 V160Z" fill="#4b5f84"/><path d="M200 20 V-14" stroke="#5a3818" stroke-width="3"/><path id="topflag" d="M201 -14 L226 -6 L201 2Z" fill="#e2553b" opacity="0"/><path d="M0 160 L100 120 L190 140 L280 100 L400 150 V160Z" fill="#30476b"/></svg></div>
+      <button class="fin-act" data-act="finale">⛰ ${esc(W('finale'))}</button>`
+  }[j];
+  return `<section class="finale f-${j}" id="finale">${scene}${msg}</section>`;
+}
+function renderPage() { page.innerHTML = heroHTML() + G.sections.filter(s => CH[s]).map(s => CH[s]()).join('') + finaleHTML(); }
+function renderChrome() {
+  const sw = { airline: 'background:linear-gradient(180deg,#0f2742,#e9845f)', space: 'background:radial-gradient(circle,#16204a,#070b1f)', arcade: 'background:#1b1036;box-shadow:inset 0 0 0 3px #ff4fd8', museum: 'background:linear-gradient(135deg,#8a6a2a,#f2d98f,#8a6a2a)', summit: 'background:linear-gradient(180deg,#30476b,#f2b56b)' };
+  chrome.innerHTML = `<div class="ctl"><button class="ib" data-act="sound" aria-pressed="${state.sound}" aria-label="${state.sound ? UI.soundOn : UI.soundOff}">${icon(state.sound ? 'on' : 'off')}</button>${G.share.enabled ? `<button class="ib" data-act="share" aria-label="${UI.share}">${icon('share')}</button>` : ''}<button class="ib" data-act="journeys" aria-label="${UI.journeys}">${icon('map')}</button></div>
+  <div class="sheet-bg" id="j-bg" data-act="bg-close"><div class="sheet" role="dialog" aria-label="${UI.journeysTitle}"><button class="sheet-x" data-act="close" aria-label="${UI.close}">${icon('close')}</button><h3>${UI.journeysTitle}</h3>
+    <ul class="th-list">${Object.entries(JOURNEYS).map(([id, s]) => `<li><button class="th" data-act="journey" data-id="${id}" aria-pressed="${id === state.j}"><span class="th-sw" style="${sw[id]}">${s.swatch}</span><span class="th-t"><b>${esc(s.name)}</b><small>${esc(s.tag)}</small></span></button></li>`).join('')}</ul><p class="note-s">${UI.journeysNote}</p></div></div>
+  <div class="sheet-bg" id="msg-bg" data-act="bg-close"><div class="sheet" role="dialog" aria-modal="true" id="msg-sheet"></div></div>
+  <div class="sheet-bg" id="reply-bg" data-act="bg-close"><div class="sheet" role="dialog" aria-label="${esc(W('reply'))}"><button class="sheet-x" data-act="close" aria-label="${UI.close}">${icon('close')}</button>
+    <div id="reply-body"><h3>${esc(W('reply'))}</h3><div class="reacts">${G.reply.reactions.map((r, i) => `<button class="react" data-act="react" data-i="${i}" aria-pressed="false"><span>${esc(r.emoji)}</span>${esc(r.text)}</button>`).join('')}</div>
+    <textarea id="reply-text" placeholder="${UI.replyPlaceholder}" aria-label="${esc(W('reply'))}"></textarea><button class="btn btn-primary" data-act="send">${icon('send')} ${UI.send}</button><p class="note-s">${UI.proto}</p></div></div></div>
+  <div class="lb" id="lb" role="dialog" aria-modal="true" hidden><button class="ib lb-x" data-act="lb-close" aria-label="${UI.close}">${icon('close')}</button><button class="lb-nav prev" data-act="lb-prev" aria-label="${UI.prev}">${icon('left')}</button><figure><img id="lb-img" alt=""><figcaption id="lb-cap"></figcaption></figure><button class="lb-nav next" data-act="lb-next" aria-label="${UI.next}">${icon('right')}</button></div>`;
+}
+
+/* ════════════ BEHAVIOUR ════════════ */
+function setScreen(s) { document.body.dataset.screen = s; document.body.classList.toggle('hold', s === 'start'); }
+async function begin() {
+  if (state.started) return; state.started = true; API.track('started:' + state.j);
+  await START[state.j].go();
+  page.hidden = false; setScreen('page'); scrollTo(0, 0); onScroll();
+  if (state.j === 'airline') { SFX.play('win'); anim($('#shade'), [{ transform: 'none' }, { transform: 'translateY(-100%)' }], { duration: reduce ? 1 : 1400, delay: reduce ? 0 : 500, easing: 'cubic-bezier(.4,0,.2,1)' }); }
+  await done(anim($('#start-s'), [{ opacity: 1 }, { opacity: 0 }], { duration: reduce ? 1 : 700 })); startEl.innerHTML = '';
+}
+function onScroll() {
+  const box = $('#pathbox'), mv = $('#mover');
+  if (box && mv) { const r = box.getBoundingClientRect(), p = clamp((innerHeight * .55 - r.top) / Math.max(1, r.height), 0, 1); mv.style.transform = `translateY(${(p * Math.max(0, r.height - 34)).toFixed(1)}px)`; }
+  const alt = $('#alt'); if (alt) { const h = document.documentElement.scrollHeight - innerHeight, p = clamp(scrollY / Math.max(1, h), 0, 1); alt.textContent = `${UI.altitude}: ${Math.round(p * 4808).toLocaleString(G.meta.locale)} m`; }
+}
+addEventListener('scroll', () => requestAnimationFrame(onScroll), { passive: true });
+function showUnlock(a, i) { const u = $('#unlock'); u.innerHTML = `<span style="font-size:1.8rem">${TROPHIES[i % 10]}</span><span><b>ACHIEVEMENT UNLOCKED</b>${esc(a.title)}</span>`; u.classList.add('show'); clearTimeout(u._t); u._t = setTimeout(() => u.classList.remove('show'), 2200); }
+function reveal(btn) {
+  if (btn.classList.contains('on')) return; btn.classList.add('on'); SFX.play('ach'); const i = +btn.dataset.i;
+  if (state.j === 'arcade') showUnlock(ACH[i], i);
+  anim(btn, [{ transform: 'scale(1)' }, { transform: 'scale(.94)' }, { transform: 'scale(1)' }], { duration: 260, fill: 'none' });
+  const n = $$('.ach.on').length; $('#achcount').textContent = fill(W('achCount'), { n, t: ACH.length }); if (n === ACH.length) setTimeout(() => burstAt($('#achcount'), 36), 300);
+}
+async function turn(card) {
+  if (card.dataset.busy) return; card.dataset.busy = 1; SFX.play('msg');
+  const a = anim(card, [{ transform: 'scaleX(1)' }, { transform: 'scaleX(0)' }], { duration: reduce ? 1 : 170, easing: 'ease-in', fill: 'forwards' }); await done(a);
+  card.classList.toggle('on');
+  const b = anim(card, [{ transform: 'scaleX(0)' }, { transform: 'scaleX(1)' }], { duration: reduce ? 1 : 210, easing: 'ease-out', fill: 'forwards' }); await done(b);
+  if (a) a.cancel(); if (b) b.cancel(); delete card.dataset.busy; if (!card.classList.contains('on')) stopVoice();
+}
+async function typeInto(el, text, tick) { el.textContent = ''; if (reduce) { el.textContent = text; return; } for (let k = 0; k < text.length; k++) { el.textContent += text[k]; if (k % 3 === 0 && tick) SFX.play('tick'); await wait(text[k] === ' ' ? 18 : 26); if (!el.isConnected) return; } }
+async function decode(card) {
+  if (card.classList.contains('on') || card.dataset.busy) return; card.dataset.busy = 1; const p = G.messages[+card.dataset.g].people[+card.dataset.i], body = $('.body', card);
+  SFX.play('msg'); body.textContent = UI.decoding; await wait(reduce ? 0 : 800); card.classList.add('on');
+  await typeInto(body, p.message + '\n— ' + p.name, true); delete card.dataset.busy;
+  if (p.voice) { card.insertAdjacentHTML('beforeend', `<span class="voice" style="--pc:#ff8a3d"><span class="vb" role="button" tabindex="0" data-voice="${card.dataset.g}-${card.dataset.i}" aria-label="${UI.voicePlay}">${icon('play')}</span><span class="vcap" id="vcap-${card.dataset.g}-${card.dataset.i}">${p.voice.src ? '' : UI.voiceDemo}</span></span>`); }
+}
+function openMsg(gi, i) {
+  const p = G.messages[gi].people[i], sh = $('#msg-sheet'), j = state.j; stopVoice(); SFX.play('msg');
+  sh.style.setProperty('--pc', p.color);
+  sh.innerHTML = `<button class="sheet-x" data-act="close" aria-label="${UI.close}">${icon('close')}</button><div class="m-head"><span class="av" aria-hidden="true">${j === 'museum' ? '🎧' : esc(p.emoji || '🙂')}</span><b>${esc(j === 'arcade' ? p.name.toUpperCase() : p.name)}</b></div>
+    <p class="m-text" id="m-text"></p>${p.drawing ? `<div class="m-draw"><img src="${artSrc(p.drawing, 70 + i)}" alt=""></div>` : ''}
+    ${p.voice ? `<div class="voice"><span class="vb" role="button" tabindex="0" data-voice="${gi}-${i}" aria-label="${UI.voicePlay}">${icon('play')}</span><span class="vcap" id="vcap-${gi}-${i}">${p.voice.src ? '' : UI.voiceDemo}</span></div>` : ''}`;
+  $('#msg-bg').classList.add('open');
+  const t = $('#m-text'); if (j === 'arcade') typeInto(t, p.message, true); else t.textContent = p.message;
+  if (j === 'museum' && p.voice) setTimeout(() => { const b = $('[data-voice]', sh); if (b) voiceToggle(b.dataset.voice, b); }, 400);
+}
+let curVoice = null;
+function voiceToggle(id, btn) {
+  if (curVoice && curVoice.id === id) { stopVoice(); return; } stopVoice();
+  const [gi, i] = id.split('-').map(Number), v = G.messages[gi].people[i].voice, t0 = performance.now(); let raf = 0, audio = null;
+  const cap = () => document.getElementById('vcap-' + id);
+  curVoice = { id, stop() { cancelAnimationFrame(raf); if (audio) audio.pause(); btn.innerHTML = icon('play'); btn.setAttribute('aria-label', UI.voicePlay); const c = cap(); if (c) c.textContent = v.src ? '' : UI.voiceDemo; } };
+  if (v.src) { audio = new Audio(v.src); audio.play().catch(() => {}); audio.addEventListener('ended', stopVoice); }
+  btn.innerHTML = icon('pause'); btn.setAttribute('aria-label', UI.voicePause);
+  const loop = () => { const c = audio ? audio.currentTime : (performance.now() - t0) / 1000, l = (v.transcript || []).filter(x => x.t <= c).pop(), el = cap(); if (el) el.textContent = l ? '“' + l.text + '”' : ''; if (c >= (+v.durationSec || 10)) { stopVoice(); return; } raf = requestAnimationFrame(loop); };
+  raf = requestAnimationFrame(loop);
+}
+function stopVoice() { if (curVoice) { curVoice.stop(); curVoice = null; } }
+
+/* finales */
+const FINALE = {
+  async airline() { SFX.play('finale'); await done(anim($('#jet'), [{ transform: 'translate(40px,150px)' }, { transform: 'translate(260px,150px)', offset: .45 }, { transform: 'translate(420px,90px) rotate(-12deg)', offset: .75 }, { transform: 'translate(640px,-80px) rotate(-18deg)' }], { duration: reduce ? 1 : 2600, easing: 'cubic-bezier(.5,0,.6,1)' })); },
+  async space() { SFX.play('finale'); $('#flame').setAttribute('opacity', 1); await done(anim($('#rocket'), [{ transform: 'translateY(0)' }, { transform: 'translateY(6px)', offset: .1 }, { transform: 'translateY(0)', offset: .2 }, { transform: 'translateY(-130vh)' }], { duration: reduce ? 1 : 2400, easing: 'cubic-bezier(.6,0,.9,.6)' })); },
+  async arcade() { const t = $('#tally'), s = $('#score'), total = 2027 * 100 + ACH.length * 1000; t.hidden = false; const t0 = performance.now(), D = reduce ? 1 : 1800;
+    await new Promise(res => { const step = () => { const p = Math.min(1, (performance.now() - t0) / D); s.textContent = Math.round(total * p).toLocaleString('en'); if (Math.random() < .5) SFX.play('coin'); p < 1 ? requestAnimationFrame(step) : res(); }; step(); }); },
+  async museum() { SFX.play('finale'); anim($('#cl'), [{ transform: 'none' }, { transform: 'translateX(-100%)' }], { duration: reduce ? 1 : 1600, easing: 'cubic-bezier(.6,0,.3,1)' }); await done(anim($('#cr'), [{ transform: 'none' }, { transform: 'translateX(100%)' }], { duration: reduce ? 1 : 1600, easing: 'cubic-bezier(.6,0,.3,1)' })); },
+  async summit() { SFX.play('finale'); await done(anim($('#sun'), [{ transform: 'translateY(160px)' }, { transform: 'translateY(-60px)' }], { duration: reduce ? 1 : 2400, easing: 'cubic-bezier(.3,0,.2,1)' })); $('#topflag').setAttribute('opacity', 1); }
+};
+async function finale(btn) {
+  const sec = $('#finale'); if (sec.classList.contains('done') || sec.dataset.busy) return; sec.dataset.busy = 1; if (btn) btn.disabled = true; API.track('finale:' + state.j);
+  await FINALE[state.j](); sec.classList.add('done'); SFX.play('win'); cheer();
+}
+/* space: press-and-hold launch */
+let hold = null;
+function holdStart(e) {
+  const b = e.target.closest('[data-hold]'); if (!b || $('#finale').classList.contains('done')) return; e.preventDefault();
+  const fillEl = $('#holdfill'), t0 = performance.now(), D = reduce ? 200 : 1600;
+  hold = { raf: 0 }; const step = () => { const p = Math.min(1, (performance.now() - t0) / D); fillEl.style.width = (p * 100) + '%'; if (p % .1 < .02) SFX.play('tick'); if (p >= 1) { hold = null; b.hidden = true; finale(); return; } hold.raf = requestAnimationFrame(step); }; step();
+}
+function holdEnd() { if (!hold) return; cancelAnimationFrame(hold.raf); hold = null; const f = $('#holdfill'); if (f) anim(f, [{ width: f.style.width }, { width: '0%' }], { duration: 250, fill: 'forwards' }).finished.then(() => { f.style.width = '0%'; }).catch(() => {}); }
+document.addEventListener('pointerdown', holdStart); ['pointerup', 'pointercancel', 'pointerleave'].forEach(ev => document.addEventListener(ev, holdEnd));
+
+function lbShow(i) { const s = G.path.stops, n = s.length; state.lb = (i + n) % n; $('#lb-img').src = artSrc(s[state.lb].photo, 10 + state.lb); $('#lb-cap').textContent = `${s[state.lb].year} · ${s[state.lb].caption}`; }
+async function share() {
+  const data = { title: `${g.fullName} · Class of ${g.year}`, text: G.ending.sub, url: pageURL() };
+  if (navigator.share) { try { await navigator.share(data); return; } catch (e) { if (e && e.name === 'AbortError') return; } }
+  try { await navigator.clipboard.writeText(data.url); toast(UI.copied); } catch (e) { toast(UI.copyFailed); }
+}
+async function sendReply() {
+  const txt = $('#reply-text').value.trim(), r = state.reaction; if (!txt && r == null) { toast(UI.replyEmpty); return; }
+  const btn = $('[data-act="send"]'); btn.disabled = true; btn.textContent = UI.sending;
+  await API.sendReply({ journey: state.j, reaction: r != null ? G.reply.reactions[r] : null, message: txt });
+  $('#reply-body').innerHTML = `<div class="sent"><p class="em">${r != null ? esc(G.reply.reactions[r].emoji) : '🎓'}</p><h3>${UI.sentTitle}</h3><p>${UI.sentSub}</p><p class="note-s">${UI.proto}</p></div>`; cheer();
+}
+function syncSound() { $$('[data-act="sound"]').forEach(b => { b.setAttribute('aria-pressed', state.sound); b.innerHTML = b.classList.contains('chip') ? `${icon(state.sound ? 'on' : 'off')} ${state.sound ? UI.soundOn : UI.soundOff}` : icon(state.sound ? 'on' : 'off'); }); }
+function closeSheets() { $$('.sheet-bg.open').forEach(s => s.classList.remove('open')); stopVoice(); }
+function setJourney(id) {
+  state.j = JOURNEYS[id] ? id : 'airline'; document.documentElement.dataset.j = state.j;
+  const m = $('meta[name="theme-color"]'); if (m) m.content = J().theme;
+}
+function start() {
+  closeSheets(); state.started = false; state.reaction = null;
+  renderPage(); renderChrome(); startEl.innerHTML = START[state.j].html(); page.hidden = true; setScreen('start'); scrollTo(0, 0);
+}
+
+document.addEventListener('click', e => {
+  const v = e.target.closest('[data-voice]'); if (v) { e.stopPropagation(); voiceToggle(v.dataset.voice, v); return; }
+  const a = e.target.closest('[data-act]'); if (!a) return; const act = a.dataset.act;
+  if (act === 'bg-close') { if (e.target === a) closeSheets(); return; }
+  switch (act) {
+    case 'start': begin(); break;
+    case 'sound': state.sound = !state.sound; syncSound(); break;
+    case 'journeys': $('#j-bg').classList.add('open'); break;
+    case 'journey': setJourney(a.dataset.id); start(); break;
+    case 'close': closeSheets(); break;
+    case 'ach': reveal(a); break;
+    case 'card': turn(a); break;
+    case 'decode': decode(a); break;
+    case 'msg': openMsg(+a.dataset.g, +a.dataset.i); break;
+    case 'lb': lbShow(+a.dataset.i); $('#lb').hidden = false; break;
+    case 'lb-close': $('#lb').hidden = true; break;
+    case 'lb-prev': lbShow(state.lb - 1); break;
+    case 'lb-next': lbShow(state.lb + 1); break;
+    case 'finale': finale(a); break;
+    case 'reply': $('#reply-bg').classList.add('open'); break;
+    case 'react': { const i = +a.dataset.i; state.reaction = state.reaction === i ? null : i; $$('.react').forEach(b => b.setAttribute('aria-pressed', +b.dataset.i === state.reaction)); break; }
+    case 'send': sendReply(); break;
+    case 'share': share(); break;
+    case 'again': start(); break;
+  }
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { if (!$('#lb').hidden) $('#lb').hidden = true; else closeSheets(); }
+  if ((e.key === 'Enter' || e.key === ' ') && e.target.matches) {
+    if (e.target.matches('#startbtn[role="button"]')) { e.preventDefault(); begin(); }
+    else if (e.target.matches('[data-voice]')) { e.preventDefault(); voiceToggle(e.target.dataset.voice, e.target); }
+    else if (e.target.matches('[data-hold]')) { e.preventDefault(); if (!$('#finale').classList.contains('done')) { e.target.hidden = true; finale(); } }
+  }
+});
+
+/* ════════════ BOOT ════════════ */
+document.documentElement.lang = G.meta.lang; document.documentElement.dir = G.meta.dir;
+let jj = G.journey; try { const q = new URLSearchParams(location.search); if (q.get('journey')) jj = q.get('journey'); } catch (e) {}
+setJourney(jj); start();
+})();
+</script>
+</body>
+</html>

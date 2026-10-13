@@ -230,11 +230,19 @@ def _qr_caption_for_order(order) -> str | None:
             return f"{song.artist} — {song.track}"
         return song.track or song.artist or None
 
-    # No other product grants `__live__` today (confirmed against the
-    # catalog's own delivery packs), so no other branch exists yet. A
-    # future product without one here simply gets the generic caption —
-    # the same safe default every exception path above already falls
-    # back to.
+    if slug == "graduation-keepsake":
+        from apps.delivery.product_renderers.graduation_keepsake.data import validate_and_normalize as validate_grad
+
+        try:
+            graduation = validate_grad(values, theme_selections)
+        except Exception:  # noqa: BLE001
+            return None
+        # The graduate's own name, as entered (a proper noun: never translated).
+        return graduation.values.get("gradFullName") or graduation.values.get("gradName") or None
+
+    # A future product without a branch here simply gets the generic
+    # caption — the same safe default every exception path above already
+    # falls back to.
     return None
 
 

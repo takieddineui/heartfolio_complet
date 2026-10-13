@@ -264,6 +264,35 @@ CATALOG = [
             ),
         ],
     },
+    {
+        "slug": "graduation-keepsake",
+        "name_i18n_key": "graduationKeepsake",
+        # `other`, not a new `graduation` category: `Product.category` is
+        # guarded by a CHECK constraint (`ck_products_category_valid`), so a
+        # new value needs a migration, and migrations are run by hand. The
+        # category is only a grouping label today; revisit if it ever drives
+        # UI.
+        "category": "other",
+        # `coming_soon`, unlike Song Poster's `available`-but-hidden: this
+        # product has NO Freemius plan yet (`FREEMIUS_PLAN_MAPPING` has no
+        # `graduation-keepsake:live`), so an order for it could not be paid.
+        # Flip this to `available` in the same change that un-hides it in the
+        # frontend registry and maps its plan - ADDING-A-PRODUCT.md, step 7.
+        "status": "coming_soon",
+        # $15.99 - a PLACEHOLDER at the same Digital tier as Love Story
+        # Timeline and Song Poster, until the Freemius plan fixes the real
+        # price. `seed()` never overwrites a price already in the database
+        # unless `--update-prices` is passed.
+        "starting_price_cents": 1599,
+        "order": 6,
+        "tags": ["graduation", "gift", "photos", "messages"],
+        # LIVE-ONLY. One pack whose only target is the hosted page. More packs
+        # (a printable, wallpapers) may come later: they are just more rows
+        # here, plus a print renderer and a widened `supported_targets()`.
+        "packs": [
+            ("live", 1599, ["__live__"], "active"),
+        ],
+    },
 ]
 
 
@@ -299,6 +328,9 @@ def supported_targets(product_slug):
         # deliberately-not-decided-here question the CATALOG entry below
         # leaves open.
         "song-poster": set(print_target_dimensions()) | set(wallpaper_target_dimensions()) | {LIVE_TARGET_SENTINEL},
+        # Live-only for now: the hosted page is the only thing it can
+        # deliver. Widen this set together with a print renderer.
+        "graduation-keepsake": {LIVE_TARGET_SENTINEL},
     }.get(product_slug)
 
 

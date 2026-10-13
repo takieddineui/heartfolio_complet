@@ -285,6 +285,18 @@ class SongPosterRenderFailed(ApplicationError):
     default_detail = "Song Poster rendering failed."
 
 
+# --- Product renderers (Graduation Keepsake) ----------------------------
+
+class GraduationKeepsakeInvalidData(ApplicationError):
+    status_code = status.HTTP_400_BAD_REQUEST
+    default_detail = "This project's data does not match the Graduation Keepsake contract."
+
+
+class GraduationKeepsakeRenderFailed(ApplicationError):
+    status_code = status.HTTP_502_BAD_GATEWAY
+    default_detail = "Graduation Keepsake rendering failed."
+
+
 # --- Product renderers (Where We Met Map) ------------------------------
 
 class WhereWeMetMapInvalidData(ApplicationError):

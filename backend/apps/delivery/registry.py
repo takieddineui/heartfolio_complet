@@ -14,6 +14,7 @@ renderers registered.
 
 from __future__ import annotations
 
+from .product_renderers.graduation_keepsake.renderer import GraduationKeepsakeRenderer
 from .product_renderers.love_story_timeline.renderer import LoveStoryTimelineRenderer
 from .product_renderers.song_poster.renderer import SongPosterRenderer
 from .product_renderers.where_we_met_map.renderer import WhereWeMetMapRenderer
@@ -33,6 +34,10 @@ _REGISTRY: dict[str, ProductRenderer] = {
     # is what makes the slug resolvable the moment that catalog entry
     # is deliberately created.
     "song-poster": SongPosterRenderer(),
+    # Live-only: no print or wallpaper output yet, so this renderer exists
+    # for `validate_project_data` (create_order's pre-payment gate); its
+    # `render()` refuses every target. See graduation_keepsake/renderer.py.
+    "graduation-keepsake": GraduationKeepsakeRenderer(),
 }
 
 

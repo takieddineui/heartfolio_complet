@@ -50,11 +50,26 @@ FFMPEG = shutil.which("ffmpeg")
 #: reachable by an untrusted file, and these cover what phones actually
 #: produce.
 VIDEO_MIME_TYPES = ("video/mp4", "video/quicktime", "video/webm")
-AUDIO_MIME_TYPES = ("audio/mpeg", "audio/mp4", "audio/aac", "audio/wav", "audio/webm")
+#: `audio/ogg` / `audio/opus` are what WhatsApp voice notes arrive as, and
+#: `audio/x-m4a` / `audio/mp3` are what browsers declare for an iPhone .m4a
+#: and a plain .mp3. Accepted because Graduation Keepsake messages are files
+#: the organiser RECEIVED from other people, not just recordings made in the
+#: Studio. All of them are re-encoded to AAC/MP4 by `reencode_audio` before
+#: storage, so playback (including iOS Safari) never depends on the original.
+AUDIO_MIME_TYPES = (
+    "audio/mpeg", "audio/mp3", "audio/mp4", "audio/x-m4a", "audio/aac", "audio/wav", "audio/webm",
+    "audio/ogg", "audio/opus",
+)
 
 #: Long enough for a voice note or a moment of footage; short enough that
 #: storage per order stays predictable (§5's caps).
 MAX_MEDIA_SECONDS = 30
+
+#: Audio is allowed longer than video: a spoken message from a parent runs
+#: past 30 seconds, and audio costs a fraction of video to store and serve.
+#: Video keeps `MAX_MEDIA_SECONDS`. Graduation Keepsake voice messages are
+#: specified at up to one minute.
+MAX_AUDIO_SECONDS = 60
 _PROBE_TIMEOUT_SECONDS = 20
 
 
@@ -132,9 +147,10 @@ def validate_media(uploaded_file, mime_type: str) -> float:
     except (TypeError, ValueError):
         duration = 0.0
 
-    if duration > MAX_MEDIA_SECONDS:
+    limit = MAX_MEDIA_SECONDS if declared_video else MAX_AUDIO_SECONDS
+    if duration > limit:
         raise InvalidAssetType(
-            f"Please keep clips under {MAX_MEDIA_SECONDS} seconds — this one is "
+            f"Please keep clips under {limit} seconds — this one is "
             f"{int(duration)}."
         )
 
@@ -171,7 +187,7 @@ def reencode_audio(uploaded_file) -> ContentFile:
                 # well as by omission.
                 "-vn", "-sn", "-dn", "-map_metadata", "-1",
                 "-c:a", "aac", "-b:a", "128k",
-                "-t", str(MAX_MEDIA_SECONDS),
+                "-t", str(MAX_AUDIO_SECONDS),
                 "-f", "mp4", target.name,
             ],
             capture_output=True,

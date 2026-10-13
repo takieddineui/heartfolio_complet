@@ -55,7 +55,7 @@ def promote_media_assets_for_order(order) -> None:
         # §21e's situation: orders can outlive projects by design.
         return
 
-    asset_ids = _media_asset_ids(project)
+    asset_ids = _media_asset_ids(project, order.product.slug if order.product_id else None)
     if not asset_ids:
         return
 
@@ -88,15 +88,35 @@ def _order_needs_media(order) -> bool:
     return "__live__" in targets or any(t.startswith("ar-") for t in targets)
 
 
-def _media_asset_ids(project) -> list[str]:
-    """Every video/audio asset id referenced by a project.
+def _media_asset_ids(project, product_slug: str | None = None) -> list[str]:
+    """Every video/audio asset id a paid order of this product needs.
+
+    PER PRODUCT, because the keys that hold media are a property of each
+    product's own `values` shape. This function used to read only Love Story
+    Timeline's `values.events[].video/audio` for every product, which was
+    harmless while no other product had provisional media — and would have
+    silently let `expire_provisional_assets` delete every Graduation Keepsake
+    voice message from PAID orders a week after purchase. A product with
+    audio or video registers its collector in `_COLLECTORS`; a product not
+    listed there keeps the original Love Story Timeline reader (which finds
+    nothing in a shape without `events`, exactly as before).
+
+    Collectors must tolerate a project whose data does not validate cleanly
+    (a draft, a stale shape) without raising. Promotion is a best-effort
+    backend/cost concern; it must not become a second, stricter validator
+    that can fail a payment.
+    """
+    values = (project.data or {}).get("values") or {}
+    collector = _COLLECTORS.get(product_slug or "", _timeline_media_asset_ids)
+    return collector(values)
+
+
+def _timeline_media_asset_ids(values: dict) -> list[str]:
+    """Love Story Timeline: `values.events[].video` / `.audio`.
 
     Reads the SAME keys the Love Story Timeline validator reads
     (`_optional_asset_id(raw_event, "video"/"audio", ...)` in data.py) —
-    deliberately not imported from there, because this needs to tolerate a
-    project whose data does not validate cleanly (a draft, a stale shape)
-    without raising. Promotion is a best-effort backend/cost concern; it
-    must not become a second, stricter validator that can fail a payment.
+    deliberately not imported from there.
 
     BACKGROUND MUSIC IS NEVER COLLECTED HERE. It used to be — before §4
     made it a shipped preset selection rather than a customer upload, it
@@ -105,7 +125,6 @@ def _media_asset_ids(project) -> list[str]:
     is a plain preset id (`_choice_field`-validated against `MUSIC_PRESETS`
     in data.py), with nothing in R2 for a paid order to promote.
     """
-    values = (project.data or {}).get("values") or {}
     asset_ids: list[str] = []
 
     for event in values.get("events") or []:
@@ -117,3 +136,20 @@ def _media_asset_ids(project) -> list[str]:
                 asset_ids.append(media["assetId"])
 
     return asset_ids
+
+
+def _graduation_media_asset_ids(values: dict) -> list[str]:
+    """Graduation Keepsake: the voice messages (`messageGroups[].people[].voice`).
+
+    Honours the chapter switches — a Messages chapter that is off is never
+    served, so its voice messages are not promoted and are left to expire.
+    """
+    from apps.delivery.product_renderers.graduation_keepsake.data import audio_asset_ids
+
+    return audio_asset_ids(values)
+
+
+_COLLECTORS = {
+    "love-story-timeline": _timeline_media_asset_ids,
+    "graduation-keepsake": _graduation_media_asset_ids,
+}

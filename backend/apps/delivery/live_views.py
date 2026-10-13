@@ -26,6 +26,7 @@ from rest_framework.views import APIView
 
 from apps.delivery.ar_views import _build_ar_payload, _load_paid_experience
 from apps.delivery.models import PublicExperience
+from apps.delivery.product_renderers.graduation_keepsake.live_payload import build_graduation_live_payload
 
 logger = logging.getLogger(__name__)
 
@@ -114,6 +115,16 @@ def _build_song_poster_live_payload(experience, order, project, product_slug) ->
     }
 
 
+#: Product slug -> the function that builds that product's live payload.
+#: Adding a product with a live page is one entry here. Love Story Timeline
+#: is named explicitly: its builder is the original AR-shaped one.
+_LIVE_PAYLOAD_BUILDERS = {
+    "love-story-timeline": _build_ar_payload,
+    "song-poster": _build_song_poster_live_payload,
+    "graduation-keepsake": build_graduation_live_payload,
+}
+
+
 class LiveExperienceView(APIView):
     """`GET /live/<id>/` — the Digital keepsake behind a shared link."""
 
@@ -131,18 +142,21 @@ class LiveExperienceView(APIView):
         )
         if loaded is not None:
             experience, order, project, product_slug = loaded
-            # Dispatched by product, both builders sharing the SAME
-            # already-loaded row — never a second lookup per product
-            # tried. Anything not Song Poster falls through to the
-            # original AR-shaped builder, preserving today's exact
-            # behaviour for every existing live keepsake (Love Story
-            # Timeline) rather than requiring every future product to be
-            # added to an explicit allow-list before its live page works
-            # at all.
-            if product_slug == "song-poster":
-                payload = _build_song_poster_live_payload(experience, order, project, product_slug)
+            # Dispatched by product through `_LIVE_PAYLOAD_BUILDERS`, every
+            # builder sharing the SAME already-loaded row — never a second
+            # lookup per product tried.
+            builder = _LIVE_PAYLOAD_BUILDERS.get(product_slug or "")
+            if builder is None:
+                # Used to fall through to `_build_ar_payload` (Love Story
+                # Timeline's builder, which imports that product's validator)
+                # for ANY product not named above — so a new product's live
+                # page was a silent 404 with nothing to say why. An unknown
+                # product now fails loudly in the log, and every product that
+                # has a live page is named explicitly in the registry.
+                logger.error("live_experience_product_has_no_payload_builder", extra={"product": product_slug})
+                payload = None
             else:
-                payload = _build_ar_payload(experience, order, project, product_slug)
+                payload = builder(experience, order, project, product_slug)
         else:
             payload = None
 
