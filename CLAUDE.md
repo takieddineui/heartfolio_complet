@@ -257,9 +257,17 @@ Two were genuine product bugs: the `layout` default above, and
   heading and all four options fell back to English inside a localized Studio);
   they now have their own, pinned by `typography-fonts.test.ts`, which checks each
   locale's own dictionary and not the English fallback. The Arabic names are a
-  plain translation that has not had a native speaker's review. Still English in
-  fr and ar as of 13 Oct 2026: the eight palette option names and the "Text
-  Scale" label (not checked beyond what the Studio showed); Typewriter =
+  plain translation that has not had a native speaker's review. The whole
+  Appearance section is now translated (typography, the eight palette names, which
+  are the swatches' tooltips, and "Text Scale"), pinned by
+  `appearance-labels.test.ts` for every axis. **Still English in fr and ar** (the
+  module dictionary's `en` has them, `fr` and `ar` do not, found by diffing the
+  keys 13 Oct 2026): the milestone field labels (date, title, description,
+  photo), the ending-text and poster-title labels and placeholders, the help text
+  of "show duration" and "auto sort", and most pack descriptions
+  (`packs.*.description`); the legacy layout option keys and `renderer.premium.*`
+  have no other users in the source and are probably dead. Not fixed (out of the
+  requested scope); Typewriter =
   JetBrains Mono (`public/fonts/jetbrains-mono-latin.woff2`, ~40KB, OFL text beside
   it). `typography-fonts.test.ts` fails if a token names an unregistered family or
   its file is missing, and pins each option's kind (serif/sans/mono, slant) to the
