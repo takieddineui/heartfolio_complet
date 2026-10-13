@@ -719,7 +719,7 @@ face that is Comic Sans on Windows, monospace) and the look varied by device.
 |---|---|---|
 | Serif Classic | Heartfolio Serif (Fraunces) headings, Heartfolio Sans (Inter) body | DejaVu Serif Bold / DejaVu Serif |
 | Modern Sans | Inter / Inter | DejaVu Sans Bold / DejaVu Sans |
-| Romantic Script | Fraunces SLANTED / Inter | DejaVu Serif Italic / DejaVu Sans |
+| Romantic Italic | Fraunces SLANTED / Inter | DejaVu Serif Italic / DejaVu Sans |
 | Typewriter | JetBrains Mono / JetBrains Mono | DejaVu Sans Mono Bold / Mono |
 
 Typewriter now matches the print's text width almost exactly (JetBrains Mono's

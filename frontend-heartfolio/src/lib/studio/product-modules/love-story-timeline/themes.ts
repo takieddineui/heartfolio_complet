@@ -42,8 +42,9 @@ export const timelineThemes: ThemeEngineConfig = {
         // The print draws DejaVu Serif ITALIC for this option (png_renderer.py
         // FONT_FILES), not a script face, so the preview and the live page show
         // the serif slanted. Fraunces ships no italic file, so the browser slants
-        // it. Whether "Romantic Script" is the right NAME for an italic serif is
-        // a product question, recorded in CLAUDE.md.
+        // it. The label is "Romantic Italic" (renamed from "Romantic Script",
+        // which promised a cursive face that was never built); the id stays
+        // "script" because saved projects store it.
         { id: "script", label: "themes.typography.options.script", tokens: { "--poster-heading-font": "'Heartfolio Serif', Georgia, serif", "--poster-body-font": "'Heartfolio Sans', sans-serif", "--poster-heading-style": "italic" } },
         { id: "typewriter", label: "themes.typography.options.typewriter", tokens: { "--poster-heading-font": "'JetBrains Mono', monospace", "--poster-body-font": "'JetBrains Mono', monospace", "--poster-heading-style": "normal" } },
       ],

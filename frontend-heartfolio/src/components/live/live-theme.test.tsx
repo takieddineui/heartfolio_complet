@@ -86,7 +86,7 @@ describe("liveThemeStyle: every typography", () => {
     expect(style["--live-heading-style"]).toBe(tokenOf(option, "--poster-heading-style"));
   });
 
-  it("slants the headings of Romantic Script only, as the print's italic does", () => {
+  it("slants the headings of Romantic Italic only, as the print's italic does", () => {
     const styles = Object.fromEntries(
       TYPOGRAPHIES.map((option) => [option.id, (liveThemeStyle({ typography: option.id }) as Record<string, string>)["--live-heading-style"]])
     );
@@ -94,7 +94,7 @@ describe("liveThemeStyle: every typography", () => {
   });
 
   it("gives the four choices four different looks", () => {
-    // Serif Classic and Romantic Script share their faces; the slant is what
+    // Serif Classic and Romantic Italic share their faces; the slant is what
     // tells them apart, so it is part of the look.
     const looks = TYPOGRAPHIES.map((option) => {
       const style = liveThemeStyle({ typography: option.id }) as Record<string, string>;
@@ -132,7 +132,7 @@ describe("Arabic headings keep their designed face", () => {
     expect(face, "the Arabic alias @font-face is missing").toBeDefined();
     expect(face).toContain("/fonts/noto-kufi-arabic.woff2");
     expect(face).toMatch(/unicode-range:\s*U\+0600-06FF/);
-    // No Latin range: if it covered Latin it would turn Romantic Script and
+    // No Latin range: if it covered Latin it would turn Romantic Italic and
     // Typewriter back into the same face.
     expect(face).not.toMatch(/U\+0000/);
     expect(existsSync("public/fonts/noto-kufi-arabic.woff2")).toBe(true);

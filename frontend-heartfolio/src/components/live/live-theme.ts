@@ -34,7 +34,7 @@ import { timelineThemes } from "@/lib/studio/product-modules/love-story-timeline
  * preview draw the same faces on every device. They used to name fonts that
  * were never loaded and fell back to whatever the browser had;
  * `typography-fonts.test.ts` now fails if a token names an unregistered
- * family. "Romantic Script" is slanted Fraunces: the print draws DejaVu Serif
+ * family. "Romantic Italic" is slanted Fraunces: the print draws DejaVu Serif
  * Italic for it, and `--live-heading-style` carries the slant.
  *
  * An id that is not a real option (a hand-edited or stale project) gets the

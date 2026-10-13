@@ -75,7 +75,7 @@ export const timelineMessages: ProductModuleMessages = {
     "themes.typography.label": "Typography",
     "themes.typography.options.serifClassic": "Serif Classic",
     "themes.typography.options.modern": "Modern Sans",
-    "themes.typography.options.script": "Romantic Script",
+    "themes.typography.options.script": "Romantic Italic",
     "themes.typography.options.typewriter": "Typewriter",
     "themes.layout.label": "Story Style",
     "themes.layout.options.standard": "Standard",

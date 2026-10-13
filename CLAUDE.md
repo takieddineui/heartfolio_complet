@@ -249,9 +249,12 @@ Two were genuine product bugs: the `layout` default above, and
   registered `@font-face` family, so every browser drew its own fallback (Georgia,
   system sans, Comic Sans-like cursive, monospace) and the preview and live page
   varied by device. Now: Serif Classic = Heartfolio Serif (Fraunces) headings +
-  Heartfolio Sans (Inter) body; Modern Sans = Inter; Romantic Script = Fraunces
+  Heartfolio Sans (Inter) body; Modern Sans = Inter; Romantic Italic = Fraunces
   SLANTED (`--poster-heading-style`, because the print draws DejaVu Serif Italic;
-  the label overpromises a script and is a product call, unresolved); Typewriter =
+  renamed from "Romantic Script" on 13 Oct 2026 because it promised a cursive face
+  that was never built; label only, the option id stays `script` since saved
+  projects store it, and French and Arabic have no typography labels, so all four
+  options show their English names there); Typewriter =
   JetBrains Mono (`public/fonts/jetbrains-mono-latin.woff2`, ~40KB, OFL text beside
   it). `typography-fonts.test.ts` fails if a token names an unregistered family or
   its file is missing, and pins each option's kind (serif/sans/mono, slant) to the

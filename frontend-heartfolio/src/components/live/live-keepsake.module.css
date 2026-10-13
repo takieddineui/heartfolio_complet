@@ -10,7 +10,7 @@
    Serif" but declared for Arabic characters only, under its own name, so that
    `live-theme.ts` can slot it into any stack WITHOUT it also supplying the
    Latin letters (the composite "Heartfolio Serif" would, and that would turn
-   "Romantic Script" and "Typewriter" back into Fraunces). */
+   "Romantic Italic" and "Typewriter" back into Fraunces). */
 @font-face {
   font-family: "Heartfolio Live Arabic";
   src: url("/fonts/noto-kufi-arabic.woff2") format("woff2-variations");

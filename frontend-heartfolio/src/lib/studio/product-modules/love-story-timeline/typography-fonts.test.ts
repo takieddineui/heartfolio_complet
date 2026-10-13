@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import { existsSync, readFileSync } from "node:fs";
 import { isAbsolute, join } from "node:path";
 import { timelineThemes } from "./themes";
+import { timelineMessages } from "./messages";
+import { resolveModuleText } from "@/lib/studio/i18n";
 
 /**
  * THE TYPOGRAPHY TOKENS NAME FONTS THAT ARE REAL.
@@ -158,5 +160,26 @@ describe("the poster CSS applies the tokens", () => {
 
   it("sets the body font on the poster", () => {
     expect(css).toMatch(/\.poster\s*\{[^}]*font-family:\s*var\(--poster-body-font/);
+  });
+});
+
+describe("the italic option is named for what it draws", () => {
+  // The print has always drawn DejaVu Serif ITALIC for this option and the
+  // preview slants a serif: there is no script or cursive face. It was labelled
+  // "Romantic Script", which promised one; it is "Romantic Italic". The option
+  // id stays "script" because saved projects store it.
+  const italic = OPTIONS.find((option) => option.id === "script");
+
+  it("keeps the stored id and its slant", () => {
+    expect(italic).toBeDefined();
+    expect(tokens(italic!)["--poster-heading-style"]).toBe("italic");
+  });
+
+  it.each(["en", "fr", "ar"])("shows 'Romantic Italic' in the %s Studio, and never 'Script'", (locale) => {
+    // French and Arabic define no typography labels, so they resolve to the
+    // English name (the same as their three sibling options).
+    const label = resolveModuleText(italic!.label, locale, timelineMessages);
+    expect(label).toBe("Romantic Italic");
+    expect(label).not.toMatch(/script/i);
   });
 });
