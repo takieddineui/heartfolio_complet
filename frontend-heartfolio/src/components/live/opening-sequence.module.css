@@ -53,6 +53,7 @@
 }
 .title {
   font-family: var(--live-heading-font, Georgia, "Times New Roman", serif);
+  font-style: var(--live-heading-style, normal);
   font-size: clamp(1.8rem, 7vw, 3.2rem);
   font-weight: 400;
   margin: 0;

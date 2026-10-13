@@ -1,6 +1,18 @@
 import type { ThemeEngineConfig } from "@/types/studio";
 import { TIMELINE_LAYOUTS } from "./layouts";
 
+/**
+ * FONT FAMILIES IN THESE TOKENS MUST BE REGISTERED. Until 12 Oct 2026 the
+ * typography tokens named 'Fraunces', 'Inter' and 'JetBrains Mono', none of
+ * which was a loaded @font-face family (the site registers the same files as
+ * "Heartfolio Serif" and "Heartfolio Sans", and JetBrains Mono had no file at
+ * all), so every browser silently drew its own fallback and the look varied
+ * by device. `typography-fonts.test.ts` fails if a token's first family is not
+ * registered in globals.css or its file is missing.
+ *
+ * The print draws DejaVu for all four options, not these faces (see
+ * png_renderer.py FONT_FILES); that preview-vs-print gap is separate and known.
+ */
 export const timelineThemes: ThemeEngineConfig = {
   axes: [
     {
@@ -25,10 +37,15 @@ export const timelineThemes: ThemeEngineConfig = {
       kind: "select",
       defaultOptionId: "serif-classic",
       options: [
-        { id: "serif-classic", label: "themes.typography.options.serifClassic", tokens: { "--poster-heading-font": "'Fraunces', Georgia, serif", "--poster-body-font": "'Inter', sans-serif" } },
-        { id: "modern", label: "themes.typography.options.modern", tokens: { "--poster-heading-font": "'Inter', sans-serif", "--poster-body-font": "'Inter', sans-serif" } },
-        { id: "script", label: "themes.typography.options.script", tokens: { "--poster-heading-font": "'Fraunces', cursive", "--poster-body-font": "'Inter', sans-serif" } },
-        { id: "typewriter", label: "themes.typography.options.typewriter", tokens: { "--poster-heading-font": "'JetBrains Mono', monospace", "--poster-body-font": "'JetBrains Mono', monospace" } },
+        { id: "serif-classic", label: "themes.typography.options.serifClassic", tokens: { "--poster-heading-font": "'Heartfolio Serif', Georgia, serif", "--poster-body-font": "'Heartfolio Sans', sans-serif", "--poster-heading-style": "normal" } },
+        { id: "modern", label: "themes.typography.options.modern", tokens: { "--poster-heading-font": "'Heartfolio Sans', sans-serif", "--poster-body-font": "'Heartfolio Sans', sans-serif", "--poster-heading-style": "normal" } },
+        // The print draws DejaVu Serif ITALIC for this option (png_renderer.py
+        // FONT_FILES), not a script face, so the preview and the live page show
+        // the serif slanted. Fraunces ships no italic file, so the browser slants
+        // it. Whether "Romantic Script" is the right NAME for an italic serif is
+        // a product question, recorded in CLAUDE.md.
+        { id: "script", label: "themes.typography.options.script", tokens: { "--poster-heading-font": "'Heartfolio Serif', Georgia, serif", "--poster-body-font": "'Heartfolio Sans', sans-serif", "--poster-heading-style": "italic" } },
+        { id: "typewriter", label: "themes.typography.options.typewriter", tokens: { "--poster-heading-font": "'JetBrains Mono', monospace", "--poster-body-font": "'JetBrains Mono', monospace", "--poster-heading-style": "normal" } },
       ],
     },
     {

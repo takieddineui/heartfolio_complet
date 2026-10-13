@@ -83,26 +83,39 @@ describe("liveThemeStyle: every typography", () => {
     // The heading stack is the theme's, plus the Arabic-only face (below).
     expect(style["--live-heading-font"]).toBe(withArabicFace(tokenOf(option, "--poster-heading-font"), ARABIC));
     expect(style["--live-body-font"]).toBe(tokenOf(option, "--poster-body-font"));
+    expect(style["--live-heading-style"]).toBe(tokenOf(option, "--poster-heading-style"));
+  });
+
+  it("slants the headings of Romantic Script only, as the print's italic does", () => {
+    const styles = Object.fromEntries(
+      TYPOGRAPHIES.map((option) => [option.id, (liveThemeStyle({ typography: option.id }) as Record<string, string>)["--live-heading-style"]])
+    );
+    expect(styles).toEqual({ "serif-classic": "normal", modern: "normal", script: "italic", typewriter: "normal" });
   });
 
   it("gives the four choices four different looks", () => {
+    // Serif Classic and Romantic Script share their faces; the slant is what
+    // tells them apart, so it is part of the look.
     const looks = TYPOGRAPHIES.map((option) => {
       const style = liveThemeStyle({ typography: option.id }) as Record<string, string>;
-      return `${style["--live-heading-font"]} / ${style["--live-body-font"]}`;
+      return `${style["--live-heading-font"]} / ${style["--live-body-font"]} / ${style["--live-heading-style"]}`;
     });
     expect(new Set(looks).size).toBe(TYPOGRAPHIES.length);
   });
 });
 
 describe("Arabic headings keep their designed face", () => {
-  it("slots the Arabic face before a closing generic family, which would otherwise claim Arabic first", () => {
-    expect(withArabicFace("'Fraunces', Georgia, serif", ARABIC)).toBe(`'Fraunces', Georgia, ${ARABIC}, serif`);
-    expect(withArabicFace("'Fraunces', cursive", ARABIC)).toBe(`'Fraunces', ${ARABIC}, cursive`);
-    expect(withArabicFace("'JetBrains Mono', monospace", ARABIC)).toBe(`'JetBrains Mono', ${ARABIC}, monospace`);
+  it("puts the Arabic face FIRST, ahead of faces that carry Arabic themselves", () => {
+    // "Heartfolio Sans" brings Naskh, a reading face; a heading must stay Kufi.
+    expect(withArabicFace("'Heartfolio Sans', sans-serif", ARABIC)).toBe(`${ARABIC}, 'Heartfolio Sans', sans-serif`);
+    expect(withArabicFace("'JetBrains Mono', monospace", ARABIC)).toBe(`${ARABIC}, 'JetBrains Mono', monospace`);
   });
 
-  it("appends it when a stack has no closing generic", () => {
-    expect(withArabicFace("Georgia", ARABIC)).toBe(`Georgia, ${ARABIC}`);
+  it("leads every typography's heading stack", () => {
+    for (const option of TYPOGRAPHIES) {
+      const stack = (liveThemeStyle({ typography: option.id }) as Record<string, string>)["--live-heading-font"]!;
+      expect(stack.startsWith(ARABIC), option.id).toBe(true);
+    }
   });
 
   it("is in every typography's heading stack, never in the body's", () => {
@@ -200,6 +213,12 @@ describe("the live page's CSS", () => {
 
   it("sets the body font from the theme, not a fixed face", () => {
     expect(live).toMatch(/\.root\s*\{[^}]*font-family:\s*var\(--live-body-font\)/);
+  });
+
+  it("slants the display text from the theme too", () => {
+    expect(live).toMatch(/\.title\s*\{[^}]*font-style:\s*var\(--live-heading-style/);
+    expect(live).toMatch(/\.stepTitle\s*\{[^}]*font-style:\s*var\(--live-heading-style/);
+    expect(opening).toMatch(/\.title\s*\{[^}]*font-style:\s*var\(--live-heading-style/);
   });
 
   it("sets the display text from the theme: the title, each milestone's title, and the opening's title", () => {

@@ -71,6 +71,15 @@ class NeatStackGeometry:
     #: height. Small: the references stack, they do not pile.
     #: The structured one: it carries the full caption.
     shows_description: bool = True
+    #: The title's, description's and location's line spacing, in font sizes,
+    #: and the date's. The print has always set them like this
+    #: (`int(font.size * ...)`); the preview inherited the page's 1.5 (and
+    #: `.neatDescription` had its own 1.45), so its wrapped titles and
+    #: locations stood about 11% taller than the print's. Found by measuring
+    #: every layout's computed line-height against the print after the same
+    #: drift turned up on Dotted (13 Oct 2026).
+    text_line_height: float = 1.35
+    date_line_height: float = 1.5
     #: Vertical overlap between consecutive photos, as a fraction of photo
     #: height. Small: the references stack, they do not pile.
     photo_overlap: float = 0.06
@@ -156,6 +165,15 @@ class CascadeGeometry:
     #: Editorial, and the descriptions are part of that — this is the
     #: layout where a photograph and a sentence sit together.
     shows_description: bool = True
+    #: The title's, description's and location's line spacing, in font sizes,
+    #: and the date's. The print has always set them like this
+    #: (`int(font.size * ...)`); the preview inherited the page's 1.5 (and
+    #: `.neatDescription` had its own 1.45), so its wrapped titles and
+    #: locations stood about 11% taller than the print's. Found by measuring
+    #: every layout's computed line-height against the print after the same
+    #: drift turned up on Dotted (13 Oct 2026).
+    text_line_height: float = 1.35
+    date_line_height: float = 1.5
     #: Horizontal drift across the whole cascade, as a fraction of the photo
     #: column: the first card sits half of it to one side, the last half of
     #: it to the other, the rest evenly between. One diagonal, not an
@@ -259,6 +277,15 @@ class AlternatingGeometry:
     #: photographs carry the composition, which is also what lets them be
     #: this large.
     shows_description: bool = False
+    #: The title's, description's and location's line spacing, in font sizes,
+    #: and the date's. The print has always set them like this
+    #: (`int(font.size * ...)`); the preview inherited the page's 1.5 (and
+    #: `.neatDescription` had its own 1.45), so its wrapped titles and
+    #: locations stood about 11% taller than the print's. Found by measuring
+    #: every layout's computed line-height against the print after the same
+    #: drift turned up on Dotted (13 Oct 2026).
+    text_line_height: float = 1.35
+    date_line_height: float = 1.6
 
 
 ALTERNATING = AlternatingGeometry()
@@ -306,6 +333,14 @@ class DottedGeometry:
     #: The dotted line stops this far short of each end of the timeline (CSS
     #: `inset-block: 5%`).
     spine_inset: float = 0.05
+    #: The title's and the location's line spacing, in font sizes. The print
+    #: has always set them at 1.35 (`int(font.size * 1.35)`); the preview
+    #: inherited the page's 1.5 until 13 Oct 2026, so its two-line titles stood
+    #: about 11% taller than the print's. Found when real JetBrains Mono (wide,
+    #: so its titles wrap) pushed the preview's fullest Dotted case 6% over its
+    #: row at the fit floor; the print's own spacing closes it. The date chip
+    #: keeps 1.5 on both sides.
+    text_line_height: float = 1.35
 
     #: The CARD's width as a fraction of the photo column, borders included
     #: (the CSS width is border-box), unless the slot is too short for it.
@@ -465,6 +500,15 @@ COMPOSITIONS = {
     "horizontal-polaroid": HORIZONTAL_POLAROID,
     "horizontal-circles": HORIZONTAL_CIRCLES,
 }
+
+
+#: The poster header's names line spacing, in font sizes, for every layout. The
+#: print has always set it at 1.4 (`int(names_font.size * 1.4)`); the preview
+#: inherited the page's 1.5 until 13 Oct 2026, so a two-line names header stood
+#: about 5px taller in the preview and left its timeline that much less room.
+#: Found when the real (wider) Fraunces made two 24-character names wrap and
+#: pushed Horizontal Circles 2% over its row; the print's spacing closes it.
+HEADER_NAMES_LINE_HEIGHT = 1.4
 
 
 def geometry_for(layout_id: str) -> NeatStackGeometry:

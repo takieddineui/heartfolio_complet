@@ -19,7 +19,11 @@
 .header { text-align: center; }
 .names {
   font-family: var(--poster-heading-font, serif);
+  font-style: var(--poster-heading-style, normal);
   font-size: calc(28px * var(--text-scale, 1));
+  /* The print's own spacing (`HEADER_NAMES_LINE_HEIGHT`, held equal by
+     composition-parity.test.ts). This inherited the page's 1.5. */
+  line-height: 1.4;
   letter-spacing: 0.02em;
 }
 .title {
@@ -72,6 +76,7 @@
 }
 .eventTitle {
   font-family: var(--poster-heading-font, serif);
+  font-style: var(--poster-heading-style, normal);
   font-size: calc(16px * var(--text-scale, 1));
   margin-top: 2px;
 }
@@ -230,14 +235,23 @@
   padding-block: calc(5.5px * var(--text-scale, 1));
   box-sizing: border-box;
 }
+/* LINE SPACING IS THE PRINT'S, set explicitly. These inherited the page's 1.5
+   (and the description had its own 1.45) while the print sets the date at
+   `date_line_height` and the title, description and location at
+   `text_line_height` (compositions.py, held equal by composition-parity.test.ts),
+   so a wrapped title or location stood about 11% taller here than printed.
+   Neat Stack, Cascade and Alternating Tilt share these four classes; Dotted
+   reuses the description and location (see `.dottedEntry .neatLocation`). */
 .neatDate {
   font-size: calc(11px * var(--text-scale, 1));
+  line-height: 1.5;
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
 .neatTitle {
   font-size: calc(11px * var(--text-scale, 1));
+  line-height: 1.35;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--p-text);
@@ -245,12 +259,13 @@
 }
 .neatDescription {
   font-size: calc(10px * var(--text-scale, 1));
-  line-height: 1.45;
+  line-height: 1.35;
   color: var(--p-muted);
   margin-top: 3px;
 }
 .neatLocation {
   font-size: calc(9px * var(--text-scale, 1));
+  line-height: 1.35;
   color: var(--p-muted);
   opacity: 0.8;
   margin-top: 2px;
@@ -498,6 +513,9 @@
   text-align: start;
   --text-scale: calc(var(--base-text-scale, 1) * var(--text-fit, 1));
 }
+/* Alternating Tilt's print sets its date line taller than the other layouts'
+   (`AlternatingGeometry.date_line_height`, 1.6 against 1.5). */
+.altText .neatDate { line-height: 1.6; }
 /* Text on the photograph's opposite side reads inward toward the spine. */
 .altTextStart { text-align: end; }
 
@@ -639,8 +657,14 @@
   align-items: center;
   gap: 5px;
   font-size: calc(13px * var(--text-scale, 1));
+  /* The print's own spacing (`DottedGeometry.text_line_height`, held equal by
+     composition-parity.test.ts). This inherited the page's 1.5, so the
+     preview's two-line titles were taller than the print's. */
+  line-height: 1.35;
   color: var(--p-text);
 }
+/* The location under the title, at the same spacing as the print. */
+.dottedEntry .neatLocation { line-height: 1.35; }
 .dottedHeart { width: 11px; height: 11px; color: var(--p-accent); flex: 0 0 auto; }
 
 /* ---------------------------------------------------------------------

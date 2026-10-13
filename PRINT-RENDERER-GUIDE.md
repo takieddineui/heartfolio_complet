@@ -704,3 +704,73 @@ caption band; the Circles axis goes at the tick tops, as the print had it.
     circle is not height-capped, as in the preview). Every other legacy case went
     from 9-12 of 18 broken to 0, apart from that one.
   - Neither preview shows locations or descriptions, nor does either print.
+
+## 12. Typography: fonts and line spacing (done 13 Oct 2026)
+
+**Three font worlds, which is why this hid for so long.** The Studio's typography
+tokens (`themes.ts`) named 'Fraunces', 'Inter' and 'JetBrains Mono'; the site
+registers the same files as "Heartfolio Serif" and "Heartfolio Sans" and had no
+mono file; and the PRINT draws DejaVu for every option (`FONT_FILES` in
+`png_renderer.py`). Nothing errored: a font name in a stylesheet is checked by
+nothing, so each browser drew its own fallback (Georgia, system sans, a cursive
+face that is Comic Sans on Windows, monospace) and the look varied by device.
+
+| Option | Preview and live page now | Print |
+|---|---|---|
+| Serif Classic | Heartfolio Serif (Fraunces) headings, Heartfolio Sans (Inter) body | DejaVu Serif Bold / DejaVu Serif |
+| Modern Sans | Inter / Inter | DejaVu Sans Bold / DejaVu Sans |
+| Romantic Script | Fraunces SLANTED / Inter | DejaVu Serif Italic / DejaVu Sans |
+| Typewriter | JetBrains Mono / JetBrains Mono | DejaVu Sans Mono Bold / Mono |
+
+Typewriter now matches the print's text width almost exactly (JetBrains Mono's
+advance is 0.6em, DejaVu Sans Mono's 0.602em; text was 0.91x the print's before).
+The serif and sans options are about 5% wider than the old fallbacks and were
+0.75-0.95x the print's before, so the gap to the print neither opened nor closed.
+`typography-fonts.test.ts` fails if a token names an unregistered family or its
+file is missing, and pins each option's kind and slant to `FONT_FILES`. Known and
+accepted: Serif Classic's body is sans in the preview and serif in the print.
+
+**Inherited line-heights drift silently, and a font change exposes them.** The
+preview's Dotted title and location, and every layout's header names, inherited
+the page's 1.5; the print sets them at 1.35 and 1.4. Real (wider) fonts wrap
+more, and those spare pixels were what kept the fullest cases inside their row:
+Dotted + Typewriter at 130% text became 6% over, and two 24-character names
+wrapping pushed Horizontal Circles 2% over. Both closed by using the print's own
+values (`DottedGeometry.text_line_height`, `HEADER_NAMES_LINE_HEIGHT`), pinned in
+`composition-parity.test.ts`; the print is byte-identical (all 144 Dotted and 192
+six-layout renders hashed before and after). **Audited across all layouts the same day, and the same drift was found.** Measured
+as computed line-height over font-size in the preview against the print's literals:
+
+| Layout | Date | Title | Description | Location |
+|---|---|---|---|---|
+| Neat Stack, Cascade | 1.5 / 1.5 | 1.5 vs 1.35 | 1.45 vs 1.35 | 1.5 vs 1.35 |
+| Alternating Tilt | 1.5 vs 1.6 | 1.5 vs 1.35 | hidden | 1.5 vs 1.35 |
+| Dotted | chip 1.5 / 1.5 | 1.5 vs 1.35 (fixed above) | hidden | 1.5 vs 1.35 (fixed above) |
+| Horizontal Polaroids | 1.5 / 1.5 | caption 1.25 / 1.25 | n/a | n/a |
+| Horizontal Circles | 1.5 / 1.5 | label 1.5 / 1.5 | n/a | n/a |
+
+(preview / print.) The first three are fixed: `text_line_height` and
+`date_line_height` on `NeatStackGeometry`, `CascadeGeometry` and
+`AlternatingGeometry`, used by the print in place of its 1.35/1.5/1.6 literals and set
+explicitly on `.neatDate/.neatTitle/.neatDescription/.neatLocation` (Alternating's
+date overrides to 1.6). Print byte-identical on 192 renders. **When you build or
+review a style, read the preview's computed line-height for every text element and
+compare it with the print's: an inherited 1.5 is the usual culprit.**
+
+**A second preview-only spacing remains:** fixed `margin-top` of 2px (title), 3px
+(description) and 2px (location) between a milestone's lines, which the print does not
+draw. Zeroing them (probe, not applied): Neat Stack Serif at 130% 106% -> 99%,
+Typewriter 133% -> 119%; Cascade 129% -> 117%, 138% -> 123%. It would change the
+preview's rhythm for every customer, so it is a visual-design trade-off rather than a
+correctness bug: the owner decided on 13 Oct 2026 NOT to change it. It stays logged as
+the known lever for Cascade Serif's remaining corner (129% at the floor) if it is ever
+needed.
+
+**Measured limits at maximum content** (24+24-character names, 40/140-character
+milestones, 130% text, 5 milestones; percent of the row, at the 0.55 floor; original
+before the font work / now): Neat Stack 107->106 Serif and 133->133 Typewriter,
+Cascade 111->129 and 140->138, Horizontal Circles Typewriter 110->111. All overflowed
+before the font change; nothing that fit before overflows now. Realistic content
+fits everywhere with the text unshrunk at 100%. Horizontal Circles at 3 milestones
+and 130% text overflows with any milestone text at the maximum (141%->135%): the
+circle is a fixed 78% of its column on both sides, so it is geometry, not spacing.

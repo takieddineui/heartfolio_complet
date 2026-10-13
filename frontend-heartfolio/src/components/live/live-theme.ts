@@ -28,14 +28,14 @@ import { timelineThemes } from "@/lib/studio/product-modules/love-story-timeline
  *       the title and each milestone's title)
  *   --poster-body-font    -> --live-body-font      (everything else)
  *
- * FONTS ARE THE PREVIEW'S, NOT BETTER THAN THE PREVIEW'S. The font tokens name
- * "Fraunces", "Inter" and "JetBrains Mono", and none of those is a loaded
- * `@font-face` family (the site loads "Heartfolio Serif" and "Heartfolio
- * Sans"), so in the Studio preview and here the browser uses each stack's
- * fallback (Georgia, the system sans, a cursive face, monospace). That is a
- * known issue with the tokens themselves, recorded rather than patched here:
- * changing them changes the Studio preview's text metrics, which the
- * milestone fit was tuned against. This page shows what the preview shows.
+ * FONTS ARE THE PREVIEW'S, AND THEY ARE REAL. The tokens name "Heartfolio
+ * Serif" (Fraunces), "Heartfolio Sans" (Inter) and "JetBrains Mono", all
+ * registered `@font-face` families (globals.css), so this page and the Studio
+ * preview draw the same faces on every device. They used to name fonts that
+ * were never loaded and fell back to whatever the browser had;
+ * `typography-fonts.test.ts` now fails if a token names an unregistered
+ * family. "Romantic Script" is slanted Fraunces: the print draws DejaVu Serif
+ * Italic for it, and `--live-heading-style` carries the slant.
  *
  * An id that is not a real option (a hand-edited or stale project) gets the
  * axis's DEFAULT, never "no token", so the page can never lose its colours.
@@ -47,24 +47,22 @@ const RENAMES: Record<string, string> = {
   "--p-accent": "--accent",
   "--poster-heading-font": "--live-heading-font",
   "--poster-body-font": "--live-body-font",
+  "--poster-heading-style": "--live-heading-style",
 };
 
 /** The Arabic-only Kufi alias declared in `live-keepsake.module.css`. */
 const ARABIC_HEADING_FACE = '"Heartfolio Live Arabic"';
-const GENERIC_FAMILIES = new Set(["serif", "sans-serif", "cursive", "monospace", "fantasy", "system-ui"]);
 
 /**
- * Puts `face` just BEFORE a stack's closing generic family. A generic family
- * (`serif`, `cursive`, `monospace`) is a catch-all that would claim Arabic
- * characters first, so the Arabic face has to come ahead of it; it covers
- * Arabic only, so Latin text still resolves to the stack's own faces.
+ * Puts the Arabic face FIRST in a stack. It covers Arabic characters only, so
+ * Latin text still resolves to the stack's own faces; it has to lead because
+ * the stacks' own families can carry Arabic too ("Heartfolio Sans" brings
+ * Naskh, a reading face, which would otherwise win for a heading) and a
+ * closing generic family (`serif`, `monospace`) claims whatever is left.
+ * Headings are Kufi on /ar everywhere on this site (globals.css, §24).
  */
 export function withArabicFace(stack: string, face: string): string {
-  const families = stack.split(",").map((family) => family.trim());
-  const last = families[families.length - 1]!;
-  if (GENERIC_FAMILIES.has(last)) families.splice(families.length - 1, 0, face);
-  else families.push(face);
-  return families.join(", ");
+  return `${face}, ${stack}`;
 }
 
 export function liveThemeStyle(themeSelections: Record<string, string | number> | undefined): CSSProperties {

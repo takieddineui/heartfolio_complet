@@ -96,6 +96,55 @@ function cssRule(selector: string): string {
   return bodies.join("\n");
 }
 
+describe("Milestone text line spacing (Neat Stack, Cascade, Alternating Tilt)", () => {
+  // The three share `.neatDate`, `.neatTitle`, `.neatDescription` and
+  // `.neatLocation`, and the print gives each the same spacing, so one set of
+  // classes can be pinned against all three. The preview inherited the page's
+  // 1.5 (and the description had its own 1.45) while the print sets the title,
+  // description and location at 1.35: a wrapped title or location stood about
+  // 11% taller than printed, which cost the fullest milestones their room.
+  const GEOMETRIES = ["NeatStackGeometry", "CascadeGeometry", "AlternatingGeometry"];
+
+  it("sets the title, description and location at the print's spacing, on every layout that shares them", () => {
+    for (const geometry of GEOMETRIES) {
+      const value = pythonValue("text_line_height", geometry);
+      expect(value, geometry).toBe(1.35);
+      for (const selector of [".neatTitle", ".neatDescription", ".neatLocation"]) {
+        expect(cssRule(selector), `${geometry} ${selector}`).toContain(`line-height: ${value}`);
+      }
+    }
+  });
+
+  it("sets the date at the print's spacing, which is taller on Alternating Tilt", () => {
+    expect(pythonValue("date_line_height", "NeatStackGeometry")).toBe(1.5);
+    expect(pythonValue("date_line_height", "CascadeGeometry")).toBe(1.5);
+    expect(cssRule(".neatDate")).toContain(`line-height: ${pythonValue("date_line_height", "NeatStackGeometry")}`);
+    // `.altText .neatDate` only overrides the shared rule for Alternating Tilt.
+    expect(pythonValue("date_line_height", "AlternatingGeometry")).toBe(1.6);
+    expect(cssRule(".altText .neatDate")).toContain(`line-height: ${pythonValue("date_line_height", "AlternatingGeometry")}`);
+  });
+
+  it("keeps Cascade's spacing equal to Neat Stack's, because the print measures both with one function", () => {
+    // `_cascade_block_height` is `_neat_stack_block_height`; if the two values
+    // diverged the print would measure Cascade with Neat Stack's spacing.
+    for (const field of ["text_line_height", "date_line_height"]) {
+      expect(pythonValue(field, "CascadeGeometry"), field).toBe(pythonValue(field, "NeatStackGeometry"));
+    }
+  });
+});
+
+describe("The poster header (every layout)", () => {
+  it("sets the names at the print's line spacing", () => {
+    // The print has always drawn them at 1.4 font sizes; the preview inherited
+    // the page's 1.5, so a two-line names header stood about 5px taller. With
+    // the real, wider Fraunces two 24-character names wrap, and that extra
+    // height pushed Horizontal Circles 2% over its row. One shared value now.
+    const value = Number(python.match(/^HEADER_NAMES_LINE_HEIGHT\s*=\s*([\d.]+)/m)?.[1]);
+    expect(value).toBe(1.4);
+    expect(cssRule(".names")).toContain(`line-height: ${value}`);
+  });
+});
+
 describe("Neat Stack geometry (§7.1)", () => {
   it("uses the same photo column width on both sides", () => {
     const photoColumn = pythonValue("photo_column");
@@ -464,6 +513,19 @@ describe("Dotted Branching geometry (§7.4)", () => {
     expect(chip).not.toContain("position: absolute");
     // 1cqw is 1% of the timeline's width.
     expect(cssRule(".layoutDotted")).toContain("container-type: inline-size");
+  });
+
+  it("sets the title and the location at the print's line spacing", () => {
+    // The print has always drawn them at 1.35 font sizes; the preview inherited
+    // the page's 1.5, so its two-line titles stood about 11% taller than the
+    // print's. That is also what pushed the preview's fullest Dotted case (a
+    // wide monospace title, 130% text, five long milestones) 6% over its row
+    // at the fit floor. The date chip keeps the inherited 1.5, as the print's.
+    const lineHeight = dotted("text_line_height");
+    expect(lineHeight).toBe(1.35);
+    expect(cssRule(".dottedLabel")).toContain(`line-height: ${lineHeight}`);
+    expect(cssRule(".dottedEntry .neatLocation")).toContain(`line-height: ${lineHeight}`);
+    expect(cssRule(".dottedYear")).not.toContain("line-height");
   });
 
   it("gives every milestone an equal row, with half the overlap spare at each end", () => {

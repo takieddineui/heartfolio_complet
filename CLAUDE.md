@@ -240,22 +240,51 @@ Two were genuine product bugs: the `layout` default above, and
   ignored typography entirely. It now takes colours and fonts from the Studio's
   tokens in `themes.ts`, so there is one list; `live-theme.test.tsx` pins every
   palette against the print's table in `data.py`. Arabic headings keep Kufi via
-  an Arabic-only alias face. The page mirrors the Studio preview's fonts, so on
-  the default typography its headings went from the loaded brand serif to
-  Georgia and its body from Georgia to the system sans. The text-scale axis is
-  still ignored on the live page. The live selector (A/B/C scopes) is
-  undecided, pending the owner seeing this fix live.
-- **Known, pre-existing gap, separate from the live-page fix above: the
-  typography tokens name fonts that were never loaded.** `themes.ts` names
-  `'Fraunces'`, `'Inter'` and `'JetBrains Mono'`, none of which is a loaded
-  `@font-face` family (the site loads "Heartfolio Serif" and "Heartfolio
-  Sans"), so the Studio preview and the live page both draw each stack's
-  fallback (Georgia, system sans, a cursive face, monospace), measured by text
-  width on 12 Oct 2026. Deliberately NOT fixed, by decision: correcting the
-  names changes the preview's text widths, which the milestone fit
-  (`FittedTimeline`) and the print-vs-preview work were tuned against, so it is
-  its own task with the same measure-and-verify treatment as a style change,
-  not a tweak to bundle into something else.
+  an Arabic-only alias face (it leads each heading stack, so even Modern Sans'
+  Naskh does not win). The text-scale axis is still ignored on the live page. The
+  live selector (A/B/C scopes) is undecided, pending the owner seeing this fix
+  live.
+- **The typography tokens now name real fonts (13 Oct 2026).** They used to
+  name `'Fraunces'`, `'Inter'` and `'JetBrains Mono'`, none of which was a
+  registered `@font-face` family, so every browser drew its own fallback (Georgia,
+  system sans, Comic Sans-like cursive, monospace) and the preview and live page
+  varied by device. Now: Serif Classic = Heartfolio Serif (Fraunces) headings +
+  Heartfolio Sans (Inter) body; Modern Sans = Inter; Romantic Script = Fraunces
+  SLANTED (`--poster-heading-style`, because the print draws DejaVu Serif Italic;
+  the label overpromises a script and is a product call, unresolved); Typewriter =
+  JetBrains Mono (`public/fonts/jetbrains-mono-latin.woff2`, ~40KB, OFL text beside
+  it). `typography-fonts.test.ts` fails if a token names an unregistered family or
+  its file is missing, and pins each option's kind (serif/sans/mono, slant) to the
+  print's `FONT_FILES`. **Accepted, logged:** the print still draws DejaVu for
+  everything, so preview and print typography differ (known); and Serif Classic's
+  BODY is sans in the preview and live page but serif in the print
+  (`KNOWN_BODY_KIND_GAPS` in that test fails if it changes either way). Where We
+  Met has the same token-naming bug and is NOT fixed, by decision.
+  **Preview/print LINE-SPACING drift, found twice then audited across every
+  layout (13 Oct 2026), fixed with the print's own values.** The preview
+  inherited the page's 1.5 (the description had its own 1.45) where the print
+  sets 1.35: Dotted title/location (`DottedGeometry.text_line_height`), and
+  Neat Stack, Cascade and Alternating Tilt title/description/location
+  (`text_line_height`, with `date_line_height` 1.5, 1.5 and 1.6 on the three;
+  the preview's Alternating date was 1.5). Every layout's header names are 1.4
+  (`HEADER_NAMES_LINE_HEIGHT`). The horizontals already matched (caption 1.25,
+  label and dates 1.5). All pinned in `composition-parity.test.ts`; the print is
+  byte-identical (192 renders hashed across all six layouts before and after each
+  step). Measured at maximum content (24+24-character names, 40/140-character
+  milestones), 130% text, 5 milestones, percent of the row at the 0.55 floor
+  (original / now): Neat Stack 107->106 Serif, 133->133 Typewriter; Cascade
+  111->129, 140->138; Horizontal Circles Typewriter 110->111; nothing that fit
+  before overflows (Dotted + Typewriter, newly 6% over after the font change, is
+  closed). Realistic content fits everywhere. **Known, measured, DEFERRED by the
+  owner's decision (13 Oct 2026; a visual-design trade-off, not a correctness
+  bug):** the preview puts fixed 2/3/2px margins above each title,
+  description and location that the print does not draw (it advances by line
+  spacing alone); zeroing them was measured to bring Neat Stack Serif at 130%
+  to 99% and Typewriter to 119%, Cascade to 117% and 123%, so they are the lever
+  for Cascade Serif's remaining overflow if it is ever needed, but they change
+  the preview's visual rhythm for every customer and were left alone.
+  Horizontal Circles' own overflow is geometric (the circle is a fixed 78% of its
+  column in the preview and the print), not spacing.
 - **Real-R2 pack timing at 8 milestones is UNVERIFIED (12 Oct 2026).** The one
   attempt failed because the company fiber network stalls large HTTPS
   downloads from every host (Cloudflare, Hetzner and OVH too), so it says nothing

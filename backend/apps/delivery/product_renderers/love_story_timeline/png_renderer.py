@@ -56,7 +56,7 @@ from apps.common.exceptions.api_errors import LoveStoryTimelineRenderFailed
 from .data import duration_phrase, join_names, PALETTES, NormalizedTimeline
 from apps.delivery.attribution import MARK_OPACITY, MARK_SCALE, PRINT_MARK, blend
 
-from .compositions import geometry_for
+from .compositions import HEADER_NAMES_LINE_HEIGHT, geometry_for
 from .layout import days_together, format_event_date, ordered_events
 
 FONT_DIR = Path(__file__).parent / "fonts"
@@ -613,7 +613,7 @@ def _draw_header(
     y = _draw_wrapped(
         draw, join_names(timeline.people, locale), names_font,
         x=x, y=y, max_width=max_width, max_lines=4, fill=palette["text"],
-        line_spacing=int(names_font.size * 1.4), measure_only=measure_only, centered=centered,
+        line_spacing=int(names_font.size * HEADER_NAMES_LINE_HEIGHT), measure_only=measure_only, centered=centered,
     )
 
     if timeline.poster_title:
@@ -841,28 +841,28 @@ def _draw_neat_stack(
         text_y = slot_middle - int(slot_height * 0.28)
         text_y = max(slot_top, min(text_y, slot_top + slot_height - block_height))
         draw.text((text_col_x, text_y), format_event_date(event.date), font=small_font, fill=palette["text"])
-        text_y += int(small_font.size * 1.5)
+        text_y += int(small_font.size * geometry.date_line_height)
         # Wrapped, never cut: a 40-character title ran off the right edge of
         # the poster at text scale 130. One line advances exactly as before.
         text_y = _draw_wrapped(
             draw, event.title, body_font,
             x=text_col_x, y=text_y, max_width=text_col_w,
             max_lines=_NO_LINE_LIMIT, fill=palette["text"],
-            line_spacing=int(body_font.size * 1.35),
+            line_spacing=int(body_font.size * geometry.text_line_height),
         )
         if event.description:
             text_y = _draw_wrapped(
                 draw, event.description, small_font,
                 x=text_col_x, y=text_y, max_width=text_col_w,
                 max_lines=description_max_lines, fill=palette["muted"],
-                line_spacing=int(small_font.size * 1.35),
-            ) or text_y + int(small_font.size * 1.35)
+                line_spacing=int(small_font.size * geometry.text_line_height),
+            ) or text_y + int(small_font.size * geometry.text_line_height)
         if event.location:
             _draw_wrapped(
                 draw, event.location, small_font,
                 x=text_col_x, y=text_y, max_width=text_col_w,
                 max_lines=_NO_LINE_LIMIT, fill=palette["muted"],
-                line_spacing=int(small_font.size * 1.35),
+                line_spacing=int(small_font.size * geometry.text_line_height),
             )
 
     y = y + (slot_height * len(events))
@@ -959,13 +959,14 @@ _NEAT_STACK_SHRINK_STEPS = tuple(round(1.0 - 0.025 * i, 3) for i in range(19))  
 def _neat_stack_block_height(draw, event, small_font, body_font, width, description_lines) -> int:
     """The height `_draw_neat_stack` advances through for one milestone —
     the same steps, fonts and wrap width, measured rather than estimated."""
-    height = int(small_font.size * 1.5)  # date
-    height += max(1, len(_wrap_text(draw, event.title, body_font, width))) * int(body_font.size * 1.35)
+    geometry = geometry_for("neat-stack")
+    height = int(small_font.size * geometry.date_line_height)  # date
+    height += max(1, len(_wrap_text(draw, event.title, body_font, width))) * int(body_font.size * geometry.text_line_height)
     if event.description:
         lines = min(description_lines, max(1, len(_wrap_text(draw, event.description, small_font, width))))
-        height += lines * int(small_font.size * 1.35)
+        height += lines * int(small_font.size * geometry.text_line_height)
     if event.location:
-        height += len(_wrap_text(draw, event.location, small_font, width)) * int(small_font.size * 1.35)
+        height += len(_wrap_text(draw, event.location, small_font, width)) * int(small_font.size * geometry.text_line_height)
     return height
 
 
@@ -1098,20 +1099,20 @@ def _draw_cascade(
         # Drawn as Neat Stack draws its text, which `_cascade_block_height`
         # measures: date, wrapped title, description, wrapped location.
         draw.text((text_x, text_y), date, font=small_font, fill=palette["text"])
-        text_y += int(small_font.size * 1.5)
+        text_y += int(small_font.size * geometry.date_line_height)
         text_y = _draw_wrapped(
             draw, event.title, body_font, x=text_x, y=text_y, max_width=text_w,
-            max_lines=_NO_LINE_LIMIT, fill=palette["text"], line_spacing=int(body_font.size * 1.35),
+            max_lines=_NO_LINE_LIMIT, fill=palette["text"], line_spacing=int(body_font.size * geometry.text_line_height),
         )
         if event.description:
             text_y = _draw_wrapped(
                 draw, event.description, small_font, x=text_x, y=text_y, max_width=text_w,
-                max_lines=description_lines, fill=palette["muted"], line_spacing=int(small_font.size * 1.35),
-            ) or text_y + int(small_font.size * 1.35)
+                max_lines=description_lines, fill=palette["muted"], line_spacing=int(small_font.size * geometry.text_line_height),
+            ) or text_y + int(small_font.size * geometry.text_line_height)
         if event.location:
             _draw_wrapped(
                 draw, event.location, small_font, x=text_x, y=text_y, max_width=text_w,
-                max_lines=_NO_LINE_LIMIT, fill=palette["muted"], line_spacing=int(small_font.size * 1.35),
+                max_lines=_NO_LINE_LIMIT, fill=palette["muted"], line_spacing=int(small_font.size * geometry.text_line_height),
             )
 
     return y + band_height
@@ -1285,18 +1286,18 @@ def _draw_alternating(
         lines = dict(x=text_col_x, max_width=side_w, right_aligned=inward)
         text_y = _draw_wrapped(
             draw, format_event_date(event.date), small_font, y=text_y, max_lines=_NO_LINE_LIMIT,
-            fill=palette["text"], line_spacing=int(small_font.size * 1.6), **lines,
+            fill=palette["text"], line_spacing=int(small_font.size * geometry.date_line_height), **lines,
         )
         # Wrapped, never cut: a 40-character title used to be one line that
         # crossed the spine or ran off the page.
         text_y = _draw_wrapped(
             draw, event.title, body_font, y=text_y, max_lines=_NO_LINE_LIMIT,
-            fill=palette["text"], line_spacing=int(body_font.size * 1.35), **lines,
+            fill=palette["text"], line_spacing=int(body_font.size * geometry.text_line_height), **lines,
         )
         if geometry.shows_description and event.description:
             text_y = _draw_wrapped(
                 draw, event.description, small_font, y=text_y, max_lines=description_lines,
-                fill=palette["muted"], line_spacing=int(small_font.size * 1.35), **lines,
+                fill=palette["muted"], line_spacing=int(small_font.size * geometry.text_line_height), **lines,
             )
         # The location was never printed on this layout, though the preview
         # shows it under the milestone. Muted, after the description,
@@ -1304,7 +1305,7 @@ def _draw_alternating(
         if event.location:
             _draw_wrapped(
                 draw, event.location, small_font, y=text_y, max_lines=_NO_LINE_LIMIT,
-                fill=palette["muted"], line_spacing=int(small_font.size * 1.35), **lines,
+                fill=palette["muted"], line_spacing=int(small_font.size * geometry.text_line_height), **lines,
             )
 
     return y + (slot_height * len(events))
@@ -1313,13 +1314,13 @@ def _draw_alternating(
 def _alternating_block_height(draw, event, small_font, body_font, width, description_lines) -> int:
     """The height `_draw_alternating` advances through for one milestone."""
     geometry = geometry_for("alternating-tilt")
-    height = max(1, len(_wrap_text(draw, format_event_date(event.date), small_font, width))) * int(small_font.size * 1.6)
-    height += max(1, len(_wrap_text(draw, event.title, body_font, width))) * int(body_font.size * 1.35)
+    height = max(1, len(_wrap_text(draw, format_event_date(event.date), small_font, width))) * int(small_font.size * geometry.date_line_height)
+    height += max(1, len(_wrap_text(draw, event.title, body_font, width))) * int(body_font.size * geometry.text_line_height)
     if geometry.shows_description and event.description:
         lines = min(description_lines, max(1, len(_wrap_text(draw, event.description, small_font, width))))
-        height += lines * int(small_font.size * 1.35)
+        height += lines * int(small_font.size * geometry.text_line_height)
     if event.location:
-        height += len(_wrap_text(draw, event.location, small_font, width)) * int(small_font.size * 1.35)
+        height += len(_wrap_text(draw, event.location, small_font, width)) * int(small_font.size * geometry.text_line_height)
     return height
 
 
@@ -1384,10 +1385,11 @@ def _dotted_block_height(draw, event, small_font, body_font, width, description_
     """The height `_draw_dotted` advances through for one milestone: the date
     chip's line, the title (wrapped to the width left of the heart) and the
     location (wrapped). Descriptions are not drawn on this layout."""
+    line = geometry_for("dotted-branching").text_line_height
     height = int(small_font.size * 1.5)
-    height += max(1, len(_wrap_text(draw, event.title, body_font, max(1, width - indent)))) * int(body_font.size * 1.35)
+    height += max(1, len(_wrap_text(draw, event.title, body_font, max(1, width - indent)))) * int(body_font.size * line)
     if event.location:
-        height += len(_wrap_text(draw, event.location, small_font, width)) * int(small_font.size * 1.35)
+        height += len(_wrap_text(draw, event.location, small_font, width)) * int(small_font.size * line)
     return height
 
 
@@ -1492,14 +1494,14 @@ def _draw_dotted(
         _draw_heart(image, text_x + heart // 2, (glyphs[1] + glyphs[3]) // 2, heart, palette["accent"])
         text_y = _draw_wrapped(
             draw, event.title, body_font, x=text_x + indent, y=label_top, max_width=max(1, text_w - indent),
-            max_lines=_NO_LINE_LIMIT, fill=palette["text"], line_spacing=int(body_font.size * 1.35),
+            max_lines=_NO_LINE_LIMIT, fill=palette["text"], line_spacing=int(body_font.size * geometry.text_line_height),
         )
         # The location, muted, under the title, wrapped and never cut. The
         # description is omitted by design on both sides ("photo-led").
         if event.location:
             _draw_wrapped(
                 draw, event.location, small_font, x=text_x, y=text_y, max_width=text_w,
-                max_lines=_NO_LINE_LIMIT, fill=palette["muted"], line_spacing=int(small_font.size * 1.35),
+                max_lines=_NO_LINE_LIMIT, fill=palette["muted"], line_spacing=int(small_font.size * geometry.text_line_height),
             )
 
     return y + band_height
