@@ -285,6 +285,66 @@ Two were genuine product bugs: the `layout` default above, and
   the preview's visual rhythm for every customer and were left alone.
   Horizontal Circles' own overflow is geometric (the circle is a fixed 78% of its
   column in the preview and the print), not spacing.
+- **The live page's motion (13 Oct 2026).** A milestone now fades, rises and
+  scales in as it is reached (opacity 0.25, 16px down, scale 0.985 -> rest, 700ms
+  on the brand ease), its photograph settles from 1.04 inside a clipping frame
+  (1100ms, 120ms behind), and ONE spark, the brand's own shape, catches at its node
+  the first time the reader reaches it (`milestone-spark.tsx`; once per milestone,
+  never a loop or a burst, no overshoot). Every value is named once in
+  `components/live/live-motion.ts`, handed to the page as `--live-*` custom
+  properties and read in the CSS with identical fallbacks, so a future live-style
+  selector can pass another set to the same markup (`live-motion.test.tsx` fails
+  if they drift). **The spark is a scripted effect and has its own reduced-motion
+  check** (`useReducedMotion() === false`, so an unknown preference never sparks)
+  plus a CSS guard; the global reduced-motion rule only shortens CSS and cannot
+  stop script. It is triggered by the existing `IntersectionObserver`, never a
+  scroll listener (an existing test forbids one), is centred by flex so it is
+  correct right-to-left (verified on `/ar`: node and spark share a centre), and
+  the Studio's Live tab shows it too. **Deliberately deferred by decision:** photo
+  parallax, ambient particles, an animating accent colour (it would undo the
+  8-palette fix), cursor-follow and photo tilt, time-of-day mood.
+- **FLAGGED, pre-existing, its own task BEFORE any future photo-motion work: the
+  live page's photographs are delivered unsized.** Each milestone's `<img>` has no
+  `loading="lazy"`, no `decoding="async"`, no width/height and no `srcset`; there
+  are no resized variants anywhere. Uploads are re-encoded at quality 92 at FULL
+  resolution (`apps/assets/services.py`; no downscale on the server and none in the
+  Studio), so the live page fetches whatever the customer uploaded, up to the 10MB
+  `MAX_ASSET_SIZE_MB`. A 12-megapixel photo decodes to about 48MB of memory
+  (4000 x 3000 x 4 bytes) whatever its file size, so five of them is roughly 240MB
+  on a phone before any effect is added (arithmetic, not measured; no real order's
+  photos have been measured, and the one customer surveyed had small ones). The
+  lightbox loads the same full-size URL, and so does the opening's first-photo
+  glimpse. Transforming these images (parallax, tilt, scale) multiplies the risk on
+  an older phone, which is where this page is mostly opened. Do first: lazy loading,
+  async decoding, intrinsic sizes, and resized variants for the live page (made at
+  upload or on demand), then measure on a mid-range phone.
+- **Dev trap: the Studio never finishes loading in a hidden browser pane.**
+  Something in its load path waits on `requestAnimationFrame`, which never fires in
+  a hidden tab, so it sits on "Loading Heartfolio" (any screenshot wakes the pane;
+  only then do IntersectionObserver and CSS animations advance either). A way to
+  verify the Studio when the real backend is too slow to load it (see the flagged
+  item below): run a one-off backend on the throwaway database (`docker compose
+  run -d --rm --no-deps --name lst-verify-api -p 8001:8001 -e
+  DATABASE_URL=postgres://heartfolio:heartfolio@db:5432/heartfolio -e
+  ASSET_STORAGE_BACKEND=mock api python manage.py runserver 0.0.0.0:8001`) and
+  start the dev server with `BACKEND_API_ORIGIN=http://localhost:8001`.
+- **FLAGGED, NOT INVESTIGATED, a possible customer-facing production risk: the
+  Studio's catalog fetch has an 8s client timeout and the real backend has been
+  answering in 5-14s.** `catalog-server.ts` (`REQUEST_TIMEOUT_MS = 8000`,
+  `AbortSignal.timeout`) is the server-side fetch that loads the product catalog
+  for the Studio; when it timed out, the Studio did not load. Observed 13 Oct 2026
+  in local development against the real backend (Supabase over the company
+  network, which is known to be bad, see the R2 item below), where responses took
+  5-14s, so some loads exceeded 8s. **That this is the network and not the code is
+  an assumption, not a finding**: nobody has measured where the time goes (the
+  query, the pooler, cold connections, the network) or what the response time is
+  from the planned VPS. If the production backend is routinely this slow, customers
+  may hit the same intermittent failure to open the Studio at all (whether any
+  fallback exists was not checked). Worth its own investigation before go-live: real backend response time
+  for the catalog endpoint measured from the VPS (many requests, not one), what
+  dominates it, and whether the timeout, a cache or a degraded-but-usable fallback
+  is the right answer. Separate from the live-page motion work, which it merely
+  got in the way of.
 - **Real-R2 pack timing at 8 milestones is UNVERIFIED (12 Oct 2026).** The one
   attempt failed because the company fiber network stalls large HTTPS
   downloads from every host (Cloudflare, Hetzner and OVH too), so it says nothing

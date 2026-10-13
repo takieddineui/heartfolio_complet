@@ -1,0 +1,39 @@
+/*
+  One spark at a milestone's node. Sizes and timings are the named values from
+  live-motion.ts, read as custom properties (the fallbacks are the same defaults).
+  Only opacity and transform animate, so the compositor does the work and the
+  page never relayouts. Physical left/right properties are deliberately absent:
+  the spark is centred by flex so it is correct in right-to-left pages.
+*/
+
+.spark {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  color: var(--accent);
+}
+
+.mark {
+  width: var(--live-spark-size, 18px);
+  height: auto;
+  opacity: 0;
+  animation: spark-catch var(--live-spark-ms, 1400ms) var(--live-ease, cubic-bezier(0.22, 1, 0.36, 1)) 1 both;
+}
+
+/* It catches (grows in and brightens), holds a moment, then lets go. No
+   overshoot: "never a bounce". */
+@keyframes spark-catch {
+  0% { opacity: 0; transform: scale(0.4); }
+  35% { opacity: 1; transform: scale(1); }
+  60% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1); }
+}
+
+/* The script does not even mount it when motion is reduced; this is the second
+   guard, for a preference that changes after the page is open. */
+@media (prefers-reduced-motion: reduce) {
+  .spark { display: none; }
+}

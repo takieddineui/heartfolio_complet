@@ -77,8 +77,13 @@
   /* §10 — milestones ACTIVATE as the story progresses. Resting state is
      dimmed and slightly displaced; reaching it settles it. */
   opacity: 0.25;
-  transform: translateY(16px);
-  transition: opacity .7s ease, transform .7s ease;
+  /* How it arrives: a little below its place and a touch small, settling on the
+     brand ease. Every number is a named value from live-motion.ts, read here as a
+     custom property with the same default. */
+  transform: translateY(var(--live-enter-rise, 16px)) scale(var(--live-enter-scale, 0.985));
+  transition:
+    opacity var(--live-enter-ms, 700ms) var(--live-ease, cubic-bezier(0.22, 1, 0.36, 1)),
+    transform var(--live-enter-ms, 700ms) var(--live-ease, cubic-bezier(0.22, 1, 0.36, 1));
 }
 .stepActive { opacity: 1; transform: none; }
 
@@ -105,8 +110,38 @@
 .stepText { margin: 10px 0 0; line-height: 1.6; color: var(--ink); }
 .stepPlace { margin: 6px 0 0; font-size: .8rem; color: var(--muted); }
 
-.photoButton { display: block; margin-top: 16px; padding: 0; border: 0; background: none; cursor: zoom-in; width: 100%; }
-.photo { width: 100%; border-radius: 3px; box-shadow: 0 10px 30px rgba(0,0,0,.18); display: block; }
+/* The frame clips the photograph so it can settle inside it: it starts a touch
+   large and eases down to its true size a little after its milestone begins to
+   arrive. The radius and shadow moved up to the frame (they were on the image) so
+   the clip is clean; the look at rest is the same. */
+.photoButton {
+  display: block;
+  margin-top: 16px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: zoom-in;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 3px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.18);
+}
+.photo {
+  width: 100%;
+  display: block;
+  transform: scale(var(--live-photo-settle-scale, 1.04));
+  transition: transform var(--live-photo-settle-ms, 1100ms) var(--live-ease, cubic-bezier(0.22, 1, 0.36, 1)) var(--live-photo-settle-delay, 120ms);
+}
+.stepActive .photo { transform: none; }
+
+/* Reduced motion removes the MOVEMENT (the rise, the scale, the settle) and keeps
+   the fade: a milestone still brightens when reached, but nothing travels. The
+   global rule in globals.css would also shorten these transitions to nothing, but
+   it leaves the resting offsets in place, so they are cleared here explicitly. */
+@media (prefers-reduced-motion: reduce) {
+  .step { transform: none; }
+  .photo { transform: none; }
+}
 .media { width: 100%; margin-top: 14px; border-radius: 3px; }
 
 .ending {

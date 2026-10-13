@@ -3,10 +3,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import styles from "./live-keepsake.module.css";
 
+import { useReducedMotion } from "framer-motion";
 import { SHOW_MILESTONE_VIDEO } from "@/lib/feature-flags";
 import { OpeningSequence } from "./opening-sequence";
 import { EndingSpark } from "./ending-spark";
 import { liveThemeStyle } from "./live-theme";
+import { liveMotionStyle } from "./live-motion";
+import { MilestoneSpark } from "./milestone-spark";
 import { RevealGroup, RevealItem } from "@/components/motion/reveal";
 
 /**
@@ -71,6 +74,14 @@ import { RevealGroup, RevealItem } from "@/components/motion/reveal";
  *   been made, which is the point of leaving this as a TODO rather
  *   than a decision already reached.
  *
+ * MOTION. How a milestone arrives, how its photograph settles and the one
+ * spark at its node are named in `live-motion.ts` and described in
+ * `milestone-spark.tsx`; they extend the restrained style of the opening and the
+ * ending, and never a scroll listener (the observer below is the only trigger).
+ * Photograph parallax, particles, an animated accent, cursor/tilt effects and
+ * time-of-day mood are deferred on purpose (CLAUDE.md): the photographs are
+ * delivered unsized, so nothing may transform them heavily yet.
+ *
  * NOT STARTED HERE. Flagging the shape of the question, not answering
  * it — this is real design work across six layouts, not a mechanical
  * follow-up to Song Poster's own version of the same to-do.
@@ -98,6 +109,14 @@ export function LiveKeepsake({
   const milestones = (values.events as Milestone[] | undefined) ?? [];
   const people = ((values.people as { name: string }[] | undefined) ?? []).map((p) => p.name);
   const [active, setActive] = useState(0);
+  // Milestones the reader has actually reached (crossed the middle of the
+  // screen), for the one-time spark at each node. Not `active`: that starts at 0
+  // with nothing reached, and only ever names the latest one.
+  const [reached, setReached] = useState<ReadonlySet<number>>(() => new Set());
+  // A SCRIPTED effect needs its own check: the global reduced-motion rule only
+  // shortens CSS animations, it cannot stop script from creating one. `=== false`
+  // so an unknown preference (before the client has read it) never sparks.
+  const motionAllowed = useReducedMotion() === false;
   const [openingDone, setOpeningDone] = useState(false);
   // A STABLE identity, not the inline `() => setOpeningDone(true)` this
   // used to be passed as directly. `OpeningSequence`'s own effect
@@ -199,7 +218,10 @@ export function LiveKeepsake({
         for (const entry of entries) {
           if (entry.isIntersecting) {
             const index = stepRefs.current.indexOf(entry.target as HTMLElement);
-            if (index >= 0) setActive(index);
+            if (index >= 0) {
+              setActive(index);
+              if (motionAllowed) setReached((seen) => (seen.has(index) ? seen : new Set(seen).add(index)));
+            }
           }
         }
       },
@@ -211,7 +233,7 @@ export function LiveKeepsake({
 
     for (const node of stepRefs.current) if (node) observer.observe(node);
     return () => observer.disconnect();
-  }, [milestones.length]);
+  }, [milestones.length, motionAllowed]);
 
   /** §10 — years, months and days. See the note above on why not minutes. */
   const duration = useMemo(() => {
@@ -248,7 +270,7 @@ export function LiveKeepsake({
     // tokens (`live-theme.ts`), so all eight palettes and all four type
     // choices reach the recipient. `data-palette` stays as a hook for tests
     // and any future per-palette tweak; it styles nothing by itself.
-    <main className={styles.root} data-palette={themeSelections.palette} style={liveThemeStyle(themeSelections)}>
+    <main className={styles.root} data-palette={themeSelections.palette} style={{ ...liveThemeStyle(themeSelections), ...liveMotionStyle() }}>
       {!openingDone && (
         <OpeningSequence
           names={people.join(" & ")}
@@ -294,6 +316,8 @@ export function LiveKeepsake({
           >
             <div className={styles.spine} aria-hidden="true">
               <span className={styles.node} />
+              {/* One spark, the first time the reader reaches this milestone. */}
+              {reached.has(index) && <MilestoneSpark />}
             </div>
 
             <div className={styles.stepBody}>
