@@ -283,7 +283,10 @@ export interface ComponentRendererConfig<TValues = unknown> {
  * `unknown`, so every existing non-generic usage is unchanged.
  */
 export type RendererConfig<TValues = unknown> =
-  | { kind: "canvas" | "svg" | "webgl" | "image" | "unset" }
+  /** `"live"`: a live-only product (no print, no file). The Studio mounts the
+   * module's `livePreview` full-pane and nothing else (see
+   * `components/studio/preview/live-only-renderer.tsx`). */
+  | { kind: "canvas" | "svg" | "webgl" | "image" | "unset" | "live" }
   | ComponentRendererConfig<TValues>;
 
 /** Handed to a mounted renderer so it can (a) expose the DOM node(s) the
@@ -422,11 +425,13 @@ export function resolveExportTargets(
 }
 
 export interface HostedDeliveryConfig {
-  /** Placeholder shape — deliberately shallow. Real hosting (slug
-   * generation, expiry, access control) is a checkout/back-end concern
-   * that doesn't exist yet; this exists so `DeliveryConfig` can express
-   * "this product isn't exported at all" today without guessing at
-   * infrastructure no product has needed yet. */
+  /** Deliberately shallow: the hosting itself (the unguessable link, access
+   * rules) is the backend's `PublicExperience`, not configured here. First
+   * used by Reasons I Love You, a live-only product.
+   *
+   * A TRANSLATION KEY into the module's own messages (it used to be shown
+   * verbatim, which would have put one English sentence in every locale).
+   * Omitted, the Shell's own translated sentence is shown. */
   description?: string;
 }
 

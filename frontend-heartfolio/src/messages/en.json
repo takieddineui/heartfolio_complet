@@ -374,6 +374,42 @@
         "body": "This one is made for couples, families, parents, and anyone making a story for someone else. What it needs is a shared history long enough to have a few dates that matter. You don't need to be a designer or know what you want before you start: you bring the dates, the photos and the words, and the layout is already decided."
       }
     },
+    "reasonsILoveYou": {
+      "name": "Reasons I Love You",
+      "shortDescription": "Up to ten reasons, opened one at a time.",
+      "fullDescription": "Write up to ten reasons and choose how they are given: a jar of notes, a daisy, a deck of hearts or a plate of fortune cookies. They open them one by one, then find your last word and, if you like, a letter.",
+      "meta": {
+        "title": "Reasons I Love You, a personalized digital gift | Heartfolio",
+        "description": "Up to ten reasons you love them, given as a jar of notes, a daisy, a deck of hearts or fortune cookies, and opened one at a time. From {price}, delivered instantly.",
+        "imageAlt": "A Heartfolio Reasons I Love You gift: a jar of folded notes, each one a reason",
+        "descriptionNoPrice": "Up to ten reasons you love them, given as a jar of notes, a daisy, a deck of hearts or fortune cookies, and opened one at a time. Delivered instantly."
+      },
+      "storyTitle": "Some things are easier to say one at a time.",
+      "story": "You write the reasons (the way they laugh, the songs they get wrong, the thing they did without being asked) and choose how they are given. Each tap opens one. When the last is read, a final message appears and your signature writes itself, followed by a letter if you want to say more.",
+      "faq": [
+        {
+          "question": "How many reasons can I write?",
+          "answer": "Between one and ten. Each can have a photo and a short memory line under it."
+        },
+        {
+          "question": "What are the four gifts?",
+          "answer": "A jar of notes, a daisy picked petal by petal, a deck of hearts drawn card by card, and a plate of fortune cookies. Each has its own look, its own fonts and its own little tune, played live as they open it."
+        },
+        {
+          "question": "How do they receive it?",
+          "answer": "As a private link, the moment your payment clears. There is nothing to download or print: you send them the link, or give them the QR card that comes with it."
+        }
+      ],
+      "offerings": {
+        "digital": {
+          "description": "A private link to the gift, opened one reason at a time."
+        }
+      },
+      "audience": {
+        "title": "Who it's for",
+        "body": "Anyone you have more to say to than fits in a card: a partner, and just as well a best friend, a parent or a sibling. It needs no photos and no dates, only the reasons."
+      }
+    },
     "badges": {
       "mostGifted": "Most gifted",
       "new": "New"
@@ -782,7 +818,8 @@
       },
       "export": {
         "title": "Export",
-        "description": "Choose how you'll receive the finished piece. Coming soon."
+        "description": "Choose how you'll receive the finished piece. Coming soon.",
+        "hosted": "Delivered as a private link, not a download."
       },
       "pricing": {
         "total": "Total"

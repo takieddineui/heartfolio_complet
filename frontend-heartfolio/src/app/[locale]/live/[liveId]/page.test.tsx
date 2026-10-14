@@ -20,8 +20,11 @@ vi.mock("next-intl/server", () => ({ setRequestLocale: () => {} }));
 // The page's own components are irrelevant to the fetch path under test.
 vi.mock("@/components/live/live-keepsake", () => ({ LiveKeepsake: () => null }));
 vi.mock("@/components/live-song/song-live-keepsake", () => ({ SongLiveKeepsake: () => null }));
+vi.mock("@/components/live-reasons/reasons-live-page", () => ({ ReasonsLivePage: () => null }));
 
 import LivePage from "./page";
+import { LiveKeepsake } from "@/components/live/live-keepsake";
+import { ReasonsLivePage } from "@/components/live-reasons/reasons-live-page";
 
 const params = (liveId = "abc") => Promise.resolve({ locale: "en", liveId });
 
@@ -57,5 +60,52 @@ describe("LivePage — backend origin", () => {
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("ECONNREFUSED")));
 
     await expect(LivePage({ params: params() })).rejects.toBeInstanceOf(NotFoundSignal);
+  });
+});
+
+describe("LivePage — Reasons I Love You", () => {
+  const values = {
+    gift: "deck",
+    toName: "Hana",
+    fromName: "Theo",
+    title: "",
+    reasons: [{ text: "Your laugh.", memory: "", photo: null }],
+    finaleTeaser: "",
+    finaleLine: "You are you.",
+    signature: "",
+    letter: null,
+    music: true,
+    share: true,
+  };
+
+  it("hands a Reasons payload to the Reasons page, with the ORDER's locale and the id", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(new Response(JSON.stringify({ productId: "reasons-i-love-you", locale: "ar", values }), { status: 200 }))
+    );
+
+    const element = (await LivePage({ params: params("xyz") })) as { type: unknown; props: Record<string, unknown> };
+
+    expect(element.type).toBe(ReasonsLivePage);
+    expect(element.type).not.toBe(LiveKeepsake);
+    expect(element.props.liveId).toBe("xyz");
+    expect(element.props.locale).toBe("ar");
+    expect(element.props.initial).toEqual(values);
+  });
+
+  it("still sends Love Story Timeline's payload to its own page", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        new Response(
+          JSON.stringify({ productId: "love-story-timeline", locale: "en", scene: "", level: "", values: {}, themeSelections: {}, media: { backgroundMusic: null, milestones: [] } }),
+          { status: 200 }
+        )
+      )
+    );
+
+    const element = (await LivePage({ params: params() })) as { type: unknown };
+
+    expect(element.type).toBe(LiveKeepsake);
   });
 });

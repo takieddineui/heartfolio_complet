@@ -1,0 +1,194 @@
+/*
+  REASONS I LOVE YOU, ported from the prototype's stylesheet.
+
+  FONTS ARE SELF-HOSTED (public/fonts/reasons, licences beside them), never
+  fonts.googleapis.com, the same rule as globals.css. Each gift names its own
+  faces and a browser downloads only the faces the open gift uses. Latin
+  subsets as Google serves them, except Merienda, Limelight and Marcellus:
+  their licences reserve their names, and a subset can count as a modified
+  version, so those three are the original files, unmodified.
+
+  ARABIC: none of these faces has Arabic letters. Each stack continues into
+  "Heartfolio Serif" (display: Noto Kufi Arabic for Arabic) or "Heartfolio
+  Sans" (reading text: Noto Naskh Arabic), already registered in globals.css,
+  so an Arabic character falls through to them and a Latin name in the same
+  line keeps the gift's own face.
+
+  NOTHING HERE IS POSITIONED AGAINST THE WINDOW. `.frame` is the box for the
+  reveal card, the sparkle canvas and the toast (see reasons-keepsake.tsx).
+*/
+
+@font-face { font-family: "Young Serif"; src: url("/fonts/reasons/young-serif-normal-400-latin.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "Gaegu"; src: url("/fonts/reasons/gaegu-normal-400-latin.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "Gaegu"; src: url("/fonts/reasons/gaegu-normal-700-latin.woff2") format("woff2"); font-weight: 700; font-style: normal; font-display: swap; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "Manrope"; src: url("/fonts/reasons/manrope-normal-400-800-latin.woff2") format("woff2"); font-weight: 400 800; font-style: normal; font-display: swap; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "Merienda"; src: url("/fonts/reasons/merienda-variable.ttf") format("truetype"); font-weight: 300 900; font-style: normal; font-display: swap; }
+@font-face { font-family: "Mali"; src: url("/fonts/reasons/mali-normal-400-latin.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "Mali"; src: url("/fonts/reasons/mali-normal-500-latin.woff2") format("woff2"); font-weight: 500; font-style: normal; font-display: swap; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "Mali"; src: url("/fonts/reasons/mali-normal-600-latin.woff2") format("woff2"); font-weight: 600; font-style: normal; font-display: swap; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "Limelight"; src: url("/fonts/reasons/limelight-regular.ttf") format("truetype"); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: "Spectral"; src: url("/fonts/reasons/spectral-normal-400-latin.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "Spectral"; src: url("/fonts/reasons/spectral-normal-600-latin.woff2") format("woff2"); font-weight: 600; font-style: normal; font-display: swap; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "Spectral"; src: url("/fonts/reasons/spectral-italic-400-latin.woff2") format("woff2"); font-weight: 400; font-style: italic; font-display: swap; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "Marcellus"; src: url("/fonts/reasons/marcellus-regular.ttf") format("truetype"); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: "Zilla Slab"; src: url("/fonts/reasons/zilla-slab-normal-400-latin.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "Zilla Slab"; src: url("/fonts/reasons/zilla-slab-normal-600-latin.woff2") format("woff2"); font-weight: 600; font-style: normal; font-display: swap; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "Sora"; src: url("/fonts/reasons/sora-normal-400-700-latin.woff2") format("woff2"); font-weight: 400 700; font-style: normal; font-display: swap; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "Homemade Apple"; src: url("/fonts/reasons/homemade-apple-normal-400-latin.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+
+/* ── Each gift's colours and faces ─────────────────────────────────── */
+.frame[data-gift="jar"] { --bg: #f6e7d3; --ink: #4a3424; --soft: #7d6250; --accent: #d9813b; --paper: #fff9ef; --display: "Young Serif", "Heartfolio Serif", Georgia, serif; --note: "Gaegu", "Heartfolio Sans", cursive; --ui: "Manrope", "Heartfolio Sans", system-ui, sans-serif; color-scheme: light; background: linear-gradient(180deg, #f6e7d3 0 62%, #c99a6b 62% 64%, #b6845a 64%); }
+.frame[data-gift="daisy"] { --bg: #cfe8d5; --ink: #2d4a36; --soft: #4f6d58; --accent: #f2b705; --paper: #fffef5; --display: "Merienda", "Heartfolio Serif", cursive; --note: "Mali", "Heartfolio Sans", sans-serif; --ui: "Mali", "Heartfolio Sans", system-ui, sans-serif; color-scheme: light; background: radial-gradient(60% 40% at 50% 30%, #e6f4e9, transparent 70%), linear-gradient(180deg, #cfe8d5, #a9d3b5); }
+.frame[data-gift="deck"] { --bg: #163d2c; --ink: #f3ecd8; --soft: rgba(243, 236, 216, 0.72); --accent: #c8102e; --paper: #fffdf6; --display: "Limelight", "Heartfolio Serif", Georgia, serif; --note: "Spectral", "Heartfolio Sans", Georgia, serif; --ui: "Spectral", "Heartfolio Sans", Georgia, serif; color-scheme: dark; background: radial-gradient(70% 50% at 50% 40%, #1f5a40, #0d2a1e 80%); }
+.frame[data-gift="cookies"] { --bg: #f3dcc0; --ink: #5a2e1c; --soft: #86563c; --accent: #b8322a; --paper: #fffdf8; --display: "Marcellus", "Heartfolio Serif", Georgia, serif; --note: "Zilla Slab", "Heartfolio Sans", Georgia, serif; --ui: "Sora", "Heartfolio Sans", system-ui, sans-serif; color-scheme: light; background: radial-gradient(55% 35% at 50% 48%, #fff4e4, transparent 70%), linear-gradient(180deg, #f3dcc0, #e5c299); }
+
+/* ── The frame: every overlay is positioned against THIS ────────────── */
+.frame {
+  --signature: "Homemade Apple", "Heartfolio Sans", cursive;
+  position: relative;
+  /* `clip`, not just `hidden`: a hidden box can still be SCROLLED, by script
+     or by the browser bringing a focused element into view, and the hidden
+     toast sits a little below the frame, so focus could slide the whole
+     overlay layer up. `clip` cannot be scrolled at all. `hidden` stays first
+     as the fallback for a browser without `clip`. */
+  overflow: hidden;
+  overflow: clip;
+  /* A containing block for anything inside, including anything a future
+     change makes `position: fixed`: it still cannot leave this box. */
+  contain: layout paint;
+  isolation: isolate;
+  width: 100%;
+  font-family: var(--ui);
+  font-size: 1.05rem;
+  line-height: 1.6;
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+.frame[data-fill="viewport"] { height: 100svh; }
+.frame[data-fill="container"] { height: 100%; min-height: 560px; }
+.frame *, .frame *::before, .frame *::after { box-sizing: border-box; }
+.frame h1, .frame p { margin: 0; }
+.frame button { font: inherit; color: inherit; cursor: pointer; }
+.frame :focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; border-radius: 8px; }
+.frame [hidden] { display: none !important; }
+
+.scroller { position: absolute; inset: 0; overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; }
+.scroller[data-locked] { overflow-y: hidden; }
+
+.icon { width: 1.2em; height: 1.2em; flex: none; }
+
+@keyframes breathe { 50% { opacity: 0.45; } }
+@keyframes glow { 50% { filter: drop-shadow(0 0 18px rgba(255, 200, 80, 0.95)); } }
+@keyframes sway { from { transform: rotate(-3deg); } to { transform: rotate(3deg); } }
+
+/* ── The stage: the gift itself ────────────────────────────────────── */
+.stage { position: relative; min-height: 100%; display: flex; flex-direction: column; align-items: center; padding: calc(env(safe-area-inset-top, 0px) + 18px) 16px calc(env(safe-area-inset-bottom, 0px) + 18px); }
+.tag { position: relative; margin-top: 6px; padding: 10px 20px 12px; text-align: center; background: var(--paper); color: #4a3424; border-radius: 6px; box-shadow: 0 8px 18px rgba(0, 0, 0, 0.14); transform: rotate(-2deg); max-width: min(92%, 420px); }
+.tag::before { content: ""; position: absolute; top: 8px; inset-inline-start: 12px; width: 10px; height: 10px; border-radius: 50%; box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.25); }
+.tag small { display: block; font-family: var(--ui); font-size: 0.82rem; opacity: 0.75; }
+.tag h1 { font-family: var(--display); font-weight: 400; font-size: clamp(1.5rem, 6.6vw, 2.1rem); line-height: 1.15; }
+.frame[data-gift="deck"] .tag { background: #f3ecd8; color: #2a2a2a; border-radius: 2px; transform: rotate(1.5deg); }
+.frame[data-gift="cookies"] .tag { border-radius: 2px; border-top: 4px solid #b8322a; transform: rotate(-1deg); }
+.hint { margin-top: 12px; min-height: 1.6em; font-weight: 700; color: var(--soft); animation: breathe 2.4s ease-in-out infinite; text-align: center; }
+.count { font-family: var(--ui); font-weight: 700; font-size: 0.9rem; color: var(--soft); margin-top: 4px; }
+.gift { position: relative; flex: 1; width: 100%; max-width: 520px; display: grid; place-items: center; min-height: 360px; }
+.pile { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; min-height: 36px; max-width: 520px; margin-top: 6px; }
+.pile button { min-width: 36px; height: 36px; padding: 0 8px; border: 0; border-radius: 8px; background: var(--paper); color: #4a3424; font-weight: 800; font-size: 0.85rem; box-shadow: 0 3px 6px rgba(0, 0, 0, 0.12); }
+.frame[data-gift="deck"] .pile button { border-radius: 3px; color: #c8102e; }
+.bottom { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; max-width: 520px; margin-top: 12px; }
+.mini { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0.35rem 0.8rem; border-radius: 999px; border: 1.5px solid color-mix(in srgb, var(--ink) 25%, transparent); background: color-mix(in srgb, var(--paper) 55%, transparent); font-weight: 700; font-size: 0.85rem; color: var(--ink); }
+
+/* JAR */
+.jar { position: relative; width: min(62vw, 250px); aspect-ratio: 5 / 7; border: 0; padding: 0; background: none; }
+.glass { position: absolute; inset: 14% 0 0 0; border-radius: 24% 24% 18% 18% / 12% 12% 10% 10%; background: linear-gradient(90deg, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0.12) 30%, rgba(255, 255, 255, 0.05) 70%, rgba(255, 255, 255, 0.4)); box-shadow: inset 0 0 0 3px rgba(255, 255, 255, 0.75), inset 0 -14px 24px rgba(160, 110, 60, 0.15), 0 18px 30px rgba(90, 60, 30, 0.25); overflow: hidden; }
+.lid { position: absolute; left: 12%; right: 12%; top: 4%; height: 12%; border-radius: 8px; background: repeating-linear-gradient(90deg, #c9a35e 0 6px, #b38a45 6px 8px); box-shadow: 0 4px 0 #8f6a2e; }
+.cloth { position: absolute; left: 4%; right: 4%; top: 0; height: 13%; background: radial-gradient(circle, #d9813b 2px, transparent 2.5px) 0 0 / 12px 12px, #f2c9a0; clip-path: polygon(0 30%, 10% 0, 25% 25%, 40% 0, 55% 30%, 70% 0, 85% 25%, 100% 5%, 96% 100%, 4% 100%); opacity: 0.92; }
+.twine { position: absolute; left: 10%; right: 10%; top: 13%; height: 4px; background: #8a5a2e; border-radius: 2px; }
+.label { position: absolute; left: 50%; top: 22%; transform: translateX(-50%) rotate(-4deg); padding: 4px 10px; background: #fff9ef; font-family: var(--note); font-weight: 700; font-size: 1.15rem; color: #4a3424; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15); white-space: nowrap; }
+.fold { position: absolute; width: 30px; height: 22px; border-radius: 3px; background: var(--fc); box-shadow: 0 2px 3px rgba(0, 0, 0, 0.18), inset 0 -6px 0 rgba(0, 0, 0, 0.08); transform: rotate(var(--r)); }
+.fold.gold { background: linear-gradient(135deg, #ffe9a8, #e0a93a); animation: glow 1.6s ease-in-out infinite; }
+
+/* DAISY */
+.daisy { width: min(86vw, 360px); max-width: 100%; overflow: visible; }
+/* NO `transform-box: fill-box` here, unlike the prototype. Each petal is
+   placed by the SVG attribute `rotate(angle 180 180)` around the flower's
+   centre; fill-box moved that rotation's origin to the petal's own box and
+   scattered the petals in an arc away from the flower (the prototype shows it
+   too). The pick animation moves the petal's PATH, so it never needed it. */
+.petal { cursor: pointer; }
+.petal path { fill: #fffef5; stroke: #e5e0c8; stroke-width: 1.5; }
+.petal:hover path { fill: #fff; }
+.stem { animation: sway 4s ease-in-out infinite alternate; transform-origin: 180px 520px; }
+.core { cursor: pointer; }
+.bloom { transform-box: fill-box; transform-origin: center; }
+
+/* DECK */
+.deck { position: relative; width: min(48vw, 190px); aspect-ratio: 5 / 7; border: 0; padding: 0; background: none; }
+.deckCard { position: absolute; inset: 0; border-radius: 10px; background: radial-gradient(circle, #c8102e 2px, transparent 2.5px) 0 0 / 12px 12px, repeating-linear-gradient(45deg, #a50d26 0 6px, #8a0a1f 6px 12px); border: 6px solid #fffdf6; box-shadow: 0 8px 18px rgba(0, 0, 0, 0.35); transform: translate(calc(var(--k) * -2px), calc(var(--k) * -2px)) rotate(calc(var(--k) * 0.6deg)); }
+.deckCard.queen { background: linear-gradient(135deg, #ffe9a8, #e0a93a); animation: glow 1.6s ease-in-out infinite; }
+.deckCard.queen::after { content: "♛"; position: absolute; inset: 0; display: grid; place-items: center; font-size: 3.4rem; color: #8a0a1f; }
+
+/* COOKIES */
+.plate { position: relative; width: min(92vw, 420px); max-width: 100%; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle, #fffdf8 0 60%, #f1e4d0 61% 64%, #fffdf8 65% 70%, #b8322a 71% 72%, #fffdf8 73%); box-shadow: 0 18px 40px rgba(90, 46, 28, 0.25); display: flex; flex-wrap: wrap; align-content: center; justify-content: center; gap: 2px 4px; padding: 18%; }
+.cookie { position: relative; width: min(20vw, 78px); aspect-ratio: 1.3; border: 0; padding: 0; background: none; }
+.cookie svg { width: 100%; height: 100%; overflow: visible; }
+.half { transform-box: fill-box; transform-origin: 50% 100%; }
+.cookie.gold svg { animation: glow 1.6s ease-in-out infinite; }
+.cookie.gone { visibility: hidden; }
+
+/* ── The reveal: each gift shows a reason in its own material ───────── */
+.reveal { position: absolute; inset: 0; z-index: 60; display: flex; align-items: center; justify-content: center; padding: 24px 16px; background: rgba(30, 20, 10, 0.45); opacity: 0; visibility: hidden; transition: opacity 0.3s, visibility 0.3s; }
+.reveal[data-open] { opacity: 1; visibility: visible; }
+.card { position: relative; width: min(92%, 400px); max-height: 86%; overflow: auto; padding: 26px 22px 22px; text-align: center; background: var(--paper); color: #3a2a20; box-shadow: 0 24px 50px rgba(0, 0, 0, 0.35); will-change: transform; outline: none; }
+.number { font-family: var(--ui); font-size: 0.78rem; letter-spacing: 0.12em; text-transform: uppercase; opacity: 0.65; }
+.text { font-family: var(--note); font-size: clamp(1.35rem, 5.8vw, 1.7rem); line-height: 1.35; margin: 0.4em 0 !important; }
+.memory { font-size: 0.92rem; opacity: 0.75; font-style: italic; }
+.back { margin-top: 14px !important; font-size: 0.82rem; opacity: 0.6; }
+.photoBox { display: block; margin: 10px 0 6px; aspect-ratio: 4 / 3; border-radius: 10px; overflow: hidden; background: color-mix(in srgb, #3a2a20 7%, transparent); }
+.photo { display: block; width: 100%; height: 100%; object-fit: contain; }
+.frame[data-gift="jar"] .card { background: var(--fc, #fff3c9); border-radius: 3px; background-image: repeating-linear-gradient(0deg, transparent 0 29px, rgba(74, 52, 36, 0.12) 29px 30px); transform-origin: 50% 100%; }
+.frame[data-gift="jar"] .text { font-weight: 700; font-size: clamp(1.6rem, 7vw, 2rem); line-height: 1.15; }
+.frame[data-gift="daisy"] .card { border-radius: 50% 50% 46% 46% / 30% 30% 24% 24%; padding: 46px 30px 34px; background: #fffef5; box-shadow: 0 24px 50px rgba(45, 74, 54, 0.3), inset 0 -10px 30px rgba(242, 183, 5, 0.12); }
+.frame[data-gift="daisy"] .number { font-family: "Merienda", "Heartfolio Serif", cursive; font-size: 1.05rem; letter-spacing: 0; text-transform: none; color: #d99800; opacity: 1; }
+.frame[data-gift="deck"] .card { width: min(80%, 300px); aspect-ratio: 5 / 7; border-radius: 14px; padding: 30px 20px; display: flex; flex-direction: column; justify-content: center; border: 1px solid #ddd; }
+.corner { position: absolute; font-family: "Limelight", "Heartfolio Serif", serif; font-size: 1.5rem; line-height: 1; color: #c8102e; text-align: center; }
+.cornerStart { top: 12px; inset-inline-start: 12px; }
+.cornerEnd { bottom: 12px; inset-inline-end: 12px; transform: rotate(180deg); }
+.frame[data-gift="deck"] .text { color: #2a2a2a; }
+.suit { font-size: 2.2rem; color: #c8102e; line-height: 1; }
+.frame[data-gift="deck"] .number { color: #c8102e; }
+.frame[data-gift="cookies"] .reveal { background: rgba(90, 46, 28, 0.35); }
+.frame[data-gift="cookies"] .card { width: min(94%, 440px); border-radius: 2px; padding: 20px 22px; box-shadow: 0 12px 30px rgba(90, 46, 28, 0.3); background: #fffdf8; transform-origin: 0 50%; }
+.frame[data-gift="cookies"] .text { color: #b8322a; font-size: clamp(1.15rem, 5vw, 1.4rem); }
+.lucky { font-family: var(--ui); font-size: 0.8rem; letter-spacing: 0.06em; color: #86563c; border-top: 1px dashed rgba(184, 50, 42, 0.4); padding-top: 8px; margin-top: 8px !important; }
+.card.final { background: linear-gradient(160deg, #fff4cf, #f3cf6e) !important; color: #4a3420; }
+.card.final .text { font-family: var(--display) !important; font-size: clamp(1.5rem, 6.6vw, 2rem) !important; color: #4a3420 !important; }
+.signature { display: block; margin-top: 10px; font-family: var(--signature); font-size: 1.6rem; color: #8a3a2a; }
+.signature[data-part="signature"] > span { display: inline-block; opacity: 0; }
+
+/* ── After the gift: the letter ─────────────────────────────────────── */
+.after { padding: clamp(54px, 10vw, 90px) 16px calc(env(safe-area-inset-bottom, 0px) + 50px); }
+.letter { max-width: 560px; margin: 0 auto; padding: clamp(26px, 6vw, 40px); background: var(--paper); color: #3a2a20; box-shadow: 0 18px 40px rgba(0, 0, 0, 0.18); font-family: var(--note); font-size: 1.1rem; line-height: 1.75; }
+.letter p { margin-bottom: 1em; }
+.greeting { font-family: var(--display); font-size: 1.5rem; margin-bottom: 0.6em !important; }
+.signoff { font-style: italic; }
+.row { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 18px; }
+.button { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; min-height: 50px; padding: 0.7rem 1.4rem; border-radius: 999px; border: 0; font-weight: 800; background: var(--accent); color: #fff; }
+.ghost { background: transparent; color: var(--ink); border: 1.5px solid color-mix(in srgb, var(--ink) 30%, transparent); }
+.button[aria-disabled="true"] { opacity: 0.55; cursor: default; }
+.brand { text-align: center; margin-top: 26px; font-size: 0.8rem; opacity: 0.6; }
+.brand a { color: inherit; }
+
+/* Sparkles and the toast live in the frame, never the window. */
+.fx { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 70; pointer-events: none; }
+.toast { position: absolute; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 22px); z-index: 100; transform: translate(-50%, 24px); background: #2a1d14; color: #fff; padding: 0.7rem 1.2rem; border-radius: 999px; font-weight: 700; font-size: 0.95rem; opacity: 0; pointer-events: none; transition: opacity 0.3s, transform 0.3s; }
+.toast[data-show] { opacity: 1; transform: translate(-50%, 0); }
+
+/* The global reduced-motion rule (globals.css) already shortens these; the
+   looping ones are switched off outright, and the scripted effects have their
+   own check in the component. */
+@media (prefers-reduced-motion: reduce) {
+  .hint, .stem, .fold.gold, .deckCard.queen, .cookie.gold svg { animation: none; }
+  .reveal, .toast { transition: none; }
+}

@@ -264,6 +264,29 @@ CATALOG = [
             ),
         ],
     },
+    {
+        # THE FIRST LIVE-ONLY PRODUCT: no print, no wallpaper, no renderer
+        # output at all. Its one pack grants `__live__`, which delivery answers
+        # with the hosted page before any renderer is consulted; the registry
+        # entry (`ReasonsILoveYouRenderer`) exists only for the pre-payment
+        # check. $15.99, the same as Love Story Timeline's and Song Poster's
+        # Digital packs, and the same `live` slug, so the delivery-type map,
+        # the checkout's pack grouping and the Digital-only order screens all
+        # already know it. Sold through Freemius plan 71990
+        # (`FREEMIUS_PLAN_MAPPING["reasons-i-love-you:live"]`), at this price.
+        "slug": "reasons-i-love-you",
+        "name_i18n_key": "reasonsILoveYou",
+        # "other": the database's category check has no better fit, and one
+        # product is not worth a migration (decided 13 Oct 2026).
+        "category": "other",
+        "status": "available",
+        "starting_price_cents": 1599,
+        "order": 6,
+        "tags": ["love", "anniversary", "valentines", "gift"],
+        "packs": [
+            ("live", 1599, ["__live__"], "active"),
+        ],
+    },
 ]
 
 
@@ -299,6 +322,8 @@ def supported_targets(product_slug):
         # deliberately-not-decided-here question the CATALOG entry below
         # leaves open.
         "song-poster": set(print_target_dimensions()) | set(wallpaper_target_dimensions()) | {LIVE_TARGET_SENTINEL},
+        # Live-only: the hosted page is the whole product.
+        "reasons-i-love-you": {LIVE_TARGET_SENTINEL},
     }.get(product_slug)
 
 

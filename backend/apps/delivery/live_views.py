@@ -10,9 +10,10 @@ Writing those rules a second time would mean two implementations of the same
 security surface, and the one that drifted would be whichever nobody was
 looking at. `_load_paid_experience` is shared; only `kind` differs, and now
 only the PAYLOAD SHAPE differs per product, dispatched by `order.product.
-slug` — see `_build_song_poster_live_payload` below for why Song Poster's
-own live page is not `_build_ar_payload` reused, the way it briefly might
-look like it should be.
+slug` through `_LIVE_PAYLOAD_BUILDERS` — see `_build_song_poster_live_payload`
+below for why Song Poster's own live page is not `_build_ar_payload` reused,
+the way it briefly might look like it should be, and
+`_build_reasons_live_payload` for the first live-only product.
 """
 
 from __future__ import annotations
@@ -114,6 +115,89 @@ def _build_song_poster_live_payload(experience, order, project, product_slug) ->
     }
 
 
+def _build_reasons_live_payload(experience, order, project, product_slug) -> dict | None:
+    """Reasons I Love You's payload: the experience's own shape
+    (`components/live-reasons/experience-data.ts`, `ReasonsExperienceData`),
+    so the frontend hands it straight to the same component the Studio
+    previews with.
+
+    Validated on every request with the same `validate_and_normalize` the
+    pre-payment check ran, so a project that somehow stopped being valid
+    returns the generic 404 rather than half a gift.
+
+    EACH PHOTO URL IS GENERATED FRESH HERE, from the reason's `assetId` and
+    ownership-checked against the PAYING customer, the same path Song Poster's
+    photo and Love Story Timeline's milestone photos use; a stored URL is a
+    presigned one that has long expired. They last
+    `R2_PRESIGNED_URL_EXPIRY_SECONDS`, and this page loads its photos lazily,
+    so the frontend asks for this payload again when one fails
+    (`reasons-live-page.tsx`). A missing or foreign asset means no photo for
+    that reason, never a broken image.
+    """
+    from apps.assets.services import (
+        AssetAccessDenied,
+        AssetNotFound,
+        generate_asset_access_url,
+        get_asset_for_customer,
+    )
+    from apps.delivery.product_renderers.reasons_i_love_you.data import validate_and_normalize
+
+    try:
+        gift = validate_and_normalize(
+            (project.data or {}).get("values", {}), (project.data or {}).get("themeSelections", {})
+        )
+    except Exception:  # noqa: BLE001
+        logger.warning("live_experience_invalid_project", extra={"experience_id": str(experience.id)})
+        return None
+
+    def photo_for(asset_id):
+        if not asset_id:
+            return None
+        try:
+            return {"url": generate_asset_access_url(get_asset_for_customer(order.customer, asset_id))}
+        except (AssetNotFound, AssetAccessDenied):
+            logger.warning("live_experience_missing_photo", extra={"experience_id": str(experience.id)})
+            return None
+
+    letter = gift.letter
+    return {
+        "productId": product_slug,
+        "locale": order.locale,
+        "values": {
+            "gift": gift.gift,
+            "toName": gift.to_name,
+            "fromName": gift.from_name,
+            "title": gift.title,
+            "reasons": [
+                {"text": reason.text, "memory": reason.memory, "photo": photo_for(reason.photo_asset_id)}
+                for reason in gift.reasons
+            ],
+            "finaleTeaser": gift.finale_teaser,
+            "finaleLine": gift.finale_line,
+            "signature": gift.signature,
+            "letter": (
+                {"greeting": letter.greeting, "paragraphs": list(letter.paragraphs), "signoff": letter.signoff}
+                if letter
+                else None
+            ),
+            "music": gift.music,
+            "share": gift.show_share,
+        },
+    }
+
+
+#: Which payload each product's live page gets. EXPLICIT, not "Song Poster,
+#: else Love Story Timeline": that fallback handed every other product to
+#: Love Story Timeline's builder, whose validation would reject it and turn a
+#: paid gift into a silent 404. A product missing from this table now gets the
+#: same generic 404 deliberately, and adding a live page means adding a row.
+_LIVE_PAYLOAD_BUILDERS = {
+    "love-story-timeline": _build_ar_payload,
+    "song-poster": _build_song_poster_live_payload,
+    "reasons-i-love-you": _build_reasons_live_payload,
+}
+
+
 class LiveExperienceView(APIView):
     """`GET /live/<id>/` — the Digital keepsake behind a shared link."""
 
@@ -131,18 +215,15 @@ class LiveExperienceView(APIView):
         )
         if loaded is not None:
             experience, order, project, product_slug = loaded
-            # Dispatched by product, both builders sharing the SAME
-            # already-loaded row — never a second lookup per product
-            # tried. Anything not Song Poster falls through to the
-            # original AR-shaped builder, preserving today's exact
-            # behaviour for every existing live keepsake (Love Story
-            # Timeline) rather than requiring every future product to be
-            # added to an explicit allow-list before its live page works
-            # at all.
-            if product_slug == "song-poster":
-                payload = _build_song_poster_live_payload(experience, order, project, product_slug)
+            # Dispatched by product, every builder sharing the SAME
+            # already-loaded row — never a second lookup per product tried.
+            # See `_LIVE_PAYLOAD_BUILDERS` for why this is an explicit table.
+            builder = _LIVE_PAYLOAD_BUILDERS.get(product_slug or "")
+            if builder is None:
+                logger.warning("live_experience_unknown_product", extra={"experience_id": str(experience.id)})
+                payload = None
             else:
-                payload = _build_ar_payload(experience, order, project, product_slug)
+                payload = builder(experience, order, project, product_slug)
         else:
             payload = None
 

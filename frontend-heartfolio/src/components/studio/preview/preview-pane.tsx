@@ -1,4 +1,5 @@
 import "./component-renderer"; // registers the "component" renderer kind as a side effect
+import "./live-only-renderer"; // registers the "live" renderer kind (live-only products) as a side effect
 import type { StudioSession } from "@/types/studio";
 import { rendererRegistry } from "@/lib/studio/renderer-registry";
 import { PreviewEmptyState } from "./preview-empty-state";

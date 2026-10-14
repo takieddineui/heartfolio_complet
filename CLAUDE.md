@@ -36,9 +36,12 @@ monorepo no longer exists, and the stale description broke both
 | Database | **Supabase** | Session-mode Supavisor pooler. Not changed by the move off Railway/Vercel; which database the VPS uses is not settled by this note |
 | Payments | **Three providers exist in code — Paddle, FastSpring, Freemius.** Freemius is the only one wired into checkout, and is still **sandbox** | `FREEMIUS_ENABLED` / `isFreemiusCheckoutActive()` pick it. Paddle and FastSpring are complete code paths left in place, untouched |
 
-**`FREEMIUS_PLAN_MAPPING` covers only `love-story-timeline`**
-(`apps/commerce/freemius_integration.py`). `heart-map` and `song-poster` have
-no plan, so `stage_freemius_checkout` raises `FreemiusPlanNotConfigured` for
+**`FREEMIUS_PLAN_MAPPING` covers only `love-story-timeline` and
+`reasons-i-love-you` (plan 71990, its `live` pack)**
+(`apps/commerce/freemius_integration.py`). There is ONE Freemius product
+(`FREEMIUS_PRODUCT_ID`, one public key, one secret key for webhooks): a new
+product is new PLANS under it, never a second Freemius product, whose webhooks
+would fail the signature check. `heart-map` and `song-poster` have no plan, so `stage_freemius_checkout` raises `FreemiusPlanNotConfigured` for
 them: **they cannot be bought through Freemius yet.** Freemius has no custom
 amount and sells one plan per checkout, so every purchasable pack needs its
 own plan, mapped by `"product:pack"` — adding a product's packs means creating
@@ -84,7 +87,9 @@ endpoint, not at startup.
 
 **Two hardcoded `supported_targets` maps must stay in sync**, in
 `apps/products/admin.py` and `seed_catalog.py`. A new product's packs
-cannot be saved or seeded until both know about it.
+cannot be saved or seeded until both know about it. **They are NOT in sync
+today (found 14 Oct 2026, not fixed):** `song-poster` is in the seed's map
+but not the admin's, so the admin form does not validate Song Poster's packs.
 
 **Every `_choice_field` default must be a member of its own choices.** The
 `layout` default was `"centered"`, which §7 removed from `LAYOUTS` — so any
@@ -221,6 +226,31 @@ Two were genuine product bugs: the `layout` default above, and
 
 ## Still open
 
+- **Reasons I Love You (`reasons-i-love-you`) is BUILT and HIDDEN (14 Oct
+  2026), the first LIVE-ONLY product: no print, no renderer output, one `live`
+  pack at $15.99 granting `__live__`.** How a print-less product fits (registry
+  entry for the pre-payment check only, `_LIVE_PAYLOAD_BUILDERS`, `renderer:
+  { kind: "live" }`, hosted delivery) is in `ADDING-A-PRODUCT.md`. Freemius plan
+  **71990** ($15.99, one-off, single price point, under the existing Freemius
+  product) is mapped as `reasons-i-love-you:live` and pinned by
+  `FreemiusPlanMappingTests`. Still to do, in order: the real seed run by the
+  owner (`seed_catalog.py`, writes to Supabase), then `hidden: true` -> `false`
+  in `lib/products/registry.ts`, then one sandbox checkout by the owner. v1 leaves out, by
+  decision and without stubs: the recipient's reply, any open/read tracking,
+  the own-song upload, a scheduled send, drag to reorder, edits after
+  purchase; the branding line is always shown, as on the other live pages.
+  The prototype (`reasons-i-love-you.html`) is the design reference; its
+  daisy scattered its petals (`transform-box: fill-box` on the petal group),
+  fixed in the port. The fonts are self-hosted in `public/fonts/reasons/` with
+  their licences; Merienda, Limelight and Marcellus reserve their names, so
+  they are the original files, not subsets (bigger: Merienda is 226KB). Arabic
+  falls through to the site's Kufi (display) and Naskh (text); an Arabic
+  signature is revealed whole, never letter by letter (that breaks joining).
+  Lengths are named in `limits.ts` and `data.py` and pinned equal by a test;
+  the letter paragraph cap (500) has no precedent. The French and Arabic copy
+  has not had a native review. Live-page photos load lazily, so their 300s
+  presigned links can expire before a reason is opened; the page refetches its
+  payload once (20s cooldown) when a photo fails.
 - **Printable + Digital is seeded and mapped (4 Oct 2026) but not yet
   exercised end to end.** Freemius plan **70543**, $35.99, mapped as
   `love-story-timeline:printable-plus-digital`; the pack is active and `complete`

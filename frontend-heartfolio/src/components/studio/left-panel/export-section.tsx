@@ -32,7 +32,9 @@ export function ExportSection() {
           <h2 className="text-[15px] font-medium text-heading">{t("title")}</h2>
         </div>
         <p className="text-sm text-body/60">
-          {delivery.hosted.description ?? "This product is delivered as a hosted link, not a download."}
+          {/* A key into the module's own messages; the Shell's sentence when
+              absent. Both translated: this used to print English everywhere. */}
+          {delivery.hosted.description ? moduleT(delivery.hosted.description) : t("hosted")}
         </p>
       </Card>
     );

@@ -84,6 +84,11 @@ FREEMIUS_PLAN_MAPPING: dict[str, dict[str, str]] = {
     # Printable + Digital ($35.99) — its OWN plan, created new in the dashboard,
     # single price point, so plan_id alone is precise like the others. Plan 70543.
     "love-story-timeline:printable-plus-digital": {"plan_id": "70543"},
+    # Reasons I Love You's only pack, Digital ($15.99, DB pack slug "live";
+    # live-only product). Its OWN plan, created new under the same Freemius
+    # product as the plans above, single price point, so plan_id alone is
+    # precise. Plan 71990.
+    "reasons-i-love-you:live": {"plan_id": "71990"},
 }
 
 

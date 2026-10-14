@@ -295,3 +295,10 @@ class WhereWeMetMapInvalidData(ApplicationError):
 class WhereWeMetMapRenderFailed(ApplicationError):
     status_code = status.HTTP_502_BAD_GATEWAY
     default_detail = "Where We Met Map rendering failed."
+
+
+# --- Product data (Reasons I Love You, live-only: no renderer, no render error) ---
+
+class ReasonsILoveYouInvalidData(ApplicationError):
+    status_code = status.HTTP_400_BAD_REQUEST
+    default_detail = "This project's data does not match the Reasons I Love You contract."

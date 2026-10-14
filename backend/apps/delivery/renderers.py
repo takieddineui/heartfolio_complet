@@ -110,10 +110,14 @@ class NotImplementedRenderer:
     application error; never fabricates output.
 
     Deliberately has no `validate_project_data` — an order for a product
-    with no renderer at all is already unconditionally undeliverable
-    (`render()` here always raises), so there is nothing an order-creation
-    check could add; the gap is that no product-data validation happens
-    for this product at any point, not specifically at order creation.
+    with no renderer at all is undeliverable for every target except
+    `__live__` (`render()` here always raises, and only `__live__` is
+    answered before a renderer is consulted), so there is nothing an
+    order-creation check could add; the gap is that no product-data
+    validation happens for this product at any point, not specifically at
+    order creation. That `__live__` exception is why a LIVE-ONLY product
+    must still be registered (see `ReasonsILoveYouRenderer`): otherwise it
+    would land here, be sold, and never be validated.
     """
 
     def __init__(self, product_slug: str, delivery_type: str):

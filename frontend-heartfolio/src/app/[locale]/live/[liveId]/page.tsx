@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import { setRequestLocale } from "next-intl/server";
 import { LiveKeepsake } from "@/components/live/live-keepsake";
 import { SongLiveKeepsake } from "@/components/live-song/song-live-keepsake";
+import { ReasonsLivePage } from "@/components/live-reasons/reasons-live-page";
+import type { ReasonsExperienceData } from "@/components/live-reasons/experience-data";
 import { getBackendOrigin } from "@/lib/backend-origin";
 
 
@@ -27,9 +29,10 @@ export const metadata: Metadata = {
 type Params = Promise<{ locale: string; liveId: string }>;
 
 /**
- * TWO PAYLOAD SHAPES, matching `live_views.py`'s own dispatch exactly
- * (`_build_ar_payload` vs `_build_song_poster_live_payload`) — not one
- * shape with optional fields for whichever product didn't send them.
+ * ONE PAYLOAD SHAPE PER PRODUCT, matching `live_views.py`'s own dispatch
+ * exactly (`_build_ar_payload`, `_build_song_poster_live_payload`,
+ * `_build_reasons_live_payload`) — not one shape with optional fields for
+ * whichever product didn't send them.
  * Song Poster's own payload has none of Love Story Timeline's AR-era
  * fields (`arId`, `scene`, `level`, `targetUrl`) at all; giving it the
  * same interface with those marked optional would let a bug silently
@@ -62,7 +65,15 @@ interface SongPosterLivePayload {
   };
 }
 
-type LivePayload = LoveStoryTimelinePayload | SongPosterLivePayload;
+/** Reasons I Love You: `values` is already the experience's own shape, with
+ * fresh photo links (`experience-data.ts`). */
+interface ReasonsLivePayload {
+  productId: "reasons-i-love-you";
+  locale: string;
+  values: ReasonsExperienceData;
+}
+
+type LivePayload = LoveStoryTimelinePayload | SongPosterLivePayload | ReasonsLivePayload;
 
 /**
  * An EXPLICIT type predicate, not a bare `payload.productId ===
@@ -78,6 +89,11 @@ type LivePayload = LoveStoryTimelinePayload | SongPosterLivePayload;
  */
 function isSongPosterPayload(payload: LivePayload): payload is SongPosterLivePayload {
   return payload.productId === "song-poster";
+}
+
+/** Same reason for an explicit predicate as `isSongPosterPayload` above. */
+function isReasonsPayload(payload: LivePayload): payload is ReasonsLivePayload {
+  return payload.productId === "reasons-i-love-you";
 }
 
 /**
@@ -146,6 +162,11 @@ export default async function LivePage({ params }: { params: Params }) {
   // shape with fields left empty.
   if (isSongPosterPayload(payload)) {
     return <SongLiveKeepsake values={payload.values} />;
+  }
+
+  if (isReasonsPayload(payload)) {
+    // The order's locale, for the same reason as `LiveKeepsake` below.
+    return <ReasonsLivePage liveId={liveId} initial={payload.values} locale={payload.locale} />;
   }
 
   return (

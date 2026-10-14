@@ -60,6 +60,11 @@ def _supported_targets(product_slug: str) -> set[str] | None:
         # Where We Met Map is PNG-only — no digital/HTML renderer exists,
         # so `__live__` is deliberately absent here.
         "heart-map": set(WHERE_WE_MET_MAP_TARGETS),
+        # Live-only: the hosted page is the whole product (seed_catalog.py
+        # lists the same). NOTE: `song-poster` is in seed_catalog.py's map
+        # but not this one, so the admin form does not validate its packs;
+        # that drift predates this entry and is recorded in CLAUDE.md.
+        "reasons-i-love-you": {LIVE_TARGET_SENTINEL},
     }
     if product_slug not in supported:
         return None

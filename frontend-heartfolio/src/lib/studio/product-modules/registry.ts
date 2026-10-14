@@ -36,6 +36,10 @@ export const productModuleRegistry: Record<string, ProductModuleLoader> = {
   // decision is made; it changes nothing about what a customer can see
   // before then.
   "song-poster": async () => (await import("./song-poster")).songPosterModule,
+  // The first live-only product: no print, no renderer, sold as the hosted
+  // page alone. Its storefront entry stays `hidden` until its Freemius plan
+  // and catalog row exist (see `lib/products/registry.ts`).
+  "reasons-i-love-you": async () => (await import("./reasons-i-love-you")).reasonsILoveYouModule,
 };
 
 export function getProductModuleLoader(slug: string): ProductModuleLoader | undefined {

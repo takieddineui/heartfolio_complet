@@ -76,6 +76,53 @@ about whether the storefront is.
    auto-generated share-card fallback. `registry.ts`'s own bottom
    section lists exactly which path each product still needs.
 
+### Selling it through Freemius (the checkout in use)
+
+A product with no Freemius plan cannot be bought: `stage_freemius_checkout`
+raises `FreemiusPlanNotConfigured`. Song Poster is in this state today (its
+packs are in `seed_catalog.py` and the FastSpring map only), so it is not a
+pattern to copy here; Love Story Timeline's own plans are.
+
+- **Owner:** create a NEW plan in the Freemius dashboard for every pack you
+  sell, one price point each, equal to the pack's `price_cents`. Never rename
+  or retarget a plan that already has licenses (plan 70518 is Complete
+  forever; see CLAUDE.md).
+- **Code:** add `"<product-slug>:<pack-slug>": {"plan_id": "<id>"}` to
+  `FREEMIUS_PLAN_MAPPING` (`apps/commerce/freemius_integration.py`) with a
+  mapping test, as the existing rows have.
+- **Owner:** run one sandbox checkout end to end.
+
+### A live-only product (no print, no file)
+
+Reasons I Love You is the first: the customer buys the hosted page and
+nothing else. Most of the steps above still apply, with these differences:
+
+- **No print renderer, but still a registry entry.** Step 1 shrinks to
+  `data.py` (validation) and a renderer class that only implements
+  `validate_project_data` (its `render()` raises). The registry is the one
+  place order creation finds a product's pre-payment check; without an entry
+  a malformed project is sold and then fails on its live page. See
+  `product_renderers/reasons_i_love_you/renderer.py`.
+- **One pack, slug `live`, targets `["__live__"]`.** Delivery answers
+  `__live__` with the hosted page before any renderer is consulted, and the
+  `live` slug is already the Digital pack everywhere (delivery type, checkout
+  grouping, Digital-only order screens, gift QR card, receipt email). Add
+  `{"__live__"}` to BOTH target maps (`seed_catalog.py`'s `supported_targets`
+  and `apps/products/admin.py`'s `_supported_targets`).
+- **The live page needs a builder on both sides.** Add the product's payload
+  builder to `_LIVE_PAYLOAD_BUILDERS` in `apps/delivery/live_views.py` (a
+  product missing from it gets the generic 404, by design) and a branch in
+  `app/[locale]/live/[liveId]/page.tsx`. Generate photo URLs fresh in the
+  builder (`get_asset_for_customer` + `generate_asset_access_url`); they
+  expire after `R2_PRESIGNED_URL_EXPIRY_SECONDS`, so a page that loads photos
+  lazily must also be able to ask again (`reasons-live-page.tsx`).
+- **The Studio module is `renderer: { kind: "live" }` and
+  `delivery: { mode: "hosted", hosted: { description: "<key>" } }`**, with a
+  `livePreview` component. `kind: "live"` mounts only that preview, full pane,
+  in a box that clips and cannot scroll; there are no Artwork/Framed tabs.
+  Keep the experience's own overlays positioned against its own frame, never
+  the window, or they cover the whole Studio.
+
 ### Verify it actually happened — don't trust step 4 alone
 
 10. Confirm the product is genuinely visible, not just genuinely

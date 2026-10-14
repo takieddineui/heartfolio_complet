@@ -3401,6 +3401,28 @@ class FreemiusPlanMappingTests(SimpleTestCase):
             freemius_integration.plan_for_pack("love-story-timeline", "printable-plus-digital"), {"plan_id": "70543"}
         )
 
+    def test_reasons_i_love_you_digital_pack_maps_to_its_own_plan(self):
+        """Plan 71990 is Reasons I Love You's `live` pack and nothing else: a
+        new plan under the same Freemius product, not a reused one (Love Story
+        Timeline's Digital is 69404, the same price)."""
+        self.assertEqual(freemius_integration.plan_for_pack("reasons-i-love-you", "live"), {"plan_id": "71990"})
+        self.assertNotEqual(
+            freemius_integration.plan_for_pack("reasons-i-love-you", "live"),
+            freemius_integration.plan_for_pack("love-story-timeline", "live"),
+        )
+
+    def test_reasons_i_love_you_plan_is_for_the_pack_the_catalog_sells(self):
+        """The mapped pack is the one `seed_catalog.py` creates for the product,
+        at the $15.99 the plan was created with (completion cross-checks the
+        plan, and the price must agree with it)."""
+        import seed_catalog
+
+        entry = next(e for e in seed_catalog.CATALOG if e["slug"] == "reasons-i-love-you")
+        packs = {pack[0]: pack for pack in entry["packs"]}
+        self.assertEqual(set(packs), {"live"})
+        self.assertEqual(packs["live"][1], 1599)
+        self.assertIsNotNone(freemius_integration.plan_for_pack("reasons-i-love-you", "live"))
+
     def test_printable_plus_digital_has_its_own_plan_not_the_retired_complete_one(self):
         """The combo was briefly set up by editing the Complete plan (70518)
         instead of creating a new one. Past Complete licenses are sold on

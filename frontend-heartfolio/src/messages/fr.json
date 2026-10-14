@@ -374,6 +374,42 @@
         "body": "Celui-ci est pensé pour les couples, les familles, les parents, et pour quiconque compose une histoire destinée à quelqu'un d'autre. Il lui faut une histoire commune assez longue pour compter quelques dates qui comptent vraiment. Nul besoin d'être graphiste ni de savoir ce que vous voulez avant de commencer : vous apportez les dates, les photos et les mots, la mise en page est déjà décidée."
       }
     },
+    "reasonsILoveYou": {
+      "name": "Les raisons pour lesquelles je t'aime",
+      "shortDescription": "Jusqu'à dix raisons, à ouvrir une par une.",
+      "fullDescription": "Écrivez jusqu'à dix raisons et choisissez comment les offrir : un bocal de petits mots, une marguerite, un jeu de cœurs ou une assiette de biscuits de fortune. Elles s'ouvrent une à une, puis viennent votre dernier mot et, si vous le souhaitez, une lettre.",
+      "meta": {
+        "title": "Les raisons pour lesquelles je t'aime, un cadeau numérique personnalisé | Heartfolio",
+        "description": "Jusqu'à dix raisons de l'aimer, offertes dans un bocal de petits mots, une marguerite, un jeu de cœurs ou des biscuits de fortune, à ouvrir une par une. À partir de {price}, livré instantanément.",
+        "imageAlt": "Un cadeau Heartfolio « Les raisons pour lesquelles je t'aime » : un bocal de petits mots pliés, chacun une raison",
+        "descriptionNoPrice": "Jusqu'à dix raisons de l'aimer, offertes dans un bocal de petits mots, une marguerite, un jeu de cœurs ou des biscuits de fortune, à ouvrir une par une. Livré instantanément."
+      },
+      "storyTitle": "Certaines choses se disent mieux une à la fois.",
+      "story": "Vous écrivez les raisons (sa façon de rire, les chansons qu'il ou elle chante de travers, ce geste fait sans qu'on le demande) et choisissez comment les offrir. Chaque geste en ouvre une. Après la dernière apparaît un ultime message et votre signature s'écrit d'elle-même, suivie d'une lettre si vous voulez en dire plus.",
+      "faq": [
+        {
+          "question": "Combien de raisons puis-je écrire ?",
+          "answer": "Entre une et dix. Chacune peut avoir une photo et un court souvenir."
+        },
+        {
+          "question": "Quels sont les quatre cadeaux ?",
+          "answer": "Un bocal de petits mots, une marguerite effeuillée pétale par pétale, un jeu de cœurs tiré carte par carte et une assiette de biscuits de fortune. Chacun a son allure, ses polices et sa petite mélodie, jouée en direct à l'ouverture."
+        },
+        {
+          "question": "Comment le reçoit-on ?",
+          "answer": "Sous la forme d'un lien privé, dès que votre paiement est validé. Rien à télécharger ni à imprimer : vous envoyez le lien, ou vous offrez la carte QR qui l'accompagne."
+        }
+      ],
+      "offerings": {
+        "digital": {
+          "description": "Un lien privé vers le cadeau, à ouvrir une raison après l'autre."
+        }
+      },
+      "audience": {
+        "title": "Pour qui",
+        "body": "Pour toute personne à qui vous avez plus à dire que ce que contient une carte : un ou une partenaire, mais tout aussi bien un meilleur ami, un parent, un frère ou une sœur. Ni photos ni dates nécessaires, seulement les raisons."
+      }
+    },
     "badges": {
       "mostGifted": "Le plus offert",
       "new": "Nouveau"
@@ -782,7 +818,8 @@
       },
       "export": {
         "title": "Export",
-        "description": "Choisissez comment recevoir la pièce finale. Bientôt disponible."
+        "description": "Choisissez comment recevoir la pièce finale. Bientôt disponible.",
+        "hosted": "Livré sous la forme d'un lien privé, pas d'un téléchargement."
       },
       "pricing": {
         "total": "Total"

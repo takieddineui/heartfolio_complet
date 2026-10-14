@@ -102,9 +102,10 @@ def _resolve_and_validate_order_inputs(customer, *, product_slug: str, delivery_
         # with no renderer, or a renderer that hasn't opted in, is simply
         # not checked here. As of this change that is every registered
         # renderer (Love Story Timeline, Song Poster, Where We Met Map/
-        # `heart-map`) except Star Map, which has no renderer registered
-        # at all and is therefore unconditionally undeliverable regardless
-        # of this check.
+        # `heart-map`, and Reasons I Love You, which is live-only and is
+        # registered FOR this check alone) except Star Map, which has no
+        # renderer registered at all and is therefore unconditionally
+        # undeliverable regardless of this check.
         from apps.delivery.registry import get_renderer
 
         renderer = get_renderer(product.slug, "")

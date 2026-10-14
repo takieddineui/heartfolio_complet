@@ -6,6 +6,7 @@ import {
   AudioWaveform,
   MapPin,
   GalleryHorizontal,
+  Heart,
   ArrowRight,
   type LucideIcon,
 } from "lucide-react";
@@ -21,6 +22,7 @@ const ICONS: Record<string, LucideIcon> = {
   AudioWaveform,
   MapPin,
   GalleryHorizontal,
+  Heart,
 };
 
 export function ProductCard({

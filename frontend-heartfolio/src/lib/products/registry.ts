@@ -222,6 +222,37 @@ export const PRODUCT_REGISTRY: ProductEntry[] = [
      */
     offerings: [],
   },
+  {
+    id: "reasons-i-love-you",
+    slug: "reasons-i-love-you",
+    i18nKey: "reasonsILoveYou",
+    category: "other",
+    currency: PRICE_CURRENCY,
+    ogImage: null, // TODO: /og/reasons-i-love-you.png
+    icon: "Heart",
+    featured: true,
+    status: "available",
+    /**
+     * HIDDEN UNTIL IT CAN BE BOUGHT. The product is built end to end (Studio
+     * module, live page, backend validation and payload), but its Freemius
+     * plan and its Django catalog row are created by the owner, not by code:
+     * until both exist, checkout would fail with `FreemiusPlanNotConfigured`.
+     * `hidden` is the one switch Django cannot override (see Song Poster's
+     * note above), so this stays `true` until then and is the only line to
+     * flip afterwards. While hidden there is no card, no product page, no
+     * sitemap entry and no Studio route.
+     */
+    hidden: true,
+    order: 5,
+    tags: ["love", "anniversary", "valentines", "gift"],
+    faqCount: 3,
+    /**
+     * INTENTIONALLY EMPTY — Django owns this product's commercial data (one
+     * `live` pack, $15.99), joined in by `lib/products/catalog.ts`. Same
+     * reasoning as Love Story Timeline's note above.
+     */
+    offerings: [],
+  },
 ];
 
 /**
