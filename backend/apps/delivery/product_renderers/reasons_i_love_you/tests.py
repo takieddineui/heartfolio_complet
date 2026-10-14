@@ -354,3 +354,45 @@ class CatalogTests(SimpleTestCase):
         bonuses = bonus_targets_for_order(order)
         self.assertEqual(bonuses, [BONUS_THANK_YOU, BONUS_QR])
         self.assertNotIn(BONUS_PRINT_ADVICE, bonuses)
+
+
+class GiftCardCaptionTests(TestCase):
+    """The recipient's gift QR card is captioned with the two names, sender
+    first, the way Love Story Timeline's carries its couple's names. It used
+    to fall back to the generic caption."""
+
+    def _order(self, project_values, locale="en"):
+        _customer, order, _ = make_paid_order_with_entitlements(
+            target_ids=[LIVE_TARGET_SENTINEL], product=make_product(slug=SLUG)
+        )
+        order.project.data = {"version": 1, "values": project_values, "themeSelections": dict(VALID_THEME)}
+        order.project.save(update_fields=["data"])
+        order.locale = locale
+        order.save(update_fields=["locale"])
+        order.refresh_from_db()
+        return order
+
+    def test_the_caption_is_the_sender_and_the_recipient(self):
+        from apps.delivery.bonuses import _qr_caption_for_order
+
+        self.assertEqual(_qr_caption_for_order(self._order(values())), "Theo & Hana")
+
+    def test_the_names_are_never_put_into_an_english_sentence(self):
+        from apps.delivery.bonuses import _qr_caption_for_order
+
+        caption = _qr_caption_for_order(self._order(values(fromName="  سامي ", toName="ليلى"), locale="ar"))
+        self.assertEqual(caption, "سامي & ليلى")
+
+    def test_the_recipients_card_is_drawn_with_it(self):
+        from apps.delivery import bonuses
+
+        order = self._order(values())
+        with patch.object(bonuses, "_render_qr_card", return_value=b"png") as render:
+            bonuses.render_recipient_qr_card(order)
+        self.assertEqual(render.call_args.kwargs["caption"], "Theo & Hana")
+
+    def test_a_project_that_does_not_validate_gets_the_generic_caption(self):
+        from apps.delivery.bonuses import _qr_caption_for_order
+
+        self.assertIsNone(_qr_caption_for_order(self._order(values(fromName=""))))
+

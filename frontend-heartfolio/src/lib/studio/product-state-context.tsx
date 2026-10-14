@@ -100,14 +100,14 @@ export function ProductStateProvider({ session, children }: { session: StudioSes
   );
 
   const validation = useMemo(() => {
-    const generic = formEngine.validate(session.module.formSchema, values);
+    const generic = formEngine.validate(session.module.formSchema, values, themeSelections);
     const domain = session.module.validate?.(values);
     if (!domain) return generic;
     return {
       valid: generic.valid && domain.valid,
       errors: { ...generic.errors, ...domain.errors },
     };
-  }, [session, values]);
+  }, [session, values, themeSelections]);
 
   const pricing = useMemo(
     () => pricingEngine.computeTotal(session.module.pricing, { values, theme: themeSelections }),

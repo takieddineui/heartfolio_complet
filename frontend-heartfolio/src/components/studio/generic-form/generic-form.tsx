@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useId, type ReactNode } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import type { FieldSchema, FormSchemaConfig, ThemeSelections, ValidationError } from "@/types/studio";
 import { evaluateConditions } from "@/lib/studio/conditions";
@@ -41,6 +41,16 @@ function AnimatedField({ id, children }: { id: string; children: ReactNode }) {
     </motion.div>
   );
 }
+
+/**
+ * Field types whose input is ONE control, so the row's `<label htmlFor>` can
+ * point at it. Every other type (media, the voice recorder, coordinates,
+ * multi-select, a group) has several controls or a hidden one: its heading
+ * names a `role="group"` instead. Before this the row's label pointed at the
+ * schema field id, which no element carried, so no label was associated with
+ * anything.
+ */
+const SINGLE_CONTROL_TYPES = new Set<FieldSchema["type"]>(["text", "textarea", "date", "boolean", "select", "range", "location"]);
 
 interface GenericFormProps {
   schema: FormSchemaConfig;
@@ -113,6 +123,10 @@ function FieldRow({
   resolveError: (error?: ValidationError) => string | undefined;
   onChange: (value: unknown) => void;
 }) {
+  // Before the group branch returns, so the hook order never changes.
+  const inputId = useId();
+  const labelId = `${inputId}-label`;
+
   if (field.type === "group") {
     const items = Array.isArray(value) ? (value as Record<string, unknown>[]) : [];
 
@@ -134,9 +148,9 @@ function FieldRow({
     }
 
     return (
-      <div className="space-y-3">
+      <div role="group" aria-labelledby={labelId} className="space-y-3">
         <div className="flex items-center justify-between">
-          <label className="text-sm font-medium text-heading">{t(field.label)}</label>
+          <span id={labelId} className="text-sm font-medium text-heading">{t(field.label)}</span>
           {items.length < field.maxItems && (
             <AddGroupItemButton onClick={addItem} label={`${t(field.label)} (${items.length}/${field.maxItems})`} />
           )}
@@ -180,13 +194,32 @@ function FieldRow({
     );
   }
 
+  const heading = (
+    <>
+      {t(field.label)}
+      {field.required && <span className="text-error-warm"> *</span>}
+    </>
+  );
+
+  if (SINGLE_CONTROL_TYPES.has(field.type)) {
+    return (
+      <div className="space-y-1.5">
+        <label id={labelId} htmlFor={inputId} className="text-sm font-medium text-heading">
+          {heading}
+        </label>
+        <FieldInput id={inputId} field={field} value={value} onChange={onChange} t={t} />
+        {field.helpText && field.type !== "boolean" && <p className="text-xs text-body/50">{t(field.helpText)}</p>}
+        {errorText && <p className="text-xs text-error-warm">{errorText}</p>}
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-1.5">
-      <label htmlFor={field.id} className="text-sm font-medium text-heading">
-        {t(field.label)}
-        {field.required && <span className="text-error-warm"> *</span>}
-      </label>
-      <FieldInput field={field} value={value} onChange={onChange} t={t} />
+    <div role="group" aria-labelledby={labelId} className="space-y-1.5">
+      <span id={labelId} className="text-sm font-medium text-heading">
+        {heading}
+      </span>
+      <FieldInput labelledBy={labelId} field={field} value={value} onChange={onChange} t={t} />
       {field.helpText && field.type !== "boolean" && <p className="text-xs text-body/50">{t(field.helpText)}</p>}
       {errorText && <p className="text-xs text-error-warm">{errorText}</p>}
     </div>

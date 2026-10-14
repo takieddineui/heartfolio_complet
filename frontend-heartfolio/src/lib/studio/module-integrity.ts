@@ -1,9 +1,21 @@
 import type { FieldSchema, ResolvedProductModuleConfig } from "@/types/studio";
 
-function collectFieldIds(fields: FieldSchema[], out: string[]) {
+/** Field ids are checked PER SCOPE. Top-level fields share one `values`
+ * object, so their ids must be unique across the whole form (`out`). A
+ * group's item fields are keys inside each item, so they only need to be
+ * unique within that group: Reasons I Love You's `reasons[].text` and
+ * `letterParagraphs[].text` do not collide, and flattening every scope into
+ * one list reported them as a duplicate. A duplicate inside a group is
+ * recorded in `nestedDuplicates`. */
+function collectFieldIds(fields: FieldSchema[], out: string[], nestedDuplicates: string[]) {
   for (const field of fields) {
     out.push(field.id);
-    if (field.type === "group") collectFieldIds(field.itemFields, out);
+    if (field.type === "group") {
+      const itemIds: string[] = [];
+      collectFieldIds(field.itemFields, itemIds, nestedDuplicates);
+      const duplicate = firstDuplicate(itemIds);
+      if (duplicate) nestedDuplicates.push(duplicate);
+    }
   }
 }
 
@@ -28,8 +40,9 @@ export function assertModuleIntegrity(productSlug: string, module: ResolvedProdu
   const warn = (message: string) => console.warn(`[Product Module: ${productSlug}] ${message}`);
 
   const fieldIds: string[] = [];
-  for (const section of module.formSchema.sections) collectFieldIds(section.fields, fieldIds);
-  const duplicateField = firstDuplicate(fieldIds);
+  const nestedDuplicates: string[] = [];
+  for (const section of module.formSchema.sections) collectFieldIds(section.fields, fieldIds, nestedDuplicates);
+  const duplicateField = firstDuplicate(fieldIds) ?? nestedDuplicates[0];
   if (duplicateField) {
     warn(`Duplicate field id "${duplicateField}" — field ids must be unique within their own section/group.`);
   }

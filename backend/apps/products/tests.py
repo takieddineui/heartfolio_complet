@@ -321,3 +321,45 @@ class ProductCatalogContractTests(TestCase):
         self.assertEqual(
             [p["slug"] for p in response.data["products"]], ["first", "second", "third"]
         )
+
+
+class CatalogTargetMapParityTests(TestCase):
+    """The admin form and the seed script each hardcode which targets a
+    product can be sold with (`_supported_targets` in admin.py,
+    `supported_targets` in seed_catalog.py). They drifted: Song Poster was in
+    the seed's map and missing from the admin's, so the admin validated nothing
+    for its packs. Every product the seed knows must be in both, with the same
+    targets (the admin adds a product's AR targets on top, from its own
+    opt-in, which the seed does not sell).
+    """
+
+    def test_every_seeded_product_has_the_same_targets_in_both_maps(self):
+        import seed_catalog
+        from apps.delivery.ar_support import supported_ar_targets
+
+        from .admin import _supported_targets
+
+        slugs = [entry["slug"] for entry in seed_catalog.CATALOG]
+        self.assertIn("song-poster", slugs)
+        for slug in slugs:
+            with self.subTest(slug=slug):
+                seeded = seed_catalog.supported_targets(slug)
+                admin = _supported_targets(slug)
+                self.assertIsNotNone(seeded, f"{slug} is missing from seed_catalog.supported_targets")
+                self.assertIsNotNone(admin, f"{slug} is missing from admin._supported_targets")
+                self.assertEqual(admin - supported_ar_targets(slug), seeded)
+
+    def test_the_admin_form_now_refuses_a_target_song_poster_cannot_deliver(self):
+        import json
+
+        from .admin import DeliveryPackForm
+
+        product = make_product(slug="song-poster")
+
+        def target_errors(targets):
+            form = DeliveryPackForm(data={"product": product.pk, "included_targets": json.dumps(targets)})
+            form.is_valid()
+            return form.errors.get("included_targets")
+
+        self.assertIn("cannot produce: not-a-target", " ".join(target_errors(["__live__", "not-a-target"])))
+        self.assertIsNone(target_errors(["__live__"]))

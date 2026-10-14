@@ -896,3 +896,28 @@ class ExpireProvisionalAssetsCommandTests(TestCase):
 
         asset.refresh_from_db()
         self.assertEqual(asset.status, Asset.STATUS_UPLOADED, "must remain retryable, not silently lost")
+
+
+class EnvExampleUploadTypesTests(SimpleTestCase):
+    """`.env.example` once set `ALLOWED_ASSET_MIME_TYPES` to the three image
+    types. Any environment copied from it refused every voice note and video
+    at the server. The example must leave the setting to base.py's default."""
+
+    def test_the_example_env_does_not_set_the_upload_types(self):
+        from pathlib import Path
+
+        example = Path(__file__).resolve().parents[2] / ".env.example"
+        active = [
+            line for line in example.read_text(encoding="utf-8").splitlines()
+            if line.strip().startswith("ALLOWED_ASSET_MIME_TYPES")
+        ]
+        self.assertEqual(active, [], "set it only from base.py's full default list, never in the example")
+
+    def test_the_default_accepts_audio_and_video(self):
+        from django.conf import settings
+
+        from apps.assets.media import AUDIO_MIME_TYPES, VIDEO_MIME_TYPES
+
+        for mime_type in (*AUDIO_MIME_TYPES, *VIDEO_MIME_TYPES):
+            self.assertIn(mime_type, settings.ALLOWED_ASSET_MIME_TYPES)
+

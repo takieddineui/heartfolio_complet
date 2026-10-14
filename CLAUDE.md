@@ -87,9 +87,23 @@ endpoint, not at startup.
 
 **Two hardcoded `supported_targets` maps must stay in sync**, in
 `apps/products/admin.py` and `seed_catalog.py`. A new product's packs
-cannot be saved or seeded until both know about it. **They are NOT in sync
-today (found 14 Oct 2026, not fixed):** `song-poster` is in the seed's map
-but not the admin's, so the admin form does not validate Song Poster's packs.
+cannot be saved or seeded until both know about it. They drifted once
+(`song-poster` was missing from the admin's, so the admin validated nothing
+for its packs; fixed 14 Oct 2026), and `CatalogTargetMapParityTests`
+(`apps/products/tests.py`) now fails if any seeded product differs between
+the two (the admin adds AR targets on top).
+
+**Paid audio/video is kept per product.** `apps/commerce/media_promotion.py`
+clears the expiry only on the asset ids its `_MEDIA_COLLECTORS` entry finds;
+a product with no entry gets Love Story Timeline's `events[]` reader. A new
+product with audio or video anywhere else must register a collector, or
+`expire_provisional_assets` deletes its media a week after the customer paid.
+Photos never expire and need nothing.
+
+**`backend/.env.example` must not set `ALLOWED_ASSET_MIME_TYPES`.** It used
+to set the three image types, which would refuse every voice note and video at
+the server (a test now fails if it comes back). Checked 14 Oct 2026: the
+running `api` container does not set it, so the full default applies.
 
 **Every `_choice_field` default must be a member of its own choices.** The
 `layout` default was `"centered"`, which §7 removed from `LAYOUTS` — so any

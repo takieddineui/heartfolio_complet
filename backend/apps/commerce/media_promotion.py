@@ -25,6 +25,7 @@ This is that same principle applied to media: promotion happens inside
 from __future__ import annotations
 
 import logging
+from collections.abc import Callable
 
 logger = logging.getLogger("heartfolio")
 
@@ -55,7 +56,7 @@ def promote_media_assets_for_order(order) -> None:
         # §21e's situation: orders can outlive projects by design.
         return
 
-    asset_ids = _media_asset_ids(project)
+    asset_ids = _media_asset_ids(project, order.product.slug if order.product_id else None)
     if not asset_ids:
         return
 
@@ -88,15 +89,39 @@ def _order_needs_media(order) -> bool:
     return "__live__" in targets or any(t.startswith("ar-") for t in targets)
 
 
-def _media_asset_ids(project) -> list[str]:
-    """Every video/audio asset id referenced by a project.
+def _media_asset_ids(project, product_slug: str | None = None) -> list[str]:
+    """Every video/audio asset id a paid order of this product needs.
+
+    PER PRODUCT, because which keys hold media is a property of each
+    product's own `values` shape. This used to read Love Story Timeline's
+    `events[].video/audio` for every product. Harmless today (no other
+    product has audio or video; photos are never provisional), but the next
+    product with a voice note or a clip elsewhere in its values would have it
+    deleted by `expire_provisional_assets` a week AFTER the customer paid,
+    with nothing logged. Such a product registers its collector in
+    `_MEDIA_COLLECTORS`; a product not listed there keeps the Love Story
+    Timeline reader, which finds nothing in a shape without `events`,
+    exactly as before.
+
+    A collector must tolerate a project whose data does not validate cleanly
+    (a draft, a stale shape) without raising. Promotion is a best-effort
+    backend/cost concern; it must not become a second, stricter validator
+    that can fail a payment.
+    """
+    values = (project.data or {}).get("values") or {}
+    if not isinstance(values, dict):
+        return []
+    collector = _MEDIA_COLLECTORS.get(product_slug or "", _timeline_media_asset_ids)
+    return collector(values)
+
+
+def _timeline_media_asset_ids(values: dict) -> list[str]:
+    """Love Story Timeline: `values.events[].video` / `.audio`.
 
     Reads the SAME keys the Love Story Timeline validator reads
     (`_optional_asset_id(raw_event, "video"/"audio", ...)` in data.py) —
-    deliberately not imported from there, because this needs to tolerate a
-    project whose data does not validate cleanly (a draft, a stale shape)
-    without raising. Promotion is a best-effort backend/cost concern; it
-    must not become a second, stricter validator that can fail a payment.
+    deliberately not imported from there, so a draft that does not validate
+    cannot make promotion raise (see `_media_asset_ids`).
 
     BACKGROUND MUSIC IS NEVER COLLECTED HERE. It used to be — before §4
     made it a shipped preset selection rather than a customer upload, it
@@ -105,7 +130,6 @@ def _media_asset_ids(project) -> list[str]:
     is a plain preset id (`_choice_field`-validated against `MUSIC_PRESETS`
     in data.py), with nothing in R2 for a paid order to promote.
     """
-    values = (project.data or {}).get("values") or {}
     asset_ids: list[str] = []
 
     for event in values.get("events") or []:
@@ -117,3 +141,13 @@ def _media_asset_ids(project) -> list[str]:
                 asset_ids.append(media["assetId"])
 
     return asset_ids
+
+
+#: Product slug -> the function that lists the video/audio asset ids in that
+#: product's `values`. A product with audio or video anywhere other than Love
+#: Story Timeline's `events[]` MUST be added here (ADDING-A-PRODUCT.md), with a
+#: test that a paid order keeps its media. Products with photos only (Reasons I
+#: Love You, Song Poster, Where We Met) need no entry: photos never expire.
+_MEDIA_COLLECTORS: dict[str, Callable[[dict], list[str]]] = {
+    "love-story-timeline": _timeline_media_asset_ids,
+}

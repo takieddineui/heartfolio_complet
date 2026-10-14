@@ -1,4 +1,7 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { backendRoot } from "../../../test/backend-root";
 import {
   __resetPendingFiles,
   collectMediaValues,
@@ -11,7 +14,7 @@ import {
   uploadPendingMedia,
   type MediaValue,
 } from "./media-values";
-import { checkFileAccepted, MAX_ASSET_SIZE_BYTES } from "@/lib/api/assets";
+import { ALLOWED_ASSET_MIME_TYPES, checkFileAccepted, MAX_ASSET_SIZE_BYTES } from "@/lib/api/assets";
 
 function jsonResponse(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
@@ -86,6 +89,21 @@ describe("client-side file checks mirror the backend's limits", () => {
     ]) {
       expect(checkFileAccepted(fakeFile("f", type))).toBeNull();
     }
+  });
+
+  it("lists exactly the types the backend's default setting accepts", () => {
+    // The fixture above is hand-kept, and a hand-kept list drifted from the
+    // backend once already. This reads the backend's own default
+    // (`ALLOWED_ASSET_MIME_TYPES` in config/settings/base.py) and requires the
+    // same set, in both directions: a type only the client accepts fails at
+    // upload, a type only the server accepts is refused before it is sent.
+    const settings = readFileSync(join(backendRoot(), "config", "settings", "base.py"), "utf8");
+    const start = settings.indexOf("ALLOWED_ASSET_MIME_TYPES = env.list(");
+    expect(start, "ALLOWED_ASSET_MIME_TYPES default not found in base.py").toBeGreaterThan(-1);
+    const block = settings.slice(start, settings.indexOf("]", start));
+    const backend = [...block.matchAll(/"((?:image|video|audio)\/[a-z0-9.+-]+)"/g)].map((m) => m[1]!);
+    expect(backend.length).toBeGreaterThan(0);
+    expect([...ALLOWED_ASSET_MIME_TYPES].sort()).toEqual([...backend].sort());
   });
 
   it("gives audio/video the larger media size ceiling, not the image one", () => {

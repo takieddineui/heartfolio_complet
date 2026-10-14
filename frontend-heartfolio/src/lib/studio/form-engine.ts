@@ -1,4 +1,5 @@
-import type { FieldSchema, FormSchemaConfig, ValidationResult } from "@/types/studio";
+import type { FieldSchema, FormSchemaConfig, ThemeSelections, ValidationResult } from "@/types/studio";
+import { evaluateConditions } from "./conditions";
 import type { FormEngine } from "./extension-points";
 
 function isEmpty(value: unknown): boolean {
@@ -13,13 +14,24 @@ function isEmpty(value: unknown): boolean {
  * by field id. Errors are codes + params, not strings — see
  * `types/studio.ts#ValidationError` and `lib/studio/i18n.ts` for why. A
  * module's own `validate()` layers domain rules on top of this generic
- * floor. */
+ * floor.
+ *
+ * A field whose `visibleWhen` fails is skipped entirely (its `required`,
+ * its `maxLength`, and for a group its `minItems` and every item):
+ * `GenericForm` hides it, and a hidden field that still failed validation
+ * left the Studio blocked with nothing on screen to fix. The conditions are
+ * evaluated against the same `{ values, theme }` context the form draws
+ * with: the whole form for a top-level field, the item for a group's
+ * fields. */
 function validateFields(
   fields: FieldSchema[],
   values: Record<string, unknown>,
-  errors: ValidationResult["errors"]
+  errors: ValidationResult["errors"],
+  theme: ThemeSelections
 ) {
   for (const field of fields) {
+    if (!evaluateConditions(field.visibleWhen, { values, theme })) continue;
+
     const value = values[field.id];
 
     if (field.type === "group") {
@@ -30,7 +42,7 @@ function validateFields(
       items.forEach((item, index) => {
         const itemValues = (item ?? {}) as Record<string, unknown>;
         const itemErrors: ValidationResult["errors"] = {};
-        validateFields(field.itemFields, itemValues, itemErrors);
+        validateFields(field.itemFields, itemValues, itemErrors, theme);
         for (const [key, error] of Object.entries(itemErrors)) {
           errors[`${field.id}.${index}.${key}`] = error;
         }
@@ -52,11 +64,11 @@ function validateFields(
 }
 
 export const formEngine: FormEngine = {
-  validate(schema: FormSchemaConfig, values: unknown): ValidationResult {
+  validate(schema: FormSchemaConfig, values: unknown, themeSelections: ThemeSelections = {}): ValidationResult {
     const errors: ValidationResult["errors"] = {};
     const valuesObj = (values ?? {}) as Record<string, unknown>;
     for (const section of schema.sections) {
-      validateFields(section.fields, valuesObj, errors);
+      validateFields(section.fields, valuesObj, errors, themeSelections);
     }
     return { valid: Object.keys(errors).length === 0, errors };
   },

@@ -2967,6 +2967,55 @@ class MediaPromotionTests(SimpleTestCase):
         project.data = {"values": {"events": [{"photo": {"assetId": "photo-1"}}]}}
         self.assertEqual(_media_asset_ids(project), [])
 
+    def test_media_is_collected_per_product_through_the_registry(self):
+        """A product whose media lives somewhere other than Love Story
+        Timeline's `events[]` registers its own collector. Without one, its
+        paid voice notes would be left provisional and deleted a week after
+        purchase."""
+        from apps.commerce import media_promotion
+
+        project = MagicMock()
+        project.data = {"values": {"voices": [{"assetId": "voice-1"}], "events": [{"audio": {"assetId": "aud-1"}}]}}
+        collector = lambda values: [v["assetId"] for v in values["voices"]]  # noqa: E731
+        with patch.dict(media_promotion._MEDIA_COLLECTORS, {"some-product": collector}):
+            self.assertEqual(media_promotion._media_asset_ids(project, "some-product"), ["voice-1"])
+            # Every other product is untouched by that entry.
+            self.assertEqual(media_promotion._media_asset_ids(project, "love-story-timeline"), ["aud-1"])
+
+    def test_love_story_timeline_is_registered_by_name_and_unlisted_products_keep_its_reader(self):
+        from apps.commerce import media_promotion
+
+        self.assertIs(media_promotion._MEDIA_COLLECTORS["love-story-timeline"], media_promotion._timeline_media_asset_ids)
+        project = MagicMock()
+        project.data = {"values": {"events": [{"video": {"assetId": "vid-1"}}]}}
+        # Exactly the behaviour before the registry: a product with no entry
+        # (or no product at all) reads `events[]`, and finds nothing in a
+        # shape without it.
+        self.assertEqual(media_promotion._media_asset_ids(project, "song-poster"), ["vid-1"])
+        self.assertEqual(media_promotion._media_asset_ids(project, None), ["vid-1"])
+        project.data = {"values": {"reasons": [{"photo": {"assetId": "photo-1"}}]}}
+        self.assertEqual(media_promotion._media_asset_ids(project, "reasons-i-love-you"), [])
+
+    def test_promotion_passes_the_orders_product_to_the_collector(self):
+        from apps.commerce import media_promotion
+
+        order = self._order(targets=["__live__"], project_data={"values": {"voices": [{"assetId": "voice-1"}]}})
+        order.product_id = uuid.uuid4()
+        order.product.slug = "some-product"
+        collector = lambda values: [v["assetId"] for v in values["voices"]]  # noqa: E731
+        with patch.dict(media_promotion._MEDIA_COLLECTORS, {"some-product": collector}), patch(
+            "apps.assets.models.Asset"
+        ) as mock_asset:
+            media_promotion.promote_media_assets_for_order(order)
+        self.assertEqual(mock_asset.objects.filter.call_args.kwargs["id__in"], ["voice-1"])
+
+    def test_values_that_are_not_an_object_collect_nothing(self):
+        from apps.commerce.media_promotion import _media_asset_ids
+
+        project = MagicMock()
+        project.data = {"values": ["not", "an", "object"]}
+        self.assertEqual(_media_asset_ids(project, "love-story-timeline"), [])
+
     def test_a_malformed_project_does_not_raise(self):
         # Promotion is best-effort; a draft with a stale or broken shape
         # must not crash payment confirmation.

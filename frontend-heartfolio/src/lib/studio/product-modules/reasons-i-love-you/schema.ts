@@ -5,11 +5,13 @@ import { REASONS_LIMITS as L } from "./limits";
  * The Studio form. Reasons are add/remove only, like Love Story Timeline's
  * milestones (no drag to reorder in v1, by decision).
  *
- * THE LETTER'S FIELDS ARE NOT `required` HERE, on purpose. The shared
- * validator (`form-engine.ts`) checks `required` without looking at
- * `visibleWhen`, so a required greeting would block a customer who switched
- * the letter OFF. "Required while the letter is on" is enforced in this
- * module's own `validation.ts` instead, and by the backend.
+ * THE LETTER'S FIELDS ARE NOT `required` HERE. They were written when the
+ * shared validator (`form-engine.ts`) checked `required` without looking at
+ * `visibleWhen`, so a required greeting would have blocked a customer who
+ * switched the letter OFF. The engine now skips hidden fields (14 Oct 2026),
+ * so marking them required would be safe; they were left as they are, and
+ * "required while the letter is on" is still enforced in this module's own
+ * `validation.ts`, and by the backend.
  */
 export const reasonsSchema: FormSchemaConfig = {
   sections: [
@@ -90,9 +92,9 @@ export const reasonsSchema: FormSchemaConfig = {
           id: "letterParagraphs",
           type: "group",
           label: "fields.letterParagraphs.label",
-          // 0, not 1: a group's minimum is enforced by the shared validator
-          // whether or not the group is visible (see the note above). One
-          // paragraph is required in `validation.ts` while the letter is on.
+          // 0, not 1, from when the shared validator enforced a hidden group's
+          // minimum (see the note above). One paragraph is required in
+          // `validation.ts` while the letter is on.
           minItems: 0,
           maxItems: L.maxParagraphs,
           visibleWhen: [{ path: "values.letterEnabled", op: "eq", value: true }],

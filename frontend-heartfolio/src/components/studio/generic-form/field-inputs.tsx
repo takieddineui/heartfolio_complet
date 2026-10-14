@@ -25,13 +25,21 @@ interface FieldInputProps {
   value: unknown;
   onChange: (value: unknown) => void;
   t: Translator;
+  /** The id the row's `<label htmlFor>` points at, set on the one control
+   * of a single-control field (`labelledByHtmlFor` in generic-form.tsx). A
+   * `useId` value, never the schema id, which repeats in every group item. */
+  id?: string;
+  /** The row label's id, for a control that cannot take `htmlFor` (the
+   * media field's hidden file input). */
+  labelledBy?: string;
 }
 
-export function FieldInput({ field, value, onChange, t }: FieldInputProps) {
+export function FieldInput({ field, value, onChange, t, id, labelledBy }: FieldInputProps) {
   switch (field.type) {
     case "text":
       return (
         <input
+          id={id}
           type="text"
           className={inputClass}
           value={(value as string) ?? ""}
@@ -44,6 +52,7 @@ export function FieldInput({ field, value, onChange, t }: FieldInputProps) {
     case "textarea":
       return (
         <textarea
+          id={id}
           className={cn(inputClass, "h-auto min-h-20 resize-none py-2")}
           value={(value as string) ?? ""}
           maxLength={field.maxLength}
@@ -55,6 +64,7 @@ export function FieldInput({ field, value, onChange, t }: FieldInputProps) {
     case "date":
       return (
         <input
+          id={id}
           type="date"
           className={inputClass}
           value={(value as string) ?? ""}
@@ -66,6 +76,7 @@ export function FieldInput({ field, value, onChange, t }: FieldInputProps) {
       return (
         <label className="flex items-center gap-2 text-sm text-body">
           <input
+            id={id}
             type="checkbox"
             checked={Boolean(value)}
             onChange={(e) => onChange(e.target.checked)}
@@ -77,7 +88,7 @@ export function FieldInput({ field, value, onChange, t }: FieldInputProps) {
 
     case "select":
       return (
-        <select className={inputClass} value={(value as string) ?? ""} onChange={(e) => onChange(e.target.value)}>
+        <select id={id} className={inputClass} value={(value as string) ?? ""} onChange={(e) => onChange(e.target.value)}>
           {field.options.map((opt) => (
             <option key={opt.value} value={opt.value}>
               {t(opt.label)}
@@ -118,6 +129,7 @@ export function FieldInput({ field, value, onChange, t }: FieldInputProps) {
       return (
         <div className="flex items-center gap-3">
           <input
+            id={id}
             type="range"
             min={field.min}
             max={field.max}
@@ -139,13 +151,13 @@ export function FieldInput({ field, value, onChange, t }: FieldInputProps) {
     case "audio":
     case "video":
     case "file":
-      return <MediaFieldInput field={field} value={value} onChange={onChange} />;
+      return <MediaFieldInput field={field} value={value} onChange={onChange} labelledBy={labelledBy} />;
 
     case "coordinates":
       return <CoordinatesFieldInput value={value} onChange={onChange} />;
 
     case "location":
-      return <LocationFieldInput value={value} onChange={onChange} t={t} />;
+      return <LocationFieldInput id={id} value={value} onChange={onChange} t={t} />;
 
     default:
       return (
@@ -183,10 +195,12 @@ function MediaFieldInput({
   field,
   value,
   onChange,
+  labelledBy,
 }: {
   field: Extract<FieldSchema, { type: "image" | "gallery" | "audio" | "video" | "file" }>;
   value: unknown;
   onChange: (value: unknown) => void;
+  labelledBy?: string;
 }) {
   const { t, locale, session } = useProductState();
   const [error, setError] = useState<string | null>(null);
@@ -378,6 +392,7 @@ function MediaFieldInput({
           <Upload className="h-4 w-4" strokeWidth={1.75} />
           <input
             type="file"
+            aria-labelledby={labelledBy}
             accept={field.accept ?? MEDIA_ACCEPT[field.type]}
             multiple={isMulti}
             className="hidden"
@@ -453,10 +468,12 @@ export interface LocationValue {
  * coordinates.
  */
 function LocationFieldInput({
+  id,
   value,
   onChange,
   t,
 }: {
+  id?: string;
   value: unknown;
   onChange: (value: unknown) => void;
   t: Translator;
@@ -603,6 +620,7 @@ function LocationFieldInput({
       <div className="relative">
         <MapPin className="pointer-events-none absolute inset-inline-start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-body/40" strokeWidth={1.75} />
         <input
+          id={id}
           type="text"
           value={query}
           onChange={(e) => {

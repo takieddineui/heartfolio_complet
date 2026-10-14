@@ -46,12 +46,14 @@ def _supported_targets(product_slug: str) -> set[str] | None:
     """
     from apps.delivery.ar_support import supported_ar_targets
     from apps.delivery.delivery_types import LIVE_TARGET_SENTINEL
+    from apps.delivery.print_sizes import print_target_dimensions
     from apps.delivery.product_renderers.love_story_timeline.png_renderer import (
         TARGET_DIMENSIONS as LOVE_STORY_TIMELINE_TARGETS,
     )
     from apps.delivery.product_renderers.where_we_met_map.png_renderer import (
         TARGET_DIMENSIONS as WHERE_WE_MET_MAP_TARGETS,
     )
+    from apps.delivery.wallpaper_devices import wallpaper_target_dimensions
 
     supported = {
         # Love Story Timeline additionally has a real HTML (digital)
@@ -60,10 +62,14 @@ def _supported_targets(product_slug: str) -> set[str] | None:
         # Where We Met Map is PNG-only — no digital/HTML renderer exists,
         # so `__live__` is deliberately absent here.
         "heart-map": set(WHERE_WE_MET_MAP_TARGETS),
+        # The shared print and wallpaper catalog plus the hosted page, the
+        # same set `seed_catalog.supported_targets` uses. It used to be
+        # missing here, so `supported` was `None` and the admin form validated
+        # nothing for Song Poster's packs. `CatalogTargetMapParityTests` now
+        # keeps the two maps equal for every seeded product.
+        "song-poster": set(print_target_dimensions()) | set(wallpaper_target_dimensions()) | {LIVE_TARGET_SENTINEL},
         # Live-only: the hosted page is the whole product (seed_catalog.py
-        # lists the same). NOTE: `song-poster` is in seed_catalog.py's map
-        # but not this one, so the admin form does not validate its packs;
-        # that drift predates this entry and is recorded in CLAUDE.md.
+        # lists the same).
         "reasons-i-love-you": {LIVE_TARGET_SENTINEL},
     }
     if product_slug not in supported:

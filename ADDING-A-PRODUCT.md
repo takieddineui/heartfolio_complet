@@ -116,6 +116,16 @@ nothing else. Most of the steps above still apply, with these differences:
   builder (`get_asset_for_customer` + `generate_asset_access_url`); they
   expire after `R2_PRESIGNED_URL_EXPIRY_SECONDS`, so a page that loads photos
   lazily must also be able to ask again (`reasons-live-page.tsx`).
+- **The gift QR card's caption.** `_qr_caption_for_order` in
+  `apps/delivery/bonuses.py` names the recipient's card per product (Love
+  Story Timeline: the couple; Song Poster: the song; Reasons I Love You:
+  "Theo & Hana"). The names only, never an English sentence: nothing on that
+  card is translated. A product with no branch gets the generic caption.
+- **Audio or video?** Register a collector in `_MEDIA_COLLECTORS`
+  (`apps/commerce/media_promotion.py`), with a test that a paid order keeps
+  its media. Without one, only `events[].video/audio` is read, and anything
+  else is deleted by `expire_provisional_assets` a week after purchase. Photos
+  never expire and need nothing.
 - **The Studio module is `renderer: { kind: "live" }` and
   `delivery: { mode: "hosted", hosted: { description: "<key>" } }`**, with a
   `livePreview` component. `kind: "live"` mounts only that preview, full pane,
