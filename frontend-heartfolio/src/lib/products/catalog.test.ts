@@ -145,9 +145,11 @@ describe("withdrawn products (§1, §14)", () => {
 
   it("excludes them from every product listing", () => {
     // song-poster hidden again — see WITHDRAWN's own comment above for
-    // why. Back to `["love-story-timeline"]`, same as before the Phase 2
-    // flip this reverts.
-    expect(getAllProducts().map((p) => p.slug)).toEqual(["love-story-timeline"]);
+    // why. Reasons I Love You joined the visible list on 14 Oct 2026, once
+    // its Freemius plan and catalog row existed.
+    const visible = getAllProducts().map((p) => p.slug);
+    expect(visible).toEqual(["love-story-timeline", "reasons-i-love-you"]);
+    for (const slug of WITHDRAWN) expect(visible).not.toContain(slug);
   });
 
   it("refuses to resolve their public slug, so their page 404s", () => {
@@ -199,7 +201,9 @@ describe("withdrawn products (§1, §14)", () => {
     // response names. Their exclusion here is the thing this test
     // actually verifies.
     const merged = mergeProductList([apiProduct("love-story-timeline"), apiProduct("heart-map")]);
-    expect(merged.map((p) => p.slug)).toEqual(["love-story-timeline"]);
+    expect(merged.map((p) => p.slug)).toEqual(["love-story-timeline", "reasons-i-love-you"]);
+    expect(merged.map((p) => p.slug)).not.toContain("where-we-met");
+    expect(merged.map((p) => p.slug)).not.toContain("song-poster");
   });
 });
 
@@ -426,7 +430,9 @@ describe("mergeProductList", () => {
     // exclusion — the actual point of this test — is joined by
     // song-poster's own, both via the same `getAllProducts()` filter.
     const merged = mergeProductList([apiProduct("love-story-timeline"), apiProduct("heart-map")]);
-    expect(merged.map((p) => p.slug)).toEqual(["love-story-timeline"]);
+    expect(merged.map((p) => p.slug)).toEqual(["love-story-timeline", "reasons-i-love-you"]);
+    expect(merged.map((p) => p.slug)).not.toContain("where-we-met");
+    expect(merged.map((p) => p.slug)).not.toContain("song-poster");
   });
 });
 
@@ -586,9 +592,12 @@ describe("managed occasions (§7d)", () => {
     // leaving it enabled here would mean the scenario this test claims
     // to cover ("nothing is purchasable") was no longer what it actually
     // set up.
+    // Reasons I Love You is disabled too, for the same reason: it is
+    // visible and also tagged "anniversary".
     const disabled = mergeProductList([
       apiProduct("love-story-timeline", { status: "disabled" }),
       apiProduct("song-poster", { status: "disabled" }),
+      apiProduct("reasons-i-love-you", { status: "disabled" }),
     ]);
     expect(getAvailableOccasions(disabled, managed)).toEqual([]);
   });

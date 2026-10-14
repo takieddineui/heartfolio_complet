@@ -143,7 +143,7 @@ describe("buildMerchantFeedItems", () => {
     // regardless of which two products this test's synthetic Django
     // response names.
     const fromCatalog = mergeProductList([apiProduct("love-story-timeline"), apiProduct("heart-map")]);
-    expect(fromCatalog.map((p) => p.slug)).toEqual(["love-story-timeline"]);
+    expect(fromCatalog.map((p) => p.slug)).toEqual(["love-story-timeline", "reasons-i-love-you"]);
 
     const slugs = buildMerchantFeedItems(fromCatalog, "en", copy).map((i) => i.itemGroupId);
     // song-poster added back: hidden again (see above), same as

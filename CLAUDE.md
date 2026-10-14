@@ -226,16 +226,17 @@ Two were genuine product bugs: the `layout` default above, and
 
 ## Still open
 
-- **Reasons I Love You (`reasons-i-love-you`) is BUILT and HIDDEN (14 Oct
+- **Reasons I Love You (`reasons-i-love-you`) is LIVE on the storefront (14 Oct
   2026), the first LIVE-ONLY product: no print, no renderer output, one `live`
   pack at $15.99 granting `__live__`.** How a print-less product fits (registry
   entry for the pre-payment check only, `_LIVE_PAYLOAD_BUILDERS`, `renderer:
   { kind: "live" }`, hosted delivery) is in `ADDING-A-PRODUCT.md`. Freemius plan
   **71990** ($15.99, one-off, single price point, under the existing Freemius
   product) is mapped as `reasons-i-love-you:live` and pinned by
-  `FreemiusPlanMappingTests`. Still to do, in order: the real seed run by the
-  owner (`seed_catalog.py`, writes to Supabase), then `hidden: true` -> `false`
-  in `lib/products/registry.ts`, then one sandbox checkout by the owner. v1 leaves out, by
+  `FreemiusPlanMappingTests`. The real seed ran on 14 Oct 2026 (product and
+  `live` pack created in Supabase; 4 products / 17 packs) and `hidden` is now
+  `false`. **Still to do: one sandbox checkout by the owner** (rebuild `web`
+  first: `docker compose up --build web`). v1 leaves out, by
   decision and without stubs: the recipient's reply, any open/read tracking,
   the own-song upload, a scheduled send, drag to reorder, edits after
   purchase; the branding line is always shown, as on the other live pages.

@@ -233,16 +233,14 @@ export const PRODUCT_REGISTRY: ProductEntry[] = [
     featured: true,
     status: "available",
     /**
-     * HIDDEN UNTIL IT CAN BE BOUGHT. The product is built end to end (Studio
-     * module, live page, backend validation and payload), but its Freemius
-     * plan and its Django catalog row are created by the owner, not by code:
-     * until both exist, checkout would fail with `FreemiusPlanNotConfigured`.
-     * `hidden` is the one switch Django cannot override (see Song Poster's
-     * note above), so this stays `true` until then and is the only line to
-     * flip afterwards. While hidden there is no card, no product page, no
-     * sitemap entry and no Studio route.
+     * VISIBLE since 14 Oct 2026, once it could be bought: Freemius plan 71990
+     * is mapped (`reasons-i-love-you:live`) and the Django catalog row and its
+     * `live` pack were seeded. It was `hidden: true` until both existed,
+     * because checkout would otherwise fail with `FreemiusPlanNotConfigured`.
+     * To withdraw it later, set this back to `true` (the one switch Django
+     * cannot override; see Song Poster's note above).
      */
-    hidden: true,
+    hidden: false,
     order: 5,
     tags: ["love", "anniversary", "valentines", "gift"],
     faqCount: 3,

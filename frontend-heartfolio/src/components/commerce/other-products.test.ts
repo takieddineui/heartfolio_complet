@@ -21,7 +21,7 @@ const othersFor = (purchasedProductId: string) => {
 };
 
 describe("other products (§10)", () => {
-  it("shows nothing when the catalog has only one visible product", () => {
+  it("offers the other visible product, never the one just bought", () => {
     // The full arc, in case a future reader only sees one snapshot of it:
     // §1 reduced the catalog to one visible product ("shows nothing" was
     // the honest answer); Phase 2 integration (registry.ts) then added
@@ -30,10 +30,11 @@ describe("other products (§10)", () => {
     // itself reverted, and — because `status` alone proved not to be a
     // working kill switch (Django's own unchanged "available" row for it
     // overrode the registry's status) — `hidden: true` was added too.
-    // The catalog is back down to one visible product, so this is back to
-    // being the correct assertion, not a regression to an old bug.
-    const others = othersFor("love-story-timeline").map((p) => p.id);
-    expect(others).toEqual([]);
+    // The catalog was back down to one visible product ("shows nothing").
+    // On 14 Oct 2026 Reasons I Love You became the second, so each now offers
+    // the other, and never itself.
+    expect(othersFor("love-story-timeline").map((p) => p.id)).toEqual(["reasons-i-love-you"]);
+    expect(othersFor("reasons-i-love-you").map((p) => p.id)).toEqual(["love-story-timeline"]);
   });
 
   it("never offers a withdrawn product (§1, §14)", () => {
