@@ -397,7 +397,7 @@
         },
         {
           "question": "How do they receive it?",
-          "answer": "As a private link, the moment your payment clears. There is nothing to download or print: you send them the link, or give them the QR card that comes with it."
+          "answer": "As a private link, the moment your payment clears. There is no file to print or frame: you send them the link, or give them the QR card that comes with it."
         }
       ],
       "offerings": {
@@ -582,6 +582,16 @@
     },
     "audience": {
       "occasionsLabel": "Made for"
+    },
+    "liveOnly": {
+      "digitalNotice": "A digital keepsake experience. Nothing is shipped and nothing needs printing: you receive a private link to send, and a QR card that opens it.",
+      "lastStep": {
+        "title": "Send the link",
+        "description": "A private link, ready the moment it's finished: send it, or give the QR card that opens it."
+      },
+      "printItem": "A private link to send, and a QR card that opens it",
+      "includedNote": "Heartfolio is a digital product. No physical item is produced or posted, and this keepsake has no print file: it lives at its private link.",
+      "offeringsSubtitle": "This keepsake lives on a screen, at a private link they can open anywhere."
     }
   },
   "Legal": {

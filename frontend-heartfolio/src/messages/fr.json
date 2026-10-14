@@ -397,7 +397,7 @@
         },
         {
           "question": "Comment le reçoit-on ?",
-          "answer": "Sous la forme d'un lien privé, dès que votre paiement est validé. Rien à télécharger ni à imprimer : vous envoyez le lien, ou vous offrez la carte QR qui l'accompagne."
+          "answer": "Sous la forme d'un lien privé, dès que votre paiement est validé. Aucun fichier à imprimer ni à encadrer : vous envoyez le lien, ou vous offrez la carte QR qui l'accompagne."
         }
       ],
       "offerings": {
@@ -582,6 +582,16 @@
     },
     "audience": {
       "occasionsLabel": "Conçu pour"
+    },
+    "liveOnly": {
+      "digitalNotice": "Un souvenir numérique. Rien n'est expédié et rien n'est à imprimer : vous recevez un lien privé à envoyer, et une carte QR qui l'ouvre.",
+      "lastStep": {
+        "title": "Envoyez le lien",
+        "description": "Un lien privé, prêt dès qu'il est terminé : envoyez-le, ou offrez la carte QR qui l'ouvre."
+      },
+      "printItem": "Un lien privé à envoyer, et une carte QR qui l'ouvre",
+      "includedNote": "Heartfolio est un produit numérique. Aucun objet n'est fabriqué ni expédié, et ce souvenir n'a pas de fichier à imprimer : il vit à son lien privé.",
+      "offeringsSubtitle": "Ce souvenir vit sur un écran, à un lien privé qui s'ouvre partout."
     }
   },
   "Legal": {

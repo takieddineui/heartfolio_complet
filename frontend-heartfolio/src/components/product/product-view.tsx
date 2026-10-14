@@ -31,6 +31,10 @@ import { useProductContent } from "@/lib/products/use-product-content";
  * pickers, variant selection, checkout, Paddle, Studio. Offerings are
  * shown with their prices; the only action on the page is one CTA.
  */
+/** `ProductPage.included.items[2]`, the print-files line, which a live-only
+ * product replaces (see `liveOnly`). */
+export const LIVE_ONLY_REPLACED_ITEM = 2;
+
 export function ProductView({
   product,
   catalogUnavailable = false,
@@ -118,7 +122,6 @@ export function ProductView({
   // than by swapping components on a locale check — one code path, and it
   // stays correct if another RTL locale is added.
 
-  const included = t.raw("included.items") as string[];
 
   /**
    * §16b: print sizes are only true of a product that actually sells a
@@ -132,7 +135,31 @@ export function ProductView({
       offering.type === "printable_plus_digital" ||
       offering.type === "complete_pack"
   );
-  const steps = t.raw("howItWorks.steps") as { title: string; description: string }[];
+  /**
+   * A LIVE-ONLY product: every pack it sells is the hosted page, with no print
+   * file and no wallpaper (Reasons I Love You is the first). Computed from the
+   * real packs, like `hasPrintDeliverables` above, so a product that sells a
+   * printable pack (Love Story Timeline) is untouched. Without catalog data
+   * (`offerings` empty) this is false and the shared copy stays.
+   *
+   * The shared copy below is written for products with files ("Download
+   * it", "print-ready PNG and PDF files", "your print-ready file works with
+   * any print shop"). For a live-only product those would promise files that
+   * do not exist, so exactly those lines are swapped for `liveOnly.*` ones.
+   * The swaps are BY POSITION (the last step, the third item), pinned in all
+   * three languages by `product-view.test.tsx`.
+   */
+  const liveOnly =
+    offerings.length > 0 &&
+    offerings.every((offering) => offering.type === "digital" && !offering.wallpaperAddon?.available);
+  const sharedSteps = t.raw("howItWorks.steps") as { title: string; description: string }[];
+  const steps = liveOnly
+    ? [...sharedSteps.slice(0, -1), t.raw("liveOnly.lastStep") as { title: string; description: string }]
+    : sharedSteps;
+  const sharedIncluded = t.raw("included.items") as string[];
+  const included = liveOnly
+    ? sharedIncluded.map((item, index) => (index === LIVE_ONLY_REPLACED_ITEM ? t("liveOnly.printItem") : item))
+    : sharedIncluded;
   const faq = tProduct.raw("faq") as { question: string; answer: string }[];
 
   return (
@@ -213,7 +240,7 @@ export function ProductView({
                   small icon treatment is flagged for later review.
                 */}
                 <Download className="mt-0.5 h-4 w-4 shrink-0" strokeWidth={1.75} />
-                {t("digitalNotice")}
+                {liveOnly ? t("liveOnly.digitalNotice") : t("digitalNotice")}
               </p>
             </Reveal>
 
@@ -310,7 +337,7 @@ export function ProductView({
               {t("offerings.title")}
             </h2>
             <p className="mt-5 text-base leading-relaxed text-body/75">
-              {t("offerings.subtitle")}
+              {liveOnly ? t("liveOnly.offeringsSubtitle") : t("offerings.subtitle")}
             </p>
           </Reveal>
 
@@ -417,7 +444,7 @@ export function ProductView({
               ))}
             </ul>
             <p className="mt-8 border-t border-subtle pt-6 text-sm leading-relaxed text-body/60">
-              {t("included.note")}
+              {liveOnly ? t("liveOnly.includedNote") : t("included.note")}
             </p>
 
             {/*
