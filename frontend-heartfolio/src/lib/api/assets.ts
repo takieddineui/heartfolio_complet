@@ -53,6 +53,10 @@ export const ALLOWED_IMAGE_MIME_TYPES = ["image/jpeg", "image/png", "image/webp"
 export const ALLOWED_MEDIA_MIME_TYPES = [
   "video/mp4", "video/quicktime", "video/webm",
   "audio/mpeg", "audio/mp4", "audio/aac", "audio/wav", "audio/webm",
+  // Voice messages received from other people (Graduation Keepsake):
+  // WhatsApp's Ogg Opus, an iPhone's .m4a, and the other names browsers give
+  // .mp3 and .wav. The backend probes each one and re-encodes it to AAC.
+  "audio/ogg", "audio/opus", "audio/x-m4a", "audio/mp3", "audio/x-wav",
 ] as const;
 export const ALLOWED_ASSET_MIME_TYPES = [...ALLOWED_IMAGE_MIME_TYPES, ...ALLOWED_MEDIA_MIME_TYPES] as const;
 
@@ -66,6 +70,32 @@ function isMediaMimeType(mimeType: string): boolean {
  * accurate `{maxSizeMb}` rejection message, since it differs by kind. */
 export function maxSizeMbFor(mimeType: string): number {
   return isMediaMimeType(mimeType) ? MAX_MEDIA_SIZE_MB : MAX_ASSET_SIZE_MB;
+}
+
+/**
+ * The type to send for a file the browser could not type. Some browsers
+ * report an EMPTY type (or `application/octet-stream`) for a WhatsApp `.opus`
+ * voice note, and an untyped file would be refused by the backend's
+ * allow-list however good it is. Only audio extensions are inferred, and only
+ * when the browser gave nothing useful: a type the browser DID report is never
+ * overridden. The backend still probes the bytes and decides what the file
+ * really is, so a wrong extension cannot sneak anything through.
+ */
+const AUDIO_EXTENSION_TYPES: Record<string, string> = {
+  opus: "audio/ogg",
+  ogg: "audio/ogg",
+  oga: "audio/ogg",
+  m4a: "audio/x-m4a",
+  mp3: "audio/mpeg",
+  wav: "audio/wav",
+  aac: "audio/aac",
+};
+
+export function withInferredAudioType(file: File): File {
+  if (file.type && file.type !== "application/octet-stream") return file;
+  const extension = file.name.split(".").pop()?.toLowerCase() ?? "";
+  const inferred = AUDIO_EXTENSION_TYPES[extension];
+  return inferred ? new File([file], file.name, { type: inferred, lastModified: file.lastModified }) : file;
 }
 
 /** Client-side pre-check. Not a security control — the backend validates

@@ -50,11 +50,28 @@ FFMPEG = shutil.which("ffmpeg")
 #: reachable by an untrusted file, and these cover what phones actually
 #: produce.
 VIDEO_MIME_TYPES = ("video/mp4", "video/quicktime", "video/webm")
-AUDIO_MIME_TYPES = ("audio/mpeg", "audio/mp4", "audio/aac", "audio/wav", "audio/webm")
+#: The second line is for voice messages a customer RECEIVED rather than
+#: recorded in the Studio (Graduation Keepsake): WhatsApp voice notes are Ogg
+#: Opus (`audio/ogg`, or `audio/opus` in some browsers), an iPhone Voice Memo
+#: is declared `audio/x-m4a`, and some browsers say `audio/mp3` and
+#: `audio/x-wav` for those files. Whatever the declared type, the probe below
+#: decides what the file really is and `reencode_audio` rewrites it to AAC/MP4,
+#: so none of these is ever stored or played as sent.
+AUDIO_MIME_TYPES = (
+    "audio/mpeg", "audio/mp4", "audio/aac", "audio/wav", "audio/webm",
+    "audio/ogg", "audio/opus", "audio/x-m4a", "audio/mp3", "audio/x-wav",
+)
 
-#: Long enough for a voice note or a moment of footage; short enough that
-#: storage per order stays predictable (§5's caps).
+#: VIDEO: long enough for a moment of footage; short enough that storage per
+#: order stays predictable (§5's caps).
 MAX_MEDIA_SECONDS = 30
+#: AUDIO: one minute, for Graduation Keepsake's voice messages (a spoken
+#: message from a parent runs past 30 seconds, and a minute of AAC is about
+#: 1MB). ONE cap for every product: the upload endpoint does not know which
+#: product a file is for, and an `Asset` keeps no duration. Love Story
+#: Timeline's voice note stays at 30 seconds through its Studio recorder
+#: (`maxSeconds` on that field), not through this cap.
+MAX_AUDIO_SECONDS = 60
 _PROBE_TIMEOUT_SECONDS = 20
 
 
@@ -132,9 +149,10 @@ def validate_media(uploaded_file, mime_type: str) -> float:
     except (TypeError, ValueError):
         duration = 0.0
 
-    if duration > MAX_MEDIA_SECONDS:
+    limit = MAX_MEDIA_SECONDS if declared_video else MAX_AUDIO_SECONDS
+    if duration > limit:
         raise InvalidAssetType(
-            f"Please keep clips under {MAX_MEDIA_SECONDS} seconds — this one is "
+            f"Please keep clips under {limit} seconds — this one is "
             f"{int(duration)}."
         )
 
@@ -171,7 +189,10 @@ def reencode_audio(uploaded_file) -> ContentFile:
                 # well as by omission.
                 "-vn", "-sn", "-dn", "-map_metadata", "-1",
                 "-c:a", "aac", "-b:a", "128k",
-                "-t", str(MAX_MEDIA_SECONDS),
+                # The audio cap again, applied to the samples themselves: the
+                # probe above trusts the container's CLAIMED duration, and
+                # this cannot be lied to.
+                "-t", str(MAX_AUDIO_SECONDS),
                 "-f", "mp4", target.name,
             ],
             capture_output=True,

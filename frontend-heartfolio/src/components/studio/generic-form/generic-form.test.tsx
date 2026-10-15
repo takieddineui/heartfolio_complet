@@ -1,9 +1,10 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import type { FormSchemaConfig } from "@/types/studio";
 
+const moduleMessages = vi.hoisted(() => ({ en: { "help.count": "{used} of 5 used in this keepsake." } as Record<string, string> }));
 vi.mock("@/lib/studio/product-state-context", () => ({
-  useProductState: () => ({ session: { module: { messages: {} } }, locale: "en", t: (key: string) => key }),
+  useProductState: () => ({ session: { module: { messages: moduleMessages } }, locale: "en", t: (key: string) => key }),
 }));
 
 import { GenericForm } from "./generic-form";
@@ -96,5 +97,76 @@ describe("GenericForm label association", () => {
     }
     const ids = labels.map((label) => label.getAttribute("for"));
     expect(new Set(ids).size).toBe(ids.length);
+  });
+});
+
+describe("GenericForm: nested groups, hidden sections, swatches and live help", () => {
+  const nested: FormSchemaConfig = {
+    sections: [
+      {
+        id: "messages",
+        title: "messages",
+        fields: [
+          {
+            id: "groups",
+            type: "group",
+            label: "label.group",
+            minItems: 1,
+            maxItems: 3,
+            itemFields: [
+              {
+                id: "people",
+                type: "group",
+                label: "label.person",
+                minItems: 1,
+                maxItems: 3,
+                itemFields: [
+                  { id: "name", type: "text", label: "label.name", required: true },
+                  { id: "colour", type: "swatch", label: "label.colour", options: [{ value: "coral", label: "colour.coral", color: "#ff6b4a" }] },
+                  { id: "voice", type: "text", label: "label.voice", helpText: "help.count", helpTextParams: (values) => ({ used: (values.groups as unknown[]).length }) },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+      { id: "airline", title: "section.airline", visibleWhen: [{ path: "theme.journey", op: "eq", value: "airline" }], fields: [{ id: "seat", type: "text", label: "label.seat" }] },
+    ],
+  };
+  const values = { groups: [{ people: [{ name: "" }] }, { people: [{ name: "Ada" }] }] };
+
+  it("shows an error on a field inside a group inside a group", () => {
+    render(
+      <GenericForm
+        schema={nested}
+        values={values}
+        themeSelections={{ journey: "space" }}
+        errors={{ "groups.0.people.0.name": { code: "required", params: { label: "label.name" } } }}
+        onChange={vi.fn()}
+      />
+    );
+    expect(screen.getByText("label.name is required.")).toBeInTheDocument();
+  });
+
+  it("hides a section, heading and all, while its visibleWhen fails", () => {
+    const { rerender } = render(<GenericForm schema={nested} values={values} themeSelections={{ journey: "space" }} errors={{}} onChange={vi.fn()} />);
+    expect(screen.queryByText("section.airline")).toBeNull();
+    rerender(<GenericForm schema={nested} values={values} themeSelections={{ journey: "airline" }} errors={{}} onChange={vi.fn()} />);
+    expect(screen.getByText("section.airline")).toBeInTheDocument();
+  });
+
+  it("draws a swatch field as a named radio group with an automatic choice", () => {
+    const onChange = vi.fn();
+    render(<GenericForm schema={nested} values={values} themeSelections={{}} errors={{}} onChange={onChange} />);
+    const group = screen.getAllByRole("radiogroup", { name: /^label\.colour/ })[0]!;
+    const radios = within(group).getAllByRole("radio");
+    expect(radios.map((r) => r.getAttribute("aria-label"))).toEqual(["Automatic", "colour.coral"]);
+    expect(radios[0]).toHaveAttribute("aria-checked", "true");
+  });
+
+  it("fills a help text's placeholders from the WHOLE form, also inside a group", () => {
+    render(<GenericForm schema={nested} values={values} themeSelections={{}} errors={{}} onChange={vi.fn()} />);
+    // Computed from all groups (2 of them), not from the one item it sits in.
+    expect(screen.getAllByText("2 of 5 used in this keepsake.").length).toBe(2);
   });
 });

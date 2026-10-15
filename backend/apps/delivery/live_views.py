@@ -186,6 +186,15 @@ def _build_reasons_live_payload(experience, order, project, product_slug) -> dic
     }
 
 
+def _build_graduation_live_payload(experience, order, project, product_slug) -> dict | None:
+    """Graduation Keepsake's payload lives with its product
+    (`graduation_keepsake/live_payload.py`); imported lazily, like every
+    other product's validator here."""
+    from apps.delivery.product_renderers.graduation_keepsake.live_payload import build_graduation_live_payload
+
+    return build_graduation_live_payload(experience, order, project, product_slug)
+
+
 #: Which payload each product's live page gets. EXPLICIT, not "Song Poster,
 #: else Love Story Timeline": that fallback handed every other product to
 #: Love Story Timeline's builder, whose validation would reject it and turn a
@@ -195,6 +204,7 @@ _LIVE_PAYLOAD_BUILDERS = {
     "love-story-timeline": _build_ar_payload,
     "song-poster": _build_song_poster_live_payload,
     "reasons-i-love-you": _build_reasons_live_payload,
+    "graduation-keepsake": _build_graduation_live_payload,
 }
 
 

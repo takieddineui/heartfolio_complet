@@ -457,6 +457,9 @@ ALLOWED_ASSET_MIME_TYPES = env.list(
         # is another parser reachable by an untrusted file.
         "video/mp4", "video/quicktime", "video/webm",
         "audio/mpeg", "audio/mp4", "audio/aac", "audio/wav", "audio/webm",
+        # Voice messages received from other people (Graduation Keepsake);
+        # see AUDIO_MIME_TYPES in apps/assets/media.py.
+        "audio/ogg", "audio/opus", "audio/x-m4a", "audio/mp3", "audio/x-wav",
     ]
 )
 

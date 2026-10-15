@@ -40,6 +40,9 @@ export const productModuleRegistry: Record<string, ProductModuleLoader> = {
   // page alone. Its storefront entry stays `hidden` until its Freemius plan
   // and catalog row exist (see `lib/products/registry.ts`).
   "reasons-i-love-you": async () => (await import("./reasons-i-love-you")).reasonsILoveYouModule,
+  // Live-only, like Reasons; storefront entry `hidden` until its Freemius plan
+  // exists.
+  "graduation-keepsake": async () => (await import("./graduation-keepsake")).graduationKeepsakeModule,
 };
 
 export function getProductModuleLoader(slug: string): ProductModuleLoader | undefined {

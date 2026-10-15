@@ -456,6 +456,46 @@
       "wallpaperFiles": "PNG au format téléphone · téléchargement immédiat",
       "completeFiles": "Tous les fichiers inclus · téléchargement immédiat",
       "printableDigitalFiles": "PNG + PDF prêts à imprimer et souvenir numérique personnalisé · téléchargement immédiat"
+    },
+    "graduationKeepsake": {
+      "name": "Souvenir de diplôme",
+      "shortDescription": "Son parcours jusqu'ici, raconté comme un voyage.",
+      "fullDescription": "Réunissez les années, les réussites et les messages de ceux qui l'ont accompagné, puis choisissez comment l'histoire se raconte : un vol, une mission spatiale, un jeu d'arcade, une galerie ou une ascension.",
+      "meta": {
+        "title": "Souvenir de diplôme, un cadeau numérique personnalisé | Heartfolio",
+        "description": "Le parcours d'un diplômé (photos à travers les années, réussites, messages et notes vocales de la famille et des amis) raconté comme un vol, une mission, un jeu, une galerie ou une ascension. À partir de {price}, livré immédiatement.",
+        "imageAlt": "Un Souvenir de diplôme Heartfolio : une carte d'embarquement pour la suite",
+        "descriptionNoPrice": "Le parcours d'un diplômé (photos à travers les années, réussites, messages et notes vocales de la famille et des amis) raconté comme un vol, une mission, un jeu, une galerie ou une ascension. Livré immédiatement."
+      },
+      "storyTitle": "Tout ce qui l'a mené jusqu'ici, au même endroit.",
+      "story": "Vous réunissez les photos, du premier jour d'école à la toge, les réussites à fêter et les messages de ceux qui étaient là (écrits, dessinés ou enregistrés). Puis vous choisissez le voyage : déchirer une carte d'embarquement, lancer un compte à rebours, appuyer sur Start, couper un ruban ou commencer une ascension, et l'histoire se déroule au fil du parcours.",
+      "faq": [
+        {
+          "question": "Quels sont les cinq voyages ?",
+          "answer": "Next Chapter Airways (un vol), Mission : Diplôme (un lancement spatial), Niveau terminé (un jeu d'arcade), La Rétrospective (un vernissage) et Le Sommet (une ascension). Chacun a son ouverture, son style, ses mots, son final et ses effets sonores."
+        },
+        {
+          "question": "La famille et les amis peuvent-ils ajouter des messages vocaux ?",
+          "answer": "Oui : jusqu'à cinq dans un même souvenir, d'une minute chacun au plus. Enregistrez-les dans le Studio, ou importez ceux qu'on vous a envoyés sur WhatsApp ou depuis un iPhone. Vous pouvez ajouter un sous-titre à chacun, et jusqu'à cinq dessins."
+        },
+        {
+          "question": "Que puis-je laisser de côté ?",
+          "answer": "Le chemin parcouru, les réussites, les messages, les objectifs et la lettre peuvent chacun être désactivés. Seuls les informations du diplômé et la dernière phrase sont toujours là."
+        },
+        {
+          "question": "Comment le reçoit-il ?",
+          "answer": "Sous forme de lien privé, dès que votre paiement est validé. Aucun fichier à imprimer ni à encadrer : vous lui envoyez le lien, ou vous lui offrez la carte QR qui l'accompagne."
+        }
+      ],
+      "offerings": {
+        "digital": {
+          "description": "Un lien privé vers le voyage de remise de diplôme."
+        }
+      },
+      "audience": {
+        "title": "Pour qui",
+        "body": "Tout diplômé : du lycée, de l'université ou d'un apprentissage. Il convient aussi bien de la part des parents, de toute une famille ou d'un groupe d'amis qui ajoutent chacun un message."
+      }
     }
   },
   "Create": {

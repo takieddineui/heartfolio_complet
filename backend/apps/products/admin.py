@@ -71,6 +71,8 @@ def _supported_targets(product_slug: str) -> set[str] | None:
         # Live-only: the hosted page is the whole product (seed_catalog.py
         # lists the same).
         "reasons-i-love-you": {LIVE_TARGET_SENTINEL},
+        # Live-only, the same as Reasons I Love You.
+        "graduation-keepsake": {LIVE_TARGET_SENTINEL},
     }
     if product_slug not in supported:
         return None

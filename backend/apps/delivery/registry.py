@@ -15,6 +15,7 @@ renderers registered.
 from __future__ import annotations
 
 from .product_renderers.love_story_timeline.renderer import LoveStoryTimelineRenderer
+from .product_renderers.graduation_keepsake.renderer import GraduationKeepsakeRenderer
 from .product_renderers.reasons_i_love_you.renderer import ReasonsILoveYouRenderer
 from .product_renderers.song_poster.renderer import SongPosterRenderer
 from .product_renderers.where_we_met_map.renderer import WhereWeMetMapRenderer
@@ -38,6 +39,9 @@ _REGISTRY: dict[str, ProductRenderer] = {
     # to render anything (it has no output but `__live__`, which delivery
     # answers before a renderer is consulted). See that module's docstring.
     "reasons-i-love-you": ReasonsILoveYouRenderer(),
+    # Live-only, like Reasons I Love You: registered for its pre-payment
+    # check (`validate_project_data`); `render()` refuses every target.
+    "graduation-keepsake": GraduationKeepsakeRenderer(),
 }
 
 

@@ -69,11 +69,21 @@ export interface FieldSchemaBase {
   /** Only rendered when every condition holds against `{ values, theme }`.
    * Omitted = always visible. */
   visibleWhen?: Condition[];
+  /** Values for `{placeholders}` in `helpText`, worked out from the WHOLE
+   * form's values (also for a field inside a group). For a running count the
+   * customer needs while filling in, such as Graduation Keepsake's "3 of 5
+   * voice messages used" across every person in every group. */
+  helpTextParams?: (formValues: Record<string, unknown>) => Record<string, string | number>;
 }
 
 export interface TextFieldSchema extends FieldSchemaBase {
   type: "text" | "textarea";
   maxLength?: number;
+  /** The longest the value may be in GRAPHEMES (what a reader counts as one
+   * character), checked with `Intl.Segmenter`. For a field holding one emoji:
+   * a family or a flag is a single grapheme but up to 11 UTF-16 units, so
+   * `maxLength` cannot express it (it stays as the input's outer bound). */
+  maxGraphemes?: number;
   /** Translation key. */
   placeholder?: string;
 }
@@ -114,6 +124,31 @@ export interface MediaFieldSchema extends FieldSchemaBase {
   type: "image" | "gallery" | "audio" | "video" | "file";
   maxItems?: number;
   accept?: string;
+  /**
+   * `audio` only. An audio field is RECORD-ONLY by default: Love Story
+   * Timeline's voice note is "a message you would like them to hear", which a
+   * file lying around should not satisfy. A product whose audio is something
+   * the customer RECEIVED from someone else (Graduation Keepsake's voice
+   * messages arrive as WhatsApp or iPhone files) sets this to add a file
+   * picker beside the recorder.
+   */
+  allowUpload?: boolean;
+  /**
+   * `audio` only. A recording stops by itself at this length, and a picked
+   * file longer than this is refused at once. The backend's own cap
+   * (`MAX_AUDIO_SECONDS`, 60) is the authority; this is the product's limit,
+   * so the customer finds out while choosing, not at checkout.
+   */
+  maxSeconds?: number;
+}
+
+/** One colour from a fixed palette, stored as the option's `value` (an id,
+ * never a free hex): the experience was designed for exactly these colours.
+ * Rendered as a row of swatches; an empty value means "the product's
+ * default". */
+export interface SwatchFieldSchema extends FieldSchemaBase {
+  type: "swatch";
+  options: { value: string; /** Translation key (the swatch's name). */ label: string; color: string }[];
 }
 
 export interface GroupFieldSchema extends FieldSchemaBase {
@@ -151,6 +186,7 @@ export type FieldSchema =
   | SelectFieldSchema
   | RangeFieldSchema
   | MediaFieldSchema
+  | SwatchFieldSchema
   | GroupFieldSchema
   | LocationFieldSchema
   | CoordinatesFieldSchema
@@ -165,6 +201,11 @@ export interface FormSection {
   /** Translation key. */
   title: string;
   fields: FieldSchema[];
+  /** The whole section, heading included, is shown only when every condition
+   * holds against `{ values, theme }`; while hidden none of its fields is
+   * validated. For a block that belongs to one choice (Graduation Keepsake's
+   * boarding pass exists only on the airline journey). */
+  visibleWhen?: Condition[];
 }
 
 export interface FormSchemaConfig {
@@ -459,8 +500,11 @@ export interface ProductModuleConfig<TValues = unknown> {
   createInitialThemeSelections: () => ThemeSelections;
   /** Product-specific rules beyond generic `required`/`maxLength`/
    * `minItems` checks (e.g. "no two milestones share a date"). Optional
-   * — the Shell's generic schema validation always runs regardless. */
-  validate?: (values: TValues) => ValidationResult;
+   * — the Shell's generic schema validation always runs regardless.
+   * `themeSelections` because a rule may apply only to some choices
+   * (Graduation Keepsake's airport codes exist on the airline journey only;
+   * a rule on a field the customer cannot see would block them invisibly). */
+  validate?: (values: TValues, themeSelections: ThemeSelections) => ValidationResult;
   /**
    * §16 — a real interactive Digital preview, for products that have a
    * Live pack. Optional and product-agnostic on purpose: a product with

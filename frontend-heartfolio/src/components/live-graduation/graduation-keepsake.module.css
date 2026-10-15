@@ -1,0 +1,537 @@
+/*
+  GRADUATION KEEPSAKE, ported from the prototype's stylesheet (graduation.html).
+
+  FONTS ARE SELF-HOSTED (public/fonts/graduation, licences beside them), never
+  fonts.googleapis.com. Latin subsets as Google serves them, except the four
+  families whose licences reserve their names (IBM Plex Mono, Gochi Hand,
+  Share Tech Mono, Press Start 2P): a subset can count as a modified version,
+  so those are the original files, unmodified. A browser downloads only the
+  faces the open journey uses.
+
+  ARABIC: none of these faces has Arabic letters. Each stack continues into
+  "Heartfolio Serif" (display: Noto Kufi Arabic) or "Heartfolio Sans" (reading
+  text: Noto Naskh Arabic), registered in globals.css, so an Arabic character
+  falls through to them while a Latin name on the same line keeps the
+  journey's face.
+
+  NOTHING HERE IS POSITIONED AGAINST THE WINDOW, and nothing styles <html> or
+  <body>. The prototype set its journey on <html>, locked <body> scrolling and
+  fixed eight layers to the window; inside the Studio's preview pane those
+  would have restyled and covered the whole Studio. Here `.frame` is the box:
+  the page scrolls inside `.scroller`, every overlay is `position: absolute`
+  against the frame, and sizes use container units (cqw, cqh) of the frame
+  instead of the window's vw/svh. Directions are logical (inline start/end),
+  so the layout mirrors right to left.
+*/
+
+@font-face { font-family: "Red Hat Display"; src: url("/fonts/graduation/red-hat-display-normal-400-900-latin.woff2") format("woff2"); font-weight: 400 900; font-style: normal; font-display: swap; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "IBM Plex Mono"; src: url("/fonts/graduation/IBMPlexMono-Regular.ttf") format("truetype"); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: "IBM Plex Mono"; src: url("/fonts/graduation/IBMPlexMono-SemiBold.ttf") format("truetype"); font-weight: 600; font-style: normal; font-display: swap; }
+@font-face { font-family: "Gochi Hand"; src: url("/fonts/graduation/GochiHand-Regular.ttf") format("truetype"); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: "Exo 2"; src: url("/fonts/graduation/exo-2-normal-400-800-latin.woff2") format("woff2"); font-weight: 400 800; font-style: normal; font-display: swap; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "Share Tech Mono"; src: url("/fonts/graduation/ShareTechMono-Regular.ttf") format("truetype"); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: "Press Start 2P"; src: url("/fonts/graduation/PressStart2P-Regular.ttf") format("truetype"); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: "VT323"; src: url("/fonts/graduation/vt323-normal-400-latin.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "Bodoni Moda"; src: url("/fonts/graduation/bodoni-moda-normal-400-800-latin.woff2") format("woff2"); font-weight: 400 800; font-style: normal; font-display: swap; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "Bodoni Moda"; src: url("/fonts/graduation/bodoni-moda-italic-400-700-latin.woff2") format("woff2"); font-weight: 400 700; font-style: italic; font-display: swap; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "Libre Franklin"; src: url("/fonts/graduation/libre-franklin-normal-400-700-latin.woff2") format("woff2"); font-weight: 400 700; font-style: normal; font-display: swap; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "Alegreya"; src: url("/fonts/graduation/alegreya-normal-400-700-latin.woff2") format("woff2"); font-weight: 400 700; font-style: normal; font-display: swap; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "Alegreya"; src: url("/fonts/graduation/alegreya-italic-400-700-latin.woff2") format("woff2"); font-weight: 400 700; font-style: italic; font-display: swap; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "Alegreya Sans"; src: url("/fonts/graduation/alegreya-sans-normal-400-latin.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "Alegreya Sans"; src: url("/fonts/graduation/alegreya-sans-normal-500-latin.woff2") format("woff2"); font-weight: 500; font-style: normal; font-display: swap; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "Alegreya Sans"; src: url("/fonts/graduation/alegreya-sans-normal-700-latin.woff2") format("woff2"); font-weight: 700; font-style: normal; font-display: swap; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "Alegreya Sans"; src: url("/fonts/graduation/alegreya-sans-normal-800-latin.woff2") format("woff2"); font-weight: 800; font-style: normal; font-display: swap; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+
+/* ── Each journey's colours and faces ──────────────────────────────── */
+.frame[data-j="airline"] { --bg: #d9f0fb; --ink: #0f2742; --soft: #4b5d74; --accent: #ff6b4a; --accent2: #ffb547; --card: #fffaf1; --line: rgba(15, 39, 66, 0.14); --display: "Red Hat Display", "Heartfolio Serif", system-ui, sans-serif; --body: "Red Hat Display", "Heartfolio Sans", system-ui, sans-serif; --mono: "IBM Plex Mono", "Heartfolio Sans", monospace; --dw: 900; color-scheme: light; }
+.frame[data-j="space"] { --bg: #070b1f; --ink: #e8f3ff; --soft: rgba(232, 243, 255, 0.7); --accent: #ff8a3d; --accent2: #7cf3ff; --card: rgba(124, 243, 255, 0.06); --line: rgba(124, 243, 255, 0.22); --display: "Exo 2", "Heartfolio Serif", system-ui, sans-serif; --body: "Exo 2", "Heartfolio Sans", system-ui, sans-serif; --mono: "Share Tech Mono", "Heartfolio Sans", monospace; --dw: 800; color-scheme: dark; }
+.frame[data-j="arcade"] { --bg: #1b1036; --ink: #f4ecff; --soft: #bfaee6; --accent: #ff4fd8; --accent2: #3df5ff; --card: #2a1a52; --line: #5b3fa0; --display: "Press Start 2P", "Heartfolio Serif", monospace; --body: "VT323", "Heartfolio Sans", monospace; --mono: "VT323", "Heartfolio Sans", monospace; --dw: 400; color-scheme: dark; }
+.frame[data-j="museum"] { --bg: #23382f; --ink: #f4efe4; --soft: rgba(244, 239, 228, 0.72); --accent: #c9a24d; --accent2: #e9dfc9; --card: #fbf8f1; --line: rgba(201, 162, 77, 0.45); --display: "Bodoni Moda", "Heartfolio Serif", Georgia, serif; --body: "Libre Franklin", "Heartfolio Sans", system-ui, sans-serif; --mono: "Libre Franklin", "Heartfolio Sans", system-ui, sans-serif; --dw: 600; color-scheme: dark; }
+.frame[data-j="summit"] { --bg: #e9eef3; --ink: #1f2f45; --soft: #55667c; --accent: #e2553b; --accent2: #f2b56b; --card: #fffdf8; --line: rgba(31, 47, 69, 0.15); --display: "Alegreya Sans", "Heartfolio Serif", system-ui, sans-serif; --body: "Alegreya", "Heartfolio Sans", Georgia, serif; --mono: "Alegreya Sans", "Heartfolio Sans", system-ui, sans-serif; --dw: 800; color-scheme: light; }
+
+/* ── The frame: every overlay is positioned against THIS ────────────── */
+.frame {
+  --hand: "Gochi Hand", "Heartfolio Sans", cursive;
+  position: relative;
+  /* `clip`, not just `hidden`: a hidden box can still be scrolled by focus;
+     `clip` cannot. `hidden` first as the fallback. */
+  overflow: hidden;
+  overflow: clip;
+  /* A containing block for anything inside, `position: fixed` included. */
+  contain: layout paint;
+  isolation: isolate;
+  /* Sizes below are relative to THIS box (cqw/cqh), not the window. */
+  container-type: size;
+  container-name: keepsake;
+  width: 100%;
+  font-family: var(--body);
+  font-size: 1.06rem;
+  line-height: 1.6;
+  color: var(--ink);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+.frame[data-fill="viewport"] { height: 100svh; }
+.frame[data-fill="container"] { height: 100%; min-height: 560px; }
+.frame *, .frame *::before, .frame *::after { box-sizing: border-box; }
+.frame h1, .frame h2, .frame h3, .frame p, .frame figure, .frame ol, .frame ul { margin: 0; }
+.frame button { font: inherit; color: inherit; cursor: pointer; }
+.frame img, .frame svg { max-width: 100%; }
+.frame [hidden] { display: none !important; }
+.frame :focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; border-radius: 6px; }
+.frame[data-j="arcade"] { font-size: 1.35rem; line-height: 1.3; }
+/* Long single words (a German compound, a long surname) wrap rather than
+   pushing a card wider than its column. */
+.frame p, .frame b, .frame em, .frame span, .frame h1, .frame h2, .frame h3, .frame li { overflow-wrap: anywhere; }
+
+/* WHAT THE CREATOR WROTE takes its direction from its own first letter. A
+   keepsake's interface follows its language, but the creator may write in
+   another (English messages in an Arabic keepsake, or the reverse): without
+   this, an English sentence in a right-to-left keepsake showed its full stop
+   at the wrong end (".A junior designer role…"). Only on the creator's text:
+   an interface line such as "Maya على القمّة" starts with a Latin name and
+   must stay right to left. */
+.ut { unicode-bidi: plaintext; }
+.ic { width: 1.2em; height: 1.2em; flex: none; }
+.mono { font-family: var(--mono); }
+.scroller { position: absolute; inset: 0; overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; scroll-behavior: smooth; }
+.frame[data-screen="start"] .scroller { overflow: hidden; visibility: hidden; }
+.fx { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 58; pointer-events: none; }
+.srOnly { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+@keyframes rise { to { opacity: 1; transform: none; } }
+@keyframes breathe { 50% { opacity: 0.45; } }
+@keyframes blink { 50% { opacity: 0; } }
+@keyframes wave { 50% { transform: scaleY(0.35); } }
+
+/* page backgrounds */
+.frame[data-j="space"] .scroller { background: radial-gradient(1px 1px at 20% 30%, #fff 50%, transparent), radial-gradient(1px 1px at 70% 10%, #fff 50%, transparent), radial-gradient(1.5px 1.5px at 40% 70%, #cfe 50%, transparent), radial-gradient(1px 1px at 85% 55%, #fff 50%, transparent), radial-gradient(1px 1px at 10% 85%, #fff 50%, transparent) 0 0/300px 300px, radial-gradient(80% 40% at 50% 0%, #16204a, transparent), var(--bg); }
+.frame[data-j="arcade"] .scroller { background: linear-gradient(rgba(255, 255, 255, 0.03) 50%, transparent 50%) 0 0/100% 4px, var(--bg); }
+.frame[data-j="museum"] .scroller { background: radial-gradient(60% 30% at 50% 0%, rgba(255, 240, 200, 0.12), transparent 70%), linear-gradient(180deg, #2a4438, #1c2e26); }
+.frame[data-j="summit"] .scroller { background: linear-gradient(180deg, #f7d9b8 0%, #dfe7ef 30%, #e9eef3 100%); }
+
+/* ── Start screen ─────────────────────────────────────────────────────
+   Fix 14: the prototype's start screen was one screen with `overflow:
+   hidden` and its footer pinned to the bottom, so the airline boarding pass
+   was cut off even with the example data on a 375x550 phone, and its
+   "tear to board" stub sat under the footer. Here the screen scrolls when its
+   content is taller than the frame, the footer follows the content instead
+   of covering it, and a short frame gets a compact pass. */
+.start { position: absolute; inset: 0; z-index: 50; display: flex; flex-direction: column; overflow-y: auto; overflow-x: hidden; text-align: center; }
+.startBody { flex: 1 0 auto; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px 18px 12px; position: relative; z-index: 2; }
+.startFoot { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; padding: 8px 12px 16px; position: relative; z-index: 3; }
+.chip { display: inline-flex; align-items: center; gap: 0.45rem; min-height: 40px; padding: 0.4rem 0.9rem; border-radius: 999px; border: 1.5px solid rgba(255, 255, 255, 0.35); background: rgba(255, 255, 255, 0.12); color: #fff; font-family: system-ui, sans-serif; font-weight: 700; font-size: 0.86rem; }
+.frame[data-j="summit"] .chip { border-color: rgba(31, 47, 69, 0.25); background: rgba(255, 255, 255, 0.7); color: #1f2f45; }
+.stBtn { min-height: 54px; padding: 0.8rem 1.6rem; border-radius: 999px; border: 0; font-weight: 800; font-size: 1.05rem; }
+
+/* airline gate */
+.sAirline { background: linear-gradient(180deg, #0f2742 0%, #173a5e 55%, #e9845f 100%); }
+.gateTop { color: #fff; margin-bottom: 18px; }
+.gateTop b { display: block; font-family: var(--display); font-weight: 900; font-size: clamp(1.4rem, 6cqw, 1.8rem); }
+.gateTop span { font-family: var(--mono); font-size: 0.82rem; opacity: 0.75; }
+.pass { position: relative; width: min(88cqw, 360px); filter: drop-shadow(0 24px 40px rgba(0, 0, 0, 0.35)); cursor: pointer; text-align: start; font-family: var(--display); color: #0f2742; border: 0; padding: 0; background: none; }
+.passMain, .passStub { display: block; background: #fffaf1; padding: 18px 20px; }
+.passMain { position: relative; border-radius: 18px 18px 0 0; }
+.passMain::before, .passMain::after { content: ""; position: absolute; bottom: -12px; width: 24px; height: 24px; border-radius: 50%; background: #1b4064; z-index: 2; }
+.passMain::before { inset-inline-start: -12px; }
+.passMain::after { inset-inline-end: -12px; }
+.passStub { border-radius: 0 0 18px 18px; border-top: 2px dashed rgba(15, 39, 66, 0.3); transform-origin: 15% 0; }
+.airlineRow { display: flex; justify-content: space-between; font-weight: 800; font-size: 0.95rem; color: #ff6b4a; }
+.airlineRow svg { width: 22px; height: 22px; fill: #ff6b4a; }
+.route { display: grid; grid-template-columns: 1fr auto 1fr; align-items: end; gap: 8px; margin: 14px 0 6px; }
+.route .code { font-weight: 900; font-size: clamp(2.4rem, 12cqw, 3.4rem); line-height: 0.9; display: block; }
+.route .city { display: block; font-size: 0.8rem; color: #4b5d74; font-weight: 600; }
+.route .to { text-align: end; }
+.route .arrow svg { width: 34px; height: 34px; fill: #ff6b4a; transform: rotate(90deg); }
+/* Right to left the route reads from the right, so the plane points left. */
+.frame[dir="rtl"] .route .arrow svg { transform: rotate(-90deg); }
+.g3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px 8px; margin-top: 12px; }
+.g3 small { display: block; font-family: var(--mono); font-size: 0.66rem; letter-spacing: 0.06em; color: #4b5d74; text-transform: uppercase; }
+.g3 b { display: block; font-weight: 800; font-size: 0.95rem; line-height: 1.2; }
+.g3 .w { grid-column: span 3; }
+.barcode { height: 44px; background: repeating-linear-gradient(90deg, #0f2742 0 2px, transparent 2px 4px, #0f2742 4px 5px, transparent 5px 8px, #0f2742 8px 11px, transparent 11px 12px); }
+.tear { margin-top: 10px; text-align: center; font-weight: 800; color: #ff6b4a; animation: breathe 2.2s ease-in-out infinite; }
+/* A short frame (a small phone, the Studio's pane): a compact pass. */
+@container keepsake (max-height: 640px) {
+  .gateTop { margin-bottom: 10px; }
+  .passMain, .passStub { padding: 12px 16px; }
+  .route { margin: 8px 0 4px; }
+  .route .code { font-size: clamp(2rem, 10cqw, 2.6rem); }
+  .g3 { gap: 6px 8px; margin-top: 8px; }
+  .barcode { height: 30px; }
+  .tear { margin-top: 6px; }
+  .startBody { padding-top: 14px; }
+}
+/* space start */
+.sSpace { background: radial-gradient(80% 50% at 50% 100%, #1a2556, transparent), #070b1f; color: #e8f3ff; font-family: var(--body); }
+.patch { width: 150px; height: 150px; border-radius: 50%; display: grid; place-items: center; background: radial-gradient(circle, #16204a 58%, #ff8a3d 59% 63%, #16204a 64% 70%, #7cf3ff 71% 73%, transparent 74%); font-size: 3.4rem; margin-bottom: 16px; }
+.sSpace h1 { font-family: var(--display); font-weight: 800; font-size: clamp(1.6rem, 7cqw, 2.4rem); letter-spacing: 0.06em; text-transform: uppercase; }
+.sSpace .sub { font-family: var(--mono); color: #7cf3ff; margin: 6px 0 22px; }
+.count { font-family: var(--mono); font-size: clamp(5rem, 26cqw, 10rem); line-height: 1; color: #ff8a3d; text-shadow: 0 0 30px rgba(255, 138, 61, 0.6); min-height: 1em; }
+/* The last beat is a word ("Liftoff", "Décollage", "انطلاق"), not a digit:
+   sized to fit a phone instead of the digits' poster size. */
+.countWord { font-size: clamp(2.4rem, 13cqw, 4.5rem); }
+.sSpace .stBtn { background: #ff8a3d; color: #070b1f; font-family: var(--display); letter-spacing: 0.06em; text-transform: uppercase; }
+/* arcade start */
+.sArcade { background: linear-gradient(rgba(255, 255, 255, 0.04) 50%, transparent 50%) 0 0/100% 4px, radial-gradient(60% 40% at 50% 40%, #3a1f7a, #1b1036); color: #f4ecff; }
+.logo { font-family: var(--display); font-size: clamp(1.2rem, 6.4cqw, 2.2rem); line-height: 1.4; color: #ffe14d; text-shadow: 4px 4px 0 #ff4fd8, 8px 8px 0 #3d1a7a; text-transform: uppercase; }
+.player { font-family: var(--body); font-size: 1.6rem; color: #3df5ff; margin: 14px 0 28px; }
+.press { font-family: var(--display); font-size: 1rem; color: #fff; background: none; border: 0; animation: blink 1s steps(1) infinite; padding: 12px; }
+.coins { font-family: var(--body); font-size: 1.3rem; color: #bfaee6; margin-top: 18px; text-transform: uppercase; }
+/* museum start */
+.sMuseum { background: radial-gradient(60% 40% at 50% 30%, #3a5a4a, #1c2e26); color: #f4efe4; font-family: var(--body); }
+.placard { font-family: var(--display); font-size: clamp(1.8rem, 8cqw, 2.8rem); line-height: 1.1; font-weight: 600; }
+.placard small { display: block; font-family: var(--body); font-size: 0.8rem; letter-spacing: 0.2em; text-transform: uppercase; color: #c9a24d; margin-bottom: 10px; }
+.ribbonWrap { position: relative; width: min(90cqw, 420px); height: 120px; margin: 30px 0 10px; }
+.posts { position: absolute; inset: 0; display: flex; justify-content: space-between; align-items: flex-end; }
+.posts i { width: 14px; height: 90px; border-radius: 7px 7px 2px 2px; background: linear-gradient(90deg, #b08a3a, #f2d98f, #b08a3a); }
+.rib { position: absolute; top: 30px; height: 26px; background: linear-gradient(180deg, #c0283c, #8e1b30); box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); }
+.ribL { left: 7px; width: calc(50% - 7px); transform-origin: 0 50%; border-radius: 0 3px 3px 0; }
+.ribR { right: 7px; width: calc(50% - 7px); transform-origin: 100% 50%; border-radius: 3px 0 0 3px; }
+.bow { position: absolute; left: 50%; top: 22px; width: 40px; height: 40px; margin-left: -20px; border-radius: 50%; background: radial-gradient(circle, #e0465a 30%, #8e1b30 32%); z-index: 2; }
+.sMuseum .stBtn { background: transparent; color: #f4efe4; border: 1.5px solid #c9a24d; font-family: var(--body); letter-spacing: 0.1em; text-transform: uppercase; font-size: 0.9rem; }
+/* summit start */
+.sSummit { background: linear-gradient(180deg, #30476b 0%, #7e8fb5 45%, #f2b56b 80%, #f7d9b8 100%); color: #fff; font-family: var(--display); }
+.peaks { position: absolute; left: 0; right: 0; bottom: 0; height: 46%; z-index: 1; pointer-events: none; }
+.peaks svg { width: 100%; height: 100%; display: block; }
+.sign { position: relative; background: #7a4f2a; border: 4px solid #5a3818; border-radius: 8px; padding: 14px 20px; box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3); font-weight: 800; font-size: clamp(1.3rem, 6cqw, 1.8rem); line-height: 1.2; }
+.sign small { display: block; font-weight: 500; font-size: 0.9rem; opacity: 0.85; }
+.sSummit .stBtn { margin-top: 22px; background: #e2553b; color: #fff; font-family: var(--display); }
+
+/* ── Controls ───────────────────────────────────────────────────── */
+.ctl { position: absolute; top: 10px; inset-inline-end: 10px; z-index: 60; display: flex; gap: 6px; opacity: 0; pointer-events: none; transition: opacity 0.6s; }
+.frame[data-screen="page"] .ctl { opacity: 1; pointer-events: auto; }
+.ib { width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center; background: rgba(255, 255, 255, 0.9); color: #1f2a44; border: 1.5px solid rgba(0, 0, 0, 0.1); padding: 0; }
+.frame[data-j="space"] .ib, .frame[data-j="arcade"] .ib, .frame[data-j="museum"] .ib { background: rgba(0, 0, 0, 0.45); color: #fff; border-color: rgba(255, 255, 255, 0.25); }
+.frame[data-j="arcade"] .ib { border-radius: 0; box-shadow: 0 0 0 2px #ff4fd8; }
+.ib .ic { width: 20px; height: 20px; }
+
+/* ── Hero ───────────────────────────────────────────────────────── */
+.hero { position: relative; min-height: 100cqh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 80px 18px 60px; overflow: hidden; }
+.rv { opacity: 0; transform: translateY(16px); animation: rise 1s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; animation-delay: var(--d, 0s); }
+.frame[data-screen="start"] .rv { animation: none; }
+.hero h1 { font-family: var(--display); font-weight: var(--dw); font-size: clamp(2rem, 9cqw, 3.2rem); line-height: 1.08; margin-top: 22px; }
+.hero .deg { font-weight: 700; margin-top: 8px; }
+.hero .meta { font-family: var(--mono); font-size: 0.9rem; color: var(--soft); margin-top: 4px; }
+.hframe { position: relative; width: min(62cqw, 240px); }
+.hframe img, .hframe .ph { display: block; width: 100%; aspect-ratio: 1; object-fit: cover; }
+/* A photo not uploaded yet (the Studio before the customer adds one). */
+.ph { display: grid !important; place-items: center; background: linear-gradient(160deg, color-mix(in srgb, var(--accent) 22%, #fff), color-mix(in srgb, var(--accent2) 30%, #fff)); color: color-mix(in srgb, var(--ink) 55%, transparent); font-size: 2rem; }
+.frame[data-j="airline"] .hero { background: linear-gradient(180deg, #f3ece0, #e8dfd0); }
+.frame[data-j="airline"] .hframe { aspect-ratio: 3/4; border-radius: 44%/34%; padding: 14px; background: linear-gradient(145deg, #fdfaf4, #d8cfbf); box-shadow: 0 20px 40px rgba(60, 40, 20, 0.2); }
+.glass { position: relative; width: 100%; height: 100%; border-radius: 44%/34%; overflow: hidden; background: linear-gradient(180deg, #8fd0f5, #d9f0fb); box-shadow: inset 0 0 0 6px #cfc5b4; }
+.frame[data-j="airline"] .glass img, .frame[data-j="airline"] .glass .ph { position: absolute; left: 10%; top: 16%; width: 80%; height: 72%; aspect-ratio: auto; border-radius: 12px; }
+.shade { position: absolute; inset: 0; background: linear-gradient(180deg, #e9e1d2, #d9cfbe); }
+.tagpill { margin-top: 20px; display: inline-flex; gap: 8px; padding: 0.45rem 1rem; border-radius: 999px; background: #2b2b2b; color: #ffd27a; font-family: var(--mono); font-size: 0.8rem; }
+.frame[data-j="space"] .hframe { border-radius: 50%; padding: 12px; background: linear-gradient(145deg, #f2f5fa, #9aa7bb); box-shadow: 0 0 0 6px #2a3560, 0 0 60px rgba(124, 243, 255, 0.25); }
+.frame[data-j="space"] .hframe img, .frame[data-j="space"] .hframe .ph { border-radius: 50%; filter: saturate(1.1); }
+.frame[data-j="space"] .hframe::after { content: ""; position: absolute; inset: 12px; border-radius: 50%; background: linear-gradient(135deg, rgba(124, 243, 255, 0.35), transparent 45%, transparent 60%, rgba(255, 138, 61, 0.25)); pointer-events: none; }
+.frame[data-j="space"] .hero h1 { text-transform: uppercase; letter-spacing: 0.04em; }
+.frame[data-j="space"] .tagpill { background: none; margin-top: 18px; color: #7cf3ff; border: 1px solid var(--line); padding: 0.4rem 1rem; border-radius: 4px; text-transform: uppercase; }
+.frame[data-j="arcade"] .hframe { padding: 8px; background: #2a1a52; box-shadow: 0 0 0 4px #ff4fd8, 0 0 0 8px #1b1036, 0 0 0 12px #3df5ff; }
+.frame[data-j="arcade"] .hframe img { image-rendering: pixelated; }
+.frame[data-j="arcade"] .hero h1 { font-size: clamp(1.05rem, 5cqw, 1.6rem); line-height: 1.6; color: #ffe14d; }
+.stats { margin-top: 16px; display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; text-align: start; font-size: 1.4rem; }
+.stats > span:nth-child(odd) { text-transform: uppercase; color: var(--soft); }
+.bar { display: inline-block; width: 140px; max-width: 40cqw; height: 12px; background: repeating-linear-gradient(90deg, #3df5ff 0 10px, transparent 10px 12px); vertical-align: middle; }
+.frame[data-j="museum"] .hframe { padding: 16px; background: linear-gradient(135deg, #8a6a2a, #f2d98f 30%, #b08a3a 50%, #f2d98f 70%, #8a6a2a); box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5), inset 0 0 0 4px rgba(0, 0, 0, 0.2); }
+.frame[data-j="museum"] .hframe img, .frame[data-j="museum"] .hframe .ph { aspect-ratio: 4/5; box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.4); }
+.frame[data-j="museum"] .hero::before { content: ""; position: absolute; top: 0; left: 50%; width: 70%; height: 70%; transform: translateX(-50%); background: radial-gradient(ellipse 50% 70% at 50% 0%, rgba(255, 240, 200, 0.18), transparent 70%); pointer-events: none; }
+.wallLabel { margin-top: 22px; background: #fbf8f1; color: #2a2a2a; padding: 12px 18px; text-align: start; max-width: 320px; box-shadow: 0 6px 14px rgba(0, 0, 0, 0.3); }
+.wallLabel b { display: block; font-family: var(--display); font-size: 1.3rem; }
+.wallLabel span { display: block; font-size: 0.85rem; color: #555; }
+.frame[data-j="summit"] .hero { background: linear-gradient(180deg, #f7d9b8 0%, #dfe7ef 60%); }
+.frame[data-j="summit"] .hframe { padding: 8px; background: #fff; box-shadow: 0 14px 28px rgba(31, 47, 69, 0.25); transform: rotate(-2deg); }
+.alt { position: absolute; inset-inline-start: 12px; bottom: 12px; z-index: 55; padding: 0.45rem 0.8rem; border-radius: 10px; background: rgba(31, 47, 69, 0.85); color: #fff; font-family: var(--display); font-weight: 800; font-variant-numeric: tabular-nums; opacity: 0; transition: opacity 0.5s; pointer-events: none; }
+.frame[data-screen="page"] .alt { opacity: 1; }
+
+/* ── Chapters (shared skeleton) ───────────────────────────────────── */
+.ch { position: relative; padding: clamp(64px, 11cqw, 100px) 16px; }
+.wrap { max-width: 820px; margin: 0 auto; }
+.h2 { font-family: var(--display); font-weight: var(--dw); font-size: clamp(1.7rem, 7cqw, 2.4rem); line-height: 1.15; text-align: center; margin-bottom: 1.3rem; text-wrap: balance; }
+.frame[data-j="arcade"] .h2 { font-size: clamp(0.95rem, 4.6cqw, 1.4rem); line-height: 1.6; color: #3df5ff; }
+.frame[data-j="space"] .h2 { text-transform: uppercase; letter-spacing: 0.06em; font-size: clamp(1.3rem, 5.6cqw, 1.9rem); }
+.frame[data-j="museum"] .h2 { font-style: italic; font-weight: 500; }
+.frame[data-j="museum"] .h2::after { content: ""; display: block; width: 60px; height: 1px; margin: 0.5em auto 0; background: var(--accent); }
+.hint { text-align: center; color: var(--soft); margin: -8px 0 1.5rem; font-size: 0.95rem; }
+.countLine { text-align: center; margin-top: 16px; font-family: var(--mono); color: var(--soft); }
+.card { background: var(--card); color: var(--ink); border: 1px solid var(--line); }
+.frame[data-j="airline"] .card, .frame[data-j="summit"] .card { border: 0; box-shadow: 0 12px 30px rgba(15, 39, 66, 0.12); border-radius: 16px; }
+.frame[data-j="arcade"] .card { border: 0; box-shadow: 0 0 0 3px #5b3fa0, 0 0 0 6px #1b1036; border-radius: 0; }
+.frame[data-j="museum"] .card { color: #2a2a2a; border: 0; }
+
+/* PATH: one structure, five skins. Logical directions throughout (fix 10:
+   the prototype's left/padding-left kept the line on the left in Arabic). */
+.path { position: relative; max-width: 640px; margin: 0 auto; padding-inline-start: 58px; }
+.pathLine { position: absolute; inset-inline-start: 22px; top: 10px; bottom: 10px; border-inline-start: 3px dashed var(--line); }
+.mover { position: absolute; inset-inline-start: 6px; top: 0; width: 34px; height: 34px; display: grid; place-items: center; font-size: 1.6rem; z-index: 2; will-change: transform; }
+.mover svg { width: 100%; height: 100%; fill: var(--accent); transform: rotate(180deg); }
+.stop { position: relative; margin-bottom: 22px; }
+.stop::before { content: ""; position: absolute; inset-inline-start: -43px; top: 14px; width: 14px; height: 14px; border-radius: 50%; background: var(--bg); border: 3px solid var(--ink); }
+.tag { font-family: var(--mono); font-size: 0.85rem; color: var(--soft); margin-bottom: 6px; display: flex; gap: 10px; align-items: baseline; }
+.tag b { font-family: var(--display); font-weight: var(--dw); color: var(--ink); font-size: 1.2rem; }
+.big { overflow: hidden; }
+.big img, .big .ph { display: block; width: 100%; aspect-ratio: 16/10; object-fit: cover; }
+.big .tx { padding: 14px 16px 16px; }
+.lbl { display: inline-block; font-family: var(--mono); font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.15rem 0.5rem; border-radius: 4px; background: var(--ink); color: var(--bg); margin-bottom: 6px; }
+.now .big { outline: 3px solid var(--accent); }
+.now .lbl { background: var(--accent); color: #fff; }
+.mini { display: flex; align-items: center; gap: 12px; width: 100%; border: 0; padding: 8px; text-align: start; }
+.mini img, .mini .ph { width: 74px; height: 74px; object-fit: cover; flex: none; border-radius: 10px; }
+.mini b { display: block; line-height: 1.3; }
+.mini small { font-family: var(--mono); color: var(--soft); }
+.frame[data-j="space"] .pathLine { border-inline-start: 2px solid rgba(124, 243, 255, 0.35); box-shadow: 0 0 12px rgba(124, 243, 255, 0.4); }
+.frame[data-j="space"] .stop::before { border-color: #7cf3ff; box-shadow: 0 0 10px #7cf3ff; }
+.frame[data-j="space"] .big img, .frame[data-j="space"] .mini img { border-radius: 6px; }
+.frame[data-j="arcade"] .pathLine { border-inline-start: 6px dotted #ffe14d; }
+.frame[data-j="arcade"] .stop::before { border-radius: 0; border-color: #ff4fd8; background: #ff4fd8; }
+.frame[data-j="arcade"] .mini img, .frame[data-j="arcade"] .big img { border-radius: 0; image-rendering: pixelated; }
+.frame[data-j="museum"] .path { padding-inline-start: 0; }
+.frame[data-j="museum"] .pathLine, .frame[data-j="museum"] .mover, .frame[data-j="museum"] .stop::before { display: none; }
+.frame[data-j="museum"] .stop { text-align: center; margin-bottom: 46px; }
+.frame[data-j="museum"] .big, .frame[data-j="museum"] .mini { display: inline-block; max-width: 100%; padding: 14px; background: linear-gradient(135deg, #8a6a2a, #f2d98f 30%, #b08a3a 50%, #f2d98f 70%, #8a6a2a); box-shadow: 0 20px 40px rgba(0, 0, 0, 0.45); border-radius: 0; }
+.frame[data-j="museum"] .mini { width: min(70%, 320px); }
+.frame[data-j="museum"] .mini img, .frame[data-j="museum"] .mini .ph { width: 100%; height: auto; aspect-ratio: 1; border-radius: 0; }
+.frame[data-j="museum"] .mini > span { display: none; }
+.frame[data-j="museum"] .big .tx, .frame[data-j="museum"] .tag { display: none; }
+.wl { display: none; }
+.frame[data-j="museum"] .wl { display: block; margin: 14px auto 0; width: fit-content; background: #fbf8f1; color: #2a2a2a; padding: 10px 14px; text-align: start; max-width: 300px; font-size: 0.92rem; box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3); }
+.frame[data-j="museum"] .wl b { display: block; font-family: var(--display); font-size: 1.1rem; }
+.frame[data-j="museum"] .wl i { color: #666; }
+.frame[data-j="summit"] .pathLine { border-inline-start: 4px dotted #8a6a4a; }
+.frame[data-j="summit"] .stop::before { border-color: #30476b; background: #f2b56b; }
+
+/* ACHIEVEMENTS: five reveals.
+   Fix 8: the prototype stacked the reveal ABSOLUTELY inside a fixed-height
+   tile, so at the spec's lengths (title 26, detail 40, place 16) text ran
+   out of the airline's round stamps and over its neighbours, and the museum
+   plinth spilled. Here the hidden face and the revealed one share one grid
+   cell, so a tile grows to fit what it holds; the airline stamps are rounded
+   rectangles tilted at most 6 degrees; the museum plinth is its own row. */
+/* `overflow-x: clip`: a stamp waiting to be revealed sits at 1.6x scale
+   (invisible), and in the right-hand column it reached past the phone's edge,
+   so the page could be scrolled sideways. Vertical overflow stays visible. */
+.achs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 14px; max-width: 600px; margin: 0 auto; overflow-x: clip; }
+.ach { position: relative; display: grid; place-items: center; min-height: 140px; border: 2px dashed var(--line); border-radius: 12px; background: transparent; padding: 10px 8px; text-align: center; }
+.ach > .q, .ach > .rv2 { grid-area: 1 / 1; }
+.q { font-family: var(--mono); color: var(--soft); transition: opacity 0.15s; }
+.rv2 { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; opacity: 0; transform: scale(1.5); width: 100%; }
+.achOn { border-color: transparent; }
+.achOn .q { opacity: 0; }
+.achOn .rv2 { opacity: 1; transform: none; transition: transform 0.3s cubic-bezier(0.3, 1.5, 0.5, 1), opacity 0.15s; }
+.ach b { font-weight: 800; line-height: 1.15; font-size: 0.95rem; }
+.ach em { font-style: normal; font-size: 0.76rem; opacity: 0.85; line-height: 1.25; }
+.ach small { font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.08em; }
+.frame[data-j="airline"] .achs { padding: 22px 18px; border-radius: 14px; background: repeating-radial-gradient(circle, rgba(47, 127, 216, 0.06) 0 2px, transparent 2px 9px), linear-gradient(180deg, #f4f1e6, #ece6d6); box-shadow: 0 18px 40px rgba(15, 39, 66, 0.18); }
+.frame[data-j="airline"] .ach { border-color: rgba(15, 39, 66, 0.18); }
+.frame[data-j="airline"] .rv2 { color: var(--sc); border: 3px solid var(--sc); border-radius: 12px; padding: 8px 6px; transform: rotate(var(--r)) scale(1.6); }
+.frame[data-j="airline"] .ach:nth-child(3n + 1) .rv2 { border-style: double; border-width: 5px; border-radius: 22px; }
+.frame[data-j="airline"] .achOn .rv2 { transform: rotate(var(--r)); }
+.frame[data-j="airline"] .ach b { text-transform: uppercase; }
+.frame[data-j="space"] .ach { border-radius: 50%; aspect-ratio: 1; min-height: 0; border-color: rgba(124, 243, 255, 0.25); padding: 0; }
+.frame[data-j="space"] .rv2 { aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle, #16204a 60%, var(--sc) 61% 66%, #0b1230 67% 74%, #e8f3ff 75% 77%, #0b1230 78%); color: #e8f3ff; padding: 18%; transform: rotate(-200deg) scale(0.3); }
+.frame[data-j="space"] .achOn .rv2 { transform: none; transition: transform 0.7s cubic-bezier(0.3, 1.2, 0.4, 1), opacity 0.2s; }
+.frame[data-j="space"] .ach b { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.03em; }
+.frame[data-j="space"] .ach em { font-size: 0.62rem; }
+.frame[data-j="arcade"] .ach { border: 0; border-radius: 0; background: #2a1a52; box-shadow: 0 0 0 3px #5b3fa0; }
+.frame[data-j="arcade"] .q { font-size: 2.4rem; filter: grayscale(1) brightness(0.5); }
+.frame[data-j="arcade"] .rv2 { color: #ffe14d; transform: translateY(20px); }
+.frame[data-j="arcade"] .achOn { box-shadow: 0 0 0 3px #ffe14d, 0 0 20px rgba(255, 225, 77, 0.4); }
+.frame[data-j="arcade"] .achOn .rv2 { transform: none; }
+.frame[data-j="arcade"] .ach b { font-family: var(--display); font-size: 0.55rem; line-height: 1.6; }
+.frame[data-j="arcade"] .ach em { font-size: 1.05rem; color: #f4ecff; }
+.tro { font-size: 2rem; }
+.frame[data-j="museum"] .ach { border: 0; border-radius: 0; min-height: 180px; grid-template-rows: 1fr 46px; place-items: end center; padding: 0; background: linear-gradient(180deg, transparent calc(100% - 46px), #e9dfc9 calc(100% - 46px) calc(100% - 40px), #d6c9ad calc(100% - 40px)); }
+.frame[data-j="museum"] .ach > .q { grid-area: 2 / 1; align-self: center; color: #6a5a3a; font-family: var(--display); }
+.frame[data-j="museum"] .ach > .rv2 { grid-area: 1 / 1; padding: 10px 6px 8px; color: #f4efe4; transform: translateY(10px); }
+.frame[data-j="museum"] .achOn > .q { opacity: 1; }
+.frame[data-j="museum"] .ach::before { content: ""; position: absolute; left: 50%; top: -20px; width: 110%; height: 120%; transform: translateX(-50%); background: radial-gradient(ellipse 40% 60% at 50% 0%, rgba(255, 240, 200, 0.5), transparent 70%); opacity: 0; transition: opacity 0.6s; pointer-events: none; }
+.frame[data-j="museum"] .achOn::before { opacity: 1; }
+.frame[data-j="museum"] .achOn .rv2 { transform: none; transition: all 0.8s ease; }
+.frame[data-j="museum"] .tro { font-size: 2.2rem; filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.4)); }
+.frame[data-j="museum"] .ach b { font-family: var(--display); font-weight: 600; font-size: 0.98rem; }
+.frame[data-j="summit"] .ach { border: 0; border-radius: 0; min-height: 150px; grid-template-rows: 1fr 34px; place-items: end center; padding: 0; background: linear-gradient(160deg, transparent 52%, #8ea4bf 52.5%) no-repeat, linear-gradient(200deg, transparent 52%, #6d84a3 52.5%); }
+.frame[data-j="summit"] .ach > .q { grid-area: 2 / 1; align-self: center; color: #fff; font-family: var(--mono); font-weight: 800; }
+.frame[data-j="summit"] .ach > .rv2 { grid-area: 1 / 1; justify-content: flex-end; padding-top: 4px; transform: translateY(30px); }
+.frame[data-j="summit"] .achOn > .q { opacity: 1; }
+.frame[data-j="summit"] .achOn .rv2 { transform: none; }
+.flag { position: relative; width: 4px; height: 44px; background: #5a3818; margin-bottom: 4px; }
+.flag::after { content: ""; position: absolute; inset-inline-start: 4px; top: 0; width: 30px; height: 20px; background: var(--sc); clip-path: polygon(0 0, 100% 50%, 0 100%); }
+.frame[dir="rtl"] .flag::after { clip-path: polygon(100% 0, 0 50%, 100% 100%); }
+.frame[data-j="summit"] .ach b { font-family: var(--display); color: #1f2f45; }
+.frame[data-j="summit"] .ach em { color: #55667c; }
+
+/* MESSAGES */
+.mgroup { margin-bottom: 26px; }
+.mgroup h3 { font-family: var(--mono); font-size: 0.85rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--soft); margin-bottom: 12px; text-align: center; }
+.mlist { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; max-width: 560px; margin: 0 auto; }
+@container keepsake (min-width: 640px) { .mlist { grid-template-columns: repeat(2, minmax(0, 1fr)); max-width: 820px; } }
+.item { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; align-content: start; }
+/* airline postcards. Fix 7: a turned postcard GROWS to fit its message
+   instead of hiding the end of a 300-character message (and the sender's
+   name) behind a scroll inside a 3:2 card. */
+/* 3:2 like a postcard, turned or not; `aspect-ratio` is only a preferred
+   size, so a long message still grows the card past it rather than overflow. */
+.pc { position: relative; display: grid; width: 100%; aspect-ratio: 3/2; border: 0; padding: 0; background: none; text-align: start; }
+.pcFace { grid-area: 1 / 1; border-radius: 6px; overflow: hidden; box-shadow: 0 12px 26px rgba(15, 39, 66, 0.18); }
+.pcFront { position: relative; background: linear-gradient(160deg, color-mix(in srgb, var(--pc) 70%, #fff), var(--pc)); display: flex; align-items: flex-end; padding: 14px; color: #fff; }
+.pcFront img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.gr { position: relative; font-weight: 900; font-size: clamp(1.4rem, 6.4cqw, 1.9rem); line-height: 1; }
+.gr small { display: block; font-family: var(--hand); font-weight: 400; font-size: 1.1rem; }
+.pcDrawn .gr { color: #0f2742; background: rgba(255, 250, 241, 0.88); padding: 6px 10px; border-radius: 6px; }
+/* `overflow: visible` on the back: a grid item that hides its overflow
+   contributes no content height, so the card stayed 3:2 and cut the end of a
+   long message off (the front keeps `hidden` to round its photo's corners). */
+.pcBack { display: none; overflow: visible; background: #fffaf1; padding: 14px 16px; grid-template-columns: minmax(0, 1fr) 70px; gap: 8px; }
+.pcOn .pcFront { display: none; }
+.pcOn .pcBack { display: grid; }
+.msgt { font-family: var(--hand); font-size: clamp(1rem, 4.2cqw, 1.18rem); line-height: 1.3; color: #2a3a52; border-inline-end: 1.5px solid rgba(15, 39, 66, 0.14); padding-inline-end: 8px; }
+.msgt b { display: block; margin-top: 6px; font-size: 1.3rem; color: var(--pc); font-weight: 400; }
+.stp { justify-self: end; width: 54px; height: 64px; display: grid; place-items: center; font-size: 1.6rem; background: color-mix(in srgb, var(--pc) 20%, #fff); outline: 2px dashed var(--pc); outline-offset: -5px; }
+/* space transmissions */
+.txCard { width: 100%; border: 1px solid rgba(124, 243, 255, 0.3); border-radius: 8px; background: rgba(124, 243, 255, 0.05); padding: 14px 16px; text-align: start; color: #e8f3ff; }
+.hd { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-family: var(--mono); color: #7cf3ff; }
+.wave { display: block; height: 26px; margin: 10px 0; background: repeating-linear-gradient(90deg, rgba(124, 243, 255, 0.7) 0 2px, transparent 2px 5px); -webkit-mask: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent); mask: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent); transform-origin: 50% 50%; animation: wave 1.2s ease-in-out infinite; }
+.txBody { display: block; font-family: var(--mono); font-size: 1rem; line-height: 1.5; min-height: 1.5em; white-space: pre-wrap; }
+.txOn .wave { animation: none; transform: scaleY(0.1); opacity: 0.4; }
+/* arcade party, museum audio guide, summit cairn: each opens a sheet */
+.who { display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px 14px; text-align: start; }
+.av { flex: none; width: 52px; height: 52px; display: grid; place-items: center; font-size: 1.7rem; }
+.who b { display: block; font-family: var(--display); font-weight: var(--dw); }
+.who small { color: var(--soft); font-family: var(--mono); }
+.frame[data-j="arcade"] .who .av { background: var(--pc); box-shadow: 0 0 0 3px #1b1036, 0 0 0 6px var(--pc); }
+.frame[data-j="arcade"] .who b { font-size: 0.7rem; line-height: 1.6; }
+.frame[data-j="museum"] .who { background: #fbf8f1; color: #2a2a2a; border-radius: 4px; }
+.frame[data-j="museum"] .who .av { border-radius: 50%; background: #23382f; color: #f4efe4; font-family: var(--display); font-size: 1.4rem; font-weight: 700; }
+.frame[data-j="museum"] .who small { color: #666; }
+.stones { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; max-width: 560px; margin: 0 auto; }
+.frame[data-j="summit"] .who { width: auto; max-width: 100%; flex-direction: column; gap: 4px; padding: 18px 20px; border-radius: 46% 54% 50% 50%/60% 55% 45% 40%; background: linear-gradient(145deg, #b9c2cc, #8b96a3); color: #1f2f45; box-shadow: inset 0 -6px 0 rgba(0, 0, 0, 0.12), 0 8px 14px rgba(31, 47, 69, 0.2); text-align: center; border: 0; }
+.frame[data-j="summit"] .who .av { width: auto; height: auto; font-size: 1.5rem; }
+.frame[data-j="summit"] .who small { color: #33445a; }
+
+/* Voice message row. Fix 12: it is never INSIDE another button (the
+   prototype nested a play control inside the postcard and transmission
+   buttons, which screen readers cannot reach properly). Fix 2: the caption
+   is shown on every journey, the airline's included. */
+.voice { display: flex; min-width: 0; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 14px; background: color-mix(in srgb, var(--pc, #ff6b4a) 12%, transparent); color: inherit; }
+.vb { flex: none; width: 44px; height: 44px; border-radius: 50%; border: 0; background: var(--pc, #ff6b4a); color: #fff; display: grid; place-items: center; padding: 0; }
+.frame[data-j="arcade"] .vb { border-radius: 0; }
+.vb .ic { width: 20px; height: 20px; }
+/* `minmax(0, 1fr)`: an `auto` track sized itself to a long caption and pushed
+   the row (and the page) wider than the phone. */
+.vmeta { flex: 1; min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; }
+.vprog { height: 4px; border-radius: 2px; background: color-mix(in srgb, currentColor 18%, transparent); overflow: hidden; }
+.vprog i { display: block; height: 100%; width: var(--p, 0%); background: var(--pc, #ff6b4a); }
+.vcap { font-weight: 700; font-size: 0.95rem; line-height: 1.35; }
+
+/* GOALS */
+.goals { max-width: 560px; margin: 0 auto; padding: 0; list-style: none; overflow: hidden; }
+.goals li { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 14px 16px; border-top: 1.5px dashed var(--line); }
+.goals li:first-child { border-top: 0; }
+.goals .c { font-family: var(--display); font-weight: var(--dw); }
+.goals .s { font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.2rem 0.5rem; border-radius: 4px; background: color-mix(in srgb, var(--accent) 18%, transparent); color: var(--accent); }
+.frame[data-j="arcade"] .goals .c { color: #ffe14d; font-size: 0.7rem; }
+.frame[data-j="arcade"] .goals .s { border-radius: 0; font-size: 1rem; }
+.frame[data-j="museum"] .goals { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; background: none; box-shadow: none; }
+.frame[data-j="museum"] .goals li { grid-template-columns: 1fr; border: 0; background: #fbf8f1; color: #2a2a2a; text-align: center; padding: 20px 12px; font-family: var(--display); font-size: 1.05rem; }
+.frame[data-j="museum"] .goals .c { display: none; }
+.frame[data-j="summit"] .goals li { grid-template-columns: 44px minmax(0, 1fr) auto; }
+.frame[data-j="summit"] .goals .c { width: 44px; height: 30px; background: #6d84a3; clip-path: polygon(0 100%, 35% 20%, 55% 55%, 75% 0, 100% 100%); color: transparent; }
+
+/* LETTER */
+.letter { max-width: 600px; margin: 0 auto; padding: clamp(26px, 6cqw, 44px); font-size: 1.08rem; line-height: 1.7; }
+.letter .g { font-family: var(--display); font-weight: var(--dw); font-size: 1.4rem; margin-bottom: 0.6em; }
+.letter p { margin-bottom: 1em; }
+.letter .so { font-style: italic; margin-top: 1.2em; }
+.sigs { display: flex; flex-wrap: wrap; gap: 4px 18px; }
+.sigs span { font-family: var(--hand); font-size: 1.9rem; color: var(--accent); line-height: 1.1; }
+.frame[data-j="space"] .letter { font-family: var(--mono); font-size: 1rem; }
+.frame[data-j="space"] .letter .g::before { content: "▶ "; color: #ff8a3d; }
+.frame[dir="rtl"][data-j="space"] .letter .g::before { content: "◀ "; }
+.frame[data-j="arcade"] .letter { font-size: 1.4rem; line-height: 1.3; }
+.frame[data-j="arcade"] .letter .g { font-size: 0.9rem; line-height: 1.6; color: #ffe14d; }
+.frame[data-j="museum"] .letter { color: #2a2a2a; font-family: var(--body); border-inline-start: 4px solid #c9a24d; }
+.frame[data-j="museum"] .letter .g { font-family: var(--display); font-style: italic; }
+.frame[data-j="summit"] .letter { background: repeating-linear-gradient(0deg, rgba(31, 47, 69, 0.08) 0 1px, transparent 1px 30px), #fffdf8; line-height: 30px; }
+
+/* FINALES */
+.finale { position: relative; min-height: 100cqh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 60px 18px 60px; overflow: hidden; }
+.finAct { position: relative; min-height: 56px; padding: 0.8rem 1.6rem; margin-top: 18px; border-radius: 999px; border: 0; font-weight: 800; font-size: 1.1rem; user-select: none; -webkit-user-select: none; touch-action: none; }
+.finMsg { position: relative; z-index: 4; opacity: 0; pointer-events: none; transition: opacity 1s; }
+.finDone .finMsg { opacity: 1; pointer-events: auto; }
+.finDone .finAct { display: none; }
+.finMsg h2 { font-family: var(--display); font-weight: var(--dw); font-size: clamp(2rem, 10cqw, 3.6rem); line-height: 1.05; margin-top: 10px; }
+.finMsg p { font-size: 1.2rem; color: var(--soft); margin: 0.4rem 0 1.4rem; }
+.frame[data-j="arcade"] .finMsg h2 { font-size: clamp(1.1rem, 6cqw, 2rem); line-height: 1.5; color: #ffe14d; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; min-height: 48px; padding: 0.7rem 1.3rem; border-radius: 999px; border: 2px solid transparent; font-weight: 800; font-size: 0.98rem; font-family: system-ui, sans-serif; }
+.btn .ic { width: 1.1em; height: 1.1em; }
+.btnPrimary { background: var(--accent); color: #fff; }
+.btnGhost { background: transparent; border-color: color-mix(in srgb, currentColor 35%, transparent); }
+.frame[data-j="arcade"] .btn { border-radius: 0; }
+.actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+.brand { margin-top: 26px; font-size: 0.8rem; opacity: 0.65; font-family: system-ui, sans-serif; }
+.brand a { color: inherit; }
+.fAirline { background: linear-gradient(180deg, #7fc6f0 0%, #cfeaf8 55%, #f6d7b0 100%); }
+.fAirline .finAct { background: #0f2742; color: #fff; }
+.fSpace { background: radial-gradient(60% 30% at 50% 100%, #2a1a10, transparent); }
+.fSpace .finAct { overflow: hidden; background: #2a3560; color: #fff; font-family: var(--display); text-transform: uppercase; letter-spacing: 0.06em; }
+.holdFill { position: absolute; inset-inline-start: 0; top: 0; bottom: 0; width: 0; background: #ff8a3d; z-index: 0; }
+.finAct > span { position: relative; z-index: 1; }
+.rocket { width: 90px; }
+.fArcade .finAct { background: #ff4fd8; color: #1b1036; font-family: var(--display); font-size: 0.75rem; border-radius: 0; box-shadow: 4px 4px 0 #3df5ff; }
+.tally { font-family: var(--display); font-size: clamp(1.3rem, 7cqw, 2.4rem); color: #3df5ff; margin: 10px 0; }
+.tally small { display: block; font-size: 0.7rem; color: #bfaee6; margin-bottom: 8px; text-transform: uppercase; }
+.fMuseum { background: #1c2e26; }
+.curtain { position: absolute; top: 0; bottom: 0; width: 51%; background: repeating-linear-gradient(90deg, #7a1222 0 20px, #9a1c30 20px 40px); box-shadow: inset 0 -40px 60px rgba(0, 0, 0, 0.4); z-index: 3; }
+.curtainL { left: 0; }
+.curtainR { right: 0; }
+.fMuseum .finAct { z-index: 4; background: #c9a24d; color: #1c2e26; font-family: var(--body); letter-spacing: 0.1em; text-transform: uppercase; font-size: 0.9rem; }
+.fSummit { background: linear-gradient(180deg, #30476b 0%, #7e8fb5 40%, #f2b56b 75%, #f7d9b8 100%); color: #1f2f45; }
+.sun { position: absolute; left: 50%; bottom: 18%; width: 120px; height: 120px; margin-left: -60px; border-radius: 50%; background: radial-gradient(circle, #fff3c4, #ffbf5a 60%, rgba(255, 191, 90, 0) 72%); transform: translateY(160px); }
+.mts { position: absolute; left: 0; right: 0; bottom: 0; height: 40%; }
+.mts svg { width: 100%; height: 100%; display: block; }
+.fSummit .finAct { z-index: 2; background: #e2553b; color: #fff; }
+.fSummit .finMsg p { color: #1f2f45; }
+
+/* ── Sheets, lightbox, toast, unlock banner: all inside the frame ──── */
+.sheetBg { position: absolute; inset: 0; z-index: 80; background: rgba(10, 15, 30, 0.5); display: flex; align-items: flex-end; justify-content: center; }
+.sheet { position: relative; width: min(100%, 500px); max-height: 90cqh; overflow: auto; background: #fffdf8; color: #1f2a44; border-radius: 22px 22px 0 0; padding: 24px 18px 22px; font-family: system-ui, sans-serif; }
+.sheetX { position: absolute; top: 10px; inset-inline-end: 10px; width: 40px; height: 40px; border: 0; border-radius: 50%; background: transparent; display: grid; place-items: center; padding: 0; }
+.frame[data-j="arcade"] .sheet { background: #1b1036; color: #f4ecff; border-radius: 0; box-shadow: 0 0 0 4px #fff, 0 0 0 8px #1b1036; font-family: var(--body); font-size: 1.5rem; line-height: 1.3; width: min(calc(100% - 20px), 500px); margin: 0 10px 10px; }
+.frame[data-j="arcade"] .sheetX { color: #fff; }
+.frame[data-j="museum"] .sheet { background: #fbf8f1; font-family: var(--body); }
+.frame[data-j="summit"] .sheet { background: repeating-linear-gradient(0deg, rgba(31, 47, 69, 0.08) 0 1px, transparent 1px 30px), #fffdf8; font-family: var(--body); }
+.mHead { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; padding-inline-end: 40px; }
+.mHead .av { width: 54px; height: 54px; border-radius: 50%; font-size: 1.7rem; background: color-mix(in srgb, var(--pc) 22%, #fff); border: 3px solid var(--pc); }
+.frame[data-j="arcade"] .mHead .av { border-radius: 0; background: var(--pc); border: 0; }
+.mHead b { display: block; font-size: 1.3rem; }
+.frame[data-j="arcade"] .mHead b { font-family: var(--display); font-size: 0.8rem; color: #ffe14d; }
+.mText { font-size: 1.08rem; line-height: 1.6; min-height: 3em; white-space: pre-wrap; }
+.frame[data-j="arcade"] .mText { font-size: 1.5rem; line-height: 1.3; }
+.frame[data-j="arcade"] .mText::after { content: " ▼"; animation: blink 1s steps(1) infinite; color: #3df5ff; }
+.frame[data-j="summit"] .mText { font-family: var(--hand); font-size: 1.35rem; line-height: 30px; }
+.mDraw img { display: block; width: 100%; margin-top: 12px; border-radius: 8px; }
+.sheet .voice { margin-top: 14px; }
+.lb { position: absolute; inset: 0; z-index: 90; background: rgba(10, 15, 30, 0.94); display: flex; align-items: center; justify-content: center; padding: 70px 12px 30px; }
+.lb figure { max-width: min(92cqw, 620px); display: flex; flex-direction: column; align-items: center; gap: 12px; color: #fff; font-weight: 700; text-align: center; font-family: system-ui, sans-serif; }
+.lb img, .lb .ph { max-width: 100%; max-height: calc(100cqh - 200px); border-radius: 10px; }
+.lb .ph { width: 70cqw; aspect-ratio: 4/3; }
+.lbX { position: absolute; top: 12px; inset-inline-end: 12px; }
+.lbNav { position: absolute; top: 50%; transform: translateY(-50%); width: 46px; height: 46px; border-radius: 50%; border: 0; background: rgba(255, 255, 255, 0.15); color: #fff; display: grid; place-items: center; padding: 0; }
+.lbPrev { inset-inline-start: 10px; }
+.lbNext { inset-inline-end: 10px; }
+.frame[dir="rtl"] .lbNav .ic { transform: scaleX(-1); }
+.toast { position: absolute; left: 50%; bottom: 24px; z-index: 100; transform: translate(-50%, 24px); background: #1f2a44; color: #fff; padding: 0.7rem 1.2rem; border-radius: 999px; font-family: system-ui, sans-serif; font-weight: 700; font-size: 0.95rem; opacity: 0; pointer-events: none; transition: opacity 0.3s, transform 0.3s; }
+.toastShow { opacity: 1; transform: translate(-50%, 0); }
+.unlock { position: absolute; left: 50%; top: 14px; z-index: 95; transform: translate(-50%, -140%); display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: #1b1036; color: #fff; box-shadow: 0 0 0 3px #ffe14d; font-family: var(--body); font-size: 1.3rem; transition: transform 0.35s steps(4); max-width: calc(100% - 28px); }
+.unlockShow { transform: translate(-50%, 0); }
+/* Hidden means hidden: parked above the frame, its 3px ring still peeked in
+   at the top edge on every journey. */
+.unlock:not(.unlockShow) { visibility: hidden; transition: transform 0.35s steps(4), visibility 0s 0.35s; }
+.unlock b { font-family: var(--display); font-size: 0.55rem; color: #ffe14d; display: block; text-transform: uppercase; }
+
+@media (prefers-reduced-motion: reduce) {
+  .frame *, .frame *::before, .frame *::after { animation-duration: 0.01ms !important; animation-delay: 0s !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; transition-delay: 0s !important; }
+  .scroller { scroll-behavior: auto; }
+}

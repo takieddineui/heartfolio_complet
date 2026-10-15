@@ -21,10 +21,12 @@ vi.mock("next-intl/server", () => ({ setRequestLocale: () => {} }));
 vi.mock("@/components/live/live-keepsake", () => ({ LiveKeepsake: () => null }));
 vi.mock("@/components/live-song/song-live-keepsake", () => ({ SongLiveKeepsake: () => null }));
 vi.mock("@/components/live-reasons/reasons-live-page", () => ({ ReasonsLivePage: () => null }));
+vi.mock("@/components/live-graduation/graduation-live-page", () => ({ GraduationLivePage: () => null }));
 
 import LivePage from "./page";
 import { LiveKeepsake } from "@/components/live/live-keepsake";
 import { ReasonsLivePage } from "@/components/live-reasons/reasons-live-page";
+import { GraduationLivePage } from "@/components/live-graduation/graduation-live-page";
 
 const params = (liveId = "abc") => Promise.resolve({ locale: "en", liveId });
 
@@ -107,5 +109,21 @@ describe("LivePage — Reasons I Love You", () => {
     const element = (await LivePage({ params: params() })) as { type: unknown };
 
     expect(element.type).toBe(LiveKeepsake);
+  });
+});
+
+describe("LivePage — Graduation Keepsake", () => {
+  it("hands a Graduation payload to its own page, with the ORDER's locale and the id", async () => {
+    const values = { journey: "summit", grad: { name: "Maya" } };
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(new Response(JSON.stringify({ productId: "graduation-keepsake", locale: "fr", values }), { status: 200 }))
+    );
+
+    const element = (await LivePage({ params: params("grad1") })) as { type: unknown; props: Record<string, unknown> };
+
+    expect(element.type).toBe(GraduationLivePage);
+    expect(element.type).not.toBe(ReasonsLivePage);
+    expect(element.props).toMatchObject({ liveId: "grad1", locale: "fr", initial: values });
   });
 });

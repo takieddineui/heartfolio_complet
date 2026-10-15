@@ -244,6 +244,17 @@ def _qr_caption_for_order(order) -> str | None:
         # order (see the docstring). Both names are required, so both are here.
         return join_names([reasons.from_name, reasons.to_name], order.locale) or None
 
+    if slug == "graduation-keepsake":
+        from apps.delivery.product_renderers.graduation_keepsake.data import validate_and_normalize as validate_grad
+
+        try:
+            graduation = validate_grad(values, theme_selections)
+        except Exception:  # noqa: BLE001
+            return None
+        # The graduate's full name, as entered: a proper noun, never put into
+        # a sentence (see the docstring).
+        return graduation.graduate.full_name or None
+
     # A future product without a branch here simply gets the generic
     # caption — the same safe default every exception path above already
     # falls back to.

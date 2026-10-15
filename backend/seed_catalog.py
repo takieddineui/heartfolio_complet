@@ -287,6 +287,23 @@ CATALOG = [
             ("live", 1599, ["__live__"], "active"),
         ],
     },
+    {
+        # Graduation Keepsake: live-only like Reasons I Love You, one Digital
+        # pack at the same $15.99 tier. Seeded `available` with the storefront
+        # entry `hidden` until its Freemius plan exists, as Reasons was.
+        "slug": "graduation-keepsake",
+        "name_i18n_key": "graduationKeepsake",
+        # "other", for the same reason as Reasons: no better fit in the
+        # database's category check, and not worth a migration.
+        "category": "other",
+        "status": "available",
+        "starting_price_cents": 1599,
+        "order": 7,
+        "tags": ["graduation", "gift", "photos", "messages"],
+        "packs": [
+            ("live", 1599, ["__live__"], "active"),
+        ],
+    },
 ]
 
 
@@ -324,6 +341,7 @@ def supported_targets(product_slug):
         "song-poster": set(print_target_dimensions()) | set(wallpaper_target_dimensions()) | {LIVE_TARGET_SENTINEL},
         # Live-only: the hosted page is the whole product.
         "reasons-i-love-you": {LIVE_TARGET_SENTINEL},
+        "graduation-keepsake": {LIVE_TARGET_SENTINEL},
     }.get(product_slug)
 
 

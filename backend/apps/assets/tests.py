@@ -695,6 +695,64 @@ class MediaUploadTests(SimpleTestCase):
         cleaned = reencode_audio(self._upload(tainted, "c.m4a", "audio/mp4")).read()
         self.assertNotIn(b"<?php", cleaned)
 
+    def test_audio_may_run_a_minute_but_not_longer(self):
+        """60 seconds for audio (Graduation Keepsake's voice messages), while
+        video keeps its 30: a 45-second voice message is accepted, a
+        65-second one is refused."""
+        from apps.assets.media import MAX_AUDIO_SECONDS, MAX_MEDIA_SECONDS, validate_media
+
+        self.assertEqual((MAX_AUDIO_SECONDS, MAX_MEDIA_SECONDS), (60, 30))
+        ok = self._make(["-f", "lavfi", "-i", "sine=frequency=330", "-t", "45", "-c:a", "aac"], ".m4a")
+        self.assertGreater(validate_media(self._upload(ok, "v.m4a", "audio/x-m4a"), "audio/x-m4a"), 40)
+        too_long = self._make(["-f", "lavfi", "-i", "sine=frequency=330", "-t", "65", "-c:a", "aac"], ".m4a")
+        with self.assertRaises(InvalidAssetType):
+            validate_media(self._upload(too_long, "v.m4a", "audio/x-m4a"), "audio/x-m4a")
+
+    def test_a_video_still_stops_at_thirty_seconds_even_under_a_minute(self):
+        from apps.assets.media import validate_media
+
+        with self.assertRaises(InvalidAssetType):
+            validate_media(self._upload(self.long_video, "c.mp4", "video/mp4"), "video/mp4")
+
+    def test_a_whatsapp_voice_note_is_accepted_and_rewritten_as_aac(self):
+        """Ogg Opus, as a WhatsApp voice note arrives, whichever type the
+        browser declares for it; stored as AAC in MP4 like every audio file."""
+        import subprocess
+        import tempfile
+
+        from apps.assets.media import reencode_audio, validate_media
+
+        opus = self._make(["-f", "lavfi", "-i", "sine=frequency=500", "-t", "3", "-c:a", "libopus"], ".ogg")
+        for declared in ("audio/ogg", "audio/opus"):
+            self.assertLess(validate_media(self._upload(opus, "PTT-20270702.opus", declared), declared), 5)
+        rewritten = reencode_audio(self._upload(opus, "PTT-20270702.opus", "audio/ogg")).read()
+        with tempfile.NamedTemporaryFile(suffix=".m4a") as handle:
+            handle.write(rewritten)
+            handle.flush()
+            probe = subprocess.run(
+                ["ffprobe", "-v", "error", "-show_entries", "stream=codec_name", "-of", "csv=p=0", handle.name],
+                capture_output=True, text=True, check=True,
+            )
+        self.assertEqual(probe.stdout.strip(), "aac")
+
+    def test_a_re_encode_never_keeps_more_than_a_minute(self):
+        """The cap applied to the samples, not the container's claim."""
+        import subprocess
+        import tempfile
+
+        from apps.assets.media import reencode_audio
+
+        long_audio = self._make(["-f", "lavfi", "-i", "sine=frequency=330", "-t", "70", "-c:a", "aac"], ".m4a")
+        rewritten = reencode_audio(self._upload(long_audio, "v.m4a", "audio/mp4")).read()
+        with tempfile.NamedTemporaryFile(suffix=".m4a") as handle:
+            handle.write(rewritten)
+            handle.flush()
+            probe = subprocess.run(
+                ["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", handle.name],
+                capture_output=True, text=True, check=True,
+            )
+        self.assertLessEqual(float(probe.stdout.strip()), 60.5)
+
     def test_media_gets_the_larger_size_ceiling(self):
         # An image limit applied to video would reject three seconds of
         # phone footage; a media limit applied to images would allow 50MB
@@ -743,6 +801,31 @@ class ExpiresAtTests(TestCase):
         customer = make_customer()
         asset = upload_asset(customer, _image_file())
         self.assertIsNone(asset.expires_at)
+
+    def test_received_voice_files_upload_end_to_end_and_are_stored_as_aac(self):
+        """Through `upload_asset`, where the allow-lists and the audio path
+        decide: a WhatsApp Ogg Opus and an iPhone .m4a, whichever type the
+        browser declares, are accepted, re-encoded and stored as AAC/MP4
+        with an expiry (paid orders keep theirs)."""
+        import subprocess
+        import tempfile
+
+        from django.core.files.uploadedfile import SimpleUploadedFile
+
+        with tempfile.NamedTemporaryFile(suffix=".ogg") as handle:
+            subprocess.run(["ffmpeg", "-y", "-v", "error", "-f", "lavfi", "-i", "sine=frequency=500", "-t", "3", "-c:a", "libopus", handle.name], check=True)
+            opus = open(handle.name, "rb").read()
+        customer = make_customer()
+        for name, data, declared in (
+            ("PTT-WA0001.opus", opus, "audio/ogg"),
+            ("PTT-WA0002.opus", opus, "audio/opus"),
+            ("Voice Memo.m4a", self.audio_bytes, "audio/x-m4a"),
+            ("message.mp3", self.audio_bytes, "audio/mp3"),
+        ):
+            with self.subTest(declared=declared):
+                asset = upload_asset(customer, SimpleUploadedFile(name, data, content_type=declared))
+                self.assertEqual(asset.mime_type, "audio/mp4")
+                self.assertIsNotNone(asset.expires_at)
 
     def test_an_audio_upload_gets_a_future_expiry(self):
         from django.conf import settings

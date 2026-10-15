@@ -132,6 +132,23 @@ nothing else. Most of the steps above still apply, with these differences:
   in a box that clips and cannot scroll; there are no Artwork/Framed tabs.
   Keep the experience's own overlays positioned against its own frame, never
   the window, or they cover the whole Studio.
+- **A long, scrolling experience** (Graduation Keepsake, not a single screen
+  like Reasons): the page scrolls inside the frame's OWN scroller, every
+  overlay is `position: absolute` against the frame, and sizes use container
+  units (`container-type: size` on the frame, then `cqw`/`cqh`), because
+  `vw`/`svh` measure the window, which in the Studio is not the pane. Write
+  nothing to `<html>` or `<body>` (no journey attribute, no scroll lock, no
+  theme colour). See `components/live-graduation/graduation-keepsake.module.css`.
+- **Count the uploads.** Production allows `asset_upload` 30 a minute, and
+  the Studio uploads every file at checkout at once. Cap a product's
+  worst case below that with room for a retry (Graduation Keepsake: 25, by
+  capping voice messages and drawings at 5 each per keepsake), and pin the
+  sum in a test.
+- **Fields that belong to one choice** (a journey, a gift): hide them with
+  `visibleWhen` on the theme, or a whole section with the section's own
+  `visibleWhen`; the form engine then skips them. Rules in the module's
+  `validate(values, themeSelections)` and in `data.py` must skip them too, or
+  a value left over from trying another choice blocks payment invisibly.
 
 ### Verify it actually happened — don't trust step 4 alone
 

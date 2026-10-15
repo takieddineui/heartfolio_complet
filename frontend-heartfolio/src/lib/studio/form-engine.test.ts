@@ -98,3 +98,41 @@ describe("a real schema: Reasons I Love You's letter", () => {
     expect(errors.letterParagraphs).toMatchObject({ code: "minItems" });
   });
 });
+
+describe("hidden sections, graphemes and new group items", () => {
+  const sectioned: FormSchemaConfig = {
+    sections: [
+      { id: "always", title: "a", fields: [{ id: "name", type: "text", label: "name", required: true }] },
+      {
+        id: "airlineOnly",
+        title: "b",
+        visibleWhen: [{ path: "theme.journey", op: "eq", value: "airline" }],
+        fields: [{ id: "seat", type: "text", label: "seat", required: true }],
+      },
+    ],
+  };
+
+  it("skips a whole section whose visibleWhen fails, and validates it when it holds", () => {
+    expect(formEngine.validate(sectioned, { name: "x" }, { journey: "space" }).valid).toBe(true);
+    expect(formEngine.validate(sectioned, { name: "x" }, { journey: "airline" }).errors.seat).toMatchObject({ code: "required" });
+  });
+
+  it("counts graphemes: a family emoji is one, two emoji are two", async () => {
+    const { countGraphemes } = await import("./form-engine");
+    const schema: FormSchemaConfig = { sections: [{ id: "s", title: "s", fields: [{ id: "emoji", type: "text", label: "emoji", maxLength: 16, maxGraphemes: 1 }] }] };
+    expect(countGraphemes("👨‍👩‍👧‍👦")).toBe(1);
+    expect(formEngine.validate(schema, { emoji: "👨‍👩‍👧‍👦" }).valid).toBe(true);
+    expect(formEngine.validate(schema, { emoji: "🎓🎉" }).errors.emoji).toMatchObject({ code: "maxGraphemes", params: { maxGraphemes: 1 } });
+  });
+
+  it("gives every new group item its OWN copy of a nested default", async () => {
+    const { createGroupItemDefaults } = await import("./form-engine");
+    const itemFields = [{ id: "people", type: "group" as const, label: "p", minItems: 1, maxItems: 3, defaultValue: [{ name: "" }], itemFields: [] }];
+    const a = createGroupItemDefaults(itemFields);
+    const b = createGroupItemDefaults(itemFields);
+    expect(a.people).toEqual([{ name: "" }]);
+    expect(a.people).not.toBe(b.people);
+    (a.people as { name: string }[])[0]!.name = "changed";
+    expect((b.people as { name: string }[])[0]!.name).toBe("");
+  });
+});

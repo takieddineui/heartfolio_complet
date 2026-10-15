@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { FileText, MapPin, Mic, Music, Plus, Trash2, Upload, Video } from "lucide-react";
+import { FileText, MapPin, Mic, Music, Plus, Trash2, Upload, Video, X } from "lucide-react";
 import type { FieldSchema } from "@/types/studio";
 import { cn } from "@/lib/utils";
 import { maxSizeMbFor } from "@/lib/api/assets";
@@ -35,6 +35,7 @@ interface FieldInputProps {
 }
 
 export function FieldInput({ field, value, onChange, t, id, labelledBy }: FieldInputProps) {
+  const { locale } = useProductState();
   switch (field.type) {
     case "text":
       return (
@@ -153,6 +154,41 @@ export function FieldInput({ field, value, onChange, t, id, labelledBy }: FieldI
     case "file":
       return <MediaFieldInput field={field} value={value} onChange={onChange} labelledBy={labelledBy} />;
 
+    case "swatch": {
+      // A radio group of colours. The first choice, "automatic", stores an
+      // empty value: the product picks (Graduation Keepsake: by position).
+      const selected = typeof value === "string" ? value : "";
+      const choices = [{ value: "", label: "", color: "" }, ...field.options];
+      return (
+        <div role="radiogroup" aria-labelledby={labelledBy} className="flex flex-wrap gap-2">
+          {choices.map((option) => {
+            const active = option.value === selected;
+            const name = option.value ? t(option.label) : resolveShellValidationText("swatch.auto", locale);
+            return (
+              <button
+                key={option.value || "auto"}
+                type="button"
+                role="radio"
+                aria-checked={active}
+                aria-label={name}
+                title={name}
+                onClick={() => onChange(option.value)}
+                className={cn(
+                  "h-8 w-8 rounded-full border-2 transition-shadow",
+                  active ? "border-heading shadow-[0_0_0_2px_var(--color-champagne-gold)]" : "border-subtle"
+                )}
+                style={
+                  option.color
+                    ? { background: option.color }
+                    : { background: "conic-gradient(#ff6b4a, #ffb547, #2fae86, #2f7fd8, #7a5cd6, #ff6b4a)" }
+                }
+              />
+            );
+          })}
+        </div>
+      );
+    }
+
     case "coordinates":
       return <CoordinatesFieldInput value={value} onChange={onChange} />;
 
@@ -181,6 +217,31 @@ const MEDIA_ICON: Record<string, typeof Music> = {
   video: Video,
   file: FileText,
 };
+
+/**
+ * Best-effort length of an audio file from its metadata, without playing it.
+ * `null` when the browser cannot tell (a codec it cannot decode, a file with
+ * no duration): the file is let through and the backend, which probes with
+ * ffprobe, decides. A file that never answers does not hold the form up.
+ */
+function readAudioDuration(file: File): Promise<number | null> {
+  return new Promise((resolve) => {
+    const url = URL.createObjectURL(file);
+    const audio = new Audio();
+    let settled = false;
+    const finish = (seconds: number | null) => {
+      if (settled) return;
+      settled = true;
+      URL.revokeObjectURL(url);
+      resolve(seconds);
+    };
+    audio.preload = "metadata";
+    audio.onloadedmetadata = () => finish(Number.isFinite(audio.duration) ? audio.duration : null);
+    audio.onerror = () => finish(null);
+    window.setTimeout(() => finish(null), 4000);
+    audio.src = url;
+  });
+}
 
 interface UploadedMedia {
   url: string;
@@ -225,13 +286,29 @@ function MediaFieldInput({
    */
   async function handleFiles(files: FileList | null) {
     if (!files || files.length === 0) return;
-    const { checkFileAccepted } = await import("@/lib/api/assets");
+    const { checkFileAccepted, withInferredAudioType } = await import("@/lib/api/assets");
     const { registerPendingFile } = await import("@/lib/studio/media-values");
 
     const accepted: UploadedMedia[] = [];
     let rejection: string | null = null;
 
-    for (const file of Array.from(files)) {
+    for (const picked of Array.from(files)) {
+      // A received voice file the browser could not type (some report an empty
+      // type for a WhatsApp `.opus`) gets one from its extension.
+      const file = field.type === "audio" ? withInferredAudioType(picked) : picked;
+      if (field.type === "audio" && field.maxSeconds) {
+        const seconds = await readAudioDuration(file);
+        // Half a second of grace: a recording stopped by its own timer can
+        // report a few milliseconds over.
+        if (seconds !== null && seconds > field.maxSeconds + 0.5) {
+          rejection = resolveValidationMessage(
+            { code: "media.tooLong", params: { maxSeconds: String(field.maxSeconds), filename: file.name } },
+            locale,
+            session.module.messages
+          );
+          continue;
+        }
+      }
       const reason = checkFileAccepted(file);
       if (reason) {
         /**
@@ -297,6 +374,16 @@ function MediaFieldInput({
   const [recording, setRecording] = useState(false);
   const recorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<BlobPart[]>([]);
+  const recordTimer = useRef<number | null>(null);
+  // Leaving the field mid-recording stops the timer and the recorder (whose
+  // own stop releases the microphone).
+  useEffect(
+    () => () => {
+      if (recordTimer.current !== null) window.clearTimeout(recordTimer.current);
+      recorderRef.current?.stop();
+    },
+    []
+  );
 
   const canRecord =
     field.type === "audio" &&
@@ -345,6 +432,12 @@ function MediaFieldInput({
       recorder.start();
       recorderRef.current = recorder;
       setRecording(true);
+      // A recording stops itself at the field's limit rather than producing
+      // a file that would be refused (Love Story Timeline's voice note: 30s;
+      // Graduation Keepsake's voice messages: 60s).
+      if (field.maxSeconds) {
+        recordTimer.current = window.setTimeout(stopRecording, field.maxSeconds * 1000);
+      }
     } catch {
       // Denied permission, or no microphone. `media.*` are SHELL
       // VALIDATION strings (`SHELL_VALIDATION_MESSAGES`), not checkout
@@ -359,35 +452,59 @@ function MediaFieldInput({
   }
 
   function stopRecording() {
+    if (recordTimer.current !== null) {
+      window.clearTimeout(recordTimer.current);
+      recordTimer.current = null;
+    }
     recorderRef.current?.stop();
     recorderRef.current = null;
+  }
+
+  /** Takes one file back out. Without this a voice note, a drawing or an
+   * optional video could only ever be REPLACED, never removed, which also
+   * left a customer over a product's per-keepsake limit no way back under. */
+  function removeItem(index: number) {
+    setError(null);
+    if (isMulti) onChange(items.filter((_, i) => i !== index));
+    else onChange(null);
   }
 
   const Icon = MEDIA_ICON[field.type];
   // §5's voice note is recording-only: a customer records the message they
   // want heard, and a file picker beside it would let them attach any
   // audio file lying around, which is not what "a message you would like
-  // them to hear" asks for. Every other media type keeps the picker.
+  // them to hear" asks for. Every other media type keeps the picker, and so
+  // does an audio field that opts in with `allowUpload` (voice messages the
+  // customer received from other people).
   const isAudio = field.type === "audio";
+  const removeLabel = resolveShellValidationText("media.remove", locale);
 
   return (
     <div className="space-y-1.5">
     <div className="flex flex-wrap items-center gap-2">
-      {items.map((item, i) =>
-        field.type === "image" || field.type === "gallery" ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img key={i} src={item.url} alt="" className="h-14 w-14 rounded-[var(--radius-sm)] object-cover" />
-        ) : (
-          <div
-            key={i}
-            className="flex h-14 max-w-[10rem] items-center gap-2 rounded-[var(--radius-sm)] border border-subtle bg-page px-2 text-xs text-body/70"
+      {items.map((item, i) => (
+        <div key={i} className="relative">
+          {field.type === "image" || field.type === "gallery" ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={item.url} alt="" className="h-14 w-14 rounded-[var(--radius-sm)] object-cover" />
+          ) : (
+            <div className="flex h-14 max-w-[10rem] items-center gap-2 rounded-[var(--radius-sm)] border border-subtle bg-page px-2 pe-6 text-xs text-body/70">
+              {Icon && <Icon className="h-4 w-4 shrink-0" strokeWidth={1.75} />}
+              <span className="truncate">{item.filename}</span>
+            </div>
+          )}
+          <button
+            type="button"
+            onClick={() => removeItem(i)}
+            aria-label={`${removeLabel}: ${item.filename ?? ""}`}
+            title={removeLabel}
+            className="absolute -end-1.5 -top-1.5 grid h-5 w-5 place-items-center rounded-full border border-subtle bg-card text-body/60 hover:text-error-warm"
           >
-            {Icon && <Icon className="h-4 w-4 shrink-0" strokeWidth={1.75} />}
-            <span className="truncate">{item.filename}</span>
-          </div>
-        )
-      )}
-      {!isAudio && (
+            <X className="h-3 w-3" strokeWidth={2} />
+          </button>
+        </div>
+      ))}
+      {(!isAudio || field.allowUpload) && (
         <label className="flex h-14 w-14 cursor-pointer items-center justify-center rounded-[var(--radius-sm)] border border-dashed border-subtle text-body/50 hover:border-champagne-gold hover:text-champagne-gold">
           <Upload className="h-4 w-4" strokeWidth={1.75} />
           <input
@@ -424,7 +541,7 @@ function MediaFieldInput({
           browser that DOES support recording. With the file-picker
           fallback removed above, this browser genuinely has no way to
           supply one, so it says so rather than showing an empty field. */}
-      {isAudio && !canRecord && (
+      {isAudio && !canRecord && !field.allowUpload && (
         <p className="flex h-14 max-w-[14rem] items-center rounded-[var(--radius-sm)] border border-dashed border-subtle px-3 text-xs text-body/50">
           {resolveShellValidationText("media.recordingNotSupported", locale)}
         </p>

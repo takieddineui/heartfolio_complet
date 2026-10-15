@@ -251,6 +251,33 @@ export const PRODUCT_REGISTRY: ProductEntry[] = [
      */
     offerings: [],
   },
+  {
+    id: "graduation-keepsake",
+    slug: "graduation-keepsake",
+    i18nKey: "graduationKeepsake",
+    category: "other",
+    currency: PRICE_CURRENCY,
+    ogImage: null, // TODO: /og/graduation-keepsake.png
+    icon: "GraduationCap",
+    featured: false,
+    status: "available",
+    /**
+     * HIDDEN until it can be bought: it needs its own Freemius plan, mapped as
+     * `graduation-keepsake:live` in `FREEMIUS_PLAN_MAPPING`, and its Django
+     * catalog row and `live` pack seeded. Until both exist checkout would fail
+     * with `FreemiusPlanNotConfigured`. Then set this to `false` (and update the
+     * tests that pin the visible list), as Reasons I Love You was.
+     */
+    hidden: true,
+    order: 6,
+    tags: ["graduation", "gift", "photos", "messages"],
+    faqCount: 4,
+    /**
+     * INTENTIONALLY EMPTY — Django owns this product's commercial data (one
+     * `live` pack, $15.99), joined in by `lib/products/catalog.ts`.
+     */
+    offerings: [],
+  },
 ];
 
 /**

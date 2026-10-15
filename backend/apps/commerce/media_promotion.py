@@ -143,6 +143,15 @@ def _timeline_media_asset_ids(values: dict) -> list[str]:
     return asset_ids
 
 
+def _graduation_media_asset_ids(values: dict) -> list[str]:
+    """Graduation Keepsake: the voice messages
+    (`messageGroups[].people[].voice`), none while the Messages chapter is off
+    (see `audio_asset_ids`). Its drawings and photos are images: permanent."""
+    from apps.delivery.product_renderers.graduation_keepsake.data import audio_asset_ids
+
+    return audio_asset_ids(values)
+
+
 #: Product slug -> the function that lists the video/audio asset ids in that
 #: product's `values`. A product with audio or video anywhere other than Love
 #: Story Timeline's `events[]` MUST be added here (ADDING-A-PRODUCT.md), with a
@@ -150,4 +159,5 @@ def _timeline_media_asset_ids(values: dict) -> list[str]:
 #: Love You, Song Poster, Where We Met) need no entry: photos never expire.
 _MEDIA_COLLECTORS: dict[str, Callable[[dict], list[str]]] = {
     "love-story-timeline": _timeline_media_asset_ids,
+    "graduation-keepsake": _graduation_media_asset_ids,
 }

@@ -7,6 +7,7 @@ import {
   MapPin,
   GalleryHorizontal,
   Heart,
+  GraduationCap,
   ArrowRight,
   type LucideIcon,
 } from "lucide-react";
@@ -23,6 +24,7 @@ const ICONS: Record<string, LucideIcon> = {
   MapPin,
   GalleryHorizontal,
   Heart,
+  GraduationCap,
 };
 
 export function ProductCard({

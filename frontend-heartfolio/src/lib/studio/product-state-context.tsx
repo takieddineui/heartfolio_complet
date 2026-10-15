@@ -101,7 +101,7 @@ export function ProductStateProvider({ session, children }: { session: StudioSes
 
   const validation = useMemo(() => {
     const generic = formEngine.validate(session.module.formSchema, values, themeSelections);
-    const domain = session.module.validate?.(values);
+    const domain = session.module.validate?.(values, themeSelections);
     if (!domain) return generic;
     return {
       valid: generic.valid && domain.valid,

@@ -60,6 +60,12 @@ function validateFields(
         errors[field.id] = { code: "maxLength", params: { label: field.label, maxLength: field.maxLength } };
       }
     }
+
+    if ((field.type === "text" || field.type === "textarea") && field.maxGraphemes && typeof value === "string") {
+      if (countGraphemes(value.trim()) > field.maxGraphemes) {
+        errors[field.id] = { code: "maxGraphemes", params: { label: field.label, maxGraphemes: field.maxGraphemes } };
+      }
+    }
   }
 }
 
@@ -68,6 +74,8 @@ export const formEngine: FormEngine = {
     const errors: ValidationResult["errors"] = {};
     const valuesObj = (values ?? {}) as Record<string, unknown>;
     for (const section of schema.sections) {
+      // A hidden section is skipped whole, for the same reason a hidden field is.
+      if (!evaluateConditions(section.visibleWhen, { values: valuesObj, theme: themeSelections })) continue;
       validateFields(section.fields, valuesObj, errors, themeSelections);
     }
     return { valid: Object.keys(errors).length === 0, errors };
@@ -82,8 +90,21 @@ export function createGroupItemDefaults(itemFields: FieldSchema[]): Record<strin
   const defaults: Record<string, unknown> = {};
   for (const field of itemFields) {
     if ("defaultValue" in field && field.defaultValue !== undefined) {
-      defaults[field.id] = field.defaultValue;
+      // A COPY per new item: a nested group's default (a message group's
+      // first, empty person) is an array of objects, and two items sharing
+      // one would share later edits to it.
+      defaults[field.id] = structuredClone(field.defaultValue);
     }
   }
   return defaults;
+}
+
+/** What a reader counts as characters: one per grapheme, so a family emoji
+ * or a flag is 1, not the 7-11 UTF-16 units `.length` reports. Falls back to
+ * code points where `Intl.Segmenter` is missing. */
+export function countGraphemes(text: string): number {
+  if (typeof Intl !== "undefined" && "Segmenter" in Intl) {
+    return [...new Intl.Segmenter(undefined, { granularity: "grapheme" }).segment(text)].length;
+  }
+  return [...text].length;
 }

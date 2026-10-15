@@ -302,3 +302,10 @@ class WhereWeMetMapRenderFailed(ApplicationError):
 class ReasonsILoveYouInvalidData(ApplicationError):
     status_code = status.HTTP_400_BAD_REQUEST
     default_detail = "This project's data does not match the Reasons I Love You contract."
+
+
+# --- Product data (Graduation Keepsake, live-only: no renderer, no render error) ---
+
+class GraduationKeepsakeInvalidData(ApplicationError):
+    status_code = status.HTTP_400_BAD_REQUEST
+    default_detail = "This project's data does not match the Graduation Keepsake contract."

@@ -456,6 +456,46 @@
       "wallpaperFiles": "PNG sized for phone screens · instant download",
       "completeFiles": "All included files · instant download",
       "printableDigitalFiles": "Print-ready PNG + PDF and the personalized digital keepsake · instant download"
+    },
+    "graduationKeepsake": {
+      "name": "Graduation Keepsake",
+      "shortDescription": "Their story so far, told as a journey.",
+      "fullDescription": "Gather the years, the achievements and the messages from the people who got them there, then choose how the story is told: a flight, a space mission, an arcade game, a gallery or a mountain climb.",
+      "meta": {
+        "title": "Graduation Keepsake, a personalized digital gift | Heartfolio",
+        "description": "A graduate's story so far (photos through the years, achievements, messages and voice notes from family and friends) told as a flight, a mission, a game, a gallery or a climb. From {price}, delivered instantly.",
+        "imageAlt": "A Heartfolio Graduation Keepsake: a boarding pass for the next chapter",
+        "descriptionNoPrice": "A graduate's story so far (photos through the years, achievements, messages and voice notes from family and friends) told as a flight, a mission, a game, a gallery or a climb. Delivered instantly."
+      },
+      "storyTitle": "Everything that got them here, in one place.",
+      "story": "You gather the photos from the first day of school to the cap and gown, the achievements worth celebrating, and the messages from the people who were there (written, drawn or recorded). Then you choose the journey: they tear a boarding pass, count down a launch, press start, cut a ribbon or begin a climb, and the story unfolds as they go.",
+      "faq": [
+        {
+          "question": "What are the five journeys?",
+          "answer": "Next Chapter Airways (a flight), Mission: Graduation (a space launch), Level Complete (an arcade game), The Retrospective (a gallery opening) and The Summit (a mountain climb). Each has its own opening, look, words, finale and sound effects."
+        },
+        {
+          "question": "Can family and friends add voice messages?",
+          "answer": "Yes: up to five in one keepsake, each up to a minute. Record them in the Studio, or upload the ones people sent you on WhatsApp or from an iPhone. You can add a caption to each, and up to five drawings too."
+        },
+        {
+          "question": "What can I leave out?",
+          "answer": "The path through the years, the achievements, the messages, the goals and the letter can each be switched off. Only the graduate's details and the final line are always there."
+        },
+        {
+          "question": "How do they receive it?",
+          "answer": "As a private link, the moment your payment clears. There is no file to print or frame: you send them the link, or give them the QR card that comes with it."
+        }
+      ],
+      "offerings": {
+        "digital": {
+          "description": "A private link to the graduation journey."
+        }
+      },
+      "audience": {
+        "title": "Who it's for",
+        "body": "Any graduate: from school, university or an apprenticeship. It works just as well from parents, a whole family, or a group of friends who each add a message."
+      }
     }
   },
   "Create": {

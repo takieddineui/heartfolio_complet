@@ -69,7 +69,9 @@ export function GenericForm({ schema, values, themeSelections, errors, onChange 
 
   return (
     <div className="space-y-8">
-      {schema.sections.map((section) => (
+      {schema.sections
+        .filter((section) => evaluateConditions(section.visibleWhen, visibilityContext))
+        .map((section) => (
         <section key={section.id} className="space-y-4">
           <h3 className="text-xs font-medium uppercase tracking-[0.1em] text-body/50">{t(section.title)}</h3>
           <div className="space-y-4">
@@ -177,6 +179,14 @@ function FieldRow({
                           field={itemField}
                           value={item[itemField.id]}
                           errorText={resolveError(nestedErrors?.[`${nestedErrorPrefix}.${index}.${itemField.id}`])}
+                          // Passed down so a group NESTED in a group item (a
+                          // message group's people) shows its own items'
+                          // errors, which the form engine keys
+                          // `${group}.${i}.${nested}.${j}.${field}`. Without
+                          // them those errors were computed, blocked Continue,
+                          // and were never shown.
+                          nestedErrors={nestedErrors}
+                          nestedErrorPrefix={`${nestedErrorPrefix}.${index}.${itemField.id}`}
                           visibilityContext={visibilityContext}
                           t={t}
                           resolveError={resolveError}
@@ -194,6 +204,9 @@ function FieldRow({
     );
   }
 
+  const help = field.helpText
+    ? t(field.helpText, field.helpTextParams?.(visibilityContext.values as Record<string, unknown>))
+    : null;
   const heading = (
     <>
       {t(field.label)}
@@ -208,7 +221,7 @@ function FieldRow({
           {heading}
         </label>
         <FieldInput id={inputId} field={field} value={value} onChange={onChange} t={t} />
-        {field.helpText && field.type !== "boolean" && <p className="text-xs text-body/50">{t(field.helpText)}</p>}
+        {field.helpText && field.type !== "boolean" && <p className="text-xs text-body/50">{help}</p>}
         {errorText && <p className="text-xs text-error-warm">{errorText}</p>}
       </div>
     );
@@ -220,7 +233,7 @@ function FieldRow({
         {heading}
       </span>
       <FieldInput labelledBy={labelId} field={field} value={value} onChange={onChange} t={t} />
-      {field.helpText && field.type !== "boolean" && <p className="text-xs text-body/50">{t(field.helpText)}</p>}
+      {field.helpText && field.type !== "boolean" && <p className="text-xs text-body/50">{help}</p>}
       {errorText && <p className="text-xs text-error-warm">{errorText}</p>}
     </div>
   );

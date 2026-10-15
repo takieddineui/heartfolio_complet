@@ -197,7 +197,10 @@ export const timelineSchema: FormSchemaConfig = {
                   },
                 ]
               : []),
-            { id: "audio", type: "audio", label: "fields.eventAudio.label", helpText: "fields.eventAudio.help" },
+            // 30 seconds: the backend's audio cap is now 60 (for Graduation
+            // Keepsake's voice messages), so this product's own limit lives
+            // here, in the recorder, which stops itself at 30.
+            { id: "audio", type: "audio", label: "fields.eventAudio.label", helpText: "fields.eventAudio.help", maxSeconds: 30 },
             // Required as of §4. Every composition in §7 is photo-led.
             { id: "photo", type: "image", label: "fields.eventPhoto.label", required: true },
           ],

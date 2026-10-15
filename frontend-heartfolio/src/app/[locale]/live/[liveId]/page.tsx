@@ -5,6 +5,8 @@ import { LiveKeepsake } from "@/components/live/live-keepsake";
 import { SongLiveKeepsake } from "@/components/live-song/song-live-keepsake";
 import { ReasonsLivePage } from "@/components/live-reasons/reasons-live-page";
 import type { ReasonsExperienceData } from "@/components/live-reasons/experience-data";
+import { GraduationLivePage } from "@/components/live-graduation/graduation-live-page";
+import type { GraduationExperienceData } from "@/components/live-graduation/experience-data";
 import { getBackendOrigin } from "@/lib/backend-origin";
 
 
@@ -73,7 +75,15 @@ interface ReasonsLivePayload {
   values: ReasonsExperienceData;
 }
 
-type LivePayload = LoveStoryTimelinePayload | SongPosterLivePayload | ReasonsLivePayload;
+/** Graduation Keepsake: likewise the experience's own shape, with fresh
+ * links for every photo, drawing and voice message. */
+interface GraduationLivePayload {
+  productId: "graduation-keepsake";
+  locale: string;
+  values: GraduationExperienceData;
+}
+
+type LivePayload = LoveStoryTimelinePayload | SongPosterLivePayload | ReasonsLivePayload | GraduationLivePayload;
 
 /**
  * An EXPLICIT type predicate, not a bare `payload.productId ===
@@ -92,6 +102,10 @@ function isSongPosterPayload(payload: LivePayload): payload is SongPosterLivePay
 }
 
 /** Same reason for an explicit predicate as `isSongPosterPayload` above. */
+function isGraduationPayload(payload: LivePayload): payload is GraduationLivePayload {
+  return payload.productId === "graduation-keepsake";
+}
+
 function isReasonsPayload(payload: LivePayload): payload is ReasonsLivePayload {
   return payload.productId === "reasons-i-love-you";
 }
@@ -162,6 +176,11 @@ export default async function LivePage({ params }: { params: Params }) {
   // shape with fields left empty.
   if (isSongPosterPayload(payload)) {
     return <SongLiveKeepsake values={payload.values} />;
+  }
+
+  if (isGraduationPayload(payload)) {
+    // The order's locale, as for every live page.
+    return <GraduationLivePage liveId={liveId} initial={payload.values} locale={payload.locale} />;
   }
 
   if (isReasonsPayload(payload)) {

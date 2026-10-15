@@ -41,7 +41,8 @@ monorepo no longer exists, and the stale description broke both
 (`apps/commerce/freemius_integration.py`). There is ONE Freemius product
 (`FREEMIUS_PRODUCT_ID`, one public key, one secret key for webhooks): a new
 product is new PLANS under it, never a second Freemius product, whose webhooks
-would fail the signature check. `heart-map` and `song-poster` have no plan, so `stage_freemius_checkout` raises `FreemiusPlanNotConfigured` for
+would fail the signature check. `heart-map`, `song-poster` and
+`graduation-keepsake` (built, hidden) have no plan, so `stage_freemius_checkout` raises `FreemiusPlanNotConfigured` for
 them: **they cannot be bought through Freemius yet.** Freemius has no custom
 amount and sells one plan per checkout, so every purchasable pack needs its
 own plan, mapped by `"product:pack"` — adding a product's packs means creating
@@ -266,6 +267,61 @@ Two were genuine product bugs: the `layout` default above, and
   has not had a native review. Live-page photos load lazily, so their 300s
   presigned links can expire before a reason is opened; the page refetches its
   payload once (20s cooldown) when a photo fails.
+- **Graduation Keepsake (`graduation-keepsake`) is BUILT and HIDDEN (15 Oct
+  2026), the second live-only product: one `live` pack at $15.99, one story
+  told as one of five journeys** (Next Chapter Airways, Mission: Graduation,
+  Level Complete, The Retrospective, The Summit; `journeys.ts`), all five built.
+  Backend `product_renderers/graduation_keepsake/` (`data.py`, `renderer.py`,
+  `live_payload.py`), Studio module `lib/studio/product-modules/graduation-keepsake/`,
+  experience `components/live-graduation/`. **Not for sale yet:** no Freemius
+  plan (create one under the existing product, then map
+  `graduation-keepsake:live`), not seeded in Supabase, `hidden: true` (a test
+  pins it). Decided, and not stubbed: no reply or reactions, no report back to
+  the creator, no collection link, no scheduled send, chapters in a fixed order,
+  captions untimed, no edits after purchase, branding always shown, sound
+  effects only (no music; the prototype has none either). **Limits approved 14
+  Oct 2026** (`limits.ts` = `data.py`, pinned by `graduation-module.test.ts`):
+  stops 1-12, achievements 1-10 (26/40/16), groups 1-3, people 1-12, message
+  300, and **5 voice messages and 5 drawings per KEEPSAKE** (across every
+  person), so the worst case is 25 uploads at checkout against production's
+  `asset_upload` 30 a minute. Airline-only fields (codes, places, the boarding
+  pass) are hidden, unvalidated and dropped on the other journeys, front and
+  back. The prototype's 13 bugs plus a 14th (the airline start screen clipped
+  on a 375x550 phone even with the example data) are fixed and each has a
+  test; found while building and fixed: postcards cut a 300-character message,
+  hidden stamps widened the page sideways, a long voice caption pushed its row
+  past the phone, the arcade's hidden banner peeked in at the top, a hero photo
+  that failed before hydration never asked for a fresh link. **Still to verify
+  on real devices (not possible here):** what type iPhone and Android browsers
+  declare for a received voice file (`.m4a`, WhatsApp `.opus`), playback of
+  the re-encoded AAC on iOS Safari, and that iOS lets the museum's audio guide
+  start from the tap that opens it (it plays inside that tap, which is what iOS
+  requires; Chromium verified). The French and Arabic are plain translations,
+  not native-reviewed. Press Start 2P has the French capitals (checked in its
+  character map), but its pixel "É" looks small beside the other capitals.
+- **THE FIRST SCROLL LISTENER ON A LIVE PAGE (Graduation Keepsake, decided 14
+  Oct 2026).** Love Story Timeline's live page forbids scroll listeners (an
+  observer triggers its motion, and tests enforce it). Graduation's summit
+  journey shows a LIVE altimeter, a number that changes with every pixel
+  scrolled, and the plane rides down the path; an observer only reports
+  thresholds, so it cannot drive either. Kept cheap: ONE listener, on the
+  keepsake's OWN scroller (never the window, so the Studio's page is
+  untouched), `passive: true`, and the handler only schedules a
+  `requestAnimationFrame`, so it does at most one update per frame and reads
+  layout only there. Under reduced motion the plane stays still and the
+  altimeter still reads correctly. Tests: no window scroll listener, exactly
+  one passive listener on the scroller, the handler only schedules. Measured
+  in the browser: the altimeter reads half the summit (2,404 m) at half the
+  page. Not yet measured on a mid-range phone.
+- **Audio uploads: one minute, more file types (14 Oct 2026, for Graduation's
+  voice messages).** `MAX_AUDIO_SECONDS = 60` for every product (the upload
+  endpoint does not know the product and an `Asset` keeps no duration); video
+  stays 30. Love Story Timeline's voice note keeps 30 seconds through its own
+  recorder (`maxSeconds: 30`, Studio only). Accepted now: `audio/ogg`,
+  `audio/opus`, `audio/x-m4a`, `audio/mp3`, `audio/x-wav`; the probe decides
+  what a file really is and `reencode_audio` rewrites every audio file to AAC
+  (cut to 60 seconds of samples). A received file the browser left untyped
+  gets a type from its extension (`withInferredAudioType`).
 - **Printable + Digital is seeded and mapped (4 Oct 2026) but not yet
   exercised end to end.** Freemius plan **70543**, $35.99, mapped as
   `love-story-timeline:printable-plus-digital`; the pack is active and `complete`
