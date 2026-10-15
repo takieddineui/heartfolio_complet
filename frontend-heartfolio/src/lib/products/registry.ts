@@ -92,23 +92,21 @@ export const PRODUCT_REGISTRY: ProductEntry[] = [
     // exactly what was here before, nothing more to redo.
     status: "coming_soon",
     /**
-     * ADDED alongside the `status` revert above, because `status` alone
-     * does not work as a kill switch here: Django still has a real,
-     * working row for this product (untouched, per instruction), and
-     * `toCatalogProduct` in `catalog.ts` — "Django's status wins
-     * outright" — overwrites this registry's `status` with Django's own
-     * the moment the catalog fetch succeeds. Confirmed live: with the
-     * backend reachable, the product page showed full pricing and a
-     * working Studio link despite `status: "coming_soon"` here.
+     * VISIBLE AGAIN since 15 Oct 2026 so the owner can open its real Studio
+     * route and test it. THIS IS NOT "READY TO SELL": Song Poster has NO
+     * Freemius plan in `FREEMIUS_PLAN_MAPPING`, so a customer who reaches
+     * checkout uploads their media, then is refused with
+     * `FreemiusPlanNotConfigured`. Either map plans for its packs or set this
+     * back to `true` before the VPS goes live.
      *
-     * `hidden` has no such override — `isVisible()` below checks only
-     * this flag, never Django's response, so it is the one thing in
-     * this file Django cannot silently undo. See `isVisible`'s own
-     * docstring for the full "absent, not unlisted" contract this puts
-     * the product under: no card, no product page (real 404), no
-     * sitemap entry, no Studio route.
+     * History: hidden on 1 Oct 2026 alongside the `status` revert above,
+     * because `status` alone is no kill switch here: `toCatalogProduct` in
+     * `catalog.ts` lets Django's status win outright the moment the catalog
+     * fetch succeeds. `hidden` is the one switch in this file Django cannot
+     * undo (`isVisible()` below): no card, no product page, no sitemap
+     * entry, no Studio route.
      */
-    hidden: true,
+    hidden: false,
     order: 2,
     tags: ["music", "anniversary", "gift"],
     faqCount: 3,

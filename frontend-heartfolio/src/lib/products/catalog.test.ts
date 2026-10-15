@@ -121,6 +121,10 @@ describe("slug boundary", () => {
  * withdrawn product on the homepage or in the sitemap.
  */
 describe("withdrawn products (§1, §14)", () => {
+  // song-poster REMOVED from this list again on 15 Oct 2026: it is visible
+  // (registry.ts), so the owner can test its Studio; it still has no
+  // Freemius plan. The history below explains why it was here.
+  //
   // song-poster ADDED BACK to this list: the Phase 2 "available" flip
   // (registry.ts's own comment on that entry) has itself been reverted —
   // `status` alone proved not to be a working kill switch (Django's own
@@ -136,7 +140,7 @@ describe("withdrawn products (§1, §14)", () => {
   // true` — reversible. A deleted entry doesn't fit that any more; see
   // `test_deleted_products_resolve_to_undefined_the_same_way_withdrawn_
   // ones_do` below for what's still worth asserting about it.
-  const WITHDRAWN = ["where-we-met", "song-poster"];
+  const WITHDRAWN = ["where-we-met"];
 
   it("keeps them defined, so the decision stays reversible", () => {
     const all = getAllProductsIncludingHidden().map((p) => p.slug);
@@ -149,7 +153,7 @@ describe("withdrawn products (§1, §14)", () => {
     // its Freemius plan and catalog row existed, and Graduation Keepsake on
     // 15 Oct 2026, once its plan (72194) was mapped.
     const visible = getAllProducts().map((p) => p.slug);
-    expect(visible).toEqual(["love-story-timeline", "reasons-i-love-you", "graduation-keepsake"]);
+    expect(visible).toEqual(["song-poster", "love-story-timeline", "reasons-i-love-you", "graduation-keepsake"]);
     for (const slug of WITHDRAWN) expect(visible).not.toContain(slug);
   });
 
@@ -202,9 +206,8 @@ describe("withdrawn products (§1, §14)", () => {
     // response names. Their exclusion here is the thing this test
     // actually verifies.
     const merged = mergeProductList([apiProduct("love-story-timeline"), apiProduct("heart-map")]);
-    expect(merged.map((p) => p.slug)).toEqual(["love-story-timeline", "reasons-i-love-you", "graduation-keepsake"]);
+    expect(merged.map((p) => p.slug)).toEqual(["song-poster", "love-story-timeline", "reasons-i-love-you", "graduation-keepsake"]);
     expect(merged.map((p) => p.slug)).not.toContain("where-we-met");
-    expect(merged.map((p) => p.slug)).not.toContain("song-poster");
   });
 });
 
@@ -431,9 +434,8 @@ describe("mergeProductList", () => {
     // exclusion — the actual point of this test — is joined by
     // song-poster's own, both via the same `getAllProducts()` filter.
     const merged = mergeProductList([apiProduct("love-story-timeline"), apiProduct("heart-map")]);
-    expect(merged.map((p) => p.slug)).toEqual(["love-story-timeline", "reasons-i-love-you", "graduation-keepsake"]);
+    expect(merged.map((p) => p.slug)).toEqual(["song-poster", "love-story-timeline", "reasons-i-love-you", "graduation-keepsake"]);
     expect(merged.map((p) => p.slug)).not.toContain("where-we-met");
-    expect(merged.map((p) => p.slug)).not.toContain("song-poster");
   });
 });
 

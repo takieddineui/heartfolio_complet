@@ -143,7 +143,7 @@ describe("buildMerchantFeedItems", () => {
     // regardless of which two products this test's synthetic Django
     // response names.
     const fromCatalog = mergeProductList([apiProduct("love-story-timeline"), apiProduct("heart-map")]);
-    expect(fromCatalog.map((p) => p.slug)).toEqual(["love-story-timeline", "reasons-i-love-you", "graduation-keepsake"]);
+    expect(fromCatalog.map((p) => p.slug)).toEqual(["song-poster", "love-story-timeline", "reasons-i-love-you", "graduation-keepsake"]);
 
     const slugs = buildMerchantFeedItems(fromCatalog, "en", copy).map((i) => i.itemGroupId);
     // song-poster added back: hidden again (see above), same as
@@ -153,7 +153,7 @@ describe("buildMerchantFeedItems", () => {
     // star-map: deleted from the registry outright now, not merely
     // hidden — still correctly absent from the feed for the same
     // reason (never in `getAllProducts()` at all).
-    for (const withdrawn of ["star-map", "where-we-met", "heart-map", "song-poster"]) {
+    for (const withdrawn of ["star-map", "where-we-met", "heart-map"]) {
       expect(slugs).not.toContain(withdrawn);
     }
   });

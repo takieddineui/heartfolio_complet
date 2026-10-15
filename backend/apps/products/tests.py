@@ -323,6 +323,52 @@ class ProductCatalogContractTests(TestCase):
         )
 
 
+class StandaloneWallpaperPackTests(TestCase):
+    """The standalone `wallpaper` pack is retired: DISABLED, never deleted
+    (past orders point at the row, and `create_order` refuses a disabled pack
+    however the request arrives). Love Story Timeline's was retired first;
+    Song Poster's followed on 15 Oct 2026. Where We Met (`heart-map`, hidden)
+    still seeds its own legacy one as active; it was not part of either
+    decision."""
+
+    RETIRED = ("love-story-timeline", "song-poster")
+
+    def test_the_seed_keeps_the_standalone_wallpaper_pack_but_disabled(self):
+        import seed_catalog
+
+        with_wallpaper = {}
+        for entry in seed_catalog.CATALOG:
+            for pack in entry["packs"]:
+                if pack[0] == "wallpaper" and entry["slug"] in self.RETIRED:
+                    with_wallpaper[entry["slug"]] = pack
+        self.assertEqual(set(with_wallpaper), set(self.RETIRED))
+        for slug, pack in with_wallpaper.items():
+            with self.subTest(slug=slug):
+                # A 3-tuple seeds as "active" (`seed()` defaults a missing
+                # status), so the status must be spelled out.
+                self.assertEqual(len(pack), 4, pack)
+                self.assertEqual(pack[3], "disabled")
+
+    def test_seeding_disables_an_existing_active_wallpaper_pack_in_place(self):
+        """A database seeded before the decision has the pack ACTIVE; a re-run
+        must flip that same row, keeping its id and price."""
+        import seed_catalog
+
+        from apps.products.models import DeliveryPack
+
+        seed_catalog.seed()
+        pack = DeliveryPack.objects.get(product__slug="song-poster", slug="wallpaper")
+        pack.status = DeliveryPack.STATUS_ACTIVE
+        pack.price_cents = 699
+        pack.save()
+
+        seed_catalog.seed()
+        again = DeliveryPack.objects.get(product__slug="song-poster", slug="wallpaper")
+        self.assertEqual(again.pk, pack.pk)
+        self.assertEqual(again.status, DeliveryPack.STATUS_DISABLED)
+        self.assertEqual(again.price_cents, 699)  # prices are never rewritten on a re-run
+
+
 class CatalogTargetMapParityTests(TestCase):
     """The admin form and the seed script each hardcode which targets a
     product can be sold with (`_supported_targets` in admin.py,

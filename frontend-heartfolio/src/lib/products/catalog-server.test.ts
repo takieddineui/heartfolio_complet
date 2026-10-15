@@ -99,8 +99,8 @@ describe("getCatalogProducts", () => {
     // song-poster's own, both via the same registry `isVisible` filter,
     // regardless of LIVE_LIST naming only love-story-timeline and heart-map.
     const slugs = (await getCatalogProducts()).products.map((p) => p.slug);
-    expect(slugs).toEqual(["love-story-timeline", "reasons-i-love-you", "graduation-keepsake"]);
-    for (const withdrawn of ["where-we-met", "heart-map", "song-poster"]) expect(slugs).not.toContain(withdrawn);
+    expect(slugs).toEqual(["song-poster", "love-story-timeline", "reasons-i-love-you", "graduation-keepsake"]);
+    for (const withdrawn of ["where-we-met", "heart-map"]) expect(slugs).not.toContain(withdrawn);
   });
 
   it("does not 404 the live product when Django is unreachable", async () => {
@@ -114,7 +114,7 @@ describe("getCatalogProducts", () => {
     // same `hidden` reason as the test above, not because of this outage.
     const result = await getCatalogProducts();
     expect(result.source).toBe("unavailable");
-    expect(result.products.map((p) => p.slug)).toEqual(["love-story-timeline", "reasons-i-love-you", "graduation-keepsake"]);
+    expect(result.products.map((p) => p.slug)).toEqual(["song-poster", "love-story-timeline", "reasons-i-love-you", "graduation-keepsake"]);
   });
 });
 

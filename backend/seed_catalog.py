@@ -221,15 +221,13 @@ CATALOG = [
         # itself encodes. The same pack works for every theme unchanged.
         "packs": [
             ("printable", 2299, all_print_target_ids(), "active"),
-            # Standalone Wallpaper — deliberately UNCHANGED (price,
-            # targets, status, and its position in this list) by an
-            # explicit instruction: this pack is not part of the new
-            # five-tier commercial structure below, and whether to
-            # disable/retire it (matching Love Story Timeline's own
-            # already-disabled standalone wallpaper pack) is a separate,
-            # not-yet-made decision — not something to infer from the
-            # new catalog's silence about it.
-            ("wallpaper", 799, all_wallpaper_target_ids(), "active"),
+            # Standalone Wallpaper — DISABLED, not deleted (owner's decision,
+            # 15 Oct 2026), matching Love Story Timeline's own standalone
+            # wallpaper pack: `create_order` refuses a disabled pack however
+            # the request arrives, the storefront never lists it, and the row
+            # stays as the record past orders point at. Price and targets
+            # unchanged.
+            ("wallpaper", 799, all_wallpaper_target_ids(), "disabled"),
             (
                 "printable-plus-wallpaper",
                 2799,

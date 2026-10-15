@@ -33,10 +33,13 @@ describe("other products (§10)", () => {
     // The catalog was back down to one visible product ("shows nothing").
     // On 14 Oct 2026 Reasons I Love You became the second, so each now offers
     // the other, and never itself; on 15 Oct 2026 Graduation Keepsake became
-    // the third, so each offers the other two.
-    expect(othersFor("love-story-timeline").map((p) => p.id)).toEqual(["reasons-i-love-you", "graduation-keepsake"]);
-    expect(othersFor("reasons-i-love-you").map((p) => p.id)).toEqual(["love-story-timeline", "graduation-keepsake"]);
-    expect(othersFor("graduation-keepsake").map((p) => p.id)).toEqual(["love-story-timeline", "reasons-i-love-you"]);
+    // the third, so each offers the other two. On 15 Oct 2026 Song Poster was
+    // made visible again (for testing; it has no Freemius plan yet) and,
+    // at order 2, leads the list.
+    expect(othersFor("love-story-timeline").map((p) => p.id)).toEqual(["song-poster", "reasons-i-love-you", "graduation-keepsake"]);
+    expect(othersFor("reasons-i-love-you").map((p) => p.id)).toEqual(["song-poster", "love-story-timeline", "graduation-keepsake"]);
+    expect(othersFor("graduation-keepsake").map((p) => p.id)).toEqual(["song-poster", "love-story-timeline", "reasons-i-love-you"]);
+    expect(othersFor("song-poster").map((p) => p.id)).toEqual(["love-story-timeline", "reasons-i-love-you", "graduation-keepsake"]);
   });
 
   it("never offers a withdrawn product (§1, §14)", () => {
@@ -56,7 +59,7 @@ describe("other products (§10)", () => {
     // correctly absent from every result, same as a hidden one.
     for (const purchased of ["love-story-timeline", "heart-map", "star-map"]) {
       const slugs = othersFor(purchased).map((p) => p.slug);
-      for (const hidden of ["star-map", "where-we-met", "song-poster"]) {
+      for (const hidden of ["star-map", "where-we-met"]) {
         expect(slugs).not.toContain(hidden);
       }
     }

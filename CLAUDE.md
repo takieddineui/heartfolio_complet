@@ -42,7 +42,7 @@ monorepo no longer exists, and the stale description broke both
 (`apps/commerce/freemius_integration.py`). There is ONE Freemius product
 (`FREEMIUS_PRODUCT_ID`, one public key, one secret key for webhooks): a new
 product is new PLANS under it, never a second Freemius product, whose webhooks
-would fail the signature check. `heart-map` and `song-poster` have no plan, so `stage_freemius_checkout` raises `FreemiusPlanNotConfigured` for
+would fail the signature check. `heart-map` and `song-poster` (VISIBLE since 15 Oct 2026, for testing only) have no plan, so `stage_freemius_checkout` raises `FreemiusPlanNotConfigured` for
 them: **they cannot be bought through Freemius yet.** Freemius has no custom
 amount and sells one plan per checkout, so every purchasable pack needs its
 own plan, mapped by `"product:pack"` — adding a product's packs means creating
@@ -267,6 +267,21 @@ Two were genuine product bugs: the `layout` default above, and
   has not had a native review. Live-page photos load lazily, so their 300s
   presigned links can expire before a reason is opened; the page refetches its
   payload once (20s cooldown) when a photo fails.
+- **Song Poster (`song-poster`) is VISIBLE but NOT SELLABLE (15 Oct 2026).**
+  `hidden` was flipped to `false` so the owner can open its real Studio and
+  test it; it has NO Freemius plan, so a customer reaching checkout uploads
+  their media and is then refused (`FreemiusPlanNotConfigured`, shown as the
+  raw English backend sentence). Map plans or set `hidden: true` again before
+  the VPS goes live. Its standalone `wallpaper` pack is now `disabled` in the
+  seed (as Love Story Timeline's; the owner's real seed run applies it); the
+  wallpaper add-on checkbox was already hidden for every product
+  (`SHOW_WALLPAPER_ADDON`). Its `complete` pack is still the old
+  print + wallpaper + digital bundle, predating "combos, not a bundle"; whether
+  it gets the combo treatment is the owner's open decision. An investigation of
+  its Studio, preview and print (15 Oct 2026) found real problems, not yet
+  fixed; the first is that NOTHING in the Studio ever calls
+  `YouTubeValidateView`, so `youtubeVideoId` is never set and no customer can
+  pass the YouTube check to reach checkout at all.
 - **Graduation Keepsake (`graduation-keepsake`) is VISIBLE on the storefront (15
   Oct 2026), the second live-only product: one `live` pack at $15.99, one story
   told as one of five journeys** (Next Chapter Airways, Mission: Graduation,
