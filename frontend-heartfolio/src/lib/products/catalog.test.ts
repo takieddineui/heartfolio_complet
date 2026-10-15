@@ -146,9 +146,10 @@ describe("withdrawn products (§1, §14)", () => {
   it("excludes them from every product listing", () => {
     // song-poster hidden again — see WITHDRAWN's own comment above for
     // why. Reasons I Love You joined the visible list on 14 Oct 2026, once
-    // its Freemius plan and catalog row existed.
+    // its Freemius plan and catalog row existed, and Graduation Keepsake on
+    // 15 Oct 2026, once its plan (72194) was mapped.
     const visible = getAllProducts().map((p) => p.slug);
-    expect(visible).toEqual(["love-story-timeline", "reasons-i-love-you"]);
+    expect(visible).toEqual(["love-story-timeline", "reasons-i-love-you", "graduation-keepsake"]);
     for (const slug of WITHDRAWN) expect(visible).not.toContain(slug);
   });
 
@@ -201,7 +202,7 @@ describe("withdrawn products (§1, §14)", () => {
     // response names. Their exclusion here is the thing this test
     // actually verifies.
     const merged = mergeProductList([apiProduct("love-story-timeline"), apiProduct("heart-map")]);
-    expect(merged.map((p) => p.slug)).toEqual(["love-story-timeline", "reasons-i-love-you"]);
+    expect(merged.map((p) => p.slug)).toEqual(["love-story-timeline", "reasons-i-love-you", "graduation-keepsake"]);
     expect(merged.map((p) => p.slug)).not.toContain("where-we-met");
     expect(merged.map((p) => p.slug)).not.toContain("song-poster");
   });
@@ -430,7 +431,7 @@ describe("mergeProductList", () => {
     // exclusion — the actual point of this test — is joined by
     // song-poster's own, both via the same `getAllProducts()` filter.
     const merged = mergeProductList([apiProduct("love-story-timeline"), apiProduct("heart-map")]);
-    expect(merged.map((p) => p.slug)).toEqual(["love-story-timeline", "reasons-i-love-you"]);
+    expect(merged.map((p) => p.slug)).toEqual(["love-story-timeline", "reasons-i-love-you", "graduation-keepsake"]);
     expect(merged.map((p) => p.slug)).not.toContain("where-we-met");
     expect(merged.map((p) => p.slug)).not.toContain("song-poster");
   });

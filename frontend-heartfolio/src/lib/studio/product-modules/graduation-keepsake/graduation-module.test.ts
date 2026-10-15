@@ -316,10 +316,10 @@ describe("every word exists in all three languages", () => {
   });
 });
 
-describe("not for sale yet", () => {
-  it("is in the registry but hidden from every storefront surface until its Freemius plan exists", () => {
-    expect(getProductBySlug("graduation-keepsake")).toBeUndefined();
+describe("on the storefront", () => {
+  it("is visible now that its Freemius plan (72194) is mapped", () => {
+    expect(getProductBySlug("graduation-keepsake")).toMatchObject({ hidden: false, status: "available", category: "other", icon: "GraduationCap" });
     const entry = getAllProductsIncludingHidden().find((p) => p.slug === "graduation-keepsake");
-    expect(entry).toMatchObject({ hidden: true, category: "other", icon: "GraduationCap" });
+    expect(entry).toBe(getProductBySlug("graduation-keepsake"));
   });
 });

@@ -267,8 +267,8 @@ Two were genuine product bugs: the `layout` default above, and
   has not had a native review. Live-page photos load lazily, so their 300s
   presigned links can expire before a reason is opened; the page refetches its
   payload once (20s cooldown) when a photo fails.
-- **Graduation Keepsake (`graduation-keepsake`) is BUILT and HIDDEN (15 Oct
-  2026), the second live-only product: one `live` pack at $15.99, one story
+- **Graduation Keepsake (`graduation-keepsake`) is VISIBLE on the storefront (15
+  Oct 2026), the second live-only product: one `live` pack at $15.99, one story
   told as one of five journeys** (Next Chapter Airways, Mission: Graduation,
   Level Complete, The Retrospective, The Summit; `journeys.ts`), all five built.
   Backend `product_renderers/graduation_keepsake/` (`data.py`, `renderer.py`,
@@ -276,8 +276,12 @@ Two were genuine product bugs: the `layout` default above, and
   experience `components/live-graduation/`. Freemius plan **72194** ($15.99,
   one-off, single price point, under the existing Freemius product, created 15
   Oct 2026) is mapped as `graduation-keepsake:live` and pinned by
-  `FreemiusPlanMappingTests`. **Not for sale yet:** not seeded in Supabase (the
-  owner runs the seed), `hidden: true` (a test pins it). Decided, and not stubbed: no reply or reactions, no report back to
+  `FreemiusPlanMappingTests`. `hidden` is `false` (pinned by
+  `graduation-module.test.ts` and the visible-list tests). **Still to do, the
+  owner's:** the real seed (rehearsed on the throwaway database: it creates the
+  product and its `live` pack, ending at 5 products / 18 packs), then one sandbox
+  checkout (rebuild `web` first). Until the seed has run, the product page has
+  no pack to sell. Decided, and not stubbed: no reply or reactions, no report back to
   the creator, no collection link, no scheduled send, chapters in a fixed order,
   captions untimed, no edits after purchase, branding always shown, sound
   effects only (no music; the prototype has none either). **Limits approved 14

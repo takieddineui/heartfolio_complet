@@ -32,9 +32,11 @@ describe("other products (§10)", () => {
     // overrode the registry's status) — `hidden: true` was added too.
     // The catalog was back down to one visible product ("shows nothing").
     // On 14 Oct 2026 Reasons I Love You became the second, so each now offers
-    // the other, and never itself.
-    expect(othersFor("love-story-timeline").map((p) => p.id)).toEqual(["reasons-i-love-you"]);
-    expect(othersFor("reasons-i-love-you").map((p) => p.id)).toEqual(["love-story-timeline"]);
+    // the other, and never itself; on 15 Oct 2026 Graduation Keepsake became
+    // the third, so each offers the other two.
+    expect(othersFor("love-story-timeline").map((p) => p.id)).toEqual(["reasons-i-love-you", "graduation-keepsake"]);
+    expect(othersFor("reasons-i-love-you").map((p) => p.id)).toEqual(["love-story-timeline", "graduation-keepsake"]);
+    expect(othersFor("graduation-keepsake").map((p) => p.id)).toEqual(["love-story-timeline", "reasons-i-love-you"]);
   });
 
   it("never offers a withdrawn product (§1, §14)", () => {

@@ -262,13 +262,13 @@ export const PRODUCT_REGISTRY: ProductEntry[] = [
     featured: false,
     status: "available",
     /**
-     * HIDDEN until it can be bought: it needs its own Freemius plan, mapped as
-     * `graduation-keepsake:live` in `FREEMIUS_PLAN_MAPPING`, and its Django
-     * catalog row and `live` pack seeded. Until both exist checkout would fail
-     * with `FreemiusPlanNotConfigured`. Then set this to `false` (and update the
-     * tests that pin the visible list), as Reasons I Love You was.
+     * VISIBLE since 15 Oct 2026: Freemius plan 72194 is mapped
+     * (`graduation-keepsake:live`). Its Django catalog row and `live` pack are
+     * seeded by the owner; until the seed has run, the product page has no
+     * pack to sell. To withdraw it later, set this back to `true` (the one
+     * switch Django cannot override; see Song Poster's note above).
      */
-    hidden: true,
+    hidden: false,
     order: 6,
     tags: ["graduation", "gift", "photos", "messages"],
     faqCount: 4,
