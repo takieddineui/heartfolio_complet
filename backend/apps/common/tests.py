@@ -53,6 +53,88 @@ class HealthCheckTests(TestCase):
 # IP-rate-limited — that would be rate-limiting Paddle's own servers).
 # ------------------------------------------------------------------
 
+class YouTubeValidateViewTests(TestCase):
+    """`POST /api/v1/youtube/validate/` with YouTube's oEmbed stubbed: every
+    answer carries a `code` the Studio translates (`reason` is English, for
+    logs). oEmbed's own "no" (400/401/403/404) is `unavailable`; anything
+    that means "we could not check" is `checkFailed`, which the Studio
+    offers to retry."""
+
+    URL = "/api/v1/youtube/validate/"
+    LINK = "https://youtu.be/KQetemT1sWc?si=abc"
+
+    def setUp(self):
+        cache.clear()  # the endpoint is throttled; no counts from other tests
+        self.client = APIClient()
+
+    def tearDown(self):
+        cache.clear()
+
+    def _oembed(self, status_code=200, payload=None, raises=None):
+        from unittest.mock import MagicMock
+
+        response = MagicMock(status_code=status_code)
+        if isinstance(payload, Exception):
+            response.json.side_effect = payload
+        else:
+            response.json.return_value = payload
+        return patch("apps.common.youtube.requests.get", side_effect=raises, return_value=response)
+
+    def test_a_playable_video_is_confirmed_with_its_title(self):
+        payload = {"title": "Here Comes The Sun", "author_name": "TheBeatlesVEVO", "thumbnail_url": "https://i.ytimg.com/x.jpg"}
+        with self._oembed(payload=payload) as get:
+            response = self.client.post(self.URL, {"url": self.LINK}, format="json")
+        self.assertEqual(response.status_code, http_status.HTTP_200_OK)
+        self.assertEqual(
+            response.data,
+            {"valid": True, "videoId": "KQetemT1sWc", "title": "Here Comes The Sun", "authorName": "TheBeatlesVEVO", "thumbnailUrl": "https://i.ytimg.com/x.jpg"},
+        )
+        # The id is checked in its canonical form, whatever shape was pasted.
+        self.assertEqual(get.call_args.kwargs["params"]["url"], "https://www.youtube.com/watch?v=KQetemT1sWc")
+
+    def test_oembeds_refusals_are_unavailable(self):
+        for status_code in (400, 401, 403, 404):
+            with self.subTest(status_code=status_code), self._oembed(status_code=status_code):
+                response = self.client.post(self.URL, {"url": self.LINK}, format="json")
+                self.assertEqual((response.data["valid"], response.data["code"]), (False, "unavailable"))
+
+    def test_anything_that_means_we_could_not_check_is_check_failed(self):
+        import requests
+
+        cases = {
+            "server error": dict(status_code=500),
+            "rate limited": dict(status_code=429),
+            "network": dict(raises=requests.ConnectionError("down")),
+            "timeout": dict(raises=requests.Timeout("slow")),
+            "unreadable": dict(payload=ValueError("not json")),
+            "no title": dict(payload={"author_name": "x"}),
+        }
+        for name, stub in cases.items():
+            with self.subTest(name), self._oembed(**stub):
+                response = self.client.post(self.URL, {"url": self.LINK}, format="json")
+                self.assertEqual((response.data["valid"], response.data["code"]), (False, "checkFailed"))
+
+    def test_no_link_and_not_youtube_never_reach_youtube(self):
+        cases = {"": "empty", "   ": "empty", 123: "empty", None: "empty", "https://open.spotify.com/track/6dG": "notYoutube"}
+        for raw, code in cases.items():
+            with self.subTest(raw=raw), self._oembed() as get:
+                response = self.client.post(self.URL, {"url": raw}, format="json")
+                self.assertEqual(response.status_code, http_status.HTTP_200_OK)
+                self.assertEqual((response.data["valid"], response.data["code"]), (False, code))
+                get.assert_not_called()
+
+    def test_a_returning_guest_with_a_session_can_check_a_link(self):
+        """The Studio sends the CSRF token (`apiFetch`); a guest who already
+        has a session must not be refused for it."""
+        from apps.common.test_helpers import csrf_headers
+
+        login_as_guest(self.client)
+        with self._oembed(payload={"title": "T"}):
+            response = self.client.post(self.URL, {"url": self.LINK}, format="json", **csrf_headers(self.client))
+        self.assertEqual(response.status_code, http_status.HTTP_200_OK)
+        self.assertTrue(response.data["valid"])
+
+
 class RateLimitingTests(TestCase):
     """`ScopedRateThrottle.THROTTLE_RATES` (and `APIView.throttle_classes`)
     are captured once from `api_settings` at Django/module import time

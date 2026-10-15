@@ -30,7 +30,7 @@ export const songPosterMessages: ProductModuleMessages = {
     "fields.dedication.label": "Dedication or message (optional)",
     "fields.photo.label": "Photo",
     "validation.notYoutube": "That doesn't look like a YouTube link.",
-    "validation.notValidated": "Check this link before continuing — tap it to confirm it plays.",
+    "validation.notValidated": "This link must be confirmed as playable before you can continue.",
   },
   fr: {
     "themes.theme.label": "Style",
@@ -61,7 +61,7 @@ export const songPosterMessages: ProductModuleMessages = {
     "fields.dedication.label": "Dédicace ou message (facultatif)",
     "fields.photo.label": "Photo",
     "validation.notYoutube": "Cela ne ressemble pas à un lien YouTube.",
-    "validation.notValidated": "Vérifiez ce lien avant de continuer — touchez-le pour confirmer qu'il se lit.",
+    "validation.notValidated": "Ce lien doit être confirmé comme lisible avant de continuer.",
   },
   ar: {
     "themes.theme.label": "النمط",
@@ -91,6 +91,6 @@ export const songPosterMessages: ProductModuleMessages = {
     "fields.dedication.label": "إهداء أو رسالة (اختياري)",
     "fields.photo.label": "الصورة",
     "validation.notYoutube": "هذا لا يبدو رابط يوتيوب.",
-    "validation.notValidated": "تحقق من هذا الرابط قبل المتابعة — اضغط عليه للتأكد من أنه يعمل.",
+    "validation.notValidated": "يجب تأكيد أن هذا الرابط يعمل قبل المتابعة.",
   },
 };

@@ -50,7 +50,7 @@ function AnimatedField({ id, children }: { id: string; children: ReactNode }) {
  * schema field id, which no element carried, so no label was associated with
  * anything.
  */
-const SINGLE_CONTROL_TYPES = new Set<FieldSchema["type"]>(["text", "textarea", "date", "boolean", "select", "range", "location"]);
+const SINGLE_CONTROL_TYPES = new Set<FieldSchema["type"]>(["text", "textarea", "date", "boolean", "select", "range", "location", "youtube"]);
 
 interface GenericFormProps {
   schema: FormSchemaConfig;

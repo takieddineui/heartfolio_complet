@@ -10,15 +10,12 @@ import type { FieldSchema, FormSchemaConfig } from "@/types/studio";
  * exposure, YouTube hosts the video, Heartfolio only embeds it) and
  * there is no milestone list — one song, one moment, one photo.
  *
- * `youtubeUrl` is `type: "text"`, not a dedicated field type. The
- * richer inline experience — a thumbnail preview once validated, a
- * spinner while `YouTubeValidateView` is checking — would need a new
- * Shell field renderer (`field-inputs.tsx` is shared across every
- * product), which is real, separate work with its own blast radius.
- * Plain text is what proves the pipeline end to end first: paste a
- * link, validate it before checkout, see the real embed play in
- * `PlayerTheme`. Upgrading the input itself is a follow-up, not a
- * blocker to any of that working.
+ * `youtubeUrl` is `type: "youtube"` (`youtube-field-input.tsx`): it checks
+ * the link with `YouTubeValidateView` as soon as it is recognised and
+ * stores the confirmed id in `youtubeVideoId`, which `validation.ts`
+ * requires before checkout. Until 15 Oct 2026 it was plain text and
+ * NOTHING called the check, so `youtubeVideoId` was never set and no
+ * customer could reach checkout at all.
  */
 export const songPosterSchema: FormSchemaConfig = {
   sections: [
@@ -30,7 +27,8 @@ export const songPosterSchema: FormSchemaConfig = {
         { id: "artist", type: "text", label: "fields.artist.label", required: true, maxLength: 60 },
         {
           id: "youtubeUrl",
-          type: "text",
+          type: "youtube",
+          confirmedIdField: "youtubeVideoId",
           label: "fields.youtubeUrl.label",
           helpText: "fields.youtubeUrl.help",
           required: true,

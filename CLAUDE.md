@@ -279,9 +279,38 @@ Two were genuine product bugs: the `layout` default above, and
   print + wallpaper + digital bundle, predating "combos, not a bundle"; whether
   it gets the combo treatment is the owner's open decision. An investigation of
   its Studio, preview and print (15 Oct 2026) found real problems, not yet
-  fixed; the first is that NOTHING in the Studio ever calls
-  `YouTubeValidateView`, so `youtubeVideoId` is never set and no customer can
-  pass the YouTube check to reach checkout at all.
+  fixed. **The YouTube blocker is FIXED (15 Oct 2026):** nothing in the Studio
+  called `YouTubeValidateView`, so `youtubeVideoId` was never set and no
+  customer could reach checkout. The link is now a `youtube` field
+  (`components/studio/generic-form/youtube-field-input.tsx`): it checks a
+  recognised link once the typing pauses (500ms), once per video id, writes the
+  confirmed id beside the link, clears it in the same edit that changes the
+  video, and ignores an answer for a link that has since changed. The endpoint
+  answers with a `code` the Studio translates (`unavailable` for oEmbed's
+  400/401/403/404, `checkFailed` for anything that means "could not check",
+  which offers a retry). Verified through a real checkout on the throwaway
+  database both ways: the Freemius path now stops at
+  `freemius_plan_not_configured` (after the server accepted the project), and
+  the mock-payment path completed a paid order, its downloads and a live page
+  that plays the song. YouTube's oEmbed is intermittently unreachable from the
+  company network (timeouts), which shows as "couldn't check" plus retry, as
+  designed. Still open, found during that checkout: the pack cards show raw
+  keys (`packs.live.name`), because Song Poster's messages define no pack
+  names, the same family as its raw `exports.*` labels.
+- **UNEXPLAINED NAVIGATION TO THE HOME PAGE: a real, currently unreproduced
+  bug (15 Oct 2026).** Three times during browser testing the page jumped to
+  `/en` on its own: twice in the Song Poster Studio (once after switching the
+  style to Mosaic, once on clicking Continue), and once on a paid order's live
+  page a few seconds after it loaded. The owner confirms nobody else was using
+  the browser pane. Each time the dev server logged a plain full-page
+  `GET /en`, with no error in the console or the server log. No code in
+  `frontend-heartfolio/src` navigates there: the only scripted navigations are
+  the locale switcher (same path, other locale), `window.open` for the live URL
+  and the order page's `router.push`. It was not caused by the YouTube fix: the
+  first occurrence came before that work started. It could not be reproduced on
+  demand; with a real click, Continue opened the checkout normally. When the
+  Studio jumped, the customer's unsaved draft (text and photo) was lost.
+  Flagged for whoever investigates next, outside any fix so far.
 - **Graduation Keepsake (`graduation-keepsake`) is VISIBLE on the storefront (15
   Oct 2026), the second live-only product: one `live` pack at $15.99, one story
   told as one of five journeys** (Next Chapter Airways, Mission: Graduation,

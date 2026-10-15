@@ -55,7 +55,7 @@ function validateFields(
       continue;
     }
 
-    if ((field.type === "text" || field.type === "textarea") && field.maxLength && typeof value === "string") {
+    if ((field.type === "text" || field.type === "textarea" || field.type === "youtube") && field.maxLength && typeof value === "string") {
       if (value.length > field.maxLength) {
         errors[field.id] = { code: "maxLength", params: { label: field.label, maxLength: field.maxLength } };
       }

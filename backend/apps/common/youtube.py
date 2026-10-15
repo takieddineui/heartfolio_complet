@@ -86,10 +86,26 @@ def extract_video_id(raw_url: str) -> str | None:
     return None
 
 
+#: Why a link could not be confirmed, as a code the Studio translates (the
+#: `reason` sentences are English and for logs, never shown to a customer).
+UNAVAILABLE = "unavailable"
+CHECK_FAILED = "checkFailed"
+
+#: oEmbed's own "no": 404 for a private or deleted video, 401/403 when the
+#: owner has disabled embedding, 400 for an id that names no video at all
+#: (measured 15 Oct 2026: `watch?v=aaaaaaaaaaa` answers 400). Anything else
+#: means we could not check, and the customer may simply try again.
+_UNAVAILABLE_STATUSES = {400, 401, 403, 404}
+
+
 class YouTubeValidationError(Exception):
-    """Raised for anything that isn't a clean yes/no — a network failure,
-    a malformed oEmbed response — so the view can tell "this video does
-    not exist or cannot be embedded" apart from "we could not check"."""
+    """Raised for anything that isn't a clean yes, with `code` telling
+    "this video cannot be embedded" (`UNAVAILABLE`) apart from "we could
+    not check" (`CHECK_FAILED`)."""
+
+    def __init__(self, message: str, code: str = CHECK_FAILED):
+        super().__init__(message)
+        self.code = code
 
 
 def check_embeddable(video_id: str) -> dict:
@@ -124,10 +140,11 @@ def check_embeddable(video_id: str) -> dict:
     except requests.RequestException as exc:
         raise YouTubeValidationError(f"Could not reach YouTube: {exc}") from exc
 
-    if response.status_code == 404:
+    if response.status_code in _UNAVAILABLE_STATUSES:
         raise YouTubeValidationError(
             "This video is not available for embedding — it may be private, deleted, "
-            "or the owner has disabled embedding."
+            f"or the owner has disabled embedding (YouTube answered {response.status_code}).",
+            code=UNAVAILABLE,
         )
     if response.status_code != 200:
         raise YouTubeValidationError(f"YouTube returned an unexpected response ({response.status_code}).")

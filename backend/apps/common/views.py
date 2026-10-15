@@ -146,18 +146,21 @@ class YouTubeValidateView(APIView):
     def post(self, request):
         from apps.common.youtube import YouTubeValidationError, check_embeddable, extract_video_id
 
-        url = (request.data.get("url") or "").strip()
+        # `code` is what the Studio shows, translated; `reason` is English
+        # and only for logs and debugging.
+        raw = request.data.get("url")
+        url = raw.strip() if isinstance(raw, str) else ""
         if not url:
-            return Response({"valid": False, "reason": "Paste a YouTube link."})
+            return Response({"valid": False, "code": "empty", "reason": "Paste a YouTube link."})
 
         video_id = extract_video_id(url)
         if not video_id:
-            return Response({"valid": False, "reason": "That doesn't look like a YouTube link."})
+            return Response({"valid": False, "code": "notYoutube", "reason": "That doesn't look like a YouTube link."})
 
         try:
             info = check_embeddable(video_id)
         except YouTubeValidationError as exc:
-            return Response({"valid": False, "reason": str(exc)})
+            return Response({"valid": False, "code": exc.code, "reason": str(exc)})
 
         return Response(
             {

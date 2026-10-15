@@ -178,6 +178,18 @@ export interface CoordinatesFieldSchema extends FieldSchemaBase {
 export interface RichTextFieldSchema extends FieldSchemaBase {
   type: "richText";
 }
+/** A YouTube link the backend confirms is playable (`YouTubeValidateView`).
+ * The link is stored exactly as typed in this field's own key; the confirmed
+ * video id goes in `confirmedIdField`, a sibling TOP-LEVEL key, and is cleared
+ * the moment the link changes, so a confirmation never outlives its link.
+ * Top level only. Renderer: `youtube-field-input.tsx`. */
+export interface YouTubeFieldSchema extends FieldSchemaBase {
+  type: "youtube";
+  confirmedIdField: string;
+  maxLength?: number;
+  /** Translation key. */
+  placeholder?: string;
+}
 
 export type FieldSchema =
   | TextFieldSchema
@@ -190,7 +202,8 @@ export type FieldSchema =
   | GroupFieldSchema
   | LocationFieldSchema
   | CoordinatesFieldSchema
-  | RichTextFieldSchema;
+  | RichTextFieldSchema
+  | YouTubeFieldSchema;
 
 /** Fields are grouped into sections purely for the Content panel's
  * headers — every prototype-turned-module organizes its inputs this

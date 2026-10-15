@@ -14,6 +14,7 @@ import {
 } from "@/lib/api/mapbox";
 import { useProductState } from "@/lib/studio/product-state-context";
 import { resolveShellValidationText, resolveValidationMessage } from "@/lib/studio/i18n";
+import { YouTubeFieldInput } from "./youtube-field-input";
 
 const inputClass =
   "h-11 w-full rounded-[var(--radius-md)] border border-subtle bg-page px-3 text-sm text-body placeholder:text-body/40 focus:border-champagne-gold focus:outline-none";
@@ -194,6 +195,11 @@ export function FieldInput({ field, value, onChange, t, id, labelledBy }: FieldI
 
     case "location":
       return <LocationFieldInput id={id} value={value} onChange={onChange} t={t} />;
+
+    case "youtube":
+      // Reads and writes its two keys (the link and its confirmed id)
+      // through the product state itself; see `youtube-field-input.tsx`.
+      return <YouTubeFieldInput id={id} field={field} t={t} inputClass={inputClass} />;
 
     default:
       return (
