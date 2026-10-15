@@ -350,6 +350,20 @@ class OrderCreationTests(TestCase):
         order = create_order(customer, product_slug=SLUG, delivery_pack_slug="live", project_id=project.id)
         self.assertEqual(order.total_cents, 1599)
 
+    def test_a_valid_keepsake_stages_a_freemius_checkout_with_the_real_mapping(self):
+        """Through the REAL, unpatched plan table: before plan 72194 was mapped
+        this raised `FreemiusPlanNotConfigured`."""
+        from django.test import override_settings
+
+        from apps.commerce.services import stage_freemius_checkout
+
+        customer, product = self._setup()
+        project = self._project(customer, product, VALID_VALUES)
+        with override_settings(FREEMIUS_ENABLED=True):
+            staging = stage_freemius_checkout(customer, product_slug=SLUG, delivery_pack_slug="live", project_id=project.id)
+        self.assertEqual(staging.expected_total_cents, 1599)
+        self.assertEqual(staging.project, project)
+
 
 class PaidVoiceMessagesTests(TestCase):
     """A paid order's voice messages lose their expiry; an unpaid project's do
@@ -526,9 +540,9 @@ class CatalogTests(SimpleTestCase):
         self.assertEqual(seed_catalog.validate(self._entry()), [])
         self.assertEqual(_supported_targets(SLUG), {LIVE_TARGET_SENTINEL})
 
-    def test_no_freemius_plan_until_one_is_created(self):
-        """Not for sale yet: `stage_freemius_checkout` refuses an unmapped pack.
-        Mapping the real plan id is a separate, deliberate change."""
+    def test_its_one_pack_has_its_freemius_plan(self):
+        """Plan 72194, created 15 Oct 2026 (pinned with the others in
+        `apps.commerce.tests.FreemiusPlanMappingTests`)."""
         from apps.commerce.freemius_integration import plan_for_pack
 
-        self.assertIsNone(plan_for_pack(SLUG, "live"))
+        self.assertEqual(plan_for_pack(SLUG, "live"), {"plan_id": "72194"})

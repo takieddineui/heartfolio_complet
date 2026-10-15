@@ -3472,6 +3472,26 @@ class FreemiusPlanMappingTests(SimpleTestCase):
         self.assertEqual(packs["live"][1], 1599)
         self.assertIsNotNone(freemius_integration.plan_for_pack("reasons-i-love-you", "live"))
 
+    def test_graduation_keepsake_digital_pack_maps_to_its_own_plan(self):
+        """Plan 72194 is Graduation Keepsake's `live` pack and nothing else: a
+        new plan under the same Freemius product, not one of the other $15.99
+        Digital plans (Love Story Timeline 69404, Reasons I Love You 71990)."""
+        graduation = freemius_integration.plan_for_pack("graduation-keepsake", "live")
+        self.assertEqual(graduation, {"plan_id": "72194"})
+        self.assertNotEqual(graduation, freemius_integration.plan_for_pack("love-story-timeline", "live"))
+        self.assertNotEqual(graduation, freemius_integration.plan_for_pack("reasons-i-love-you", "live"))
+
+    def test_graduation_keepsake_plan_is_for_the_pack_the_catalog_sells(self):
+        """The mapped pack is the one `seed_catalog.py` creates for the product,
+        at the $15.99 the plan was created with."""
+        import seed_catalog
+
+        entry = next(e for e in seed_catalog.CATALOG if e["slug"] == "graduation-keepsake")
+        packs = {pack[0]: pack for pack in entry["packs"]}
+        self.assertEqual(set(packs), {"live"})
+        self.assertEqual(packs["live"][1], 1599)
+        self.assertIsNotNone(freemius_integration.plan_for_pack("graduation-keepsake", "live"))
+
     def test_printable_plus_digital_has_its_own_plan_not_the_retired_complete_one(self):
         """The combo was briefly set up by editing the Complete plan (70518)
         instead of creating a new one. Past Complete licenses are sold on

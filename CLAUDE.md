@@ -36,13 +36,13 @@ monorepo no longer exists, and the stale description broke both
 | Database | **Supabase** | Session-mode Supavisor pooler. Not changed by the move off Railway/Vercel; which database the VPS uses is not settled by this note |
 | Payments | **Three providers exist in code — Paddle, FastSpring, Freemius.** Freemius is the only one wired into checkout, and is still **sandbox** | `FREEMIUS_ENABLED` / `isFreemiusCheckoutActive()` pick it. Paddle and FastSpring are complete code paths left in place, untouched |
 
-**`FREEMIUS_PLAN_MAPPING` covers only `love-story-timeline` and
-`reasons-i-love-you` (plan 71990, its `live` pack)**
+**`FREEMIUS_PLAN_MAPPING` covers only `love-story-timeline`,
+`reasons-i-love-you` (plan 71990, its `live` pack) and `graduation-keepsake`
+(plan 72194, its `live` pack)**
 (`apps/commerce/freemius_integration.py`). There is ONE Freemius product
 (`FREEMIUS_PRODUCT_ID`, one public key, one secret key for webhooks): a new
 product is new PLANS under it, never a second Freemius product, whose webhooks
-would fail the signature check. `heart-map`, `song-poster` and
-`graduation-keepsake` (built, hidden) have no plan, so `stage_freemius_checkout` raises `FreemiusPlanNotConfigured` for
+would fail the signature check. `heart-map` and `song-poster` have no plan, so `stage_freemius_checkout` raises `FreemiusPlanNotConfigured` for
 them: **they cannot be bought through Freemius yet.** Freemius has no custom
 amount and sells one plan per checkout, so every purchasable pack needs its
 own plan, mapped by `"product:pack"` — adding a product's packs means creating
@@ -273,10 +273,11 @@ Two were genuine product bugs: the `layout` default above, and
   Level Complete, The Retrospective, The Summit; `journeys.ts`), all five built.
   Backend `product_renderers/graduation_keepsake/` (`data.py`, `renderer.py`,
   `live_payload.py`), Studio module `lib/studio/product-modules/graduation-keepsake/`,
-  experience `components/live-graduation/`. **Not for sale yet:** no Freemius
-  plan (create one under the existing product, then map
-  `graduation-keepsake:live`), not seeded in Supabase, `hidden: true` (a test
-  pins it). Decided, and not stubbed: no reply or reactions, no report back to
+  experience `components/live-graduation/`. Freemius plan **72194** ($15.99,
+  one-off, single price point, under the existing Freemius product, created 15
+  Oct 2026) is mapped as `graduation-keepsake:live` and pinned by
+  `FreemiusPlanMappingTests`. **Not for sale yet:** not seeded in Supabase (the
+  owner runs the seed), `hidden: true` (a test pins it). Decided, and not stubbed: no reply or reactions, no report back to
   the creator, no collection link, no scheduled send, chapters in a fixed order,
   captions untimed, no edits after purchase, branding always shown, sound
   effects only (no music; the prototype has none either). **Limits approved 14
