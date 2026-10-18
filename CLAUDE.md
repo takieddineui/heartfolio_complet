@@ -155,6 +155,22 @@ compose file mounts `./backend` over `/app` to work around this.
 
 ## Running the tests
 
+**WHICH TESTS TO RUN: the owner's standing policy (18 Oct 2026), for every
+task.**
+- **Default, every change:** run the new tests, the test modules covering the
+  files changed, and the modules that import the changed code. Mutation checks
+  run against those same fast, targeted tests, never against slow full
+  classes. Frontend: always run `typecheck` and `lint` (they are fast).
+- **Full backend and/or frontend suites only when:**
+  - (a) the change touches shared infrastructure used by more than one
+    product (e.g. `apps/delivery/mixed_script.py`, the Studio form engine, the
+    test runner, payment/checkout code, settings); say why in one line when
+    choosing a full run for this reason;
+  - (b) the owner explicitly asks;
+  - (c) before a VPS deploy.
+- **Every report states which tests ran and why that set is sufficient**, so
+  narrow coverage is visible.
+
 Backend — **always** redirect to the throwaway Postgres, never Supabase:
 
 ```
