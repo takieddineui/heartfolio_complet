@@ -336,10 +336,9 @@ Two were genuine product bugs: the `layout` default above, and
   `PLAYER_*` constants in `png_renderer.py`, read against the CSS by
   `player-print-parity.test.ts`. The renders for every other theme, and
   Player's wallpapers, are byte-identical (264 of 288 hashed; the 24 changed
-  are Player's print sizes). Still open from the audit: one-line dedication
-  truncation, print fonts, Arabic tofu in DejaVu Serif, raw
-  `exports.*`/`packs.*` keys, and the product page's false "actual waveform"
-  claim. **Frameless prints FIT, never cut (18 Oct 2026):** `render_png` scaled
+  are Player's print sizes). Still open from the audit: print fonts, Arabic
+  tofu in DejaVu Serif, raw `exports.*`/`packs.*` keys, and the product page's
+  false "actual waveform" claim. **Frameless prints FIT, never cut (18 Oct 2026):** `render_png` scaled
   frameless prints with `max`, cutting off whatever did not fit when the
   paper's shape differs from the design's (Award's "ARDED FOR ONE RECORDING"
   on 8x10; 66.7 design units each side of every portrait theme on the 12x18
@@ -352,6 +351,32 @@ Two were genuine product bugs: the `layout` default above, and
   (16 per text case); 224 are byte-identical. `FramelessFitTests` checks
   that no design pixel touches a page edge and that the composition is whole
   and centred.
+  **Dedications wrap and titles fit in the print (18 Oct 2026):** the print
+  cut every dedication to one line with "…" (a 180-character one lost about
+  half) and cut titles the preview showed whole. Dedications now wrap in full
+  in all seven themes that write one, at the preview's width, size and line
+  height (`DEDICATION_LAYOUT`; Ledger, Ephemeris and Label's `56ch` was
+  measured in the browser as 528.3/544.7/475.5 design units and must be
+  re-measured if their CSS or font changes). Where extra lines go: Player and
+  Award grow UPWARD (Player's last line keeps its place above the bar, Award's
+  plaque is anchored at the bottom), Mosaic's card grows to hold them, the
+  others flow downward. A first line is placed exactly as before, so a
+  one-line dedication prints identically. Titles (`TITLE_LAYOUT`) shrink to
+  `TITLE_MIN_SCALE` (80%) before falling back to "…" at that floor, so the
+  print shows at least what the preview shows; Sleeve's title has two lines,
+  as its preview does (`SLEEVE_TITLE_LINE_HEIGHT` 1.04). Found and fixed on
+  the way: `_mosaic_card_height` mixed pixels and design units, so the card
+  was shorter than its own text and the footer ran under the hearts. Pinned
+  by `DedicationWrapTests` and `TitleFitTests` (the whole dedication printed,
+  nothing leaves the page, overlaps other text or crosses a rule or box) and
+  `song-poster-print-parity.test.ts` (both tables against the CSS). 102 of
+  288 renders changed: every theme at maximum length, and only Ledger, Sleeve
+  and Mosaic otherwise; wallpapers are byte-identical. Sleeve's ring text is
+  out of scope. **Still open, seen in these renders and not fixed:** a long
+  artist touches the title in Ledger and Sleeve; Mosaic's long artist runs
+  into the heart and the wordmark; Award, Label and Mosaic's dedications and
+  Contact Sheet's caption print upright where the preview is italic, because
+  `DejaVuSans-Italic.ttf` is not in the font folder.
 - **UNEXPLAINED NAVIGATION TO THE HOME PAGE: a real, currently unreproduced
   bug (15 Oct 2026).** Three times during browser testing the page jumped to
   `/en` on its own: twice in the Song Poster Studio (once after switching the

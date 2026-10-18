@@ -477,18 +477,30 @@ class PngRenderingTests(TestCase):
             values_with_real_photo(customer, {**VALID_VALUES, "dedication": "A " * 80}), {"theme": "mosaic"}
         )
 
+        from .png_renderer import _dedication_lines
+
         canvas = Image.new("RGB", (10, 10))
         draw = ImageDraw.Draw(canvas)
-        fonts = dict(
-            title_font=_font("DejaVuSans-Bold.ttf", 26, 1.0),
-            artist_font=_font("DejaVuSans.ttf", 14.5, 1.0),
-            dedication_font=_font("DejaVuSans.ttf", 16, 1.0),
-            times_font=_font("DejaVuSansMono.ttf", 13, 1.0),
-            foot_font=_font("DejaVuSans.ttf", 13, 1.0),
-        )
-        h_short = _mosaic_card_height(draw, song_short, **fonts)
-        h_long = _mosaic_card_height(draw, song_long, **fonts)
-        self.assertGreater(h_long, h_short)
+
+        def height(song, scale):
+            fonts = dict(
+                title_font=_font("DejaVuSans-Bold.ttf", 26, scale),
+                artist_font=_font("DejaVuSans.ttf", 14.5, scale),
+                dedication_font=_font("DejaVuSans.ttf", 16, scale),
+                times_font=_font("DejaVuSansMono.ttf", 13, scale),
+                foot_font=_font("DejaVuSans.ttf", 13, scale),
+            )
+            lines, line_height = _dedication_lines(draw, song, "mosaic", fonts["dedication_font"], scale) if song.dedication else ([], 0.0)
+            return _mosaic_card_height(
+                draw, song, scale=scale, title_text=song.track, dedication_lines=lines, dedication_line_height=line_height, **fonts
+            )
+
+        self.assertGreater(height(song_long, 1.0), height(song_short, 1.0))
+        # In DESIGN units, whatever the print scale: it used to mix units, so
+        # at 3x the card came out shorter than its own 340-unit photo.
+        for song in (song_short, song_long):
+            self.assertGreater(height(song, 3.0), 340)
+            self.assertAlmostEqual(height(song, 3.0), height(song, 1.0), delta=6)
 
     def test_all_eight_themes_render_without_error(self):
         """One pass over every registered theme, through the SAME
@@ -713,6 +725,263 @@ class FramelessFitTests(TestCase):
                     # Centred: equal spare paper on opposite sides.
                     self.assertAlmostEqual(ox, (width - drawn_w) / 2)
                     self.assertAlmostEqual(oy, (height - drawn_h) / 2)
+
+
+class _DrawRecorder:
+    """Records every text, line and rectangle a render draws, with each
+    text's real box (`textbbox` with the same arguments)."""
+
+    def __init__(self):
+        self.texts, self.lines, self.rects = [], [], []
+
+    def __enter__(self):
+        from unittest.mock import patch
+
+        from PIL import ImageDraw
+
+        real_text, real_line, real_rect = ImageDraw.ImageDraw.text, ImageDraw.ImageDraw.line, ImageDraw.ImageDraw.rectangle
+        recorder = self
+
+        def text(draw, xy, text, *args, **kwargs):
+            font, anchor = kwargs.get("font"), kwargs.get("anchor")
+            box = draw.textbbox(xy, text, font=font, anchor=anchor) if text else None
+            recorder.texts.append({"text": text, "box": box, "xy": tuple(xy), "size": getattr(font, "size", None), "font": getattr(font, "path", "")})
+            return real_text(draw, xy, text, *args, **kwargs)
+
+        def line(draw, xy, *args, **kwargs):
+            pts = [tuple(p) for p in xy] if not isinstance(xy[0], (int, float)) else [tuple(xy[:2]), tuple(xy[2:4])]
+            w = (kwargs.get("width") or 1) / 2
+            recorder.lines.append((min(p[0] for p in pts) - w, min(p[1] for p in pts) - w, max(p[0] for p in pts) + w, max(p[1] for p in pts) + w))
+            return real_line(draw, xy, *args, **kwargs)
+
+        def rectangle(draw, xy, *args, **kwargs):
+            flat = [c for p in xy for c in (p if isinstance(p, tuple) else (p,))] if not isinstance(xy[0], (int, float)) else list(xy)
+            recorder.rects.append({"box": (min(flat[0], flat[2]), min(flat[1], flat[3]), max(flat[0], flat[2]), max(flat[1], flat[3])), "fill": kwargs.get("fill")})
+            return real_rect(draw, xy, *args, **kwargs)
+
+        self._patches = [patch.object(ImageDraw.ImageDraw, "text", text), patch.object(ImageDraw.ImageDraw, "line", line),
+                         patch.object(ImageDraw.ImageDraw, "rectangle", rectangle)]
+        for active in self._patches:
+            active.start()
+        return self
+
+    def __exit__(self, *exc):
+        for active in self._patches:
+            active.stop()
+
+
+def _intersects(a, b) -> bool:
+    return a[0] < b[2] and b[0] < a[2] and a[1] < b[3] and b[1] < a[3]
+
+
+def _inside(a, b) -> bool:
+    return b[0] <= a[0] and b[1] <= a[1] and a[2] <= b[2] and a[3] <= b[3]
+
+
+class DedicationWrapTests(TestCase):
+    """Every preview WRAPS the dedication in full; the print used to cut it
+    to one line with "…" (fixed 18 Oct 2026). The print wraps it at the
+    preview's width, size and line height (`DEDICATION_LAYOUT`), and each
+    theme puts the extra lines where its preview does."""
+
+    THEMES_WITH_DEDICATION = ("player", "ledger", "ephemeris", "contactsheet", "label", "award", "mosaic")
+    TEXTS = {
+        "realistic": "For the summer we drove to the sea with the windows down.",
+        "max": (
+            "For the summer we drove to the sea with the windows down and this song on repeat, and every "
+            "summer since; you sang the wrong words every time and I never once corrected you, love x"
+        )[:180],
+        "one long word": "x" * 180,
+    }
+
+    def _render(self, theme, dedication, customer, photo, target="print-classic-frameless"):
+        song = validate_and_normalize({**VALID_VALUES, "photo": photo, "dedication": dedication}, {"theme": theme})
+        with _DrawRecorder() as drawn:
+            content = render_png(song, target_id=target, customer=customer)
+        with Image.open(io.BytesIO(content)) as img:
+            page = (0, 0, *img.size)
+        return drawn, page
+
+    def _dedication_run(self, drawn, dedication):
+        """The consecutive text calls that spell the whole dedication."""
+        wanted = " ".join(dedication.split())
+        texts = [t["text"] for t in drawn.texts]
+        for start in range(len(texts)):
+            for end in range(start + 1, len(texts) + 1):
+                joined = " ".join(texts[start:end]) if " " in wanted else "".join(texts[start:end])
+                if joined == wanted:
+                    return drawn.texts[start:end]
+                if len(joined) > len(wanted):
+                    break
+        return None
+
+    def test_the_whole_dedication_is_printed_and_nothing_overlaps_or_leaves_the_page(self):
+        customer = make_customer()
+        photo = values_with_real_photo(customer)["photo"]
+        for theme in self.THEMES_WITH_DEDICATION:
+            for case, dedication in self.TEXTS.items():
+                with self.subTest(theme=theme, text=case):
+                    drawn, page = self._render(theme, dedication, customer, photo)
+                    run = self._dedication_run(drawn, dedication)
+                    self.assertIsNotNone(run, f"the dedication is not printed whole: {[t['text'] for t in drawn.texts]}")
+                    self.assertFalse(any("…" in t["text"] for t in run))
+                    others = [t for t in drawn.texts if t not in run and t["box"]]
+                    for line in run:
+                        box = line["box"]
+                        self.assertTrue(_inside(box, page), f"{line['text']!r} leaves the page")
+                        for other in others:
+                            self.assertFalse(_intersects(box, other["box"]), f"{line['text']!r} overlaps {other['text']!r}")
+                        for rule in drawn.lines:
+                            self.assertFalse(_intersects(box, rule), f"{line['text']!r} crosses a rule")
+                        for rect in drawn.rects:
+                            if rect["box"][2] - rect["box"][0] >= page[2] - 1:
+                                continue  # a full-width background
+                            self.assertTrue(
+                                _inside(box, rect["box"]) or not _intersects(box, rect["box"]),
+                                f"{line['text']!r} crosses the border of a box",
+                            )
+
+    def test_lines_are_spaced_by_the_previews_line_height(self):
+        from . import png_renderer
+
+        customer = make_customer()
+        photo = values_with_real_photo(customer)["photo"]
+        for theme in self.THEMES_WITH_DEDICATION:
+            with self.subTest(theme=theme):
+                drawn, _ = self._render(theme, self.TEXTS["max"], customer, photo)
+                run = self._dedication_run(drawn, self.TEXTS["max"])
+                self.assertGreaterEqual(len(run), 2)
+                _, size, line_height = png_renderer.DEDICATION_LAYOUT[theme]
+                renderers = png_renderer._THEME_RENDERERS[theme]
+                design_w = renderers.get("design_w", png_renderer.DESIGN_W)
+                design_h = renderers.get("design_h", png_renderer.DESIGN_H)
+                page_w, page_h = (3000, 2400) if design_w > design_h else (2400, 3000)
+                scale = min(page_w / design_w, page_h / design_h)
+                step = size * line_height * scale
+                anchors = [line["xy"][1] for line in run]
+                for upper, lower in zip(anchors, anchors[1:]):
+                    self.assertAlmostEqual(lower - upper, step, delta=1)  # pt() rounds to whole pixels
+
+    def test_player_grows_upward_from_its_last_line(self):
+        customer = make_customer()
+        photo = values_with_real_photo(customer)["photo"]
+        one, _ = self._render("player", self.TEXTS["realistic"], customer, photo)
+        many, _ = self._render("player", self.TEXTS["max"], customer, photo)
+        last_one = self._dedication_run(one, self.TEXTS["realistic"])[-1]["xy"]
+        last_many = self._dedication_run(many, self.TEXTS["max"])[-1]["xy"]
+        self.assertEqual(last_one, last_many)  # the last line keeps its place; the others stack above it
+
+    def test_awards_plaque_grows_upward_and_mosaics_card_holds_every_line(self):
+        customer = make_customer()
+        photo = values_with_real_photo(customer)["photo"]
+        for theme, fill in (("award", "#8c6a34"), ("mosaic", "#0e0f10")):
+            with self.subTest(theme=theme):
+                short, _ = self._render(theme, self.TEXTS["realistic"], customer, photo)
+                long, _ = self._render(theme, self.TEXTS["max"], customer, photo)
+                [short_box] = [r["box"] for r in short.rects if r["fill"] == fill]
+                [long_box] = [r["box"] for r in long.rects if r["fill"] == fill]
+                self.assertGreater(long_box[3] - long_box[1], short_box[3] - short_box[1])
+                if theme == "award":
+                    self.assertEqual(long_box[3], short_box[3])  # anchored at the bottom
+                for line in self._dedication_run(long, self.TEXTS["max"]):
+                    self.assertTrue(_inside(line["box"], long_box))
+                # ...and so does everything below the dedication: the plaque's or
+                # card's own footer must not be pushed out of it by the extra lines.
+                [footer] = [t for t in long.texts if t["text"].endswith("HEARTFOLIO")]
+                self.assertTrue(_inside(footer["box"], long_box), f"{footer['text']!r} is pushed out of the {theme} box")
+
+    def test_mosaics_card_holds_all_its_text(self):
+        """The card's height used to mix design units with pixel heights, so at
+        3x it came out shorter than its own photo and the text ran off it."""
+        customer = make_customer()
+        photo = values_with_real_photo(customer)["photo"]
+        for case, dedication in (("none", ""), *self.TEXTS.items()):
+            with self.subTest(text=case):
+                drawn, _ = self._render("mosaic", dedication, customer, photo)
+                [card] = [r["box"] for r in drawn.rects if r["fill"] == "#0e0f10"]
+                # Everything on the card; the page's own attribution mark sits at
+                # the page's corner by design (`_draw_attribution`).
+                card_texts = [t for t in drawn.texts if t["box"] and t["box"][1] >= card[1] and t["text"] != "theheartfolio.com"]
+                self.assertTrue(card_texts)
+                for text in card_texts:
+                    self.assertTrue(_inside(text["box"], card), f"{text['text']!r} runs off the card")
+
+
+class TitleFitTests(TestCase):
+    """A title shrinks to fit, down to 80% of its design size, before it is
+    cut with "…" (owner's decision, 18 Oct 2026); Sleeve's may use two
+    lines, as its preview does."""
+
+    TITLES = (
+        "Here Comes the Sun",
+        "Ne me quitte pas",
+        "The Long and Winding Road",
+        "The Long and Winding Road That Leads",
+        "The Long and Winding Road That Leads Me Back to Your Door Ag",
+        "أحبك أكثر من أي شيء",
+    )
+
+    def _fits(self, theme):
+        """Every `_fit_title` call a render makes: its inputs and its answer."""
+        from unittest.mock import patch
+
+        from . import png_renderer
+
+        calls = []
+        real = png_renderer._fit_title
+
+        def spy(draw, text, theme_id, scale, max_width):
+            lines, font = real(draw, text, theme_id, scale, max_width)
+            calls.append({"draw": draw, "text": text, "scale": scale, "max_width": max_width, "lines": lines, "font": font})
+            return lines, font
+
+        return patch.object(png_renderer, "_fit_title", spy), calls
+
+    def test_a_title_is_cut_only_at_the_floor_and_never_when_it_fits_there(self):
+        from . import png_renderer
+
+        customer = make_customer()
+        photo = values_with_real_photo(customer)["photo"]
+        for theme in THEMES:
+            font_file, size, max_lines = png_renderer.TITLE_LAYOUT[theme]
+            for title in self.TITLES:
+                with self.subTest(theme=theme, title=title):
+                    song = validate_and_normalize({**VALID_VALUES, "photo": photo, "track": title}, {"theme": theme})
+                    patcher, calls = self._fits(theme)
+                    with patcher, _DrawRecorder() as drawn:
+                        render_png(song, target_id="print-classic-frameless", customer=customer)
+                    [call] = calls
+                    draw, scale, width, lines, font = call["draw"], call["scale"], call["max_width"], call["lines"], call["font"]
+                    full = png_renderer._font(font_file, size, scale)
+                    floor = png_renderer._font(font_file, size * png_renderer.TITLE_MIN_SCALE, scale)
+                    self.assertLessEqual(len(lines), max_lines)
+                    self.assertGreaterEqual(font.size, floor.size)
+                    for line in lines:
+                        self.assertLessEqual(draw.textlength(line, font=font), width)
+                    drawn_texts = [t["text"] for t in drawn.texts]
+                    for line in lines:
+                        self.assertIn(line, drawn_texts)
+                    if any("…" in line for line in lines):
+                        self.assertEqual(font.size, floor.size, "cut before reaching the floor")
+                        if max_lines == 1:
+                            self.assertGreater(draw.textlength(title, font=floor), width, "cut although it fits at the floor")
+                    else:
+                        self.assertEqual(" ".join(lines), title)
+                        if font.size < full.size and max_lines == 1:
+                            self.assertGreater(draw.textlength(title, font=full), width, "shrunk although it fits at full size")
+
+    def test_the_titles_the_audit_found_cut_now_print_whole(self):
+        customer = make_customer()
+        photo = values_with_real_photo(customer)["photo"]
+        for theme in ("ledger", "sleeve"):
+            with self.subTest(theme=theme):
+                song = validate_and_normalize({**VALID_VALUES, "photo": photo, "track": "Here Comes the Sun"}, {"theme": theme})
+                patcher, calls = self._fits(theme)
+                with patcher:
+                    render_png(song, target_id="print-classic-frameless", customer=customer)
+                self.assertEqual(" ".join(calls[0]["lines"]), "Here Comes the Sun")
+        # Sleeve keeps its full size and takes a second line, as its preview does.
+        self.assertEqual(len(calls[0]["lines"]), 2)
 
 
 class RendererTests(TestCase):

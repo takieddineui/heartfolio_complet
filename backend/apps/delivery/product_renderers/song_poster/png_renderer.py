@@ -104,6 +104,117 @@ def _fit_text(draw: ImageDraw.ImageDraw, text: str, font: ImageFont.FreeTypeFont
     return text[:low] + ellipsis if low > 0 else ellipsis
 
 
+#: A title SHRINKS to fit before it is cut, down to this fraction of its
+#: design size (owner's decision, 18 Oct 2026, the principle of Love Story
+#: Timeline's fit floor): DejaVu is wider than the preview's fonts, so a title
+#: the preview shows whole used to print as "Here Comes the …". Only at the
+#: floor does it fall back to "…".
+TITLE_MIN_SCALE = 0.8
+_TITLE_SCALE_STEP = 0.02
+
+#: Each theme's title, as its preview sets it: (font file, design size, lines).
+#: Every preview cuts its title to one line with "…" except Sleeve's, which
+#: allows two (`-webkit-line-clamp: 2`). Sizes pinned against the CSS by
+#: `song-poster-print-parity.test.ts`.
+TITLE_LAYOUT = {
+    "player": ("DejaVuSans-Bold.ttf", 40.0, 1),
+    "ledger": ("DejaVuSans-Bold.ttf", 66.0, 1),
+    "ephemeris": ("DejaVuSerif.ttf", 56.0, 1),
+    "contactsheet": ("DejaVuSans-Bold.ttf", 34.0, 1),
+    "label": ("DejaVuSans-Bold.ttf", 38.0, 1),
+    "award": ("DejaVuSans-Bold.ttf", 44.0, 1),
+    "sleeve": ("DejaVuSans-Bold.ttf", 46.0, 2),
+    "mosaic": ("DejaVuSans-Bold.ttf", 26.0, 1),
+}
+#: Sleeve's two title lines sit `line-height: 1.04` apart, as in its CSS.
+SLEEVE_TITLE_LINE_HEIGHT = 1.04
+
+#: Each theme's dedication as its preview sets it, in design units: (wrap
+#: width, font size, line height as a multiple of the size). Measured in the
+#: browser (18 Oct 2026) and pinned against the CSS by
+#: `song-poster-print-parity.test.ts`. Every preview WRAPS the dedication in
+#: full, with no line limit; the print used to cut it to one line with "…".
+#: Ledger, Ephemeris and Label size theirs `max-width: 56ch`, which only the
+#: preview's own font turns into a width, so the measured width is used;
+#: Ledger and Ephemeris set no line height and inherit the page's 1.5.
+DEDICATION_LAYOUT = {
+    "player": (680.0, 13.5, 1.5),
+    "ledger": (528.3, 15.0, 1.5),
+    "ephemeris": (544.7, 15.0, 1.5),
+    "contactsheet": (560.0, 14.0, 1.55),
+    "label": (475.5, 13.5, 1.5),
+    "award": (1016.0, 13.0, 1.5),
+    "mosaic": (508.0, 16.0, 1.5),
+}
+
+
+def _wrap_text(draw: ImageDraw.ImageDraw, text: str, font: ImageFont.FreeTypeFont, max_width: float, *, break_long_words: bool = True) -> list[str]:
+    """Greedy word wrap to `max_width` px, the way the preview's CSS wraps
+    (`white-space: normal`: any run of whitespace, newlines included, is one
+    space). A single word wider than the line is broken by character when
+    `break_long_words`, so a dedication of one enormous word still stays on
+    the page; titles keep their words whole and shrink or cut instead."""
+    lines: list[str] = []
+    current = ""
+    for word in text.split():
+        candidate = f"{current} {word}" if current else word
+        if draw.textlength(candidate, font=font) <= max_width:
+            current = candidate
+            continue
+        if current:
+            lines.append(current)
+            current = ""
+        while break_long_words and len(word) > 1 and draw.textlength(word, font=font) > max_width:
+            low, high = 1, len(word) - 1
+            while low < high:
+                mid = (low + high + 1) // 2
+                if draw.textlength(word[:mid], font=font) <= max_width:
+                    low = mid
+                else:
+                    high = mid - 1
+            lines.append(word[:low])
+            word = word[low:]
+        current = word
+    if current:
+        lines.append(current)
+    return lines
+
+
+def _fit_title(draw: ImageDraw.ImageDraw, text: str, theme: str, scale: float, max_width: float) -> tuple[list[str], ImageFont.FreeTypeFont]:
+    """The title's lines and font. At full size when it fits (exactly as
+    before); otherwise the largest size down to `TITLE_MIN_SCALE` at which it
+    fits in the theme's lines; at that floor, cut with "…"."""
+    font_file, size, max_lines = TITLE_LAYOUT[theme]
+    steps = round((1 - TITLE_MIN_SCALE) / _TITLE_SCALE_STEP)
+    font = _font(font_file, size, scale)
+    for i in range(steps + 1):
+        font = _font(font_file, size * (1 - i * _TITLE_SCALE_STEP), scale)
+        if max_lines == 1:
+            if draw.textlength(text, font=font) <= max_width:
+                return [text], font
+            continue
+        lines = _wrap_text(draw, text, font, max_width, break_long_words=False)
+        if len(lines) <= max_lines and all(draw.textlength(line, font=font) <= max_width for line in lines):
+            return lines, font
+    if max_lines == 1:
+        return [_fit_text(draw, text, font, max_width)], font
+    lines = _wrap_text(draw, text, font, max_width, break_long_words=False)
+    kept: list[str] = []
+    for line in lines[: max_lines - 1]:
+        if draw.textlength(line, font=font) > max_width:
+            break
+        kept.append(line)
+    rest = " ".join(lines[len(kept):])
+    return kept + [_fit_text(draw, rest, font, max_width)], font
+
+
+def _dedication_lines(draw: ImageDraw.ImageDraw, song, theme: str, font, scale: float) -> tuple[list[str], float]:
+    """The dedication wrapped to its theme's preview width, and the distance
+    between its lines in design units."""
+    width, size, line_height = DEDICATION_LAYOUT[theme]
+    return _wrap_text(draw, song.dedication, font, width * scale), size * line_height
+
+
 def _paste_photo_cover(image: Image.Image, *, customer, asset_id: str, box: tuple[int, int, int, int]) -> None:
     """Rectangular cover-fit crop into `box` — the same ownership-checked
     asset resolution Love Story Timeline's `_paste_photo` uses, but for
@@ -180,7 +291,7 @@ def _draw_player(canvas: Image.Image, song: NormalizedSongPoster, *, scale: floa
     cursor_y = photo_top + photo_height + 24  # `.pl-head`'s margin-top
     title_x, title_y = pt(60, cursor_y)
     max_title_w = 800 * scale - 60 * scale - 60 * scale - 30 * scale  # leaves room for the heart glyph
-    title_text = _fit_text(draw, song.track, title_font, max_title_w)
+    [title_text], title_font = _fit_title(draw, song.track, "player", scale, max_title_w)
     draw.text((title_x, title_y), title_text, font=title_font, fill=_INK)
     title_box = draw.textbbox((title_x, title_y), title_text, font=title_font)
     cursor_y += (title_box[3] - title_box[1]) / scale + 7  # `.pl-title`'s own margin-bottom
@@ -237,8 +348,12 @@ def _draw_player(canvas: Image.Image, song: NormalizedSongPoster, *, scale: floa
             if (_FONT_DIR / "DejaVuSerif-Italic.ttf").exists()
             else _font("DejaVuSans.ttf", PLAYER_MESSAGE_SIZE_PX, scale)
         )
-        msg = _fit_text(draw, song.dedication, msg_font, (800 - 2 * PLAYER_MESSAGE_INSET_PX) * scale)
-        draw.text(pt(400, player_message_centre_y()), msg, font=msg_font, fill=_SOFT, anchor="mm")
+        # Wrapped like the preview; the block is anchored at its bottom, so
+        # extra lines grow UPWARD from the last line's place.
+        lines, line_height = _dedication_lines(draw, song, "player", msg_font, scale)
+        for i, line in enumerate(lines):
+            centre_y = player_message_centre_y() - (len(lines) - 1 - i) * line_height
+            draw.text(pt(400, centre_y), line, font=msg_font, fill=_SOFT, anchor="mm")
 
 
 def player_message_centre_y() -> float:
@@ -316,7 +431,7 @@ def _draw_ledger(canvas: Image.Image, song: NormalizedSongPoster, *, scale: floa
     cursor_y += 1 / scale + 26  # rule height + `.lg-rule`'s margin-bottom
 
     # --- title / artist --------------------------------------------
-    title_text = _fit_text(draw, song.track, title_font, 692 * scale)
+    [title_text], title_font = _fit_title(draw, song.track, "ledger", scale, 692 * scale)
     draw.text(pt(54, cursor_y), title_text, font=title_font, fill=ink)
     title_box = draw.textbbox(pt(54, cursor_y), title_text, font=title_font)
     cursor_y += (title_box[3] - title_box[1]) / scale + 6
@@ -374,8 +489,9 @@ def _draw_ledger(canvas: Image.Image, song: NormalizedSongPoster, *, scale: floa
 
     # --- dedication --------------------------------------------------
     if song.dedication:
-        msg = _fit_text(draw, song.dedication, dedication_font, 692 * scale)
-        draw.text(pt(54, cursor_y), msg, font=dedication_font, fill=soft)
+        lines, line_height = _dedication_lines(draw, song, "ledger", dedication_font, scale)
+        for i, line in enumerate(lines):
+            draw.text(pt(54, cursor_y + i * line_height), line, font=dedication_font, fill=soft)
 
     # --- foot: artist + wordmark, anchored to the sheet's own bottom --
     foot_y = DESIGN_H - 40 - 13.5
@@ -498,7 +614,7 @@ def _draw_ephemeris(canvas: Image.Image, song: NormalizedSongPoster, *, scale: f
     cursor_y = plate_top + plate_size + 26
 
     # --- title / artist, centred ---------------------------------------
-    title_text = _fit_text(draw, song.track, title_font, 688 * scale)
+    [title_text], title_font = _fit_title(draw, song.track, "ephemeris", scale, 688 * scale)
     tw = draw.textlength(title_text, font=title_font)
     draw.text((ox + 400 * scale - tw / 2, pt(0, cursor_y)[1]), title_text, font=title_font, fill=ink)
     title_box = draw.textbbox((0, 0), title_text, font=title_font)
@@ -512,9 +628,10 @@ def _draw_ephemeris(canvas: Image.Image, song: NormalizedSongPoster, *, scale: f
 
     # --- dedication, centred, italic ------------------------------------
     if song.dedication:
-        msg = _fit_text(draw, song.dedication, dedication_font, 688 * scale)
-        mw = draw.textlength(msg, font=dedication_font)
-        draw.text((ox + 400 * scale - mw / 2, pt(0, cursor_y)[1]), msg, font=dedication_font, fill=soft)
+        lines, line_height = _dedication_lines(draw, song, "ephemeris", dedication_font, scale)
+        for i, line in enumerate(lines):
+            mw = draw.textlength(line, font=dedication_font)
+            draw.text((ox + 400 * scale - mw / 2, pt(0, cursor_y + i * line_height)[1]), line, font=dedication_font, fill=soft)
 
     # --- foot: artist + wordmark, anchored to the sheet's own bottom ----
     foot_y = DESIGN_H - 78 - 13.5
@@ -630,7 +747,7 @@ def _draw_contact_sheet(canvas: Image.Image, song: NormalizedSongPoster, *, scal
     cursor_y = grid_top + 2 * frame_height + gap + 22  # `.cs-title`'s margin-top
 
     # --- title / artist --------------------------------------------
-    title_text = _fit_text(draw, song.track, title_font, 700 * scale)
+    [title_text], title_font = _fit_title(draw, song.track, "contactsheet", scale, 700 * scale)
     draw.text(pt(50, cursor_y), title_text, font=title_font, fill=ink)
     title_box = draw.textbbox(pt(50, cursor_y), title_text, font=title_font)
     cursor_y += (title_box[3] - title_box[1]) / scale + 6
@@ -655,8 +772,9 @@ def _draw_contact_sheet(canvas: Image.Image, song: NormalizedSongPoster, *, scal
 
     # --- dedication caption ------------------------------------------
     if song.dedication:
-        msg = _fit_text(draw, song.dedication, caption_font, 560 * scale)
-        draw.text(pt(50, cursor_y), msg, font=caption_font, fill=ink)
+        lines, line_height = _dedication_lines(draw, song, "contactsheet", caption_font, scale)
+        for i, line in enumerate(lines):
+            draw.text(pt(50, cursor_y + i * line_height), line, font=caption_font, fill=ink)
 
     # --- foot ----------------------------------------------------------
     foot_y = DESIGN_H - 42 - 14
@@ -751,7 +869,7 @@ def _draw_label(canvas: Image.Image, song: NormalizedSongPoster, *, scale: float
     cursor_y = disc_top + disc_size + 26  # `.lb-title`'s margin-top
 
     # --- title / artist, centred ---------------------------------------
-    title_text = _fit_text(draw, song.track, title_font, 680 * scale)
+    [title_text], title_font = _fit_title(draw, song.track, "label", scale, 680 * scale)
     tw = draw.textlength(title_text, font=title_font)
     draw.text((ox + 400 * scale - tw / 2, pt(0, cursor_y)[1]), title_text, font=title_font, fill=ink)
     title_box = draw.textbbox((0, 0), title_text, font=title_font)
@@ -765,9 +883,10 @@ def _draw_label(canvas: Image.Image, song: NormalizedSongPoster, *, scale: float
 
     # --- dedication, centred ---------------------------------------------
     if song.dedication:
-        msg = _fit_text(draw, song.dedication, dedication_font, 680 * scale)
-        mw = draw.textlength(msg, font=dedication_font)
-        draw.text((ox + 400 * scale - mw / 2, pt(0, cursor_y)[1]), msg, font=dedication_font, fill=soft)
+        lines, line_height = _dedication_lines(draw, song, "label", dedication_font, scale)
+        for i, line in enumerate(lines):
+            mw = draw.textlength(line, font=dedication_font)
+            draw.text((ox + 400 * scale - mw / 2, pt(0, cursor_y + i * line_height)[1]), line, font=dedication_font, fill=soft)
 
     # --- foot ----------------------------------------------------------
     foot_y = DESIGN_H - 44 - 14
@@ -873,7 +992,7 @@ def _draw_award(canvas: Image.Image, song: NormalizedSongPoster, *, scale: float
     draw.ellipse([centre_dot[0][0], centre_dot[0][1], centre_dot[1][0], centre_dot[1][1]], fill=ink)
 
     info_cursor_y = disc_top + 220 + 26  # disc's own 220px height + its margin-bottom
-    title_text = _fit_text(draw, song.track, title_font, (AWARD_DESIGN_W - info_x - 72) * scale)
+    [title_text], title_font = _fit_title(draw, song.track, "award", scale, (AWARD_DESIGN_W - info_x - 72) * scale)
     draw.text(pt(info_x, info_cursor_y), title_text, font=title_font, fill=ink)
     title_box = draw.textbbox(pt(info_x, info_cursor_y), title_text, font=title_font)
     info_cursor_y += (title_box[3] - title_box[1]) / scale + 8
@@ -885,16 +1004,19 @@ def _draw_award(canvas: Image.Image, song: NormalizedSongPoster, *, scale: float
     plaque_bottom = AWARD_DESIGN_H - 36.0
     pad_x, pad_y = 20.0, 16.0
 
+    # The plaque is anchored at the bottom: every extra dedication line makes
+    # it taller, growing UPWARD, as the preview's does.
     lines: list[str] = []
+    line_height = 0.0
     if song.dedication:
-        lines.append(_fit_text(draw, song.dedication, plaque_font, (plaque_right - plaque_left - pad_x * 2) * scale))
+        lines, line_height = _dedication_lines(draw, song, "award", plaque_font, scale)
 
     foot_text = f"{song.artist.upper()} · HEARTFOLIO"
     rule_h = 1.0
     content_h = rule_h + 10  # rule + its own margin-bottom
     if lines:
         box = draw.textbbox((0, 0), lines[0], font=plaque_font)
-        content_h += (box[3] - box[1]) / scale + 8
+        content_h += (box[3] - box[1]) / scale + (len(lines) - 1) * line_height + 8
     foot_box = draw.textbbox((0, 0), foot_text, font=plaque_foot_font)
     content_h += (foot_box[3] - foot_box[1]) / scale
 
@@ -908,10 +1030,11 @@ def _draw_award(canvas: Image.Image, song: NormalizedSongPoster, *, scale: float
     inner_cursor += rule_h + 10
 
     if lines:
-        lw = draw.textlength(lines[0], font=plaque_font)
-        draw.text((ox + rule_cx * scale - lw / 2, pt(0, inner_cursor)[1]), lines[0], font=plaque_font, fill=plaque_ink)
+        for i, line in enumerate(lines):
+            lw = draw.textlength(line, font=plaque_font)
+            draw.text((ox + rule_cx * scale - lw / 2, pt(0, inner_cursor + i * line_height)[1]), line, font=plaque_font, fill=plaque_ink)
         box = draw.textbbox((0, 0), lines[0], font=plaque_font)
-        inner_cursor += (box[3] - box[1]) / scale + 8
+        inner_cursor += (box[3] - box[1]) / scale + (len(lines) - 1) * line_height + 8
 
     fw = draw.textlength(foot_text, font=plaque_foot_font)
     draw.text((ox + rule_cx * scale - fw / 2, pt(0, inner_cursor)[1]), foot_text, font=plaque_foot_font, fill=plaque_ink)
@@ -1126,10 +1249,13 @@ def _draw_sleeve(canvas: Image.Image, song: NormalizedSongPoster, *, scale: floa
 
     cursor_y += mark_size + 24  # `.sv-head`'s margin-bottom
 
-    title_text = _fit_text(draw, song.track, title_font, (info_right - info_x) * scale)
-    draw.text(pt(info_x, cursor_y), title_text, font=title_font, fill=ink)
-    title_box = draw.textbbox(pt(info_x, cursor_y), title_text, font=title_font)
-    cursor_y += (title_box[3] - title_box[1]) / scale + 8
+    # Up to two lines, as the preview's `-webkit-line-clamp: 2` allows.
+    title_lines, title_font = _fit_title(draw, song.track, "sleeve", scale, (info_right - info_x) * scale)
+    title_step = title_font.size / scale * SLEEVE_TITLE_LINE_HEIGHT
+    for i, line in enumerate(title_lines):
+        draw.text(pt(info_x, cursor_y + i * title_step), line, font=title_font, fill=ink)
+    title_box = draw.textbbox(pt(info_x, cursor_y), title_lines[0], font=title_font)
+    cursor_y += (title_box[3] - title_box[1]) / scale + (len(title_lines) - 1) * title_step + 8
 
     draw.text(pt(info_x, cursor_y), song.artist.upper(), font=artist_font, fill=soft)
 
@@ -1185,30 +1311,30 @@ def _draw_vector_heart(canvas: Image.Image, *, cx: float, cy: float, size: float
     canvas.paste(rotated, (round(cx - tile.width / 2), round(cy - tile.height / 2)), rotated)
 
 
-def _mosaic_card_height(draw, song: NormalizedSongPoster, *, title_font, artist_font, dedication_font, times_font, foot_font) -> float:
-    """The card's total height depends on whether a dedication exists
-    and how long it is — computed once, DRY-RUN style, so the card can
-    be vertically centred (`top:50%; transform:translateY(-50%)` in the
-    CSS) before anything is actually drawn, rather than guessed."""
+def _mosaic_card_height(draw, song: NormalizedSongPoster, *, scale, title_text, title_font, artist_font, dedication_lines, dedication_font, dedication_line_height, times_font, foot_font) -> float:
+    """The card's total height IN DESIGN UNITS, which depends on the title's
+    fitted size and the dedication's wrapped lines: computed once, DRY-RUN
+    style, so the card can be vertically centred (`top:50%;
+    transform:translateY(-50%)` in the CSS) before anything is drawn. It
+    follows `_draw_mosaic`'s own steps exactly.
+
+    UNITS FIXED 18 Oct 2026: this used to add design-unit constants (the
+    340-unit photo) to PIXEL text heights and the caller divided the sum by
+    the print scale, so at 3x the card came out shorter than its own photo
+    and the text ran off it onto the dark ground, under the marks."""
+    def h(text, font) -> float:
+        box = draw.textbbox((0, 0), text or " ", font=font)
+        return (box[3] - box[1]) / scale
+
     height = 340.0  # `.ms-hero .art`'s fixed photo height
     height += 20  # `.ms-hero-body`'s own top padding
-
-    title_box = draw.textbbox((0, 0), song.track or " ", font=title_font)
-    height += (title_box[3] - title_box[1]) + 3
-    artist_box = draw.textbbox((0, 0), song.artist or " ", font=artist_font)
-    height += artist_box[3] - artist_box[1]
-
-    height += 16 + 20  # `.ms-progress`'s margin-top + its own height
-    times_box = draw.textbbox((0, 0), "0:00", font=times_font)
-    height += 5 + (times_box[3] - times_box[1])  # `.ms-times`'s margin-top
-
-    if song.dedication:
-        ded_box = draw.textbbox((0, 0), song.dedication, font=dedication_font)
-        height += 16 + (ded_box[3] - ded_box[1])
-
-    foot_box = draw.textbbox((0, 0), "A", font=foot_font)
-    height += 10 + (foot_box[3] - foot_box[1])  # `.ms-foot`'s margin-top
-
+    height += h(title_text, title_font) + 3
+    height += h(song.artist.upper(), artist_font)
+    height += 16 + 20 + 5  # `.ms-progress`'s margin-top + its height + `.ms-times`'s margin-top
+    height += h("0:00", times_font)
+    if dedication_lines:
+        height += 16 + h(dedication_lines[0], dedication_font) + (len(dedication_lines) - 1) * dedication_line_height
+    height += 10 + h(song.artist.upper(), foot_font)  # `.ms-foot`'s margin-top
     height += 24  # `.ms-hero-body`'s own bottom padding
     return height
 
@@ -1243,7 +1369,17 @@ def _draw_mosaic(canvas: Image.Image, song: NormalizedSongPoster, *, scale: floa
 
     # --- the card, vertically and horizontally centred -------------------
     card_w = 560.0
-    card_h = _mosaic_card_height(draw, song, title_font=title_font, artist_font=artist_font, dedication_font=dedication_font, times_font=times_font, foot_font=foot_font) / scale
+    body_w = card_w - 2 * 26
+    [title_text], title_font = _fit_title(draw, song.track, "mosaic", scale, (body_w - 30) * scale)
+    dedication_lines: list[str] = []
+    dedication_line_height = 0.0
+    if song.dedication:
+        dedication_lines, dedication_line_height = _dedication_lines(draw, song, "mosaic", dedication_font, scale)
+    card_h = _mosaic_card_height(
+        draw, song, scale=scale, title_text=title_text, title_font=title_font, artist_font=artist_font,
+        dedication_lines=dedication_lines, dedication_font=dedication_font,
+        dedication_line_height=dedication_line_height, times_font=times_font, foot_font=foot_font,
+    )
     card_left = (DESIGN_W - card_w) / 2
     card_top = (DESIGN_H - card_h) / 2
 
@@ -1281,7 +1417,6 @@ def _draw_mosaic(canvas: Image.Image, song: NormalizedSongPoster, *, scale: floa
     body_right = card_left + card_w - 26
     cursor_y = card_top + 340 + 20
 
-    title_text = _fit_text(draw, song.track, title_font, (body_right - body_left - 30) * scale)
     draw.text(pt(body_left, cursor_y), title_text, font=title_font, fill=ink)
     title_box = draw.textbbox(pt(body_left, cursor_y), title_text, font=title_font)
     cursor_y += (title_box[3] - title_box[1]) / scale + 3
@@ -1311,12 +1446,12 @@ def _draw_mosaic(canvas: Image.Image, song: NormalizedSongPoster, *, scale: floa
     cursor_y += (times_box[3] - times_box[1]) / scale
 
     # --- dedication ------------------------------------------------------
-    if song.dedication:
+    if dedication_lines:
         cursor_y += 16
-        msg = _fit_text(draw, song.dedication, dedication_font, (body_right - body_left) * scale)
-        draw.text(pt(body_left, cursor_y), msg, font=dedication_font, fill=soft)
-        msg_box = draw.textbbox(pt(body_left, cursor_y), msg, font=dedication_font)
-        cursor_y += (msg_box[3] - msg_box[1]) / scale
+        for i, line in enumerate(dedication_lines):
+            draw.text(pt(body_left, cursor_y + i * dedication_line_height), line, font=dedication_font, fill=soft)
+        msg_box = draw.textbbox(pt(body_left, cursor_y), dedication_lines[0], font=dedication_font)
+        cursor_y += (msg_box[3] - msg_box[1]) / scale + (len(dedication_lines) - 1) * dedication_line_height
 
     # --- footer ----------------------------------------------------------
     cursor_y += 10
