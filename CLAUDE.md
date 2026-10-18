@@ -336,9 +336,9 @@ Two were genuine product bugs: the `layout` default above, and
   `PLAYER_*` constants in `png_renderer.py`, read against the CSS by
   `player-print-parity.test.ts`. The renders for every other theme, and
   Player's wallpapers, are byte-identical (264 of 288 hashed; the 24 changed
-  are Player's print sizes). Still open from the audit: print fonts, Arabic
-  tofu in DejaVu Serif, raw `exports.*`/`packs.*` keys, and the product page's
-  false "actual waveform" claim. **Frameless prints FIT, never cut (18 Oct 2026):** `render_png` scaled
+  are Player's print sizes). Still open from the audit: raw
+  `exports.*`/`packs.*` keys, and the product page's false "actual waveform"
+  claim. **Frameless prints FIT, never cut (18 Oct 2026):** `render_png` scaled
   frameless prints with `max`, cutting off whatever did not fit when the
   paper's shape differs from the design's (Award's "ARDED FOR ONE RECORDING"
   on 8x10; 66.7 design units each side of every portrait theme on the 12x18
@@ -374,9 +374,78 @@ Two were genuine product bugs: the `layout` default above, and
   and Mosaic otherwise; wallpapers are byte-identical. Sleeve's ring text is
   out of scope. **Still open, seen in these renders and not fixed:** a long
   artist touches the title in Ledger and Sleeve; Mosaic's long artist runs
-  into the heart and the wordmark; Award, Label and Mosaic's dedications and
-  Contact Sheet's caption print upright where the preview is italic, because
-  `DejaVuSans-Italic.ttf` is not in the font folder.
+  into the heart and the wordmark.
+  **The print's font folder now holds what the themes ask for (18 Oct 2026).**
+  Arabic printed as EMPTY BOXES in Ephemeris's title and dedication and
+  Player's dedication: DejaVu Serif (all three files) and every DejaVu
+  oblique have no Arabic glyphs. And four themes printed their italic
+  dedications upright: the code asked for `DejaVuSans-Italic.ttf` and
+  `DejaVuSansMono-Italic.ttf`, names DejaVu never shipped (its sans italics
+  are "Oblique"), behind a silent `.exists()` fallback. Now:
+  - Arabic is drawn in the PREVIEW'S OWN FILES, copied byte for byte into
+    `love_story_timeline/fonts/`: Noto Kufi Arabic where the preview sets a
+    serif (Ephemeris), Noto Naskh Arabic where it sets a sans, at the slot's
+    CSS weight clamped as the browser does (`ARABIC_WEIGHT_RANGE`; titles' 800
+    draws at 700, Ephemeris's 300 at 300). Mono slots keep DejaVu Sans Mono,
+    which has Arabic (the preview's mono font has none). Arabic is always
+    upright.
+  - FACES ARE CHOSEN PER CHARACTER, as the browser's `unicode-range` does:
+    code points in `ARABIC_UNICODE_RANGE` (the CSS's Arabic range less the
+    punctuation it shares with Latin) from the Arabic face, everything else
+    (spaces, digits, "…", "·", Latin) from the slot's DejaVu face, and a
+    character its face lacks from the other face if that one has it. This is
+    REQUIRED, not polish: the site's Noto files are subsets with every Arabic
+    letter but NO Latin-1 and none of `– — ‘ ’ “ ” … • ·`, so a first version
+    that drew whole Arabic strings in Noto silently dropped Award's footer
+    "·" and would drop the "…" of a cut Arabic title. The runs are ordered by
+    the Unicode bidi algorithm (one paragraph, implicit levels, from
+    `unicodedata`) and each is shaped by raqm in its own direction. All of it
+    is `apps/delivery/mixed_script.py`'s `MixedScriptFont`, a `FreeTypeFont`
+    whose `getlength`/`getbbox`/`getmask2` (the only ways Pillow measures and
+    draws) lay out the runs, so wrapping, fitting and drawing agree. Text
+    with no Arabic takes Pillow's own path, byte for byte. A one-face run is
+    placed exactly as Pillow places it (anchors rounded in 26.6 as Pillow
+    does; `tests_mixed_script.py` compares bboxes and mask bytes). Only the
+    anchors `l/m/r` x `a/m/s/d` are supported; another raises. Love Story
+    Timeline's Arabic fix is meant to reuse it.
+  - Real italics: `DejaVuSans-Oblique.ttf` (official 2.37 release) and
+    `DejaVuSansMono-Oblique.ttf` (Debian's 2.37 build, from the container),
+    named in `DEDICATION_LAYOUT`'s new font column. Player's dedication is
+    now sans oblique (it was serif italic; its preview is sans). The bundled
+    DejaVu files are 2.37 but NOT byte-identical to the official release
+    (another build; checked by version string).
+  - Licences: `LICENSE-dejavu.txt` is the 2.37 release's own file.
+    `LICENSE-noto-arabic.txt` (backend and `public/fonts/`) is each Noto
+    file's embedded copyright line plus the standard OFL 1.1 text, identical
+    to the repo's other OFL files: the Google Fonts builds carry no licence
+    string, and the site never shipped one.
+  - Ephemeris's flow advances by the title's ink HEIGHT, not its ink bottom,
+    which leaves Latin titles only 3-5 design units clear of the artist; Kufi
+    reaches lower, so Arabic descenders came down into the artist's line. The
+    artist now starts at least `EPHEMERIS_TITLE_CLEARANCE` (2) below the
+    title's ink, a floor Latin never reaches (byte-identical).
+  Pinned by `PrintFontTests` (every named font is in the folder and no
+  `.exists()` fallback; no printed CHARACTER, Arabic or not, is the empty
+  box, on prints and wallpapers; each Arabic letter's face per slot, and
+  upright; Award's footer keeps its "·"; CSS weights; Arabic layout overlaps
+  nothing), `tests_mixed_script.py` (bidi order, faces per character, ink
+  where `getbbox` says, nothing dropped, Pillow-exact single runs) and
+  `song-poster-print-parity.test.ts` (weights, serif/sans/mono and italic per
+  slot against the CSS; the Arabic files, range and weight range against
+  `globals.css`; the files byte-identical to `public/fonts`). 108 of 288
+  renders changed: the 5 themes with an italic dedication (Latin), and every
+  print with Arabic; Ledger, Ephemeris and Sleeve's Latin renders, every
+  render without a dedication, and all wallpapers are byte-identical.
+  **Still open from this fix:** Ephemeris's PREVIEW must clip Arabic titles
+  (its `.title` box is 57px, `line-height: 1.02` and `overflow: hidden`, and
+  the Arabic title's Kufi ink is 79px tall at 56px; arithmetic from the same
+  file, not yet seen in a browser). Wallpapers and Sleeve's ring draw Arabic
+  in plain DejaVu Sans (no boxes; joined and readable in the ring), not
+  Naskh. A line's direction comes from its own first strong letter, so a
+  string that starts in Arabic reads right to left even on the English site
+  (Award's footer: "HEARTFOLIO · artist"), and each wrapped dedication line
+  decides for itself, where a browser uses the paragraph's; whether the
+  `en` preview orders such mixed lines differently was not checked.
 - **UNEXPLAINED NAVIGATION TO THE HOME PAGE: a real, currently unreproduced
   bug (15 Oct 2026).** Three times during browser testing the page jumped to
   `/en` on its own: twice in the Song Poster Studio (once after switching the

@@ -1,7 +1,12 @@
-Fonts bundled here are DejaVu fonts (https://dejavu-fonts.github.io),
-derived from Bitstream Vera, licensed under a permissive free license
-that explicitly allows embedding/redistribution in commercial products.
-See https://dejavu-fonts.github.io/License.html for the full text.
+Fonts bundled here:
+
+- DejaVu fonts (https://dejavu-fonts.github.io), version 2.37, derived
+  from Bitstream Vera, licensed under a permissive free license that
+  explicitly allows embedding/redistribution in commercial products. Full
+  text in LICENSE-dejavu.txt (the 2.37 release's own LICENSE file).
+- Noto Naskh Arabic and Noto Kufi Arabic (noto-*-arabic.woff2), the same
+  files the site serves from frontend-heartfolio/public/fonts, under the
+  SIL Open Font License 1.1. Full text in LICENSE-noto-arabic.txt.
 
 Bundled deliberately (rather than relying on whatever fonts happen to
 be installed on a given OS/container) so rendering is identical in

@@ -35,6 +35,7 @@ WHAT IS HONESTLY DIFFERENT FROM THE LIVE PREVIEW, AND WHY:
 
 from __future__ import annotations
 
+import functools
 import io
 import math
 from pathlib import Path
@@ -44,6 +45,7 @@ from PIL import Image, ImageDraw, ImageFont
 from apps.assets.services import get_asset_bytes_for_customer
 from apps.common.exceptions.api_errors import SongPosterRenderFailed
 from apps.delivery.attribution import MARK_OPACITY, MARK_SCALE, PRINT_MARK, blend
+from apps.delivery.mixed_script import MixedScriptFont, parse_unicode_range
 from apps.delivery.print_sizes import EDGED, edged_margin_px, parse_print_target, print_target_dimensions
 from apps.delivery.wallpaper_devices import parse_wallpaper_target
 
@@ -57,9 +59,11 @@ DESIGN_W = 800
 DESIGN_H = 1000
 
 _FONT_DIR = Path(__file__).parent.parent / "love_story_timeline" / "fonts"
-# Reuses Love Story Timeline's bundled DejaVu set rather than duplicating
-# the same four files into a second product folder — one licensed,
-# embeddable font family, shared across every renderer that needs one.
+# Reuses Love Story Timeline's bundled font folder rather than duplicating
+# the same files into a second product folder — licensed, embeddable fonts
+# shared across every renderer that needs one. Every file named here must be
+# in it: a missing font raises, never falls back to another face
+# (`FontFilesTests`).
 
 _INK = "#18191a"
 _SOFT = "#6b6a63"
@@ -81,9 +85,58 @@ PLAYER_MESSAGE_LINE_HEIGHT = 1.5
 PLAYER_MESSAGE_INSET_PX = 60
 
 
-def _font(name: str, size_at_design_scale: float, scale: float) -> ImageFont.FreeTypeFont:
+#: ARABIC IS DRAWN IN THE PREVIEW'S OWN ARABIC FACES (18 Oct 2026). DejaVu
+#: Serif and every DejaVu oblique have no Arabic glyphs at all, so Arabic in a
+#: serif or italic slot printed as empty boxes. The preview draws Arabic in
+#: Noto Kufi Arabic where it sets a serif and Noto Naskh Arabic where it sets
+#: a sans (`globals.css`: "Heartfolio Serif" and "Heartfolio Sans" hand these
+#: code points to them); the print uses the same files. A mono slot keeps
+#: DejaVu Sans Mono, which has Arabic: the preview's mono font has none, so
+#: there each device picks its own. Arabic is always upright: the preview's
+#: slant on an italic Arabic line is the browser faking one.
+#:
+#: As in the browser, the face is chosen CHARACTER BY CHARACTER
+#: (`apps.delivery.mixed_script`): these code points from the Arabic face,
+#: everything else (spaces, digits, "…", "·", Latin) from the slot's DejaVu
+#: face, the runs ordered right to left where the text is Arabic. The site's
+#: Noto files are subsets with no Latin-1 at all, so a whole string in Noto
+#: would drop them. These are the CSS's Arabic `unicode-range`, without the
+#: punctuation it shares with Latin text (U+200C-200E, U+2010-2011, U+204F,
+#: U+2E41, which DejaVu draws). Pinned by `song-poster-print-parity.test.ts`.
+ARABIC_UNICODE_RANGE = "U+0600-06FF, U+0750-077F, U+0870-088E, U+0890-0891, U+0898-08E1, U+08E3-08FF, U+FB50-FDFF, U+FE70-FE74, U+FE76-FEFC"
+ARABIC_FACES = {"serif": "noto-kufi-arabic.woff2", "sans": "noto-naskh-arabic.woff2"}
+#: Both faces are variable. The preview declares them `font-weight: 300 700`,
+#: so a CSS weight outside that range is drawn at its nearest end (a title's
+#: 800 is drawn at 700), and then within the file's own axis (Naskh starts at
+#: 400).
+ARABIC_WEIGHT_RANGE = (300, 700)
+
+_ARABIC_RANGES = parse_unicode_range(ARABIC_UNICODE_RANGE)
+
+
+def _kind(name: str) -> str:
+    return "mono" if "Mono" in name else "serif" if "Serif" in name else "sans"
+
+
+@functools.lru_cache(maxsize=256)
+def _arabic_face(name: str, size: int, weight: int) -> ImageFont.FreeTypeFont:
+    """The face that draws Arabic for the DejaVu file `name` at a CSS weight."""
+    if _kind(name) == "mono":
+        upright = "DejaVuSansMono-Bold.ttf" if "Bold" in name else "DejaVuSansMono.ttf"
+        return ImageFont.truetype(str(_FONT_DIR / upright), size=size)
+    face = ImageFont.truetype(str(_FONT_DIR / ARABIC_FACES[_kind(name)]), size=size)
+    [axis] = face.get_variation_axes()
+    low, high = ARABIC_WEIGHT_RANGE
+    face.set_variation_by_axes([min(max(min(max(weight, low), high), axis["minimum"]), axis["maximum"])])
+    return face
+
+
+def _font(name: str, size_at_design_scale: float, scale: float, *, weight: int = 400) -> MixedScriptFont:
+    """The DejaVu face `name`, drawing Arabic in the preview's Arabic face.
+    `weight` is the slot's CSS `font-weight`; only the Arabic face uses it (a
+    DejaVu weight is its file)."""
     size = max(8, round(size_at_design_scale * scale))
-    return ImageFont.truetype(str(_FONT_DIR / name), size=size)
+    return MixedScriptFont(str(_FONT_DIR / name), size, second=_arabic_face(name, size, weight), second_range=_ARABIC_RANGES)
 
 
 def _fit_text(draw: ImageDraw.ImageDraw, text: str, font: ImageFont.FreeTypeFont, max_width: float) -> str:
@@ -112,25 +165,27 @@ def _fit_text(draw: ImageDraw.ImageDraw, text: str, font: ImageFont.FreeTypeFont
 TITLE_MIN_SCALE = 0.8
 _TITLE_SCALE_STEP = 0.02
 
-#: Each theme's title, as its preview sets it: (font file, design size, lines).
-#: Every preview cuts its title to one line with "…" except Sleeve's, which
-#: allows two (`-webkit-line-clamp: 2`). Sizes pinned against the CSS by
-#: `song-poster-print-parity.test.ts`.
+#: Each theme's title, as its preview sets it: (font file, design size, lines,
+#: CSS font-weight). Every preview cuts its title to one line with "…" except
+#: Sleeve's, which allows two (`-webkit-line-clamp: 2`). Sizes, weights and
+#: serif or sans pinned against the CSS by `song-poster-print-parity.test.ts`.
 TITLE_LAYOUT = {
-    "player": ("DejaVuSans-Bold.ttf", 40.0, 1),
-    "ledger": ("DejaVuSans-Bold.ttf", 66.0, 1),
-    "ephemeris": ("DejaVuSerif.ttf", 56.0, 1),
-    "contactsheet": ("DejaVuSans-Bold.ttf", 34.0, 1),
-    "label": ("DejaVuSans-Bold.ttf", 38.0, 1),
-    "award": ("DejaVuSans-Bold.ttf", 44.0, 1),
-    "sleeve": ("DejaVuSans-Bold.ttf", 46.0, 2),
-    "mosaic": ("DejaVuSans-Bold.ttf", 26.0, 1),
+    "player": ("DejaVuSans-Bold.ttf", 40.0, 1, 800),
+    "ledger": ("DejaVuSans-Bold.ttf", 66.0, 1, 800),
+    "ephemeris": ("DejaVuSerif.ttf", 56.0, 1, 300),
+    "contactsheet": ("DejaVuSans-Bold.ttf", 34.0, 1, 800),
+    "label": ("DejaVuSans-Bold.ttf", 38.0, 1, 800),
+    "award": ("DejaVuSans-Bold.ttf", 44.0, 1, 800),
+    "sleeve": ("DejaVuSans-Bold.ttf", 46.0, 2, 800),
+    "mosaic": ("DejaVuSans-Bold.ttf", 26.0, 1, 800),
 }
 #: Sleeve's two title lines sit `line-height: 1.04` apart, as in its CSS.
 SLEEVE_TITLE_LINE_HEIGHT = 1.04
 
 #: Each theme's dedication as its preview sets it, in design units: (wrap
-#: width, font size, line height as a multiple of the size). Measured in the
+#: width, font size, line height as a multiple of the size, font file). The
+#: file is italic exactly where the preview's is (DejaVu names its sans
+#: italics "Oblique"), and serif, sans or mono as the preview's is. Measured in the
 #: browser (18 Oct 2026) and pinned against the CSS by
 #: `song-poster-print-parity.test.ts`. Every preview WRAPS the dedication in
 #: full, with no line limit; the print used to cut it to one line with "…".
@@ -138,13 +193,13 @@ SLEEVE_TITLE_LINE_HEIGHT = 1.04
 #: preview's own font turns into a width, so the measured width is used;
 #: Ledger and Ephemeris set no line height and inherit the page's 1.5.
 DEDICATION_LAYOUT = {
-    "player": (680.0, 13.5, 1.5),
-    "ledger": (528.3, 15.0, 1.5),
-    "ephemeris": (544.7, 15.0, 1.5),
-    "contactsheet": (560.0, 14.0, 1.55),
-    "label": (475.5, 13.5, 1.5),
-    "award": (1016.0, 13.0, 1.5),
-    "mosaic": (508.0, 16.0, 1.5),
+    "player": (680.0, 13.5, 1.5, "DejaVuSans-Oblique.ttf"),
+    "ledger": (528.3, 15.0, 1.5, "DejaVuSans.ttf"),
+    "ephemeris": (544.7, 15.0, 1.5, "DejaVuSerif-Italic.ttf"),
+    "contactsheet": (560.0, 14.0, 1.55, "DejaVuSansMono-Oblique.ttf"),
+    "label": (475.5, 13.5, 1.5, "DejaVuSans-Oblique.ttf"),
+    "award": (1016.0, 13.0, 1.5, "DejaVuSans-Oblique.ttf"),
+    "mosaic": (508.0, 16.0, 1.5, "DejaVuSans-Oblique.ttf"),
 }
 
 
@@ -184,11 +239,11 @@ def _fit_title(draw: ImageDraw.ImageDraw, text: str, theme: str, scale: float, m
     """The title's lines and font. At full size when it fits (exactly as
     before); otherwise the largest size down to `TITLE_MIN_SCALE` at which it
     fits in the theme's lines; at that floor, cut with "…"."""
-    font_file, size, max_lines = TITLE_LAYOUT[theme]
+    font_file, size, max_lines, weight = TITLE_LAYOUT[theme]
     steps = round((1 - TITLE_MIN_SCALE) / _TITLE_SCALE_STEP)
-    font = _font(font_file, size, scale)
+    font = _font(font_file, size, scale, weight=weight)
     for i in range(steps + 1):
-        font = _font(font_file, size * (1 - i * _TITLE_SCALE_STEP), scale)
+        font = _font(font_file, size * (1 - i * _TITLE_SCALE_STEP), scale, weight=weight)
         if max_lines == 1:
             if draw.textlength(text, font=font) <= max_width:
                 return [text], font
@@ -211,8 +266,13 @@ def _fit_title(draw: ImageDraw.ImageDraw, text: str, theme: str, scale: float, m
 def _dedication_lines(draw: ImageDraw.ImageDraw, song, theme: str, font, scale: float) -> tuple[list[str], float]:
     """The dedication wrapped to its theme's preview width, and the distance
     between its lines in design units."""
-    width, size, line_height = DEDICATION_LAYOUT[theme]
+    width, size, line_height, _font_file = DEDICATION_LAYOUT[theme]
     return _wrap_text(draw, song.dedication, font, width * scale), size * line_height
+
+
+def _dedication_font(theme: str, scale: float) -> MixedScriptFont:
+    _width, size, _line_height, font_file = DEDICATION_LAYOUT[theme]
+    return _font(font_file, size, scale)
 
 
 def _paste_photo_cover(image: Image.Image, *, customer, asset_id: str, box: tuple[int, int, int, int]) -> None:
@@ -340,14 +400,11 @@ def _draw_player(canvas: Image.Image, song: NormalizedSongPoster, *, scale: floa
     # the flow. The message's line box ends PLAYER_BOTTOM_PX +
     # PLAYER_MESSAGE_MARGIN_BOTTOM_PX above the sheet's bottom, and CSS
     # centres the text in its line box, so the text is placed by its
-    # vertical middle ("mm") at the line box's centre. (Still one line,
-    # cut with an ellipsis where the preview wraps: a separate finding.)
+    # vertical middle ("mm") at the line box's centre. The preview's message
+    # is the sheet's sans in italic, so the print's is DejaVu Sans Oblique (it
+    # used to be DejaVu Serif Italic).
     if song.dedication:
-        msg_font = (
-            _font("DejaVuSerif-Italic.ttf", PLAYER_MESSAGE_SIZE_PX, scale)
-            if (_FONT_DIR / "DejaVuSerif-Italic.ttf").exists()
-            else _font("DejaVuSans.ttf", PLAYER_MESSAGE_SIZE_PX, scale)
-        )
+        msg_font = _dedication_font("player", scale)
         # Wrapped like the preview; the block is anchored at its bottom, so
         # extra lines grow UPWARD from the last line's place.
         lines, line_height = _dedication_lines(draw, song, "player", msg_font, scale)
@@ -413,7 +470,7 @@ def _draw_ledger(canvas: Image.Image, song: NormalizedSongPoster, *, scale: floa
     artist_font = _font("DejaVuSansMono.ttf", 16, scale)
     caption_font = _font("DejaVuSans.ttf", 13.5, scale)
     wavelab_font = _font("DejaVuSans.ttf", 13.5, scale)
-    dedication_font = _font("DejaVuSans.ttf", 15, scale)
+    dedication_font = _dedication_font("ledger", scale)
     foot_font = _font("DejaVuSans.ttf", 13.5, scale)
 
     # --- head: "SESSION LOG" / "SHEET 01 / 01" ------------------------
@@ -516,6 +573,11 @@ def _polar_ring_points(envelope, *, cx: float, cy: float, radius: float, amplitu
     return points
 
 
+#: Design units between the bottom of Ephemeris's title ink and the top of
+#: its artist's, at the least (18 Oct 2026; see `_draw_ephemeris`).
+EPHEMERIS_TITLE_CLEARANCE = 2.0
+
+
 def _draw_ephemeris(canvas: Image.Image, song: NormalizedSongPoster, *, scale: float, origin: tuple[int, int], customer) -> None:
     """Ephemeris's poster composition. See `ephemeris-theme.tsx`'s own
     docstring for the full, honest account of what changed: the
@@ -537,7 +599,7 @@ def _draw_ephemeris(canvas: Image.Image, song: NormalizedSongPoster, *, scale: f
     head_font = _font("DejaVuSans.ttf", 14, scale)
     title_font = _font("DejaVuSerif.ttf", 56, scale)
     artist_font = _font("DejaVuSans.ttf", 13.5, scale)
-    dedication_font = _font("DejaVuSerif-Italic.ttf", 15, scale)
+    dedication_font = _dedication_font("ephemeris", scale)
     foot_font = _font("DejaVuSans.ttf", 13.5, scale)
 
     # --- head: centred, small-caps-style label ------------------------
@@ -618,12 +680,20 @@ def _draw_ephemeris(canvas: Image.Image, song: NormalizedSongPoster, *, scale: f
     tw = draw.textlength(title_text, font=title_font)
     draw.text((ox + 400 * scale - tw / 2, pt(0, cursor_y)[1]), title_text, font=title_font, fill=ink)
     title_box = draw.textbbox((0, 0), title_text, font=title_font)
+    title_top = cursor_y
     cursor_y += (title_box[3] - title_box[1]) / scale + 11
 
     artist_text = song.artist.upper()
     aw = draw.textlength(artist_text, font=artist_font)
-    draw.text((ox + 400 * scale - aw / 2, pt(0, cursor_y)[1]), artist_text, font=artist_font, fill=soft)
     artist_box = draw.textbbox((0, 0), artist_text, font=artist_font)
+    # The flow advances by the title's ink height, not its ink bottom, which
+    # leaves a Latin title 3-5 design units clear of the artist. Kufi's
+    # Arabic reaches further below the line, so its descenders came down
+    # into the artist's letters; the artist now always starts this far below
+    # the title's lowest ink. A floor Latin titles never reach: their renders
+    # are unchanged.
+    cursor_y = max(cursor_y, title_top + title_box[3] / scale + EPHEMERIS_TITLE_CLEARANCE - artist_box[1] / scale)
+    draw.text((ox + 400 * scale - aw / 2, pt(0, cursor_y)[1]), artist_text, font=artist_font, fill=soft)
     cursor_y += (artist_box[3] - artist_box[1]) / scale + 22
 
     # --- dedication, centred, italic ------------------------------------
@@ -663,7 +733,7 @@ def _draw_contact_sheet(canvas: Image.Image, song: NormalizedSongPoster, *, scal
     title_font = _font("DejaVuSans-Bold.ttf", 34, scale)
     artist_font = _font("DejaVuSans.ttf", 15.5, scale)
     num_font = _font("DejaVuSansMono.ttf", 13.5, scale)
-    caption_font = _font("DejaVuSansMono-Italic.ttf", 14, scale) if (_FONT_DIR / "DejaVuSansMono-Italic.ttf").exists() else _font("DejaVuSansMono.ttf", 14, scale)
+    caption_font = _dedication_font("contactsheet", scale)
     foot_font = _font("DejaVuSans.ttf", 14, scale)
 
     # --- head ------------------------------------------------------
@@ -807,7 +877,7 @@ def _draw_label(canvas: Image.Image, song: NormalizedSongPoster, *, scale: float
     head_font = _font("DejaVuSans.ttf", 14.5, scale)
     title_font = _font("DejaVuSans-Bold.ttf", 38, scale)
     artist_font = _font("DejaVuSans.ttf", 16, scale)
-    dedication_font = _font("DejaVuSans-Italic.ttf", 13.5, scale) if (_FONT_DIR / "DejaVuSans-Italic.ttf").exists() else _font("DejaVuSans.ttf", 13.5, scale)
+    dedication_font = _dedication_font("label", scale)
     foot_font = _font("DejaVuSans.ttf", 14, scale)
 
     # --- head, centred -------------------------------------------------
@@ -923,7 +993,7 @@ def _draw_award(canvas: Image.Image, song: NormalizedSongPoster, *, scale: float
     head_font = _font("DejaVuSans.ttf", 14.5, scale)
     title_font = _font("DejaVuSans-Bold.ttf", 44, scale)
     artist_font = _font("DejaVuSans.ttf", 15, scale)
-    plaque_font = _font("DejaVuSans-Italic.ttf", 13, scale) if (_FONT_DIR / "DejaVuSans-Italic.ttf").exists() else _font("DejaVuSans.ttf", 13, scale)
+    plaque_font = _dedication_font("award", scale)
     plaque_foot_font = _font("DejaVuSans.ttf", 14, scale)
 
     # --- frame: two nested borders ------------------------------------
@@ -1186,7 +1256,9 @@ def _draw_sleeve(canvas: Image.Image, song: NormalizedSongPoster, *, scale: floa
     def pt(x: float, y: float) -> tuple[int, int]:
         return (round(ox + x * scale), round(oy + y * scale))
 
-    ring_font = _font("DejaVuSans.ttf", 6.3, scale)
+    # The ring stays plain DejaVu Sans, as before (out of the Arabic fix's
+    # scope): it draws letter by letter, so Arabic there is unjoined either way.
+    ring_font = ImageFont.truetype(str(_FONT_DIR / "DejaVuSans.ttf"), size=max(8, round(6.3 * scale)))
     title_font = _font("DejaVuSans-Bold.ttf", 46, scale)
     artist_font = _font("DejaVuSans.ttf", 15, scale)
     foot_font = _font("DejaVuSans.ttf", 14.5, scale)
@@ -1356,7 +1428,7 @@ def _draw_mosaic(canvas: Image.Image, song: NormalizedSongPoster, *, scale: floa
 
     title_font = _font("DejaVuSans-Bold.ttf", 26, scale)
     artist_font = _font("DejaVuSans.ttf", 14.5, scale)
-    dedication_font = _font("DejaVuSans-Italic.ttf", 16, scale) if (_FONT_DIR / "DejaVuSans-Italic.ttf").exists() else _font("DejaVuSans.ttf", 16, scale)
+    dedication_font = _dedication_font("mosaic", scale)
     times_font = _font("DejaVuSansMono.ttf", 13, scale)
     foot_font = _font("DejaVuSans.ttf", 13, scale)
 

@@ -745,7 +745,7 @@ class _DrawRecorder:
         def text(draw, xy, text, *args, **kwargs):
             font, anchor = kwargs.get("font"), kwargs.get("anchor")
             box = draw.textbbox(xy, text, font=font, anchor=anchor) if text else None
-            recorder.texts.append({"text": text, "box": box, "xy": tuple(xy), "size": getattr(font, "size", None), "font": getattr(font, "path", "")})
+            recorder.texts.append({"text": text, "box": box, "xy": tuple(xy), "size": getattr(font, "size", None), "font": getattr(font, "path", ""), "font_obj": font})
             return real_text(draw, xy, text, *args, **kwargs)
 
         def line(draw, xy, *args, **kwargs):
@@ -792,6 +792,7 @@ class DedicationWrapTests(TestCase):
             "summer since; you sang the wrong words every time and I never once corrected you, love x"
         )[:180],
         "one long word": "x" * 180,
+        "arabic max": ("إلى رفيقة دربي، هذه الأغنية كانت معنا في كل رحلة، وفي كل صيف منذ ذلك الحين؛ " * 3)[:180].strip(),
     }
 
     def _render(self, theme, dedication, customer, photo, target="print-classic-frameless"):
@@ -851,7 +852,7 @@ class DedicationWrapTests(TestCase):
                 drawn, _ = self._render(theme, self.TEXTS["max"], customer, photo)
                 run = self._dedication_run(drawn, self.TEXTS["max"])
                 self.assertGreaterEqual(len(run), 2)
-                _, size, line_height = png_renderer.DEDICATION_LAYOUT[theme]
+                _, size, line_height, _file = png_renderer.DEDICATION_LAYOUT[theme]
                 renderers = png_renderer._THEME_RENDERERS[theme]
                 design_w = renderers.get("design_w", png_renderer.DESIGN_W)
                 design_h = renderers.get("design_h", png_renderer.DESIGN_H)
@@ -907,6 +908,162 @@ class DedicationWrapTests(TestCase):
                     self.assertTrue(_inside(text["box"], card), f"{text['text']!r} runs off the card")
 
 
+ARABIC_TITLE = "أحبك أكثر من أي شيء"
+ARABIC_ARTIST = "ماجد المهندس"
+ARABIC_DEDICATION = "إلى رفيقة دربي، هذه الأغنية كانت معنا في كل رحلة."
+
+
+def _arabic(text) -> bool:
+    from . import png_renderer
+
+    return any(low <= ord(ch) <= high for ch in text for low, high in png_renderer._ARABIC_RANGES)
+
+
+def _ink(face, text) -> int:
+    """Total coverage of `text` drawn in `face`: heavier weights draw more."""
+    mask = face.getmask(text)
+    return sum(Image.Image()._new(mask).getdata())
+
+
+class PrintFontTests(TestCase):
+    """The print's font folder holds what the themes ask for (18 Oct 2026).
+    Arabic printed as empty boxes in Ephemeris and Player (DejaVu Serif has no
+    Arabic glyphs), and four themes printed their italic dedications upright
+    because the code asked for files DejaVu never shipped and silently fell
+    back. Arabic is now drawn in the preview's own Noto Kufi/Naskh files,
+    character by character as the browser picks faces."""
+
+    def test_every_font_the_renderer_names_is_in_the_font_folder(self):
+        """A missing font must fail here, never fall back to another face."""
+        import re
+        from pathlib import Path
+
+        from . import png_renderer
+
+        source = Path(png_renderer.__file__).read_text(encoding="utf-8")
+        named = set(re.findall(r'"([\w-]+\.(?:ttf|otf|woff2?))"', source))
+        self.assertGreaterEqual(len(named), 8)
+        for name in sorted(named):
+            with self.subTest(font=name):
+                self.assertTrue((png_renderer._FONT_DIR / name).is_file(), f"{name} is not in {png_renderer._FONT_DIR}")
+        self.assertNotIn(".exists()", source, "a font must not silently fall back when its file is missing")
+
+    def test_no_printed_character_falls_back_to_the_empty_box(self):
+        """Every character of every text, not only the Arabic ones: the Noto
+        files have no Latin-1, and Award's footer once lost its "·"."""
+        from apps.delivery.mixed_script import has_glyph
+
+        customer = make_customer()
+        photo = values_with_real_photo(customer)["photo"]
+        for theme in THEMES:
+            for case, dedication in (("short", ARABIC_DEDICATION), ("max", DedicationWrapTests.TEXTS["arabic max"])):
+                for target in ("print-classic-frameless", "wallpaper-phone"):
+                    with self.subTest(theme=theme, dedication=case, target=target):
+                        song = validate_and_normalize(
+                            {**VALID_VALUES, "photo": photo, "track": ARABIC_TITLE, "artist": ARABIC_ARTIST, "dedication": dedication},
+                            {"theme": theme},
+                        )
+                        with _DrawRecorder() as drawn:
+                            render_png(song, target_id=target, customer=customer)
+                        self.assertTrue(any(_arabic(t["text"]) for t in drawn.texts))
+                        for text in drawn.texts:
+                            font = text["font_obj"]
+                            missing = sorted({
+                                ch for ch in text["text"]
+                                if not ch.isspace() and not has_glyph(font.face_for_char(ch) if hasattr(font, "face_for_char") else font, ch)
+                            })
+                            self.assertEqual(missing, [], f"{text['text']!r} draws empty boxes")
+
+    def test_arabic_is_drawn_in_the_previews_face_for_its_slot_and_upright(self):
+        """Serif slots in Noto Kufi Arabic, sans in Noto Naskh Arabic (the
+        preview's files), mono in DejaVu Sans Mono, and never an oblique."""
+        from . import png_renderer
+
+        expected = {"serif": "Noto Kufi Arabic", "sans": "Noto Naskh Arabic", "mono": "DejaVu Sans Mono"}
+        customer = make_customer()
+        photo = values_with_real_photo(customer)["photo"]
+        seen = set()
+        for theme in THEMES:
+            with self.subTest(theme=theme):
+                song = validate_and_normalize(
+                    {**VALID_VALUES, "photo": photo, "track": ARABIC_TITLE, "artist": ARABIC_ARTIST, "dedication": ARABIC_DEDICATION},
+                    {"theme": theme},
+                )
+                with _DrawRecorder() as drawn:
+                    render_png(song, target_id="print-classic-frameless", customer=customer)
+                for text in drawn.texts:
+                    font = text["font_obj"]
+                    if not hasattr(font, "face_for_char") or not _arabic(text["text"]):
+                        continue
+                    kind = png_renderer._kind(text["font"].replace("\\", "/").rsplit("/", 1)[-1])
+                    for ch in {ch for ch in text["text"] if _arabic(ch)}:
+                        family, style = font.face_for_char(ch).getname()
+                        self.assertEqual(family, expected[kind], f"{ch!r} in {text['text']!r} ({kind})")
+                        self.assertNotIn("Oblique", style)
+                        self.assertNotIn("Italic", style)
+                    seen.add(kind)
+        self.assertEqual(seen, {"serif", "sans", "mono"})  # every kind was exercised
+
+    def test_awards_footer_keeps_its_separator_beside_an_arabic_artist(self):
+        customer = make_customer()
+        photo = values_with_real_photo(customer)["photo"]
+        song = validate_and_normalize({**VALID_VALUES, "photo": photo, "artist": ARABIC_ARTIST}, {"theme": "award"})
+        with _DrawRecorder() as drawn:
+            render_png(song, target_id="print-classic-frameless", customer=customer)
+        [footer] = [t for t in drawn.texts if t["text"].endswith("HEARTFOLIO")]
+        runs = footer["font_obj"].runs(footer["text"])
+        self.assertEqual("".join(run for run, _, _ in runs).count("·"), 1)
+        [dot_face] = [face for run, face, _ in runs if "·" in run]
+        self.assertIs(dot_face, footer["font_obj"])  # DejaVu, which has it
+
+    def test_latin_text_keeps_dejavu(self):
+        """Only Arabic changes face: Latin, a hyphenated title (U+2010 is in
+        the CSS's Arabic range too) and digits stay DejaVu."""
+        from . import png_renderer
+
+        font = png_renderer._font("DejaVuSans-Bold.ttf", 40, 1, weight=800)
+        for text in ("Here Comes the Sun", "Well\u2010known", "0:00", "Ne me quitte pas — 1959", "« déjà · vu »"):
+            with self.subTest(text=text):
+                self.assertTrue(all(font.face_for_char(ch) is font for ch in text))
+        mixed = "Love " + ARABIC_ARTIST
+        self.assertEqual({font.face_for_char(ch) is font for ch in mixed}, {True, False})
+
+    def test_arabic_titles_are_drawn_at_their_css_weight(self):
+        """800 draws as Naskh's heaviest (700); Ephemeris's 300 draws lighter
+        than Kufi's regular."""
+        from . import png_renderer
+
+        for theme, (font_file, size, _lines, weight) in png_renderer.TITLE_LAYOUT.items():
+            with self.subTest(theme=theme):
+                titled = png_renderer._font(font_file, size, 3, weight=weight).second
+                regular = png_renderer._font(font_file, size, 3, weight=400).second
+                if weight > 400:
+                    self.assertGreater(_ink(titled, ARABIC_TITLE), _ink(regular, ARABIC_TITLE) * 1.1)
+                else:
+                    self.assertLess(_ink(titled, ARABIC_TITLE), _ink(regular, ARABIC_TITLE) * 0.95)
+
+    def test_arabic_layout_overlaps_nothing_and_stays_on_the_page(self):
+        customer = make_customer()
+        photo = values_with_real_photo(customer)["photo"]
+        for theme in THEMES:
+            for case, dedication in (("short", ARABIC_DEDICATION), ("max", DedicationWrapTests.TEXTS["arabic max"])):
+                with self.subTest(theme=theme, dedication=case):
+                    song = validate_and_normalize(
+                        {**VALID_VALUES, "photo": photo, "track": ARABIC_TITLE, "artist": ARABIC_ARTIST, "dedication": dedication},
+                        {"theme": theme},
+                    )
+                    with _DrawRecorder() as drawn:
+                        content = render_png(song, target_id="print-classic-frameless", customer=customer)
+                    with Image.open(io.BytesIO(content)) as img:
+                        page = (0, 0, *img.size)
+                    # Single letters are Sleeve's ring, drawn on tiles of their own.
+                    texts = [t for t in drawn.texts if t["box"] and len(t["text"]) > 1]
+                    for i, text in enumerate(texts):
+                        self.assertTrue(_inside(text["box"], page), f"{text['text']!r} leaves the page")
+                        for other in texts[i + 1:]:
+                            self.assertFalse(_intersects(text["box"], other["box"]), f"{text['text']!r} overlaps {other['text']!r}")
+
+
 class TitleFitTests(TestCase):
     """A title shrinks to fit, down to 80% of its design size, before it is
     cut with "…" (owner's decision, 18 Oct 2026); Sleeve's may use two
@@ -943,7 +1100,7 @@ class TitleFitTests(TestCase):
         customer = make_customer()
         photo = values_with_real_photo(customer)["photo"]
         for theme in THEMES:
-            font_file, size, max_lines = png_renderer.TITLE_LAYOUT[theme]
+            font_file, size, max_lines, weight = png_renderer.TITLE_LAYOUT[theme]
             for title in self.TITLES:
                 with self.subTest(theme=theme, title=title):
                     song = validate_and_normalize({**VALID_VALUES, "photo": photo, "track": title}, {"theme": theme})
@@ -952,8 +1109,8 @@ class TitleFitTests(TestCase):
                         render_png(song, target_id="print-classic-frameless", customer=customer)
                     [call] = calls
                     draw, scale, width, lines, font = call["draw"], call["scale"], call["max_width"], call["lines"], call["font"]
-                    full = png_renderer._font(font_file, size, scale)
-                    floor = png_renderer._font(font_file, size * png_renderer.TITLE_MIN_SCALE, scale)
+                    full = png_renderer._font(font_file, size, scale, weight=weight)
+                    floor = png_renderer._font(font_file, size * png_renderer.TITLE_MIN_SCALE, scale, weight=weight)
                     self.assertLessEqual(len(lines), max_lines)
                     self.assertGreaterEqual(font.size, floor.size)
                     for line in lines:
