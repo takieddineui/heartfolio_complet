@@ -675,7 +675,10 @@ Two were genuine product bugs: the `layout` default above, and
   asserts that "QR" never appears in the email HTML. But the HTML carries the
   random signed magic-link token, which now and then contains "QR"
   (`…dgQRp3I`), about 1% a subtest. The fix is to check the QR section's own
-  markup, not the two letters. It passed 5 of 5 on rerun.
+  markup, not the two letters. It passed 5 of 5 on rerun. Its sibling
+  `ReceiptEmailGiftQrTests.test_a_revoked_experience_removes_the_qr_section_from_the_email`
+  has the same flaw (`assertNotIn("QR", payload["html"])`): it failed once in
+  the 18 Oct full run and passed 5 of 5 on rerun.
 - Deploy and test backend zips 24, 26, 32 — these were queued behind the
   Railway deploy window, which no longer exists; they now wait on the VPS
   deploy (or can be tried on local Docker)
@@ -721,18 +724,50 @@ Two were genuine product bugs: the `layout` default above, and
   caches of run, line and anchor measurements brought it back (1.5-4.5s, as
   today); Latin was unaffected (5.6s). The caches change no pixel (1628 LST
   and 288 Song Poster renders hashed identical).
-  **OVERLAPS AT MAXIMUM LENGTH, for phase 2 (owner approves the fix first):**
-  Kufi and Naskh stand taller than DejaVu (deep tails, tall alefs) and LST
-  spaces lines and reserves milestone height from `font.size` x a factor, not
-  from measured ink. Against a French control at the same lengths, Arabic adds
-  BOX overlaps in every layout and the three Noto typographies (42 grouped
-  cases, `KNOWN_ARABIC_PROBLEMS`): wrapped dedication and description lines,
-  poster title over subtitle, and in Neat Stack and Cascade a milestone title
-  over its description. Today's DejaVu Arabic had none. The INK actually
-  touches only for Serif Classic's poster title over the subtitle (Kufi Bold,
-  every layout, up to 48px on the poster at 130%) and a milestone title over its
-  description in 3 of 36 Neat Stack and Cascade cases (1-4px, all three
-  typographies, Modern included). The rest is boxes only.
+  **PHASE 2, Arabic lines spaced by their ink (18 Oct 2026, approved after
+  before/after renders).** Kufi and Naskh stand taller than DejaVu (tall alefs
+  1.14-1.29em above the baseline, tails 0.44-0.47em below) while the print
+  spaced lines at `font.size` x 1.25-1.5, so phase 1 left 52 pairs of texts
+  whose LETTERS TOUCHED at maximum length (443 overlapping boxes): Serif
+  Classic's poster title over the subtitle on every layout, milestone titles
+  over descriptions, and two places phase 1's harness never looked: the AR
+  card's poster title over the names, and the moment wallpaper's title over
+  its date (up to 61px). `_line_pitch(font, pitch, text)` returns the print's
+  pitch unchanged unless the text has Arabic in it, and then at least the
+  Arabic face's ink (tallest and deepest probe, `_ARABIC_TALL_AND_DEEP`) plus
+  `ARABIC_LINE_CLEARANCE` (0.10em): Kufi 1.81-1.85em, Naskh 1.63-1.69em. It is
+  applied centrally in `_draw_wrapped`/`_draw_centered_wrapped`, MIRRORED in
+  every estimator the fit trusts (Neat Stack, Cascade, Alternating, Dotted,
+  both horizontal plans), and in the hand-placed advances (poster title,
+  duration, the AR card's names, the moment wallpaper's date, whose caption
+  rises by the extra so its foot stays put). Result: 0 overlapping boxes and 0
+  touching letters on prints, polaroid cards, wallpapers and the AR card;
+  every Latin render byte-identical (972 of 972, en, fr at maximum length and
+  Latin on /ar); Typewriter untouched. **The cost, at maximum length only:** the
+  fit shrinks to make room. The names heading on the 8x10 edged print at 130%
+  (Neat Stack and Cascade 135-140 to 88px), milestone text 13-19% where it was
+  tight (landing at the French control's sizes), and in Neat Stack and Cascade
+  descriptions drop from two lines to one in 4 of 6 print/scale cases.
+  Realistic Arabic content is unchanged. **PERFORMANCE TRAP, fixed:** the
+  taller lines make the fit walk more steps, each with new fonts and cold
+  measurement caches: Arabic 8x10 went from 1.5s to 39s. `_font` is now
+  `lru_cache`d FOR ONE RENDER (`render_png` clears it), so caches carry across
+  the steps: cold Arabic renders 0.8-1.85s, French unchanged (5.3s). Cached
+  for the whole process instead, 512 fonts held 107MB.
+  Pinned by `ArabicPrintTests`: zero overlaps and zero touching letters on
+  every print, card, wallpaper and the AR card; and, separately, EVERY
+  ESTIMATOR equals what `_draw_wrapped` advances through for Arabic: dropping
+  `_line_pitch` from one estimator went unnoticed by the full-page tests (the
+  slack between milestones absorbs it at these sizes), so that test is the one
+  that catches it. Mutation-checked 12 of 14; the other two (the duration's
+  1.8 and the AR card names' 2.2 advances) are equivalent today, both factors
+  being above every Naskh floor, and are kept as guards.
+  **One known exception, older than both phases:** Typewriter keeps DejaVu
+  Sans Mono for Arabic (decision), and on Horizontal Polaroid its wrapped
+  Arabic captions overlap as BOXES on their card (no letters touch;
+  `TYPEWRITER_KNOWN`). Spacing Mono by its ink was tried and is worse: its
+  Arabic stands 1.9-2.0em tall, the fit runs past its floor and letters then
+  touch across Typewriter's milestones.
 - **FLAGGED, not fixed: QR cards print an Arabic caption as boxes, for every
   product.** `bonuses.py` draws the QR card caption (names, poster title, song,
   Reasons names) in `DejaVuSerif.ttf`, with a silent fallback to Pillow's

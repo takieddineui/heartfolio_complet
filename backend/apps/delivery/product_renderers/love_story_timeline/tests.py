@@ -3638,9 +3638,12 @@ def _slot_of(text, values):
 
 
 def _arabic_layout_problems(values, *, layout, typography, scale, target_id, customer, locale="ar"):
-    """Every text that overlaps another, leaves its page, its frame or its own
-    card image, or crosses a photo card, its shadow or a pasted photo; as
-    (problem, slot, other slot) so a report can name the slots."""
+    """Every text that overlaps another ON THE SAME IMAGE (the page, or a
+    polaroid's own card, where the horizontal captions are drawn), leaves its
+    page, its frame or its card, or crosses a photo card, its shadow or a
+    pasted photo; and, for two texts whose boxes overlap, whether their letters
+    actually TOUCH (pixels both draw). As (problem, slot, other slot) so a
+    report can name the slots."""
     from unittest import mock
 
     from PIL import ImageDraw
@@ -3653,7 +3656,9 @@ def _arabic_layout_problems(values, *, layout, typography, scale, target_id, cus
     polaroid, paste_photo = png_renderer._paste_polaroid, png_renderer._paste_photo
 
     def spy_text(draw, xy, value, *args, **kwargs):
-        texts.append((value, draw.textbbox(xy, value, font=kwargs.get("font"), anchor=kwargs.get("anchor")), draw.im.size))
+        font, anchor = kwargs.get("font"), kwargs.get("anchor")
+        # The image itself, not its id(): a freed card's id can be reused by the next.
+        texts.append((value, draw.textbbox(xy, value, font=font, anchor=anchor), draw.im.size, draw.im, tuple(xy), font, anchor))
         return text(draw, xy, value, *args, **kwargs)
 
     def spy_rectangle(draw, xy, *args, **kwargs):
@@ -3688,21 +3693,37 @@ def _arabic_layout_problems(values, *, layout, typography, scale, target_id, cus
     def inside(a, b):
         return b[0] <= a[0] and b[1] <= a[1] and a[2] <= b[2] and a[3] <= b[3]
 
-    page = max((size for _, _, size in texts), key=lambda s: s[0] * s[1])
+    def touching(a, b):
+        """Pixels both texts draw (coverage above a quarter)."""
+        left, top = int(min(a[1][0], b[1][0])) - 2, int(min(a[1][1], b[1][1])) - 2
+        right, bottom = int(max(a[1][2], b[1][2])) + 2, int(max(a[1][3], b[1][3])) + 2
+        layers = []
+        for value, _, _, _, (x, y), font, anchor in (a, b):
+            layer = Image.new("L", (right - left, bottom - top), 0)
+            ImageDraw.Draw(layer).text((x - left, y - top), value, font=font, fill=255, anchor=anchor)
+            layers.append(layer.point(lambda v: 255 if v > 64 else 0))
+        both = Image.new("L", layers[0].size, 0)
+        both.paste(layers[0], mask=layers[1])
+        return both.getbbox() is not None
+
+    page = max((t[2] for t in texts), key=lambda s: s[0] * s[1])
     problems = set()
-    for i, (value, box, size) in enumerate(texts):
+    for i, entry in enumerate(texts):
+        value, box, size, image = entry[:4]
         if not value.strip():
             continue
         slot = _slot_of(value, values)
         if not inside(box, (0, 0, *size)):
             problems.add(("leaves its page" if size == page else "leaves its card", slot, ""))
+        for other in texts[i + 1:]:
+            if other[3] is image and other[0].strip() and hit(box, other[1]):
+                problems.add(("overlaps", slot, _slot_of(other[0], values)))
+                if touching(entry, other):
+                    problems.add(("letters touch", slot, _slot_of(other[0], values)))
         if size != page:
             continue
         if frames and slot != "attribution" and not inside(box, frames[0]):
             problems.add(("leaves the frame", slot, ""))
-        for other, other_box, other_size in texts[i + 1:]:
-            if other_size == page and other.strip() and hit(box, other_box):
-                problems.add(("overlaps", slot, _slot_of(other, values)))
         for card in cards:
             if hit(box, card) and not inside(box, card):
                 problems.add(("crosses a photo card", slot, ""))
@@ -3724,61 +3745,19 @@ class ArabicPrintTests(TestCase):
     TYPOGRAPHIES = ("serif-classic", "script", "modern", "typewriter")
     TARGETS = ("print-classic-edged", "print-a4-frameless", "print-poster-edged")
     SCALES = (100, 130)
-    #: Arabic at maximum length that overlaps or leaves its card, page or frame
-    #: WHERE THE SAME FIELDS IN FRENCH DO NOT, over the three targets and both
-    #: scales, as (layout, typography, problem, slot, other slot). Every one is
-    #: two text BOXES overlapping: Kufi and Naskh stand taller than DejaVu at the
-    #: same size (deep tails, tall alefs), and the layout spaces lines and
-    #: reserves height from the font size. Measured 18 Oct 2026: the ink only
-    #: touches for Serif Classic's poster title over the subtitle (Kufi Bold,
-    #: every layout, up to 48px on the poster at 130) and a milestone title over
-    #: its description in 3 of 36 Neat Stack and Cascade cases (1-4px); the
-    #: rest are boxes only. Correcting the fit is phase 2, not yet approved.
-    #: Kept as a set so a change either way is visible.
-    KNOWN_ARABIC_PROBLEMS = {
-        ('alternating-tilt', 'modern', 'overlaps', 'dedication', 'dedication'),
-        ('alternating-tilt', 'script', 'overlaps', 'dedication', 'dedication'),
-        ('alternating-tilt', 'script', 'overlaps', 'poster title', 'subtitle'),
-        ('alternating-tilt', 'serif-classic', 'overlaps', 'dedication', 'dedication'),
-        ('alternating-tilt', 'serif-classic', 'overlaps', 'poster title', 'subtitle'),
-        ('dotted-branching', 'modern', 'overlaps', 'dedication', 'dedication'),
-        ('dotted-branching', 'script', 'overlaps', 'dedication', 'dedication'),
-        ('dotted-branching', 'script', 'overlaps', 'poster title', 'subtitle'),
-        ('dotted-branching', 'serif-classic', 'overlaps', 'dedication', 'dedication'),
-        ('dotted-branching', 'serif-classic', 'overlaps', 'poster title', 'subtitle'),
-        ('horizontal-circles', 'modern', 'overlaps', 'dedication', 'dedication'),
-        ('horizontal-circles', 'script', 'overlaps', 'dedication', 'dedication'),
-        ('horizontal-circles', 'script', 'overlaps', 'poster title', 'subtitle'),
-        ('horizontal-circles', 'serif-classic', 'overlaps', 'dedication', 'dedication'),
-        ('horizontal-circles', 'serif-classic', 'overlaps', 'poster title', 'subtitle'),
-        ('horizontal-polaroid', 'modern', 'overlaps', 'dedication', 'dedication'),
-        ('horizontal-polaroid', 'script', 'overlaps', 'dedication', 'dedication'),
-        ('horizontal-polaroid', 'script', 'overlaps', 'poster title', 'subtitle'),
-        ('horizontal-polaroid', 'serif-classic', 'overlaps', 'dedication', 'dedication'),
-        ('horizontal-polaroid', 'serif-classic', 'overlaps', 'poster title', 'subtitle'),
-        ('neat-stack', 'modern', 'overlaps', 'dedication', 'dedication'),
-        ('neat-stack', 'modern', 'overlaps', 'description', 'description'),
-        ('neat-stack', 'modern', 'overlaps', 'title', 'description'),
-        ('neat-stack', 'script', 'overlaps', 'dedication', 'dedication'),
-        ('neat-stack', 'script', 'overlaps', 'description', 'description'),
-        ('neat-stack', 'script', 'overlaps', 'poster title', 'subtitle'),
-        ('neat-stack', 'script', 'overlaps', 'title', 'description'),
-        ('neat-stack', 'serif-classic', 'overlaps', 'dedication', 'dedication'),
-        ('neat-stack', 'serif-classic', 'overlaps', 'description', 'description'),
-        ('neat-stack', 'serif-classic', 'overlaps', 'poster title', 'subtitle'),
-        ('neat-stack', 'serif-classic', 'overlaps', 'title', 'description'),
-        ('overlapping-cascade', 'modern', 'overlaps', 'dedication', 'dedication'),
-        ('overlapping-cascade', 'modern', 'overlaps', 'description', 'description'),
-        ('overlapping-cascade', 'modern', 'overlaps', 'title', 'description'),
-        ('overlapping-cascade', 'script', 'overlaps', 'dedication', 'dedication'),
-        ('overlapping-cascade', 'script', 'overlaps', 'description', 'description'),
-        ('overlapping-cascade', 'script', 'overlaps', 'poster title', 'subtitle'),
-        ('overlapping-cascade', 'script', 'overlaps', 'title', 'description'),
-        ('overlapping-cascade', 'serif-classic', 'overlaps', 'dedication', 'dedication'),
-        ('overlapping-cascade', 'serif-classic', 'overlaps', 'description', 'description'),
-        ('overlapping-cascade', 'serif-classic', 'overlaps', 'poster title', 'subtitle'),
-        ('overlapping-cascade', 'serif-classic', 'overlaps', 'title', 'description'),
-    }
+    #: There is no list of known Arabic overlaps any more: phase 1 pinned 42
+    #: (Kufi and Naskh stand taller than DejaVu, and the print spaced lines by
+    #: the font size), and phase 2 (`_line_pitch`, 18 Oct 2026) spaces a line
+    #: with Arabic in it by its ink, so the tests below require ZERO for the
+    #: three typographies that draw Arabic in Noto.
+    #:
+    #: ONE EXCEPTION, older than both phases and outside them: Typewriter keeps
+    #: DejaVu Sans Mono for Arabic (owner's decision), and on Horizontal
+    #: Polaroid its wrapped Arabic caption lines overlap as BOXES on their card
+    #: (no letters touch). Spacing them by their ink was tried and is worse:
+    #: Mono's Arabic stands 1.9-2.0em tall, the fit runs past its floor, and
+    #: letters then touch across Typewriter's milestones.
+    TYPEWRITER_KNOWN = {("horizontal-polaroid", "typewriter", "overlaps", "title", "title")}
 
     def setUp(self):
         self.customer = make_customer()
@@ -3879,7 +3858,7 @@ class ArabicPrintTests(TestCase):
             with self.subTest(font=name):
                 self.assertTrue((png_renderer.FONT_DIR / name).is_file())
 
-    def test_arabic_at_maximum_length_overlaps_nothing_and_stays_on_its_page(self):
+    def test_arabic_at_maximum_length_overlaps_nothing_and_no_letters_touch_on_any_print(self):
         arabic = _arabic_values(self.customer)
         french = _arabic_values(self.customer, FRENCH_MAX)
         found = set()
@@ -3895,8 +3874,111 @@ class ArabicPrintTests(TestCase):
                             (layout, typography, p[0], _kind_of_slot(p[1]), _kind_of_slot(p[2])) for p in ar
                             if (p[0], _kind_of_slot(p[1]), _kind_of_slot(p[2])) not in french_kinds
                         }
-        self.assertEqual(found - self.KNOWN_ARABIC_PROBLEMS, set(), "Arabic overlaps that are not on the known list")
-        self.assertEqual(self.KNOWN_ARABIC_PROBLEMS - found, set(), "known Arabic overlaps that are gone: take them off the list")
+        self.assertEqual(found, self.TYPEWRITER_KNOWN, "Arabic overlaps, letters touching, or text leaving its page, frame or card")
+        self.assertFalse({p for p in found if p[2] == "letters touch"})
+
+    def test_arabic_overlaps_nothing_on_the_wallpapers_and_the_ar_card(self):
+        """Phase 1's harness covered prints only: the moment wallpaper's title
+        touched its date (up to 61px) and the AR card's poster title its names."""
+        from apps.delivery.ar_support import CARD_TARGET_ID
+        from apps.delivery.wallpaper_devices import WALLPAPER_DEVICES, moment_target_id, wallpaper_target_id
+
+        arabic = _arabic_values(self.customer)
+        targets = [wallpaper_target_id(d) for d in WALLPAPER_DEVICES] + [moment_target_id(d, i) for d in WALLPAPER_DEVICES for i in range(5)] + [CARD_TARGET_ID]
+        found = set()
+        for typography in self.TYPOGRAPHIES:
+            for target_id in targets:
+                problems = _arabic_layout_problems(arabic, layout="neat-stack", typography=typography, scale=100,
+                                                   target_id=target_id, customer=self.customer)
+                found |= {(typography, target_id, *p) for p in problems}
+        self.assertEqual(found, set())
+
+    def test_latin_keeps_its_line_spacing_and_arabic_is_spaced_by_its_ink(self):
+        from . import png_renderer
+
+        probe = png_renderer._ARABIC_TALL_AND_DEEP
+        for file_name in sorted({f for roles in png_renderer.FONT_FILES.values() for f in roles.values()}):
+            for size in (14, 40, 90):
+                with self.subTest(font=file_name, size=size):
+                    font = png_renderer._font(file_name, size)
+                    pitch = int(size * 1.35)
+                    for latin in ("Here Comes the Sun", "Éléonore — « 1,240 days » · à suivre…", ""):
+                        self.assertEqual(png_renderer._line_pitch(font, pitch, latin), pitch)
+                    if not hasattr(font, "uses_second"):
+                        continue  # Typewriter keeps DejaVu Sans Mono and its spacing (see TYPEWRITER_KNOWN)
+                    box = font.getbbox(probe, anchor="ls")
+                    ink = box[3] - box[1]
+                    floor = png_renderer._line_pitch(font, pitch, "حكايتنا")
+                    # 0.10em, the clearance approved with phase 2 (18 Oct 2026): written here, not read back.
+                    self.assertGreaterEqual(floor, ink + 0.10 * size)
+                    self.assertEqual(png_renderer._line_pitch(font, floor + 7, "حكايتنا"), floor + 7)  # never lowers a pitch
+
+    def test_every_estimate_the_fit_trusts_matches_what_is_drawn_for_arabic(self):
+        """The fit search sizes milestones from estimators that repeat the
+        drawing's arithmetic. Each must use `_line_pitch` exactly where the
+        drawing does, or Arabic is drawn taller than the fit allowed for (a
+        mutant that dropped it from one estimator went unnoticed by the
+        full-page overlap tests, which the slack between milestones absorbs)."""
+        from types import SimpleNamespace
+
+        from PIL import ImageDraw
+
+        from . import png_renderer as P
+        from .compositions import geometry_for
+
+        draw = ImageDraw.Draw(Image.new("RGB", (10, 10)))
+        date, title, description, location = ARABIC_MAX["events"][0]
+        event = SimpleNamespace(date=date, title=title, description=description, location=location)
+
+        def advance(text, font, width, pitch, max_lines=P._NO_LINE_LIMIT):
+            return P._draw_wrapped(draw, text, font, x=0, y=0, max_width=width, max_lines=max_lines, fill=0,
+                                   line_spacing=pitch, measure_only=True)
+
+        for file_name in ("DejaVuSerif.ttf", "DejaVuSans.ttf"):
+            small, body = P._font(file_name, 30), P._font(file_name, 40)
+            for width in (260, 420):
+                for lines in (1, 2):
+                    with self.subTest(font=file_name, width=width, description_lines=lines):
+                        line = geometry_for("neat-stack").text_line_height
+                        drawn = (int(small.size * geometry_for("neat-stack").date_line_height)
+                                 + advance(event.title, body, width, int(body.size * line))
+                                 + advance(event.description, small, width, int(small.size * line), lines)
+                                 + advance(event.location, small, width, int(small.size * line)))
+                        self.assertEqual(P._neat_stack_block_height(draw, event, small, body, width, lines), drawn)
+                        self.assertEqual(P._cascade_block_height(draw, event, small, body, width, lines), drawn)
+
+                        alt = geometry_for("alternating-tilt")
+                        drawn = (advance(P.format_event_date(event.date), small, width, int(small.size * alt.date_line_height))
+                                 + advance(event.title, body, width, int(body.size * alt.text_line_height))
+                                 + (advance(event.description, small, width, int(small.size * alt.text_line_height), lines) if alt.shows_description else 0)
+                                 + advance(event.location, small, width, int(small.size * alt.text_line_height)))
+                        self.assertEqual(P._alternating_block_height(draw, event, small, body, width, lines), drawn)
+
+                        dotted = geometry_for("dotted-branching").text_line_height
+                        drawn = (int(small.size * 1.5)
+                                 + advance(event.title, body, width - 40, int(body.size * dotted))
+                                 + advance(event.location, small, width, int(small.size * dotted)))
+                        self.assertEqual(P._dotted_block_height(draw, event, small, body, width, lines, indent=40), drawn)
+
+            circles = geometry_for("horizontal-circles")
+            plan = P._horizontal_plan(draw, [event], circles, font_file=file_name, small_size=30, col_w=300,
+                                      band_height=100_000, page_width=2400)
+            [block] = plan["blocks"]
+            font = plan["font"]
+            date_text = P.format_event_date(event.date)
+            drawn = (plan["diameter"] + plan["tick_h"] + block["label_gap"]
+                     + advance(event.title, font, 300, block["line_h"]) + block["date_gap"]
+                     + advance(date_text, font, 300, block["line_h"]))
+            with self.subTest(font=file_name, layout="horizontal-circles"):
+                self.assertEqual(block["height"], drawn)
+
+    def test_a_render_releases_the_fonts_it_cached(self):
+        from . import png_renderer
+
+        values = _arabic_values(self.customer, count=3)
+        timeline = validate_and_normalize(values, {"palette": "classic", "typography": "serif-classic", "layout": "neat-stack", "scale": 100})
+        render_png(timeline, target_id="print-classic-edged", customer=self.customer, locale="ar")
+        self.assertEqual(png_renderer._font.cache_info().currsize, 0)
 
 
 def _kind_of_slot(slot):

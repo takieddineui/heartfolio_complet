@@ -166,8 +166,13 @@ def _arabic_face(face_file: str, size: int, weight: int) -> ImageFont.FreeTypeFo
     return face
 
 
+@functools.lru_cache(maxsize=256)
 def _font(path_name: str, size: int) -> ImageFont.FreeTypeFont:
-    """The DejaVu face `path_name`, drawing Arabic in the preview's Arabic
+    """Cached for ONE render (`render_png` clears it when it returns): a font
+    is immutable, and its measurement caches (see `MixedScriptFont`) then
+    carry across the fit search's many sizes. An Arabic print that no longer
+    fits at the first sizes tried took 25x longer to render without this; kept
+    for the whole process instead, 512 fonts held 107MB. The DejaVu face `path_name`, drawing Arabic in the preview's Arabic
     face at the weight the print already gives the slot (a Bold file draws
     700, any other 400). Text with no Arabic renders exactly as before."""
     face_file = _ARABIC_FACE_BY_FILE.get(path_name)
@@ -175,6 +180,34 @@ def _font(path_name: str, size: int) -> ImageFont.FreeTypeFont:
         return ImageFont.truetype(str(FONT_DIR / path_name), size=size)
     weight = 700 if "Bold" in path_name else 400
     return MixedScriptFont(str(FONT_DIR / path_name), size, second=_arabic_face(face_file, size, weight), second_range=_ARABIC_RANGES)
+
+
+#: ARABIC LINES ARE SPACED BY THEIR INK (18 Oct 2026, phase 2). The print
+#: spaces lines at `font.size` x a factor (1.25-1.5), which suits DejaVu's
+#: Latin (ink 1.15em tall) but not Kufi or Naskh: their tall letters rise
+#: 1.14-1.29em above the baseline and their tails reach 0.44-0.47em below it,
+#: so one Arabic line's tails met the next line's alefs (Serif Classic's
+#: poster title touched the subtitle on every layout). A line with Arabic in
+#: it is now never closer to the next than the Arabic face's tallest letter
+#: plus its deepest tail plus this clearance, in ems. Latin text keeps its
+#: own spacing exactly: the floor only applies where Arabic is present.
+ARABIC_LINE_CLEARANCE = 0.10
+#: The tallest and deepest Arabic shapes, with marks above and below, that
+#: the floor is measured from (once per font).
+_ARABIC_TALL_AND_DEEP = "ألآإأُكلطظ يجحخعغقنسشصضى إِلَى قُلُوبِنَا جَمِيعًا"
+
+
+def _line_pitch(font, pitch: int, text: str) -> int:
+    """`pitch` (the print's `int(size * factor)`), or, for text with Arabic in
+    it, at least the Arabic face's ink height plus `ARABIC_LINE_CLEARANCE`."""
+    if not text or not isinstance(font, MixedScriptFont) or not font.uses_second(text):
+        return pitch
+    floor = font.__dict__.get("_arabic_line_floor")
+    if floor is None:
+        box = font.getbbox(_ARABIC_TALL_AND_DEEP, anchor="ls")
+        floor = math.ceil(box[3] - box[1] + ARABIC_LINE_CLEARANCE * font.size)
+        font._arabic_line_floor = floor
+    return max(pitch, floor)
 
 
 def _wrap_text(draw: ImageDraw.ImageDraw, text: str, font: ImageFont.FreeTypeFont, max_width: int) -> list[str]:
@@ -219,6 +252,7 @@ def _draw_wrapped(
             last = last[:-1]
         lines[-1] = last + "\u2026"
 
+    line_spacing = _line_pitch(font, line_spacing, text)
     for line in lines:
         if not measure_only:
             if centered:
@@ -297,6 +331,16 @@ def _paste_photo(
 
 
 def render_png(
+    timeline: NormalizedTimeline, *, target_id: str, customer, locale: str = "en"
+) -> bytes:
+    """See `_render_png`. Releases the fonts this render cached (`_font`)."""
+    try:
+        return _render_png(timeline, target_id=target_id, customer=customer, locale=locale)
+    finally:
+        _font.cache_clear()
+
+
+def _render_png(
     timeline: NormalizedTimeline, *, target_id: str, customer, locale: str = "en"
 ) -> bytes:
     """`customer` is the *project's* owning customer (`project.customer`,
@@ -684,7 +728,7 @@ def _draw_header(
                 (_line_x(draw, timeline.poster_title, subheading_font, x, max_width, centered), y),
                 timeline.poster_title, font=subheading_font, fill=palette["accent"],
             )
-        y += int(subheading_font.size * 1.5)
+        y += _line_pitch(subheading_font, int(subheading_font.size * 1.5), timeline.poster_title)
 
     # THE SUBTITLE WAS NEVER PRINTED. The Studio asks for it, validation
     # keeps it, the preview and the live page show it under the title — and
@@ -722,7 +766,7 @@ def _draw_header(
                     (_line_x(draw, phrase, small_font, x, max_width, centered), y),
                     phrase, font=small_font, fill=palette["accent"],
                 )
-            y += int(small_font.size * 1.8)
+            y += _line_pitch(small_font, int(small_font.size * 1.8), phrase)
 
     y += int(20 * scale)
     if not measure_only:
@@ -1023,12 +1067,12 @@ def _neat_stack_block_height(draw, event, small_font, body_font, width, descript
     the same steps, fonts and wrap width, measured rather than estimated."""
     geometry = geometry_for("neat-stack")
     height = int(small_font.size * geometry.date_line_height)  # date
-    height += max(1, len(_wrap_text(draw, event.title, body_font, width))) * int(body_font.size * geometry.text_line_height)
+    height += max(1, len(_wrap_text(draw, event.title, body_font, width))) * _line_pitch(body_font, int(body_font.size * geometry.text_line_height), event.title)
     if event.description:
         lines = min(description_lines, max(1, len(_wrap_text(draw, event.description, small_font, width))))
-        height += lines * int(small_font.size * geometry.text_line_height)
+        height += lines * _line_pitch(small_font, int(small_font.size * geometry.text_line_height), event.description)
     if event.location:
-        height += len(_wrap_text(draw, event.location, small_font, width)) * int(small_font.size * geometry.text_line_height)
+        height += len(_wrap_text(draw, event.location, small_font, width)) * _line_pitch(small_font, int(small_font.size * geometry.text_line_height), event.location)
     return height
 
 
@@ -1377,12 +1421,12 @@ def _alternating_block_height(draw, event, small_font, body_font, width, descrip
     """The height `_draw_alternating` advances through for one milestone."""
     geometry = geometry_for("alternating-tilt")
     height = max(1, len(_wrap_text(draw, format_event_date(event.date), small_font, width))) * int(small_font.size * geometry.date_line_height)
-    height += max(1, len(_wrap_text(draw, event.title, body_font, width))) * int(body_font.size * geometry.text_line_height)
+    height += max(1, len(_wrap_text(draw, event.title, body_font, width))) * _line_pitch(body_font, int(body_font.size * geometry.text_line_height), event.title)
     if geometry.shows_description and event.description:
         lines = min(description_lines, max(1, len(_wrap_text(draw, event.description, small_font, width))))
-        height += lines * int(small_font.size * geometry.text_line_height)
+        height += lines * _line_pitch(small_font, int(small_font.size * geometry.text_line_height), event.description)
     if event.location:
-        height += len(_wrap_text(draw, event.location, small_font, width)) * int(small_font.size * geometry.text_line_height)
+        height += len(_wrap_text(draw, event.location, small_font, width)) * _line_pitch(small_font, int(small_font.size * geometry.text_line_height), event.location)
     return height
 
 
@@ -1449,9 +1493,9 @@ def _dotted_block_height(draw, event, small_font, body_font, width, description_
     location (wrapped). Descriptions are not drawn on this layout."""
     line = geometry_for("dotted-branching").text_line_height
     height = int(small_font.size * 1.5)
-    height += max(1, len(_wrap_text(draw, event.title, body_font, max(1, width - indent)))) * int(body_font.size * line)
+    height += max(1, len(_wrap_text(draw, event.title, body_font, max(1, width - indent)))) * _line_pitch(body_font, int(body_font.size * line), event.title)
     if event.location:
-        height += len(_wrap_text(draw, event.location, small_font, width)) * int(small_font.size * line)
+        height += len(_wrap_text(draw, event.location, small_font, width)) * _line_pitch(small_font, int(small_font.size * line), event.location)
     return height
 
 
@@ -1585,14 +1629,14 @@ def _polaroid_card(geometry, card_w):
     return photo, border, photo + 2 * border
 
 
-def _polaroid_extent(geometry, font, card_w, caption_lines, date_lines):
+def _polaroid_extent(geometry, font, card_w, caption_lines, date_lines, caption_text=""):
     """What one Polaroid milestone occupies at `font`, from the top of its
     row: the room the tilted card and its shadow need ABOVE the layout top
     (`top_pad`), the card's height, the date's height. The caption is the
     card's bottom border, so it makes the card taller, as in the preview."""
     photo, border, card_w = _polaroid_card(geometry, card_w)
     photo_h = round(photo * geometry.photo_aspect)
-    line_h = int(font.size * geometry.caption_line_height)
+    line_h = _line_pitch(font, int(font.size * geometry.caption_line_height), caption_text)
     pad_top = round(geometry.caption_pad_top_em * font.size)
     band = pad_top + caption_lines * line_h + round(geometry.caption_pad_bottom_em * font.size)
     card_h = border + photo_h + band
@@ -1652,7 +1696,8 @@ def _horizontal_plan(draw, events, geometry, *, font_file, small_size, col_w, ba
                 widest = max(widest, _widest(draw, label + date, font))
                 blocks.append({
                     "label_gap": label_gap, "date_gap": date_gap, "line_h": line_h,
-                    "height": diameter + tick_h + label_gap + len(label) * line_h + date_gap + len(date) * line_h,
+                    "height": diameter + tick_h + label_gap + len(label) * _line_pitch(font, line_h, event.title)
+                    + date_gap + len(date) * line_h,
                 })
             # A word cannot wrap: a line wider than the column also means
             # "does not fit", and the text shrinks until it does.
@@ -1681,7 +1726,7 @@ def _horizontal_plan(draw, events, geometry, *, font_file, small_size, col_w, ba
             caption = _wrap_text(draw, event.title, font, max(1, photo - 2 * side)) or [""]
             date = _wrap_text(draw, format_event_date(event.date), font, max(1, int(col_w))) or [""]
             too_wide = too_wide or _widest(draw, caption, font) > photo - 2 * side or _widest(draw, date, font) > col_w
-            extent = _polaroid_extent(geometry, font, card_w, len(caption), len(date))
+            extent = _polaroid_extent(geometry, font, card_w, len(caption), len(date), caption_text=event.title)
             blocks.append({**extent, "caption": caption, "date": date})
         top_pad = max(b["top_pad"] for b in blocks)
         # A word cannot wrap: a line wider than its card (or the date wider
@@ -1813,6 +1858,7 @@ def _draw_centered_wrapped(draw, text, font, *, centre_x, y, max_width, max_line
         while last and draw.textbbox((0, 0), last + "…", font=font)[2] > max_width:
             last = last[:-1]
         lines[-1] = last + "…"
+    line_spacing = _line_pitch(font, line_spacing, text)
     for line in lines:
         _draw_centered(draw, line, font, centre_x=centre_x, y=y, fill=fill)
         y += line_spacing
@@ -1887,11 +1933,15 @@ def _render_moment_wallpaper(timeline, *, device, index: int, customer, locale: 
     if event is not None:
         # Seated in the lower part of the scrim, where it is darkest, so
         # the text has contrast wherever the photograph is pale.
-        caption_y = band_bottom - int(title_font.size * 2.6)
+        # An Arabic title takes more room above its date (`_line_pitch`); the
+        # caption rises by that much, so its foot stays where it was.
+        title_pitch = int(title_font.size * 1.35)
+        date_offset = _line_pitch(title_font, title_pitch, event.title)
+        caption_y = band_bottom - int(title_font.size * 2.6) - (date_offset - title_pitch)
         _draw_centered(draw, event.title, title_font, centre_x=device.width // 2, y=caption_y, fill="#ffffff")
         _draw_centered(
             draw, format_event_date(event.date), date_font,
-            centre_x=device.width // 2, y=caption_y + int(title_font.size * 1.35),
+            centre_x=device.width // 2, y=caption_y + date_offset,
             fill="#eceae6",
         )
 
@@ -2117,8 +2167,9 @@ def _render_ar_card(timeline, *, customer, locale: str) -> bytes:
     # repeating them a line below read as a mistake. Deliberately NOT replaced
     # by a story-type default: a title the customer removed must not come back.
     if timeline.poster_title:
-        draw.text((margin, y), join_names(timeline.people, locale), font=name_font, fill=palette["muted"])
-        y += int(name_font.size * 2.2)
+        names = join_names(timeline.people, locale)
+        draw.text((margin, y), names, font=name_font, fill=palette["muted"])
+        y += _line_pitch(name_font, int(name_font.size * 2.2), names)
     else:
         # Just the breathing room above the rule; the subline's own line
         # height is gone with it.

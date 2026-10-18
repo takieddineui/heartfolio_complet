@@ -199,6 +199,10 @@ class MixedScriptFont(ImageFont.FreeTypeFont):
     def _mixed(self, text: str) -> bool:
         return self._second_pattern.search(text) is not None
 
+    def uses_second(self, text: str) -> bool:
+        """Whether any character of `text` is in the second face's range."""
+        return self._mixed(text)
+
     def runs(self, text: str) -> list[tuple[str, ImageFont.FreeTypeFont, str]]:
         """(text, face, "ltr"/"rtl") runs in left-to-right display order; each
         run's text is in logical order, for raqm to shape in its direction."""
