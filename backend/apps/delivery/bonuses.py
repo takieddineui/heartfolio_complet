@@ -407,18 +407,25 @@ def _render_qr_card(url: str, variant: str, *, caption: str | None = None) -> by
     _mark_on(draw, (size[0] - size[0] * 0.16) / 2, size[1] * 0.07, size[0] * 0.16,
              rose=rose, bronze=bronze, spark=spark)
 
-    # Text is drawn with Pillow's default bitmap font, scaled by drawing
-    # into a larger box, because the container has no guaranteed TTF and a
-    # missing font file would fail the whole bonus rather than one line.
-    # Positioned FROM THE PLATE rather than at a fixed fraction of the
-    # card: the plate's height depends on the card width, so a hardcoded
-    # caption position collided with it on the taller variants.
+    # The caption and the wordmark are DejaVu from the poster renderers'
+    # folder (`_card_font`), the caption with Arabic drawn in Noto Kufi
+    # (`_caption_font`). Positioned FROM THE PLATE rather than at a fixed
+    # fraction of the card: the plate's height depends on the card width, so
+    # a hardcoded caption position collided with it on the taller variants.
     plate_bottom = qy + plate + pad
-    words = caption or "Scan to open your keepsake"
-    _centred(draw, words, size[0], plate_bottom + int(size[1] * 0.045),
-             fg, _card_font("DejaVuSerif.ttf", int(size[0] * 0.042)))
-    _centred(draw, "HEARTFOLIO", size[0], plate_bottom + int(size[1] * 0.105),
-             sub, _card_font("DejaVuSans.ttf", int(size[0] * 0.024)))
+    caption_top = plate_bottom + int(size[1] * 0.045)
+    wordmark_top = plate_bottom + int(size[1] * 0.105)
+    wordmark_font = _card_font("DejaVuSans.ttf", int(size[0] * 0.024))
+    wordmark_box = draw.textbbox((0, 0), "HEARTFOLIO", font=wordmark_font)
+    lines, font, pitch = _caption_layout(
+        draw, caption or "Scan to open your keepsake", card_size=size,
+        room=size[1] * (1 - CAPTION_BOTTOM_MARGIN) - wordmark_top - (wordmark_box[3] - wordmark_box[1]),
+    )
+    for index, line in enumerate(lines):
+        _centred(draw, line, size[0], caption_top + index * pitch, fg, font)
+    # The wordmark follows the caption's last line; under a one-line caption
+    # it is exactly where it always was.
+    _centred(draw, "HEARTFOLIO", size[0], wordmark_top + (len(lines) - 1) * pitch, sub, wordmark_font)
 
     buffer = io.BytesIO()
     card.save(buffer, format="PNG")
@@ -431,6 +438,81 @@ def _render_qr_card(url: str, variant: str, *, caption: str | None = None) -> by
 _CARD_FONT_DIR = (
     Path(__file__).parent / "product_renderers" / "love_story_timeline" / "fonts"
 )
+
+#: THE CAPTION WRAPS AND SHRINKS (18 Oct 2026). It was one line at a fixed
+#: size, so long names (24+24 characters: 117% of the card) and Song
+#: Poster's "artist — track" (up to 283%) ran off both edges, on the gift card
+#: emailed to the recipient too; and DejaVu Serif has no Arabic, so Arabic
+#: printed as empty boxes. Now: at most `CAPTION_MAX_LINES` lines of at most
+#: `CAPTION_WIDTH` of the card, shrinking in `_CAPTION_STEP`s to
+#: `CAPTION_MIN_SCALE` until the caption and the wordmark below it fit above
+#: `CAPTION_BOTTOM_MARGIN`; at that floor the second line ends with "…". A
+#: caption that fits on one line at full size is drawn exactly as before.
+CAPTION_WIDTH = 0.84
+CAPTION_MAX_LINES = 2
+CAPTION_MIN_SCALE = 0.70
+_CAPTION_STEP = 0.05
+#: The space the caption's second line takes, as a multiple of its size (a line
+#: with Arabic takes at least its ink: `_line_pitch`).
+CAPTION_LINE_HEIGHT = 1.3
+#: The wordmark's foot never comes closer than this to the card's bottom edge.
+CAPTION_BOTTOM_MARGIN = 0.03
+
+
+def _caption_font(size: int):
+    """DejaVu Serif, drawing Arabic in Noto Kufi, the face the site gives its
+    serif (`globals.css`), character by character (`mixed_script`)."""
+    from apps.delivery.mixed_script import MixedScriptFont
+    from apps.delivery.product_renderers.love_story_timeline.png_renderer import (
+        _ARABIC_RANGES,
+        ARABIC_FACES,
+        _arabic_face,
+    )
+
+    try:
+        return MixedScriptFont(
+            str(_CARD_FONT_DIR / "DejaVuSerif.ttf"), size,
+            second=_arabic_face(ARABIC_FACES["serif"], size, 400), second_range=_ARABIC_RANGES,
+        )
+    except OSError:
+        return _card_font("DejaVuSerif.ttf", size)
+
+
+def _wrap_caption(draw, text: str, font, max_width: float) -> list[str]:
+    lines, current = [], ""
+    for word in text.split():
+        candidate = f"{current} {word}" if current else word
+        if not current or draw.textlength(candidate, font=font) <= max_width:
+            current = candidate
+        else:
+            lines.append(current)
+            current = word
+    return lines + ([current] if current else [])
+
+
+def _caption_layout(draw, text: str, *, card_size, room: float):
+    """The caption's lines, font and line pitch. `room` is how far the wordmark
+    may move down (each line past the first moves it by one pitch)."""
+    from apps.delivery.product_renderers.love_story_timeline.png_renderer import _line_pitch
+
+    max_width = card_size[0] * CAPTION_WIDTH
+    base = int(card_size[0] * 0.042)
+    steps = round((1 - CAPTION_MIN_SCALE) / _CAPTION_STEP)
+    for index in range(steps + 1):
+        font = _caption_font(max(10, round(base * (1 - index * _CAPTION_STEP))))
+        lines = _wrap_caption(draw, text, font, max_width)
+        pitch = _line_pitch(font, int(font.size * CAPTION_LINE_HEIGHT), text)
+        if (len(lines) <= CAPTION_MAX_LINES
+                and all(draw.textlength(line, font=font) <= max_width for line in lines)
+                and (len(lines) - 1) * pitch <= room):
+            return lines, font, pitch
+    # At the floor: as many whole lines as fit, the last cut with "…".
+    fitting = max(1, min(CAPTION_MAX_LINES, int(room // pitch) + 1))
+    kept = [line for line in lines[: fitting - 1] if draw.textlength(line, font=font) <= max_width]
+    rest = " ".join(lines[len(kept):])
+    while rest and draw.textlength(rest + "…", font=font) > max_width:
+        rest = rest[:-1].rstrip()
+    return kept + [rest + "…"], font, pitch
 
 
 def _card_font(name: str, size: int):

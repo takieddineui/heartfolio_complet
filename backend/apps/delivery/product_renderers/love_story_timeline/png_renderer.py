@@ -199,7 +199,11 @@ _ARABIC_TALL_AND_DEEP = "ألآإأُكلطظ يجحخعغقنسشصضى إِل�
 
 def _line_pitch(font, pitch: int, text: str) -> int:
     """`pitch` (the print's `int(size * factor)`), or, for text with Arabic in
-    it, at least the Arabic face's ink height plus `ARABIC_LINE_CLEARANCE`."""
+    it, at least the Arabic face's ink height plus `ARABIC_LINE_CLEARANCE`: the
+    taller of the probe's (`_ARABIC_TALL_AND_DEEP`, the face's usual reach) and
+    the text's OWN, because full vowel marks stack deeper than the probe (a
+    kasra under a deep tail reaches 0.68em in Kufi against the probe's 0.47).
+    Every line of the text is part of it, so none can reach further."""
     if not text or not isinstance(font, MixedScriptFont) or not font.uses_second(text):
         return pitch
     floor = font.__dict__.get("_arabic_line_floor")
@@ -207,7 +211,8 @@ def _line_pitch(font, pitch: int, text: str) -> int:
         box = font.getbbox(_ARABIC_TALL_AND_DEEP, anchor="ls")
         floor = math.ceil(box[3] - box[1] + ARABIC_LINE_CLEARANCE * font.size)
         font._arabic_line_floor = floor
-    return max(pitch, floor)
+    own = font.getbbox(text, anchor="ls")
+    return max(pitch, floor, math.ceil(own[3] - own[1] + ARABIC_LINE_CLEARANCE * font.size))
 
 
 def _wrap_text(draw: ImageDraw.ImageDraw, text: str, font: ImageFont.FreeTypeFont, max_width: int) -> list[str]:

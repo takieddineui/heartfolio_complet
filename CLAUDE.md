@@ -762,16 +762,34 @@ Two were genuine product bugs: the `layout` default above, and
   that catches it. Mutation-checked 12 of 14; the other two (the duration's
   1.8 and the AR card names' 2.2 advances) are equivalent today, both factors
   being above every Naskh floor, and are kept as guards.
+  **FOUND AFTER COMMITTING, fixed with the QR caption (18 Oct 2026): the probe
+  under-reached full vowel marks.** A kasra under a deep tail reaches 0.68em in
+  Kufi against the probe's 0.47 (fully voweled text spans up to 1.96em against
+  a 1.85em floor), so voweled lines could still touch. The floor is now the
+  larger of the probe's and the TEXT'S OWN ink span; every line is part of the
+  text, so none can reach further. Unvoweled text keeps its floor: all 1628
+  hashed LST renders are unchanged. `test_fully_voweled_arabic_*` pin it.
   **One known exception, older than both phases:** Typewriter keeps DejaVu
   Sans Mono for Arabic (decision), and on Horizontal Polaroid its wrapped
   Arabic captions overlap as BOXES on their card (no letters touch;
   `TYPEWRITER_KNOWN`). Spacing Mono by its ink was tried and is worse: its
   Arabic stands 1.9-2.0em tall, the fit runs past its floor and letters then
   touch across Typewriter's milestones.
-- **FLAGGED, not fixed: QR cards print an Arabic caption as boxes, for every
-  product.** `bonuses.py` draws the QR card caption (names, poster title, song,
-  Reasons names) in `DejaVuSerif.ttf`, with a silent fallback to Pillow's
-  bitmap font. That includes the gift QR card emailed to the recipient.
+- **QR card caption FIXED (18 Oct 2026), every product, the emailed gift card
+  included.** The caption (names, poster title, "artist — track", Reasons names,
+  the graduate) was ONE line at a fixed size in DejaVu Serif: long LATIN
+  captions ran off both edges (24+24-character names 117% of the card; Song
+  Poster's 60+60 up to 283%), on real orders, and Arabic printed as boxes. Now
+  (`_caption_layout`, `bonuses.py`): DejaVu Serif with Arabic in Noto Kufi
+  (`MixedScriptFont`), wrapped to `CAPTION_WIDTH` (84%) in at most 2 lines,
+  shrinking in 5% steps to `CAPTION_MIN_SCALE` (70%) until it and the wordmark
+  fit above `CAPTION_BOTTOM_MARGIN` (3%), then "…" at that floor; "HEARTFOLIO"
+  follows the last line. A caption that fits one line at full size is drawn
+  exactly as before: every short caption, on all 6 cards, is byte-identical
+  (LST's 40-character poster title, 93% of the card, is over 84% and now
+  wraps). `QrCaptionTests` (`tests_bonuses.py`, fast) pin the approved limits
+  as literals; `_card_font`'s bitmap fallback stays (a bonus beats none) and a
+  test keeps the files present.
 - **FLAGGED, not changed: the live page draws Modern's Arabic HEADINGS in
   Kufi** (its Arabic-only alias face leads every heading stack), where the
   Studio preview, and now the print, use Naskh.

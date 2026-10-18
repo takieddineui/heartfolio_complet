@@ -3972,6 +3972,39 @@ class ArabicPrintTests(TestCase):
             with self.subTest(font=file_name, layout="horizontal-circles"):
                 self.assertEqual(block["height"], drawn)
 
+    VOWELED = (
+        "إِلَى قُلُوبِنَا جَمِيعًا — أُغْنِيَةُ الْحُبِّ الْأَبَدِيِّ لِلْأَحِبَّةِ فِي كُلِّ مَكَانٍ",
+        "أُغْنِيَةُ آمَالٍ أُمِّي",
+        "بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ",
+    )
+
+    def test_fully_voweled_arabic_is_spaced_by_its_own_ink(self):
+        """Full vowel marks stack deeper than the probe the floor is measured
+        from (a kasra under a deep tail: 0.68em in Kufi, the probe's 0.47), so
+        the floor also takes the text's own reach (found 18 Oct 2026)."""
+        from . import png_renderer
+
+        for file_name in ("DejaVuSerif-Bold.ttf", "DejaVuSerif.ttf", "DejaVuSans-Bold.ttf", "DejaVuSerif-Italic.ttf"):
+            for size in (20, 60):
+                font = png_renderer._font(file_name, size)
+                for text in self.VOWELED:
+                    with self.subTest(font=file_name, size=size, text=text[:12]):
+                        box = font.getbbox(text, anchor="ls")
+                        self.assertGreaterEqual(png_renderer._line_pitch(font, 0, text), box[3] - box[1] + 0.10 * size)
+
+    def test_fully_voweled_arabic_overlaps_nothing_on_the_prints(self):
+        content = {**ARABIC_MAX, "people": ["عَبْدُ الرَّحْمَٰنِ بْنُ سُلْطَانَ"[:24], "نُورُ الْهُدَىٰ بِنْتُ مُحَمَّدٍ"[:24]],
+                   "subtitle": self.VOWELED[1], "dedication": self.VOWELED[0][:180],
+                   "events": [(d, self.VOWELED[2][:40], self.VOWELED[0][:140], self.VOWELED[1][:40]) for d, *_ in ARABIC_MAX["events"]]}
+        values = _arabic_values(self.customer, content)
+        found = set()
+        for layout in ("neat-stack", "overlapping-cascade", "horizontal-polaroid"):
+            for typography in ("serif-classic", "script", "modern"):
+                problems = _arabic_layout_problems(values, layout=layout, typography=typography, scale=130,
+                                                   target_id="print-classic-edged", customer=self.customer)
+                found |= {(layout, typography, *p) for p in problems if p[0] in ("overlaps", "letters touch")}
+        self.assertEqual(found, set())
+
     def test_a_render_releases_the_fonts_it_cached(self):
         from . import png_renderer
 

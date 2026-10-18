@@ -129,3 +129,151 @@ class LiveQrTests(SimpleTestCase):
         order = _order(["__live__"], locale="ar")
         render_live_qr(order)  # must not raise for a non-default locale
         self.assertTrue(callable(qrcode.make))
+
+
+# ---------------------------------------------------------------------
+# The QR card's caption (18 Oct 2026)
+# ---------------------------------------------------------------------
+
+_SHORT_CAPTIONS = ("Emma & James", "Our Love Story", "The Landing — Halfway Home", "Theo & Hana", "Amira Benali",
+                   "Éléonore & Jean-Baptiste", None)
+_LONG_CAPTIONS = (
+    "Alexandra Konstantinopol & Maximilian von Habsburg",  # LST names, 24 + 24
+    "The Long and Winding Road to Your Doorst",  # LST poster title, 40
+    # Song Poster's "artist — track", 60 + 60
+    "Sir Paul McCartney and the Royal Liverpool Philharmonic Orch — The Long and Winding Road That Leads Me Back to Your Door Ag",
+    "Bartholomew-Alexander L. & Anastasia-Konstantina M.",  # Reasons, 24 + 24
+    "Maximiliane Josephine Charlotte von Arnim",  # Graduation, 40
+    "ليلى & عمر",
+    "عبد الرحمن بن سلطان العت & نور الهدى بنت محمد القحط",
+    "ماجد المهندس — أحبك أكثر من أي شيء",
+    # Long enough that Arabic takes two lines, spaced by its ink: vowel marks
+    # above tall letters and below deep tails, the case the floor exists for.
+    "إِلَى قُلُوبِنَا جَمِيعًا — أُغْنِيَةُ الْحُبِّ الْأَبَدِيِّ لِلْأَحِبَّةِ فِي كُلِّ مَكَانٍ وَزَمَانٍ بَعِيدٍ",
+    "Layla & عمر",
+    "Supercalifragilisticexpialidocious-and-beyond-the-card-edge",
+)
+
+
+def _drawn_card(caption, variant):
+    """Every text the card draws (text, ink box, font) and its QR plate."""
+    from unittest import mock
+
+    from PIL import Image as PILImage
+    from PIL import ImageDraw
+
+    from apps.delivery import bonuses
+
+    texts, plates = [], []
+    real_text, real_plate = ImageDraw.ImageDraw.text, ImageDraw.ImageDraw.rounded_rectangle
+
+    def spy_text(draw, xy, value, *args, **kwargs):
+        texts.append((value, draw.textbbox(xy, value, font=kwargs.get("font")), kwargs.get("font")))
+        return real_text(draw, xy, value, *args, **kwargs)
+
+    def spy_plate(draw, xy, *args, **kwargs):
+        plates.append(tuple(xy[0]) + tuple(xy[1]) if isinstance(xy[0], (tuple, list)) else tuple(xy))
+        return real_plate(draw, xy, *args, **kwargs)
+
+    with mock.patch.object(ImageDraw.ImageDraw, "text", spy_text), \
+            mock.patch.object(ImageDraw.ImageDraw, "rounded_rectangle", spy_plate):
+        png = bonuses._render_qr_card("https://www.theheartfolio.com/en/k/abc", variant, caption=caption)
+    size = PILImage.open(io.BytesIO(png)).size
+    [plate] = plates
+    caption_lines = [t for t in texts if t[0] != "HEARTFOLIO"]
+    [wordmark] = [t for t in texts if t[0] == "HEARTFOLIO"]
+    return size, plate, caption_lines, wordmark
+
+
+class QrCaptionTests(SimpleTestCase):
+    """The caption was one line at a fixed size: long names and Song Poster's
+    "artist — track" ran off both edges (117% and 283% of the card), on the gift
+    card emailed to the recipient too, and Arabic printed as empty boxes.
+
+    The limits approved on 18 Oct 2026 are written here, not read back from
+    `bonuses`, so changing one there fails this: 84% of the card's width, two
+    lines, a 70% floor."""
+
+    WIDTH, MAX_LINES, MIN_SCALE = 0.84, 2, 0.70
+
+    def test_a_caption_that_fits_one_line_is_drawn_exactly_where_it_always_was(self):
+        from apps.delivery import bonuses
+
+        for variant in bonuses.QR_CARD_VARIANTS:
+            for caption in _SHORT_CAPTIONS:
+                with self.subTest(variant=variant, caption=caption):
+                    (width, height), plate, lines, wordmark = _drawn_card(caption, variant)
+                    plate_bottom = plate[3]
+                    [(text, box, font)] = lines
+                    self.assertEqual(text, caption or "Scan to open your keepsake")
+                    self.assertEqual(font.size, int(width * 0.042))
+                    self.assertEqual(box[1], plate_bottom + int(height * 0.045))  # the ink's top, as before
+                    self.assertEqual(wordmark[1][1], plate_bottom + int(height * 0.105))
+
+    def test_every_caption_stays_on_the_card_clear_of_the_plate_and_the_wordmark(self):
+        """Boxes that never overlap also mean no letters ever touch."""
+        from apps.delivery import bonuses
+
+        def hit(a, b):
+            return a[0] < b[2] and b[0] < a[2] and a[1] < b[3] and b[1] < a[3]
+
+        for variant in bonuses.QR_CARD_VARIANTS:
+            for caption in _SHORT_CAPTIONS + _LONG_CAPTIONS:
+                with self.subTest(variant=variant, caption=caption):
+                    (width, height), plate, lines, wordmark = _drawn_card(caption, variant)
+                    left, right = width * (1 - self.WIDTH) / 2, width * (1 + self.WIDTH) / 2
+                    self.assertLessEqual(len(lines), self.MAX_LINES)
+                    for i, (text, box, font) in enumerate(lines):
+                        self.assertGreaterEqual(box[0], left - 1, f"{text!r} runs off the left")
+                        self.assertLessEqual(box[2], right + 1, f"{text!r} runs off the right")
+                        self.assertGreaterEqual(box[1], plate[3], f"{text!r} reaches into the QR plate")
+                        self.assertFalse(hit(box, wordmark[1]), f"{text!r} touches the wordmark")
+                        for other in lines[i + 1:]:
+                            self.assertFalse(hit(box, other[1]), f"{text!r} touches the next line")
+                        self.assertGreaterEqual(font.size, int(width * 0.042 * self.MIN_SCALE))
+                    self.assertLessEqual(wordmark[1][3], height * (1 - bonuses.CAPTION_BOTTOM_MARGIN))
+
+    def test_the_whole_caption_is_printed_unless_cut_at_the_floor(self):
+        from apps.delivery import bonuses
+
+        for variant in bonuses.QR_CARD_VARIANTS:
+            for caption in _SHORT_CAPTIONS + _LONG_CAPTIONS:
+                with self.subTest(variant=variant, caption=caption):
+                    (width, _), _, lines, _ = _drawn_card(caption, variant)
+                    printed = " ".join(text for text, _, _ in lines)
+                    wanted = caption or "Scan to open your keepsake"
+                    if printed.endswith("…"):
+                        self.assertEqual(lines[0][2].size, round(int(width * 0.042) * self.MIN_SCALE))
+                        self.assertTrue(wanted.startswith(printed[:-1].rstrip()), printed)
+                    else:
+                        self.assertEqual(printed, wanted)
+                    if caption in _LONG_CAPTIONS[:2] + _LONG_CAPTIONS[3:5]:
+                        self.assertFalse(printed.endswith("…"), "long names fit whole on two lines")
+                    if caption == _LONG_CAPTIONS[8]:
+                        self.assertEqual(len(lines), 2, "the long Arabic caption wraps (it exercises the Arabic line spacing)")
+
+    def test_every_printed_character_has_a_real_glyph_and_arabic_is_kufi(self):
+        from apps.delivery import bonuses
+        from apps.delivery.mixed_script import has_glyph
+
+        for variant in bonuses.QR_CARD_VARIANTS:
+            for caption in _LONG_CAPTIONS:
+                with self.subTest(variant=variant, caption=caption):
+                    _, _, lines, wordmark = _drawn_card(caption, variant)
+                    for text, _, font in lines + [wordmark]:
+                        for ch in text:
+                            if ch.isspace():
+                                continue
+                            face = font.face_for_char(ch) if hasattr(font, "face_for_char") else font
+                            self.assertTrue(has_glyph(face, ch), f"{ch!r} in {text!r} is an empty box")
+                            if 0x0600 <= ord(ch) <= 0x06FF:
+                                self.assertEqual(face.getname()[0], "Noto Kufi Arabic")
+
+    def test_the_card_fonts_are_in_the_folder(self):
+        """`_card_font` falls back to Pillow's bitmap font rather than fail the
+        bonus; this makes sure the shipped files never need it."""
+        from apps.delivery import bonuses
+
+        for name in ("DejaVuSerif.ttf", "DejaVuSans.ttf", "noto-kufi-arabic.woff2"):
+            with self.subTest(font=name):
+                self.assertTrue((bonuses._CARD_FONT_DIR / name).is_file())
