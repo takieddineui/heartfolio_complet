@@ -3548,3 +3548,357 @@ class LocationFieldTests(SimpleTestCase):
             target_id="print-a4-edged", customer=None,
         )
         self.assertTrue(content.startswith(b"\x89PNG\r\n\x1a\n"))
+
+
+# ------------------------------------------------------------------
+# Arabic in the print (18 Oct 2026)
+# ------------------------------------------------------------------
+
+#: Arabic at every field's maximum length (names 24, poster title 40,
+#: subtitle 60, dedication 180, ending 40; titles and locations 40,
+#: descriptions 140), five milestones.
+_AR_DESCRIPTION = (
+    "في مقهى صغير وسط المدينة، حيث بدأ كل شيء بابتسامة خجولة وفنجان قهوة لم نكمله أبدًا، ثم مشينا طويلًا تحت المطر " * 2
+)[:140]
+ARABIC_MAX = {
+    "people": ["عبد الرحمن بن سلطان العت", "نور الهدى بنت محمد القحط"],
+    "posterTitle": "حكايتنا التي لا تنتهي أبدًا مهما طال الزمن"[:40],
+    "subtitle": "من أول نظرة في مقهى صغير إلى آخر صفحة في كتاب العمر الجميل",
+    "dedication": (
+        "إلى من جعلت كل يوم أجمل، شكرًا لأنك اخترتني كل صباح، ولأنك ضحكت معي في المطر وفي الطرق الطويلة، "
+        "ولأنك كنت البيت في كل مدينة سكناها معًا، أحبك أكثر مما تقول الكلمات"
+    )[:180],
+    "endingText": "إلى الأبد معًا، يا رفيقة العمر والروح",
+    "events": [
+        ("2019-04-12", "التقينا في مقهى صغير وسط المدينة القديمة"[:40], _AR_DESCRIPTION, "مقهى الروضة، وسط مدينة لشبونة القديمة"[:40]),
+        ("2020-06-01", "أول رحلة لنا معًا إلى جبال الأندلس", _AR_DESCRIPTION, "غرناطة، الأندلس، إسبانيا"),
+        ("2021-02-14", "عيد الحب تحت الثلج في الجبال البعيدة", _AR_DESCRIPTION, "شاموني، جبال الألب الفرنسية"),
+        ("2022-09-03", "انتقلنا للعيش معًا في شقتنا الأولى", _AR_DESCRIPTION, "حي الكروا روس، مدينة ليون"),
+        ("2024-07-20", "قلنا نعم تحت أشجار الدلب الكبيرة", _AR_DESCRIPTION, "قلعة لورمارين، بروفانس"),
+    ],
+}
+#: The same fields at the same maximum lengths in French: the control that
+#: separates what Arabic's taller faces cause from what every script hits.
+FRENCH_MAX = {
+    "people": ["Éléonore-Gabrielle Dupré", "Jean-Baptiste de Lefèvre"],
+    "posterTitle": "Notre histoire, à jamais écrite ensemble",
+    "subtitle": "Du premier « bonjour » à la dernière page — toujours, ça va.",
+    "dedication": (
+        "À toi qui as rendu chaque matin plus doux ; à nos fous rires, à nos voyages, à nos dimanches "
+        "pluvieux et à tous les cafés partagés au coin de la rue Saint-Honoré, merci pour tout."
+    )[:180],
+    "endingText": "Pour toujours, mon cœur — à suivre…",
+    "events": [
+        ("2019-04-12", "Notre rencontre au café de la Rotonde ici", ("Un après-midi d'avril, un croissant partagé et des heures à parler de tout et de rien, jusqu'à la fermeture du café. " * 2)[:140], "Café de la Rotonde, boulevard Montparnas"),
+        ("2020-06-01", "Premier voyage en Andalousie ensemble", ("Des montagnes, des oliviers, une voiture trop petite et des chansons chantées faux à tue-tête sur l'autoroute du soleil. " * 2)[:140], "Grenade, Andalousie, Espagne du Sud"),
+        ("2021-02-14", "La Saint-Valentin sous la neige à deux", ("Une cabane, un feu de cheminée, et la neige qui n'arrêtait pas de tomber sur le toit toute la nuit. " * 2)[:140], "Chamonix-Mont-Blanc, Haute-Savoie"),
+        ("2022-09-03", "Notre premier appartement à Lyon enfin", ("Deux cartons, une plante verte et un canapé trop grand pour l'escalier de la Croix-Rousse. " * 2)[:140], "Croix-Rousse, Lyon, quatrième étage"),
+        ("2024-07-20", "Le oui sous les platanes du château", ("Nos familles, nos amis, et un orage d'été juste après le gâteau, sous les platanes. " * 2)[:140], "Château de Lourmarin, Luberon"),
+    ],
+}
+FRENCH_MAX["events"] = [(d, t[:40], ds[:140], loc[:40]) for d, t, ds, loc in FRENCH_MAX["events"]]
+_ARABIC_LETTER = range(0x0600, 0x0700)
+
+
+def _has_arabic(text):
+    return any(ord(ch) in _ARABIC_LETTER for ch in text)
+
+
+def _arabic_values(customer, content=ARABIC_MAX, count=5):
+    events = []
+    for index, (date, title, description, location) in enumerate(content["events"][:count]):
+        buf = io.BytesIO()
+        Image.new("RGB", (1200, 900), (40 + index * 30, 120, 190)).save(buf, format="JPEG", quality=90)
+        asset = upload_asset(customer, SimpleUploadedFile(f"a{index}.jpg", buf.getvalue(), content_type="image/jpeg"))
+        events.append({"date": date, "title": title, "description": description, "location": location,
+                       "photo": {"assetId": str(asset.id)}})
+    return {
+        "storyType": "couple", "people": [{"name": n} for n in content["people"]],
+        "posterTitle": content["posterTitle"], "subtitle": content["subtitle"], "dedication": content["dedication"],
+        "endingText": content["endingText"], "showDuration": True, "autoSort": True, "events": events,
+    }
+
+
+def _slot_of(text, values):
+    """Which field a drawn line belongs to, for reporting."""
+    core = text.replace("…", "").strip().strip("“”").strip()
+    candidates = {
+        "names": " & ".join(p["name"] for p in values["people"]), "poster title": values["posterTitle"],
+        "subtitle": values["subtitle"], "dedication": values["dedication"], "ending text": values["endingText"],
+    }
+    for i, event in enumerate(values["events"], 1):
+        candidates.update({f"title {i}": event["title"], f"description {i}": event["description"],
+                           f"location {i}": event["location"]})
+    matches = [name for name, value in candidates.items() if core and value and (core in value or core in value.upper())]
+    if matches:
+        return min(matches, key=lambda name: len(candidates[name]))
+    if "heartfolio" in core:
+        return "attribution"
+    return "date or duration" if any(ch.isdigit() for ch in core) else repr(core[:20])
+
+
+def _arabic_layout_problems(values, *, layout, typography, scale, target_id, customer, locale="ar"):
+    """Every text that overlaps another, leaves its page, its frame or its own
+    card image, or crosses a photo card, its shadow or a pasted photo; as
+    (problem, slot, other slot) so a report can name the slots."""
+    from unittest import mock
+
+    from PIL import ImageDraw
+
+    from . import png_renderer
+
+    timeline = validate_and_normalize(values, {"palette": "classic", "typography": typography, "layout": layout, "scale": scale})
+    texts, frames, cards, photos = [], [], [], []
+    text, rectangle = ImageDraw.ImageDraw.text, ImageDraw.ImageDraw.rectangle
+    polaroid, paste_photo = png_renderer._paste_polaroid, png_renderer._paste_photo
+
+    def spy_text(draw, xy, value, *args, **kwargs):
+        texts.append((value, draw.textbbox(xy, value, font=kwargs.get("font"), anchor=kwargs.get("anchor")), draw.im.size))
+        return text(draw, xy, value, *args, **kwargs)
+
+    def spy_rectangle(draw, xy, *args, **kwargs):
+        style = png_renderer.DEFAULT_FRAME_STYLE
+        if kwargs.get("outline") == style["color"] and kwargs.get("width") == style["thickness"]:
+            t = style["thickness"]
+            frames.append((xy[0] + t, xy[1] + t, xy[2] - t + 1, xy[3] - t + 1))
+        return rectangle(draw, xy, *args, **kwargs)
+
+    def spy_polaroid(*args, **kwargs):
+        placed = polaroid(*args, **kwargs)
+        cards.append(placed["card"])
+        if placed["shadow"]:
+            cards.append(placed["shadow"])
+        return placed
+
+    def spy_photo(image, *args, **kwargs):
+        if "x" in kwargs and "y" in kwargs:
+            x, y, size = kwargs["x"], kwargs["y"], kwargs["size"]
+            photos.append((image.size, (x, y, x + size, y + (kwargs.get("height") or size))))
+        return paste_photo(image, *args, **kwargs)
+
+    with mock.patch.object(ImageDraw.ImageDraw, "text", spy_text), \
+            mock.patch.object(ImageDraw.ImageDraw, "rectangle", spy_rectangle), \
+            mock.patch.object(png_renderer, "_paste_polaroid", spy_polaroid), \
+            mock.patch.object(png_renderer, "_paste_photo", spy_photo):
+        render_png(timeline, target_id=target_id, customer=customer, locale=locale)
+
+    def hit(a, b):
+        return a[0] < b[2] and b[0] < a[2] and a[1] < b[3] and b[1] < a[3]
+
+    def inside(a, b):
+        return b[0] <= a[0] and b[1] <= a[1] and a[2] <= b[2] and a[3] <= b[3]
+
+    page = max((size for _, _, size in texts), key=lambda s: s[0] * s[1])
+    problems = set()
+    for i, (value, box, size) in enumerate(texts):
+        if not value.strip():
+            continue
+        slot = _slot_of(value, values)
+        if not inside(box, (0, 0, *size)):
+            problems.add(("leaves its page" if size == page else "leaves its card", slot, ""))
+        if size != page:
+            continue
+        if frames and slot != "attribution" and not inside(box, frames[0]):
+            problems.add(("leaves the frame", slot, ""))
+        for other, other_box, other_size in texts[i + 1:]:
+            if other_size == page and other.strip() and hit(box, other_box):
+                problems.add(("overlaps", slot, _slot_of(other, values)))
+        for card in cards:
+            if hit(box, card) and not inside(box, card):
+                problems.add(("crosses a photo card", slot, ""))
+        for photo_size, photo in photos:
+            if photo_size == page and hit(box, photo):
+                problems.add(("covers a photo", slot, ""))
+    return sorted(problems)
+
+
+class ArabicPrintTests(TestCase):
+    """No DejaVu Serif face has an Arabic glyph, so Serif Classic printed every
+    Arabic slot as empty boxes and Romantic Italic its headings, and on /ar the
+    generated duration line boxed even for Latin customers (found 18 Oct
+    2026). Arabic is now drawn in the Studio preview's faces, character by
+    character (`ARABIC_FONT_ROLES`, `apps.delivery.mixed_script`)."""
+
+    LAYOUTS = ("neat-stack", "alternating-tilt", "overlapping-cascade", "dotted-branching",
+               "horizontal-polaroid", "horizontal-circles")
+    TYPOGRAPHIES = ("serif-classic", "script", "modern", "typewriter")
+    TARGETS = ("print-classic-edged", "print-a4-frameless", "print-poster-edged")
+    SCALES = (100, 130)
+    #: Arabic at maximum length that overlaps or leaves its card, page or frame
+    #: WHERE THE SAME FIELDS IN FRENCH DO NOT, over the three targets and both
+    #: scales, as (layout, typography, problem, slot, other slot). Every one is
+    #: two text BOXES overlapping: Kufi and Naskh stand taller than DejaVu at the
+    #: same size (deep tails, tall alefs), and the layout spaces lines and
+    #: reserves height from the font size. Measured 18 Oct 2026: the ink only
+    #: touches for Serif Classic's poster title over the subtitle (Kufi Bold,
+    #: every layout, up to 48px on the poster at 130) and a milestone title over
+    #: its description in 3 of 36 Neat Stack and Cascade cases (1-4px); the
+    #: rest are boxes only. Correcting the fit is phase 2, not yet approved.
+    #: Kept as a set so a change either way is visible.
+    KNOWN_ARABIC_PROBLEMS = {
+        ('alternating-tilt', 'modern', 'overlaps', 'dedication', 'dedication'),
+        ('alternating-tilt', 'script', 'overlaps', 'dedication', 'dedication'),
+        ('alternating-tilt', 'script', 'overlaps', 'poster title', 'subtitle'),
+        ('alternating-tilt', 'serif-classic', 'overlaps', 'dedication', 'dedication'),
+        ('alternating-tilt', 'serif-classic', 'overlaps', 'poster title', 'subtitle'),
+        ('dotted-branching', 'modern', 'overlaps', 'dedication', 'dedication'),
+        ('dotted-branching', 'script', 'overlaps', 'dedication', 'dedication'),
+        ('dotted-branching', 'script', 'overlaps', 'poster title', 'subtitle'),
+        ('dotted-branching', 'serif-classic', 'overlaps', 'dedication', 'dedication'),
+        ('dotted-branching', 'serif-classic', 'overlaps', 'poster title', 'subtitle'),
+        ('horizontal-circles', 'modern', 'overlaps', 'dedication', 'dedication'),
+        ('horizontal-circles', 'script', 'overlaps', 'dedication', 'dedication'),
+        ('horizontal-circles', 'script', 'overlaps', 'poster title', 'subtitle'),
+        ('horizontal-circles', 'serif-classic', 'overlaps', 'dedication', 'dedication'),
+        ('horizontal-circles', 'serif-classic', 'overlaps', 'poster title', 'subtitle'),
+        ('horizontal-polaroid', 'modern', 'overlaps', 'dedication', 'dedication'),
+        ('horizontal-polaroid', 'script', 'overlaps', 'dedication', 'dedication'),
+        ('horizontal-polaroid', 'script', 'overlaps', 'poster title', 'subtitle'),
+        ('horizontal-polaroid', 'serif-classic', 'overlaps', 'dedication', 'dedication'),
+        ('horizontal-polaroid', 'serif-classic', 'overlaps', 'poster title', 'subtitle'),
+        ('neat-stack', 'modern', 'overlaps', 'dedication', 'dedication'),
+        ('neat-stack', 'modern', 'overlaps', 'description', 'description'),
+        ('neat-stack', 'modern', 'overlaps', 'title', 'description'),
+        ('neat-stack', 'script', 'overlaps', 'dedication', 'dedication'),
+        ('neat-stack', 'script', 'overlaps', 'description', 'description'),
+        ('neat-stack', 'script', 'overlaps', 'poster title', 'subtitle'),
+        ('neat-stack', 'script', 'overlaps', 'title', 'description'),
+        ('neat-stack', 'serif-classic', 'overlaps', 'dedication', 'dedication'),
+        ('neat-stack', 'serif-classic', 'overlaps', 'description', 'description'),
+        ('neat-stack', 'serif-classic', 'overlaps', 'poster title', 'subtitle'),
+        ('neat-stack', 'serif-classic', 'overlaps', 'title', 'description'),
+        ('overlapping-cascade', 'modern', 'overlaps', 'dedication', 'dedication'),
+        ('overlapping-cascade', 'modern', 'overlaps', 'description', 'description'),
+        ('overlapping-cascade', 'modern', 'overlaps', 'title', 'description'),
+        ('overlapping-cascade', 'script', 'overlaps', 'dedication', 'dedication'),
+        ('overlapping-cascade', 'script', 'overlaps', 'description', 'description'),
+        ('overlapping-cascade', 'script', 'overlaps', 'poster title', 'subtitle'),
+        ('overlapping-cascade', 'script', 'overlaps', 'title', 'description'),
+        ('overlapping-cascade', 'serif-classic', 'overlaps', 'dedication', 'dedication'),
+        ('overlapping-cascade', 'serif-classic', 'overlaps', 'description', 'description'),
+        ('overlapping-cascade', 'serif-classic', 'overlaps', 'poster title', 'subtitle'),
+        ('overlapping-cascade', 'serif-classic', 'overlaps', 'title', 'description'),
+    }
+
+    def setUp(self):
+        self.customer = make_customer()
+
+    def test_every_printed_character_has_a_real_glyph(self):
+        from unittest import mock
+
+        from PIL import ImageDraw
+
+        from apps.delivery.mixed_script import has_glyph
+        from apps.delivery.wallpaper_devices import moment_target_id, wallpaper_target_id
+
+        latin_on_ar = {
+            **ARABIC_MAX, "people": ["Layla", "Omar"], "posterTitle": "Our Story", "subtitle": "From the first hello",
+            "dedication": "To the moon and back", "endingText": "Forever yours",
+            "events": [("2019-04-12", "We met", "A rainy afternoon.", "Lisbon"),
+                       ("2020-06-01", "First trip", "Three days, one tiny car.", "Andalusia"),
+                       ("2022-09-03", "We moved in", "Two boxes and a plant.", "Cascais")],
+        }
+        for case, content in (("arabic", ARABIC_MAX), ("latin on /ar", latin_on_ar)):
+            values = _arabic_values(self.customer, content, count=len(content["events"]))
+            for typography in self.TYPOGRAPHIES:
+                targets = [(layout, "print-classic-edged") for layout in self.LAYOUTS] + [
+                    ("neat-stack", t) for t in (wallpaper_target_id("phone"), moment_target_id("phone", 0), "ar-card-artwork")]
+                for layout, target in targets:
+                    with self.subTest(case=case, typography=typography, layout=layout, target=target):
+                        timeline = validate_and_normalize(values, {"palette": "classic", "typography": typography, "layout": layout, "scale": 100})
+                        drawn = []
+                        real = ImageDraw.ImageDraw.text
+
+                        def spy(draw, xy, value, *args, **kwargs):
+                            drawn.append((value, kwargs.get("font")))
+                            return real(draw, xy, value, *args, **kwargs)
+
+                        with mock.patch.object(ImageDraw.ImageDraw, "text", spy):
+                            render_png(timeline, target_id=target, customer=self.customer, locale="ar")
+                        if case == "arabic" or target.startswith("print-"):
+                            # On /ar a Latin story's prints carry the Arabic duration line;
+                            # its wallpapers and AR card print no duration at all.
+                            self.assertTrue(any(_has_arabic(value) for value, _ in drawn))
+                        for value, font in drawn:
+                            missing = sorted({
+                                ch for ch in value
+                                if not ch.isspace() and not has_glyph(font.face_for_char(ch) if hasattr(font, "face_for_char") else font, ch)
+                            })
+                            self.assertEqual(missing, [], f"{value!r} draws empty boxes in {os.path.basename(font.path)}")
+
+    def test_arabic_is_drawn_in_the_previews_face_for_each_typography_and_upright(self):
+        from . import png_renderer
+
+        expected = {
+            "serif-classic": {"heading": "Noto Kufi Arabic", "body": "Noto Naskh Arabic"},
+            "modern": {"heading": "Noto Naskh Arabic", "body": "Noto Naskh Arabic"},
+            "script": {"heading": "Noto Kufi Arabic", "body": "Noto Naskh Arabic"},
+            "typewriter": {"heading": "DejaVu Sans Mono", "body": "DejaVu Sans Mono"},
+        }
+        for typography, roles in png_renderer.FONT_FILES.items():
+            for role, file_name in roles.items():
+                with self.subTest(typography=typography, role=role):
+                    font = png_renderer._font(file_name, 40)
+                    face = font.face_for_char("ب") if hasattr(font, "face_for_char") else font
+                    family, style = face.getname()
+                    self.assertEqual(family, expected[typography][role])
+                    self.assertNotIn("Italic", style)
+                    self.assertNotIn("Oblique", style)
+
+    def test_text_without_arabic_renders_exactly_as_before(self):
+        from PIL import ImageFont
+
+        from . import png_renderer
+
+        text = "Éléonore & Jean-Baptiste — « 1,240 days » · à suivre…"
+        for file_name in sorted({f for roles in png_renderer.FONT_FILES.values() for f in roles.values()}):
+            with self.subTest(font=file_name):
+                font = png_renderer._font(file_name, 40)
+                plain = ImageFont.truetype(str(png_renderer.FONT_DIR / file_name), size=40)
+                self.assertEqual(font.getbbox(text), plain.getbbox(text))
+                self.assertEqual(font.getlength(text), plain.getlength(text))
+                self.assertEqual(Image.Image()._new(font.getmask(text)).tobytes(), Image.Image()._new(plain.getmask(text)).tobytes())
+
+    def test_headings_draw_arabic_heavier_where_the_print_draws_latin_bold(self):
+        from . import png_renderer
+
+        word = "حكايتنا"
+
+        def ink(file_name):
+            face = png_renderer._font(file_name, 60).face_for_char("ح")
+            return sum(Image.Image()._new(face.getmask(word)).getdata())
+
+        self.assertGreater(ink("DejaVuSans-Bold.ttf"), ink("DejaVuSans.ttf") * 1.1)
+        self.assertGreater(ink("DejaVuSerif-Bold.ttf"), ink("DejaVuSerif-Italic.ttf") * 1.1)
+
+    def test_every_font_file_is_in_the_folder(self):
+        from . import png_renderer
+
+        named = {f for roles in png_renderer.FONT_FILES.values() for f in roles.values()} | set(png_renderer.ARABIC_FACES.values())
+        for name in sorted(named):
+            with self.subTest(font=name):
+                self.assertTrue((png_renderer.FONT_DIR / name).is_file())
+
+    def test_arabic_at_maximum_length_overlaps_nothing_and_stays_on_its_page(self):
+        arabic = _arabic_values(self.customer)
+        french = _arabic_values(self.customer, FRENCH_MAX)
+        found = set()
+        for layout in self.LAYOUTS:
+            for typography in self.TYPOGRAPHIES:
+                for target_id in self.TARGETS:
+                    for scale in self.SCALES:
+                        args = {"layout": layout, "typography": typography, "scale": scale, "target_id": target_id, "customer": self.customer}
+                        both = set(_arabic_layout_problems(french, locale="fr", **args))
+                        ar = set(_arabic_layout_problems(arabic, **args))
+                        french_kinds = {(q[0], _kind_of_slot(q[1]), _kind_of_slot(q[2])) for q in both}
+                        found |= {
+                            (layout, typography, p[0], _kind_of_slot(p[1]), _kind_of_slot(p[2])) for p in ar
+                            if (p[0], _kind_of_slot(p[1]), _kind_of_slot(p[2])) not in french_kinds
+                        }
+        self.assertEqual(found - self.KNOWN_ARABIC_PROBLEMS, set(), "Arabic overlaps that are not on the known list")
+        self.assertEqual(self.KNOWN_ARABIC_PROBLEMS - found, set(), "known Arabic overlaps that are gone: take them off the list")
+
+
+def _kind_of_slot(slot):
+    """'title 3' and 'title 4' are the same KIND of problem across scripts."""
+    return slot.rsplit(" ", 1)[0] if slot[-1:].isdigit() else slot

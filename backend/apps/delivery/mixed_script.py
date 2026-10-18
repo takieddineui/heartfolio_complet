@@ -174,7 +174,16 @@ class MixedScriptFont(ImageFont.FreeTypeFont):
         super().__init__(path, size=size)
         self.second = second
         self._second_range = second_range
+        self._second_pattern = re.compile("[" + "".join(f"{re.escape(chr(low))}-{re.escape(chr(high))}" for low, high in second_range) + "]")
+        # MEASUREMENT CACHES, per instance (so a variable face's weight is never
+        # confused with another's). A fit search measures the same words
+        # thousands of times; without these an Arabic Love Story Timeline print
+        # took 5-16x longer to render (18 Oct 2026). Only default-argument
+        # measurements are cached; anything else is measured afresh.
         self._runs_cache: dict = {}
+        self._run_metrics_cache: dict = {}
+        self._line_cache: dict = {}
+        self._dy_cache: dict = {}
 
     # --- which face draws what ------------------------------------------
     def in_second_range(self, ch: str) -> bool:
@@ -188,7 +197,7 @@ class MixedScriptFont(ImageFont.FreeTypeFont):
         return other
 
     def _mixed(self, text: str) -> bool:
-        return any(self.in_second_range(ch) for ch in text)
+        return self._second_pattern.search(text) is not None
 
     def runs(self, text: str) -> list[tuple[str, ImageFont.FreeTypeFont, str]]:
         """(text, face, "ltr"/"rtl") runs in left-to-right display order; each
@@ -214,12 +223,24 @@ class MixedScriptFont(ImageFont.FreeTypeFont):
         return runs
 
     # --- layout -----------------------------------------------------------
+    def _run_metrics(self, run: str, face: ImageFont.FreeTypeFont, direction: str) -> tuple[float, tuple]:
+        """A run's advance and its box from the pen on the baseline."""
+        key = (face is self, run, direction)
+        if key not in self._run_metrics_cache:
+            if face is self:
+                length = ImageFont.FreeTypeFont.getlength(self, run, direction=direction)
+                box = ImageFont.FreeTypeFont.getbbox(self, run, direction=direction, anchor="ls")
+            else:
+                length, box = face.getlength(run, direction=direction), face.getbbox(run, direction=direction, anchor="ls")
+            self._run_metrics_cache[key] = (length, box)
+        return self._run_metrics_cache[key]
+
     def _placements(self, text: str):
         """Each run with its pen x from the left of the line."""
         pen, placed = 0.0, []
         for run, face, direction in self.runs(text):
             placed.append((run, face, direction, pen))
-            pen += face.getlength(run, direction=direction)
+            pen += self._run_metrics(run, face, direction)[0]
         return placed, pen
 
     def _anchor_offset(self, text: str, anchor: str | None, total: float) -> tuple[int, int]:
@@ -234,8 +255,11 @@ class MixedScriptFont(ImageFont.FreeTypeFont):
         position = round(total * 64)
         dx = {"l": 0, "m": (position // 2 + 32) >> 6, "r": (position + 32) >> 6}[anchor[0]]
         tallest = max({face for _, face, _ in self.runs(text)}, key=lambda face: face.getmetrics()[0])
-        dy = tallest.getbbox("x", anchor="ls")[1] - tallest.getbbox("x", anchor="l" + anchor[1])[1]
-        return dx, dy
+        key = (tallest is self, anchor[1])
+        if key not in self._dy_cache:
+            measure = ImageFont.FreeTypeFont.getbbox
+            self._dy_cache[key] = measure(tallest, "x", anchor="ls")[1] - measure(tallest, "x", anchor="l" + anchor[1])[1]
+        return dx, self._dy_cache[key]
 
     def getlength(self, text, mode="", direction=None, features=None, language=None):
         if not self._mixed(text):
@@ -245,18 +269,28 @@ class MixedScriptFont(ImageFont.FreeTypeFont):
     def getbbox(self, text, mode="", direction=None, features=None, language=None, stroke_width=0, anchor=None):
         if not self._mixed(text):
             return super().getbbox(text, mode, direction, features, language, stroke_width, anchor)
+        plain = mode in ("", "L") and features is None and language is None and not stroke_width
+        key = (text, anchor)
+        if plain and key in self._line_cache:
+            return self._line_cache[key]
         placed, total = self._placements(text)
         dx, dy = self._anchor_offset(text, anchor, total)
         boxes = []
         for run, face, run_direction, pen in placed:
-            x0, y0, x1, y1 = face.getbbox(run, mode, run_direction, features, language, stroke_width, "ls")
+            if plain:
+                x0, y0, x1, y1 = self._run_metrics(run, face, run_direction)[1]
+            else:
+                x0, y0, x1, y1 = face.getbbox(run, mode, run_direction, features, language, stroke_width, "ls")
             boxes.append((x0 + pen, y0, x1 + pen, y1))
-        return (
+        box = (
             math.floor(min(b[0] for b in boxes) - dx),
             math.floor(min(b[1] for b in boxes) - dy),
             math.ceil(max(b[2] for b in boxes) - dx),
             math.ceil(max(b[3] for b in boxes) - dy),
         )
+        if plain:
+            self._line_cache[key] = box
+        return box
 
     def getmask(self, text, mode="", *args, **kwargs):
         return self.getmask2(text, mode, *args, **kwargs)[0]

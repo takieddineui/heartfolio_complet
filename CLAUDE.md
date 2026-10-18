@@ -689,6 +689,57 @@ Two were genuine product bugs: the `layout` default above, and
   exist**. Deliberate, per that file's comment; four tracks need sourcing
 - Where We Met (`heart-map`) is `status: available` and fully registered on
   both sides, but has never been opened in a browser
+- **Love Story Timeline: Arabic in the print, PHASE 1 (18 Oct 2026).** No
+  DejaVu Serif face has an Arabic glyph, so Serif Classic (the DEFAULT) printed
+  every Arabic slot as empty boxes and Romantic Italic its headings (names,
+  poster title, moment-wallpaper title). On /ar the generated duration line
+  ("1,240 يومًا معًا") boxed in Serif Classic even for Latin-only customers.
+  Read-only count of the real database the same day: 42 paid LST orders, NONE
+  on /ar and none with Arabic text (25 fr, 17 en; 41 Serif Classic), so no past
+  order was affected. Romantic Italic had no wrong file name: it asks for
+  `DejaVuSerif-Italic.ttf`, which exists, with no silent fallback.
+  `_font()` now returns `apps.delivery.mixed_script.MixedScriptFont` (the
+  module Song Poster uses), drawing Arabic in the face the STUDIO PREVIEW gives
+  each role (`ARABIC_FONT_ROLES`, from `themes.ts`): Serif Classic and Romantic
+  Italic headings in Noto Kufi, their body in Noto Naskh; Modern both in Naskh
+  (a deliberate visible change: Modern's Arabic used to print in DejaVu Sans);
+  Typewriter stays on DejaVu Sans Mono. Arabic is always upright. The weight
+  follows the print's own (Bold file 700, else 400), not the preview's:
+  the preview's names are regular and its poster title uses the BODY face,
+  part of the deferred weight/font drift. Faces are per character, so digits,
+  dates and Latin stay in DejaVu. The print reaches fonts by FILE, so the
+  roles become a map by file, and a file two typographies would draw in two
+  Arabic faces stops the import. Pinned by `ArabicPrintTests` and
+  `lst-arabic-print-parity.test.ts` (roles against `themes.ts`; files, range
+  and weights against `globals.css`).
+  **Verified:** every Latin render is byte-identical (656 of 656 across every
+  layout, typography and output, in en and fr at maximum length); Typewriter
+  never changes; Latin on /ar changes only where the duration line prints.
+  **PERFORMANCE TRAP, fixed:** LST's fit search measures about 25,000 lines a
+  render, and `MixedScriptFont` turned each into several FreeType layouts, so
+  an Arabic print took 5-16x longer (Cascade 8x10: 4s to 64s). Per-instance
+  caches of run, line and anchor measurements brought it back (1.5-4.5s, as
+  today); Latin was unaffected (5.6s). The caches change no pixel (1628 LST
+  and 288 Song Poster renders hashed identical).
+  **OVERLAPS AT MAXIMUM LENGTH, for phase 2 (owner approves the fix first):**
+  Kufi and Naskh stand taller than DejaVu (deep tails, tall alefs) and LST
+  spaces lines and reserves milestone height from `font.size` x a factor, not
+  from measured ink. Against a French control at the same lengths, Arabic adds
+  BOX overlaps in every layout and the three Noto typographies (42 grouped
+  cases, `KNOWN_ARABIC_PROBLEMS`): wrapped dedication and description lines,
+  poster title over subtitle, and in Neat Stack and Cascade a milestone title
+  over its description. Today's DejaVu Arabic had none. The INK actually
+  touches only for Serif Classic's poster title over the subtitle (Kufi Bold,
+  every layout, up to 48px on the poster at 130%) and a milestone title over its
+  description in 3 of 36 Neat Stack and Cascade cases (1-4px, all three
+  typographies, Modern included). The rest is boxes only.
+- **FLAGGED, not fixed: QR cards print an Arabic caption as boxes, for every
+  product.** `bonuses.py` draws the QR card caption (names, poster title, song,
+  Reasons names) in `DejaVuSerif.ttf`, with a silent fallback to Pillow's
+  bitmap font. That includes the gift QR card emailed to the recipient.
+- **FLAGGED, not changed: the live page draws Modern's Arabic HEADINGS in
+  Kufi** (its Arabic-only alias face leads every heading stack), where the
+  Studio preview, and now the print, use Naskh.
 - **Love Story Timeline print: Neat Stack closed (6 Oct 2026).** Layout
   correctness holds across the realistic range, and the print now matches the
   preview's centred header and footer, card tilt (-2deg/+1.6deg) and shadow.

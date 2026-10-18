@@ -14,7 +14,9 @@ fonts that may not exist in production without documenting/providing
 them" means in practice. They are close-but-not-identical substitutes
 for the frontend's actual CSS fonts (Fraunces/Inter/JetBrains Mono),
 which aren't bundled or license-cleared here — see the Phase 3.9
-report's "Known limitations".
+report's "Known limitations". ARABIC is the exception: it is drawn in the
+site's own Noto Kufi/Naskh files, character by character (see
+`ARABIC_FONT_ROLES`), because no DejaVu Serif face has an Arabic glyph.
 
 Scope note: `palette` (real hex values) and `typography` (real font
 family choice) are fully implemented. `layout` currently renders as one
@@ -52,6 +54,7 @@ from apps.delivery.wallpaper_devices import (
     wallpaper_target_dimensions,
 )
 from apps.common.exceptions.api_errors import LoveStoryTimelineRenderFailed
+from apps.delivery.mixed_script import MixedScriptFont, parse_unicode_range
 
 from .data import duration_phrase, join_names, PALETTES, NormalizedTimeline
 from apps.delivery.attribution import MARK_OPACITY, MARK_SCALE, PRINT_MARK, blend
@@ -111,8 +114,67 @@ DEFAULT_FRAME_STYLE = {"color": "#000000", "thickness": 6}  # was "thin-black"
 PHOTO_THUMBNAIL_SIZE = 220
 
 
+#: ARABIC IN THE PRINT (18 Oct 2026). Every DejaVu Serif face has no Arabic
+#: glyph, so Serif Classic printed every Arabic slot as empty boxes, and
+#: Romantic Italic its headings (and, on /ar, the generated duration line).
+#: Arabic is now drawn in the face the STUDIO PREVIEW gives it (`themes.ts`):
+#: a "Heartfolio Serif" token draws Arabic in Noto Kufi, "Heartfolio Sans"
+#: in Noto Naskh (`globals.css`), and Typewriter's JetBrains Mono has none,
+#: so it keeps DejaVu Sans Mono, which has Arabic. Always upright. Faces are
+#: chosen per character, as CSS `unicode-range` does
+#: (`apps.delivery.mixed_script`): the site's Noto files have no Latin-1, so
+#: digits, punctuation and Latin stay in DejaVu. Pinned against `themes.ts`
+#: and `globals.css` by `lst-arabic-print-parity.test.ts`.
+ARABIC_FONT_ROLES = {
+    "serif-classic": {"heading": "serif", "body": "sans"},
+    "modern": {"heading": "sans", "body": "sans"},
+    "script": {"heading": "serif", "body": "sans"},
+    "typewriter": {"heading": None, "body": None},
+}
+ARABIC_FACES = {"serif": "noto-kufi-arabic.woff2", "sans": "noto-naskh-arabic.woff2"}
+#: The CSS's Arabic `unicode-range`, less the punctuation it shares with Latin.
+ARABIC_UNICODE_RANGE = "U+0600-06FF, U+0750-077F, U+0870-088E, U+0890-0891, U+0898-08E1, U+08E3-08FF, U+FB50-FDFF, U+FE70-FE74, U+FE76-FEFC"
+#: The site declares both faces `font-weight: 300 700`.
+ARABIC_WEIGHT_RANGE = (300, 700)
+_ARABIC_RANGES = parse_unicode_range(ARABIC_UNICODE_RANGE)
+
+
+def _arabic_face_by_file() -> dict[str, str | None]:
+    """Each DejaVu file's Arabic face. The print reaches fonts by FILE
+    (`_font(fonts["heading"], ...)`), so the roles are turned into a map by
+    file; a file two typographies would give different Arabic faces stops
+    the import rather than picking one silently."""
+    by_file: dict[str, str | None] = {}
+    for typography, roles in FONT_FILES.items():
+        for role, file_name in roles.items():
+            kind = ARABIC_FONT_ROLES[typography][role]
+            face = ARABIC_FACES[kind] if kind else None
+            if by_file.setdefault(file_name, face) != face:
+                raise ValueError(f"{file_name} would draw Arabic in two faces")
+    return by_file
+
+
+_ARABIC_FACE_BY_FILE = _arabic_face_by_file()
+
+
+@functools.lru_cache(maxsize=256)
+def _arabic_face(face_file: str, size: int, weight: int) -> ImageFont.FreeTypeFont:
+    face = ImageFont.truetype(str(FONT_DIR / face_file), size=size)
+    [axis] = face.get_variation_axes()
+    low, high = ARABIC_WEIGHT_RANGE
+    face.set_variation_by_axes([min(max(min(max(weight, low), high), axis["minimum"]), axis["maximum"])])
+    return face
+
+
 def _font(path_name: str, size: int) -> ImageFont.FreeTypeFont:
-    return ImageFont.truetype(str(FONT_DIR / path_name), size=size)
+    """The DejaVu face `path_name`, drawing Arabic in the preview's Arabic
+    face at the weight the print already gives the slot (a Bold file draws
+    700, any other 400). Text with no Arabic renders exactly as before."""
+    face_file = _ARABIC_FACE_BY_FILE.get(path_name)
+    if face_file is None:
+        return ImageFont.truetype(str(FONT_DIR / path_name), size=size)
+    weight = 700 if "Bold" in path_name else 400
+    return MixedScriptFont(str(FONT_DIR / path_name), size, second=_arabic_face(face_file, size, weight), second_range=_ARABIC_RANGES)
 
 
 def _wrap_text(draw: ImageDraw.ImageDraw, text: str, font: ImageFont.FreeTypeFont, max_width: int) -> list[str]:
