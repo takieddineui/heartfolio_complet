@@ -119,6 +119,34 @@ nothing uses their values. `/app` is root-owned by `WORKDIR`, so
 
 **Migrations and seeding are deliberately manual.** No deploy runs them.
 
+**Tests never reach the outside world: `config/test_runner.py`, the
+`TEST_RUNNER` for every settings module (18 Oct 2026).** Until then
+`docker compose exec api python manage.py test` inherited `.env.docker`'s real
+keys. A survey of the full suite with every outbound lookup blocked and
+recorded found three hosts:
+- `api.telegram.org`: 22 tests (the payment webhooks and completion, the
+  amount-reconciliation tests, two Paddle signature/security tests, a
+  pack-download failure test). By the logs, about 13 to 22 real "PAID" and
+  "mismatch" alerts with fake order data reached the owner's alert chat on
+  every full run (Telegram logs only failures, so the rest were accepted).
+- `api.resend.com`: 14 tests. Every real send in the six runs checked (14-15
+  Oct) was rejected by Resend or failed to connect; none was delivered.
+- The real R2 bucket: `tests_service_health`'s registry test probed it.
+
+The runner now does three things:
+- It blanks `RESEND_API_KEY`, `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID`
+  for the whole run.
+- It refuses every non-local name lookup (loopback, the database host and
+  `testserver` stay allowed), as `OutboundNetworkBlocked`, a
+  `socket.gaierror`, so code sees "network down".
+- It FAILS the run, listing each blocked host and the test that asked for
+  it.
+
+A test that needs a key sets a fake one with `override_settings` and stubs
+the call. Not covered: `--parallel` workers (not used here), and psycopg,
+which resolves the database host in C (the database only).
+`HermeticTestRunnerTests` pins it (mutation-checked, 9 of 9).
+
 **`backend/.dockerignore` strips `tests_*.py` and `**/tests.py`**, so
 `manage.py test` inside the built image finds 5 tests instead of 649. The
 compose file mounts `./backend` over `/app` to work around this.
@@ -136,7 +164,10 @@ docker compose exec -e DATABASE_URL=postgres://heartfolio:heartfolio@db:5432/hea
 
 Without those two overrides, `.env.docker` leaks in: `r2` storage breaks
 the mock-storage assertions, and `PAYMENT_PROVIDER=mock` makes production
-settings fail with the wrong error.
+settings fail with the wrong error. Email and Telegram need no override: the
+test runner blanks their keys and blocks every outside host itself (see
+"Tests never reach the outside world" above). A run that lists `BLOCKED`
+hosts at the end has a test using the network: stub it.
 
 Frontend — run on the host, not in the `web` container (it is a production
 build with no dev dependencies):
@@ -521,6 +552,12 @@ Two were genuine product bugs: the `layout` default above, and
   the photo-cache finding are in `PRINT-RENDERER-GUIDE.md` section 8. Set
   `ASSET_BYTES_CACHE_MAX_MB=128` in the VPS environment (code default 64; at
   8 photos totalling 73MB the cache overflowed and photos were read 97 times).
+- **Flaky test, not yet fixed (found 18 Oct 2026):**
+  `OrderEmailTests.test_a_card_that_cannot_render_removes_the_qr_section_instead_of_promising_it`
+  asserts that "QR" never appears in the email HTML. But the HTML carries the
+  random signed magic-link token, which now and then contains "QR"
+  (`…dgQRp3I`), about 1% a subtest. The fix is to check the QR section's own
+  markup, not the two letters. It passed 5 of 5 on rerun.
 - Deploy and test backend zips 24, 26, 32 — these were queued behind the
   Railway deploy window, which no longer exists; they now wait on the VPS
   deploy (or can be tried on local Docker)

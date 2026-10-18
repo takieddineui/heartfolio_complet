@@ -93,6 +93,10 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = "config.wsgi.application"
+
+# Tests never reach the outside world, whatever the environment holds: no real
+# emails or Telegram alerts, and any other non-local connection fails the run.
+TEST_RUNNER = "config.test_runner.HermeticTestRunner"
 ASGI_APPLICATION = "config.asgi.application"
 
 

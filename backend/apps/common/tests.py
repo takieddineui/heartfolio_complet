@@ -53,6 +53,80 @@ class HealthCheckTests(TestCase):
 # IP-rate-limited — that would be rate-limiting Paddle's own servers).
 # ------------------------------------------------------------------
 
+class HermeticTestRunnerTests(TestCase):
+    """`config.test_runner`: tests never reach the outside world. Until 15 Oct
+    2026 they inherited the container's real keys, so paid-order tests sent
+    real Telegram alerts and tried real receipt emails."""
+
+    def setUp(self):
+        from config import test_runner
+
+        self.guard = test_runner.active_guard
+        self.assertIsNotNone(self.guard, "the suite must run under config.test_runner.HermeticTestRunner")
+
+    def test_the_settings_that_message_people_are_blank_whatever_the_environment_says(self):
+        from django.conf import settings
+
+        from apps.common import telegram
+
+        for name in ("RESEND_API_KEY", "TELEGRAM_BOT_TOKEN", "TELEGRAM_CHAT_ID"):
+            self.assertEqual(getattr(settings, name), "", name)
+        self.assertFalse(telegram.is_configured())
+
+    def test_a_lookup_outside_this_machine_is_refused_and_recorded_against_the_test(self):
+        import socket
+
+        from config.test_runner import OutboundNetworkBlocked
+
+        before = len(self.guard.attempts)
+        with self.assertRaises(OutboundNetworkBlocked) as caught:
+            socket.getaddrinfo("api.telegram.org", 443)
+        self.assertIsInstance(caught.exception, socket.gaierror)  # callers see "network down"
+        # This test made the attempt on purpose: take it back so the run passes.
+        self.assertEqual(self.guard.attempts[before:], [("api.telegram.org", self.id())])
+        del self.guard.attempts[before:]
+
+    def test_a_numeric_public_address_is_refused_too(self):
+        import socket
+
+        from config.test_runner import OutboundNetworkBlocked
+
+        before = len(self.guard.attempts)
+        with self.assertRaises(OutboundNetworkBlocked):
+            socket.create_connection(("1.1.1.1", 443), timeout=1)
+        del self.guard.attempts[before:]
+
+    def test_this_machine_and_the_database_stay_reachable(self):
+        import socket
+
+        from django.conf import settings
+
+        before = len(self.guard.attempts)
+        self.assertTrue(socket.getaddrinfo("localhost", 80))
+        self.assertTrue(socket.getaddrinfo("127.0.0.1", 80))
+        db_host = settings.DATABASES["default"].get("HOST")
+        if db_host:
+            self.assertTrue(socket.getaddrinfo(db_host, 5432))
+        self.assertEqual(self.guard.attempts[before:], [])
+
+    def test_a_run_with_any_blocked_attempt_fails(self):
+        import io
+        import unittest as std_unittest
+
+        from config.test_runner import HermeticTestRunner
+
+        runner = HermeticTestRunner(verbosity=0)
+        clean = std_unittest.TestResult()
+        self.assertEqual(runner.suite_result(None, clean), 0)
+        self.guard.attempts.append(("api.resend.com", "some.test"))
+        try:
+            with patch("sys.stderr", new_callable=io.StringIO) as err:
+                self.assertEqual(runner.suite_result(None, clean), 1)
+            self.assertIn("api.resend.com  <-  some.test", err.getvalue())
+        finally:
+            self.guard.attempts.remove(("api.resend.com", "some.test"))
+
+
 class YouTubeValidateViewTests(TestCase):
     """`POST /api/v1/youtube/validate/` with YouTube's oEmbed stubbed: every
     answer carries a `code` the Studio translates (`reason` is English, for

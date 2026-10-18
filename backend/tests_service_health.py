@@ -34,6 +34,10 @@ class ServiceHealthTests(SimpleTestCase):
         self.assertEqual(results[1].status, sh.FAILING)
         self.assertIn("Check crashed", results[1].detail)
 
+    # Every outside service unconfigured: this test is about the CHECKS tuple,
+    # and with the environment's real keys it probed the real R2 bucket (found
+    # 15 Oct 2026; tests never reach the network, see config/test_runner.py).
+    @override_settings(R2_BUCKET_NAME="", R2_ACCESS_KEY_ID="", PADDLE_API_KEY="", FRONTEND_URL="")
     def test_every_registered_check_returns_a_result(self):
         # Guards the tuple and the functions staying in step — a check added
         # to the module but not to CHECKS would never run, and nothing else
