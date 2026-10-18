@@ -201,7 +201,6 @@ export function PlayerTheme({ track, artist, dedication, photoUrl, youtubeVideoI
       <div className={styles.bottom}>
         {dedication && <p className={styles.message}>{dedication}</p>}
         {liveCodeSvg && <div className={styles.code}>{liveCodeSvg}</div>}
-        {liveCodeSvg && <p className={styles.codeLabel}>Code position — links to your page</p>}
       </div>
 
       {state.error && (

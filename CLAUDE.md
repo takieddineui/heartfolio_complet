@@ -328,6 +328,18 @@ Two were genuine product bugs: the `layout` default above, and
   designed. Still open, found during that checkout: the pack cards show raw
   keys (`packs.live.name`), because Song Poster's messages define no pack
   names, the same family as its raw `exports.*` labels.
+  **Player's placeholder code is FIXED (18 Oct 2026):** every Player print used
+  to end with a fake 5x5 "code" (the prototype's `codeSVG`, which nothing
+  could scan) and the designer's label "CODE POSITION — LINKS TO YOUR PAGE",
+  which the preview never showed. Both are gone, as is the preview's unused
+  English label. The dedication now sits where the preview puts it: named
+  `PLAYER_*` constants in `png_renderer.py`, read against the CSS by
+  `player-print-parity.test.ts`. The renders for every other theme, and
+  Player's wallpapers, are byte-identical (264 of 288 hashed; the 24 changed
+  are Player's print sizes). Still open from the audit: one-line dedication
+  truncation, print fonts, frameless cropping (`render_png` scales with
+  `max`), Arabic tofu in DejaVu Serif, raw `exports.*`/`packs.*` keys, and
+  the product page's false "actual waveform" claim.
 - **UNEXPLAINED NAVIGATION TO THE HOME PAGE: a real, currently unreproduced
   bug (15 Oct 2026).** Three times during browser testing the page jumped to
   `/en` on its own: twice in the Song Poster Studio (once after switching the

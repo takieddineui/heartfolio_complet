@@ -196,11 +196,6 @@
   color: #18191a;
   display: block;
 }
-.codeLabel {
-  font-family: var(--font-narrow, "Archivo Narrow", system-ui, sans-serif);
-  font-size: 13.5px;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: #6b6a63;
-  margin: 0;
-}
+/* No label under the code: the prototype's "Code position — links to your
+   page" was a designer's placeholder, removed with the print's fake code
+   (18 Oct 2026). */

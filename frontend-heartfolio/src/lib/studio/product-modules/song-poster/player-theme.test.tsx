@@ -130,9 +130,9 @@ describe("PlayerTheme", () => {
     expect(screen.getByText("3:20")).toBeInTheDocument();
   });
 
-  it("renders the dedication and code block only when provided", () => {
-    const { rerender } = render(<PlayerTheme track="T" artist="A" youtubeVideoId={null} />);
-    expect(screen.queryByText(/links to your page/)).not.toBeInTheDocument();
+  it("renders the dedication and the code only when provided, and never the designer's placeholder", () => {
+    const { container, rerender } = render(<PlayerTheme track="T" artist="A" youtubeVideoId={null} />);
+    expect(container.querySelector("[data-testid=live-code]")).toBeNull();
 
     rerender(
       <PlayerTheme
@@ -140,10 +140,13 @@ describe("PlayerTheme", () => {
         artist="A"
         youtubeVideoId={null}
         dedication="For you, always."
-        liveCodeSvg={<svg aria-hidden="true" />}
+        liveCodeSvg={<svg data-testid="live-code" aria-hidden="true" />}
       />
     );
     expect(screen.getByText("For you, always.")).toBeInTheDocument();
-    expect(screen.getByText(/links to your page/)).toBeInTheDocument();
+    expect(container.querySelector("[data-testid=live-code]")).not.toBeNull();
+    // "Code position — links to your page" was a prototype placeholder that
+    // reached customers' prints; it must never come back, in the preview either.
+    expect(container.textContent).not.toMatch(/code position|links to your page/i);
   });
 });

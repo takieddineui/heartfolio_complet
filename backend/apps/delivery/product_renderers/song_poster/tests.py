@@ -548,6 +548,85 @@ class PngRenderingTests(TestCase):
 # Renderer / registry
 # ------------------------------------------------------------------
 
+class PlayerBottomTests(TestCase):
+    """Player's print used to end with a fake 5x5 "code" nothing could scan
+    and the designer's placeholder "CODE POSITION — LINKS TO YOUR PAGE",
+    which the Studio preview never showed (removed 18 Oct 2026). The
+    dedication now sits where the preview puts it."""
+
+    PRINTS = (
+        "print-a4-frameless", "print-a4-edged", "print-classic-frameless",
+        "print-classic-edged", "print-poster-frameless", "print-poster-edged",
+    )
+
+    def _texts_drawn(self, song, target, customer):
+        from unittest.mock import patch
+
+        from PIL import ImageDraw
+
+        calls = []
+        real_text = ImageDraw.ImageDraw.text
+
+        def spy(draw, xy, text, *args, **kwargs):
+            calls.append({"xy": xy, "text": text, "anchor": kwargs.get("anchor")})
+            return real_text(draw, xy, text, *args, **kwargs)
+
+        with patch.object(ImageDraw.ImageDraw, "text", spy):
+            render_png(song, target_id=target, customer=customer)
+        return calls
+
+    def test_no_print_size_carries_the_placeholder(self):
+        customer = make_customer()
+        for dedication in ("For you, always.", ""):
+            song = validate_and_normalize({**values_with_real_photo(customer), "dedication": dedication}, {"theme": "player"})
+            for target in self.PRINTS:
+                with self.subTest(target=target, dedication=bool(dedication)):
+                    drawn = " ".join(call["text"] for call in self._texts_drawn(song, target, customer)).upper()
+                    self.assertNotIn("CODE POSITION", drawn)
+                    self.assertNotIn("LINKS TO YOUR PAGE", drawn)
+
+    def test_nothing_is_drawn_where_the_fake_code_was(self):
+        """The glyph sat centred at (400, 936) in the 800x1000 design, 32
+        units square. With no dedication, that area is now plain paper."""
+        from . import png_renderer
+
+        customer = make_customer()
+        song = validate_and_normalize({**values_with_real_photo(customer), "dedication": ""}, {"theme": "player"})
+        with Image.open(io.BytesIO(render_png(song, target_id="print-classic-frameless", customer=customer))) as img:
+            rgb = img.convert("RGB")
+            scale = 3  # 2400x3000 is exactly 3x the 800x1000 design
+            box = (round((400 - 30) * scale), round((936 - 30) * scale), round((400 + 30) * scale), round((960 + 4) * scale))
+            colours = set(rgb.crop(box).getdata())
+        self.assertEqual(colours, {Image.new("RGB", (1, 1), png_renderer._BG).getpixel((0, 0))})
+
+    def test_the_dedication_sits_where_the_preview_puts_it(self):
+        from . import png_renderer
+
+        # `.bottom{bottom:32px}` + `.message{margin-bottom:20px}`: the line box
+        # ends 52 above the sheet's bottom, and is 13.5 x 1.5 tall; the text is
+        # centred in it, as CSS centres it.
+        self.assertAlmostEqual(png_renderer.player_message_centre_y(), 1000 - 32 - 20 - 13.5 * 1.5 / 2)
+
+        customer = make_customer()
+        song = validate_and_normalize({**values_with_real_photo(customer), "dedication": "For you, always."}, {"theme": "player"})
+        for target, scale, origin in (("print-classic-frameless", 3.0, (0, 0)),):
+            calls = self._texts_drawn(song, target, customer)
+            [dedication] = [call for call in calls if call["text"] == "For you, always."]
+            self.assertEqual(dedication["anchor"], "mm")
+            self.assertEqual(
+                dedication["xy"],
+                (round(origin[0] + 400 * scale), round(origin[1] + png_renderer.player_message_centre_y() * scale)),
+            )
+
+    def test_the_wallpapers_never_had_it_and_are_unchanged_in_shape(self):
+        customer = make_customer()
+        song = validate_and_normalize(values_with_real_photo(customer), {"theme": "player"})
+        for target in ("wallpaper-phone", "wallpaper-tablet", "wallpaper-desktop"):
+            with self.subTest(target=target):
+                drawn = " ".join(call["text"] for call in self._texts_drawn(song, target, customer)).upper()
+                self.assertNotIn("CODE POSITION", drawn)
+
+
 class RendererTests(TestCase):
     def test_render_with_no_project_raises(self):
         renderer = SongPosterRenderer()

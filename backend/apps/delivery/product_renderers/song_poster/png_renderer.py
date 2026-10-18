@@ -15,16 +15,13 @@ WHAT IS HONESTLY DIFFERENT FROM THE LIVE PREVIEW, AND WHY:
   feature; nothing about a paper poster or a phone wallpaper should
   show `currentTime` mid-scrub.
 
-  THE "CODE POSITION" BLOCK IS DECORATIVE, NOT A REAL QR. `render()` in
-  this codebase's `ProductRenderer` contract receives `project`, not the
-  owning `order` — see this module's `renderer.py` for the full note —
-  so there is no order id or access token available here to build a
-  real link from. The prototype's own `codeSVG` was equally decorative
-  (the prototype has no backend at all), so this matches what the
-  design actually was, not a downgrade from it. A real, scannable QR
-  embedded IN the poster would need that interface extended, the same
-  way Love Story Timeline's real QR exists as its own separate bonus
-  file rather than baked into the timeline PNG.
+  NO CODE IS PRINTED ON THE POSTER. Player used to print a decorative
+  5x5 block (the prototype's `codeSVG`, which nothing could scan) under the
+  designer's placeholder "CODE POSITION — LINKS TO YOUR PAGE": a promise of
+  a link nothing provided, which the Studio preview never showed (removed
+  18 Oct 2026). `render()` receives the `project`, not the owning order, so
+  there is no live-page link to encode here; the real, scannable gift QR
+  ships as its own file (the QR cards), as Love Story Timeline's does.
 
   EDGED IS A SCALED INSET, NOT A RE-LAYOUT. `print_sizes.py`'s own
   docstring is explicit that Love Story Timeline's `edged` variant
@@ -70,6 +67,18 @@ _BG = "#f6f3ec"
 _RULE = "#d8d4c8"
 
 _EQ_BARS = 60
+
+#: Player's dedication, from `player-theme.module.css`: `.bottom` sits
+#: `bottom: 32px` inside the sheet with `inset-inline: 60px`, and its
+#: `.message` is 13.5px at line-height 1.5 with a 20px bottom margin, so
+#: the message's line box ends 52px above the sheet's bottom edge.
+#: `composition`-style parity: `player-print-parity.test.ts` reads these
+#: and the CSS and fails if they disagree.
+PLAYER_BOTTOM_PX = 32
+PLAYER_MESSAGE_MARGIN_BOTTOM_PX = 20
+PLAYER_MESSAGE_SIZE_PX = 13.5
+PLAYER_MESSAGE_LINE_HEIGHT = 1.5
+PLAYER_MESSAGE_INSET_PX = 60
 
 
 def _font(name: str, size_at_design_scale: float, scale: float) -> ImageFont.FreeTypeFont:
@@ -213,49 +222,29 @@ def _draw_player(canvas: Image.Image, song: NormalizedSongPoster, *, scale: floa
     ]
     draw.polygon(tri, fill=_BG)
 
-    # --- dedication + decorative code block -----------------------
+    # --- dedication ---------------------------------------------------
     #
-    # `.pl-bottom` IS genuinely absolutely positioned in the CSS
-    # (`position:absolute; bottom:32px`), unlike everything above it —
-    # anchored to the SHEET's own bottom edge, not the flow. Correct to
-    # treat this one block as fixed-from-bottom rather than
-    # flow-accumulated; the bug above was treating EVERY block that
-    # way, not that anchoring-from-bottom is wrong here specifically.
-    sheet_bottom = DESIGN_H - 32
+    # `.bottom` IS genuinely absolutely positioned in the CSS, unlike
+    # everything above it: anchored to the SHEET's own bottom edge, not
+    # the flow. The message's line box ends PLAYER_BOTTOM_PX +
+    # PLAYER_MESSAGE_MARGIN_BOTTOM_PX above the sheet's bottom, and CSS
+    # centres the text in its line box, so the text is placed by its
+    # vertical middle ("mm") at the line box's centre. (Still one line,
+    # cut with an ellipsis where the preview wraps: a separate finding.)
     if song.dedication:
         msg_font = (
-            _font("DejaVuSerif-Italic.ttf", 13.5, scale)
+            _font("DejaVuSerif-Italic.ttf", PLAYER_MESSAGE_SIZE_PX, scale)
             if (_FONT_DIR / "DejaVuSerif-Italic.ttf").exists()
-            else _font("DejaVuSans.ttf", 13.5, scale)
+            else _font("DejaVuSans.ttf", PLAYER_MESSAGE_SIZE_PX, scale)
         )
-        msg = _fit_text(draw, song.dedication, msg_font, 680 * scale)
-        w = draw.textlength(msg, font=msg_font)
-        draw.text((ox + 400 * scale - w / 2, pt(0, sheet_bottom - 60)[1]), msg, font=msg_font, fill=_SOFT)
-
-    _draw_decorative_code(draw, centre=pt(400, sheet_bottom - 32), size=32 * scale, seed=seed)
-
-    label_font = _font("DejaVuSans.ttf", 10, scale)
-    label = "CODE POSITION — LINKS TO YOUR PAGE"
-    lw = draw.textlength(label, font=label_font)
-    draw.text((ox + 400 * scale - lw / 2, pt(0, sheet_bottom - 10)[1]), label, font=label_font, fill=_SOFT)
+        msg = _fit_text(draw, song.dedication, msg_font, (800 - 2 * PLAYER_MESSAGE_INSET_PX) * scale)
+        draw.text(pt(400, player_message_centre_y()), msg, font=msg_font, fill=_SOFT, anchor="mm")
 
 
-def _draw_decorative_code(draw: ImageDraw.ImageDraw, *, centre: tuple[int, int], size: float, seed: int) -> None:
-    """A small seeded glyph, matching the prototype's own `codeSVG` —
-    NOT a real QR. See this file's module docstring for exactly why."""
-    from .seeded_random import mulberry32
-
-    r = mulberry32(seed + 7919)  # distinct offset from the waveform's own seed use
-    cx, cy = centre
-    cell = size / 5
-    x0, y0 = cx - size / 2, cy - size / 2
-    for row in range(5):
-        for col in range(5):
-            if r() < 0.42:
-                draw.rectangle(
-                    [x0 + col * cell, y0 + row * cell, x0 + (col + 1) * cell, y0 + (row + 1) * cell],
-                    fill=_INK,
-                )
+def player_message_centre_y() -> float:
+    """The design-space y of the centre of Player's one-line dedication."""
+    line_box_bottom = DESIGN_H - PLAYER_BOTTOM_PX - PLAYER_MESSAGE_MARGIN_BOTTOM_PX
+    return line_box_bottom - PLAYER_MESSAGE_SIZE_PX * PLAYER_MESSAGE_LINE_HEIGHT / 2
 
 
 def _draw_attribution(canvas: Image.Image, *, content_box: tuple[int, int, int, int], bg: str, soft: str) -> None:
