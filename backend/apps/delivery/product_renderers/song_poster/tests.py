@@ -627,6 +627,94 @@ class PlayerBottomTests(TestCase):
                 self.assertNotIn("CODE POSITION", drawn)
 
 
+class FramelessFitTests(TestCase):
+    """Frameless prints FIT the design, never cut it (18 Oct 2026). They used
+    `max`, which filled the page and cut whatever overflowed whenever the
+    paper's shape differs from the design's: Award's header printed as
+    "ARDED FOR ONE RECORDING" on 8x10, every portrait theme lost 66.7 design
+    units each side on the 12x18 poster."""
+
+    FRAMELESS = ("print-a4-frameless", "print-classic-frameless", "print-poster-frameless")
+    TEXTS = {
+        "realistic": {"track": "Here Comes the Sun", "artist": "The Beatles", "dedication": "For the summer we drove to the sea."},
+        "max": {
+            "track": "The Long and Winding Road That Leads Me Back to Your Door Ag",
+            "artist": "Sir Paul McCartney and the Royal Liverpool Philharmonic Orch",
+            "dedication": "x " * 90,
+        },
+    }
+
+    def _selections(self, theme):
+        # Sleeve with a non-default palette: its spare paper must be the palette's.
+        return {"theme": theme, "sleevePalette": "black"} if theme == "sleeve" else {"theme": theme}
+
+    def _background(self, theme):
+        from . import png_renderer
+
+        bg = png_renderer.SLEEVE_PALETTES["black"]["bg"] if theme == "sleeve" else png_renderer._THEME_RENDERERS[theme]["bg"]
+        return Image.new("RGB", (1, 1), bg).getpixel((0, 0))
+
+    def test_no_design_content_touches_a_page_edge(self):
+        customer = make_customer()
+        photo = values_with_real_photo(customer)["photo"]
+        for theme in THEMES:
+            bg = self._background(theme)
+            for case, text in self.TEXTS.items():
+                song = validate_and_normalize({**VALID_VALUES, **text, "photo": photo}, self._selections(theme))
+                for target in self.FRAMELESS:
+                    with self.subTest(theme=theme, target=target, text=case):
+                        with Image.open(io.BytesIO(render_png(song, target_id=target, customer=customer))) as img:
+                            rgb = img.convert("RGB")
+                            w, h = rgb.size
+                            edges = [rgb.crop(box) for box in ((0, 0, w, 2), (0, h - 2, w, h), (0, 0, 2, h), (w - 2, 0, w, h))]
+                            inked = sum(
+                                1
+                                for strip in edges
+                                for px in strip.getdata()
+                                if max(abs(a - b) for a, b in zip(px, bg)) > 40
+                            )
+                        self.assertEqual(inked, 0, f"{inked} pixels of design touch the page edge")
+
+    def test_the_whole_composition_is_drawn_centred_on_the_page(self):
+        from unittest.mock import patch
+
+        from apps.delivery.print_sizes import print_target_dimensions
+
+        from . import png_renderer
+
+        customer = make_customer()
+        photo = values_with_real_photo(customer)["photo"]
+        for theme in THEMES:
+            renderers = png_renderer._THEME_RENDERERS[theme]
+            design_w = renderers.get("design_w", png_renderer.DESIGN_W)
+            design_h = renderers.get("design_h", png_renderer.DESIGN_H)
+            seen = []
+            real = renderers["poster"]
+
+            def record(canvas, song, *, scale, origin, customer, _real=real, _seen=seen):
+                _seen.append((canvas.size, scale, origin))
+                return _real(canvas, song, scale=scale, origin=origin, customer=customer)
+
+            song = validate_and_normalize({**VALID_VALUES, "photo": photo}, self._selections(theme))
+            with patch.dict(renderers, {"poster": record}):
+                for target in self.FRAMELESS:
+                    render_png(song, target_id=target, customer=customer)
+            for target, ((width, height), scale, (ox, oy)) in zip(self.FRAMELESS, seen):
+                with self.subTest(theme=theme, target=target):
+                    page_w, page_h = print_target_dimensions()[target]
+                    if design_w > design_h:
+                        page_w, page_h = page_h, page_w
+                    self.assertEqual((width, height), (page_w, page_h))
+                    drawn_w, drawn_h = design_w * scale, design_h * scale
+                    # Whole: fits both ways, and fills one of them.
+                    self.assertLessEqual(drawn_w, width + 1e-6)
+                    self.assertLessEqual(drawn_h, height + 1e-6)
+                    self.assertTrue(abs(drawn_w - width) < 1e-6 or abs(drawn_h - height) < 1e-6)
+                    # Centred: equal spare paper on opposite sides.
+                    self.assertAlmostEqual(ox, (width - drawn_w) / 2)
+                    self.assertAlmostEqual(oy, (height - drawn_h) / 2)
+
+
 class RendererTests(TestCase):
     def test_render_with_no_project_raises(self):
         renderer = SongPosterRenderer()

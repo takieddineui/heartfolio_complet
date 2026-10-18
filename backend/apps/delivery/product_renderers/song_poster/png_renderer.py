@@ -137,8 +137,8 @@ def _paste_photo_cover(image: Image.Image, *, customer, asset_id: str, box: tupl
 
 def _draw_player(canvas: Image.Image, song: NormalizedSongPoster, *, scale: float, origin: tuple[int, int], customer) -> None:
     """Draws the full Player composition at `scale`, top-left corner at
-    `origin` — the one function both the frameless (scale to fill,
-    origin 0,0) and edged (scale to inset, origin centred) paths call,
+    `origin` — the one function both the frameless (scale to fit the
+    page, centred) and edged (scale to inset, centred) paths call,
     so the two can never draw a different design, only a different size
     and position of the same one."""
     draw = ImageDraw.Draw(canvas)
@@ -1500,7 +1500,17 @@ def render_png(song: NormalizedSongPoster, *, target_id: str, customer) -> bytes
             draw_poster(canvas, song, scale=scale, origin=origin, customer=customer)
             _draw_attribution(canvas, content_box=(margin, margin, width - margin, height - margin), bg=theme_bg, soft=theme_soft)
         else:
-            scale = max(width / theme_design_w, height / theme_design_h)
+            # FIT, NEVER CUT (18 Oct 2026). This used `max`, which filled the
+            # page and cut off whatever did not fit whenever the paper's shape
+            # differs from the design's: 100 design units each side of Award
+            # and Sleeve on 8x10 ("ARDED FOR ONE RECORDING"), 66.7 of every
+            # portrait theme on the 12x18 poster. `min` keeps the whole
+            # composition, centred; the spare paper is already the theme's own
+            # background (`theme_bg`, Sleeve's chosen palette included), so it
+            # reads as more of the same sheet, never a white edge. Where the
+            # shapes match (portrait on 8x10, landscape on the poster) `min`
+            # equals `max` and the print is unchanged.
+            scale = min(width / theme_design_w, height / theme_design_h)
             drawn_w, drawn_h = theme_design_w * scale, theme_design_h * scale
             origin = ((width - drawn_w) / 2, (height - drawn_h) / 2)
             draw_poster(canvas, song, scale=scale, origin=origin, customer=customer)

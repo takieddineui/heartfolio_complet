@@ -337,9 +337,21 @@ Two were genuine product bugs: the `layout` default above, and
   `player-print-parity.test.ts`. The renders for every other theme, and
   Player's wallpapers, are byte-identical (264 of 288 hashed; the 24 changed
   are Player's print sizes). Still open from the audit: one-line dedication
-  truncation, print fonts, frameless cropping (`render_png` scales with
-  `max`), Arabic tofu in DejaVu Serif, raw `exports.*`/`packs.*` keys, and
-  the product page's false "actual waveform" claim.
+  truncation, print fonts, Arabic tofu in DejaVu Serif, raw
+  `exports.*`/`packs.*` keys, and the product page's false "actual waveform"
+  claim. **Frameless prints FIT, never cut (18 Oct 2026):** `render_png` scaled
+  frameless prints with `max`, cutting off whatever did not fit when the
+  paper's shape differs from the design's (Award's "ARDED FOR ONE RECORDING"
+  on 8x10; 66.7 design units each side of every portrait theme on the 12x18
+  poster). It now uses `min`, centred. The spare paper is the theme's
+  background (Sleeve repaints the whole canvas in its palette), so there are
+  bands of plain paper: 1.5in top and bottom on the 12x18 poster for portrait
+  themes, 0.68in on A4, 0.67in on 8x10 for Award and Sleeve, 0.24in on A4.
+  Whether the poster bands need a dedicated poster layout is the owner's call,
+  not built. Exactly the 64 frameless renders whose shapes differ changed
+  (16 per text case); 224 are byte-identical. `FramelessFitTests` checks
+  that no design pixel touches a page edge and that the composition is whole
+  and centred.
 - **UNEXPLAINED NAVIGATION TO THE HOME PAGE: a real, currently unreproduced
   bug (15 Oct 2026).** Three times during browser testing the page jumped to
   `/en` on its own: twice in the Song Poster Studio (once after switching the
