@@ -522,16 +522,45 @@ Two were genuine product bugs: the `layout` default above, and
   renders changed: the 5 themes with an italic dedication (Latin), and every
   print with Arabic; Ledger, Ephemeris and Sleeve's Latin renders, every
   render without a dedication, and all wallpapers are byte-identical.
-  **Still open from this fix:** Ephemeris's PREVIEW must clip Arabic titles
-  (its `.title` box is 57px, `line-height: 1.02` and `overflow: hidden`, and
-  the Arabic title's Kufi ink is 79px tall at 56px; arithmetic from the same
-  file, not yet seen in a browser). Wallpapers and Sleeve's ring draw Arabic
-  in plain DejaVu Sans (no boxes; joined and readable in the ring), not
-  Naskh. A line's direction comes from its own first strong letter, so a
-  string that starts in Arabic reads right to left even on the English site
-  (Award's footer: "HEARTFOLIO · artist"), and each wrapped dedication line
-  decides for itself, where a browser uses the paragraph's; whether the
-  `en` preview orders such mixed lines differently was not checked.
+  **Still open from this fix:** wallpapers and Sleeve's ring draw Arabic in
+  plain DejaVu Sans (no boxes; joined and readable in the ring), not Naskh.
+  **The two Arabic preview items FIXED (19 Oct 2026), preview only:**
+  - TITLES WERE CUT IN EVERY PREVIEW, not only Ephemeris: each `.title` is
+    one line (Sleeve's two) in an `overflow: hidden` box about a line tall.
+    Measured in the browser, an Arabic title's ink ran 3.8-9.4 units above and
+    7.4-24.4 below it in all eight themes, and LATIN descenders were cut too
+    (1.7-9; Ledger's "Gypsy" visibly). Every `.title` now has
+    `padding-block: 0.16em 0.4em` given back by its `margin-block`: nothing
+    on the poster moves (Latin /en positions identical, measured), and all
+    ink is inside. Sleeve's two-line title paints its hidden third line, so a
+    CUT Sleeve title (3+ lines, `useTitleClamped` counts the laid-out lines;
+    `scrollHeight` reads two Arabic lines as cut) keeps the old bottom edge.
+    Left as it was: in a cut Sleeve title the "…" line still loses 4 units of
+    Latin descender or 14 of Arabic dots, and an Arabic third line's alef
+    peeks 1.6 units: at `line-height: 1.04` Arabic lines overlap, in the print
+    too.
+  - ON /ar EVERY PREVIEW MIRRORED (photo, footer, heart, Sleeve's column)
+    while the print never does. Each theme's root is now `dir="ltr"`,
+    `text-align: left`, with `poster-root.module.css`, and every line of the
+    customer's text has `dir="auto"`: its direction from its first strong
+    letter, HTML's form of the print's rule. On /ar globals.css also swapped
+    the font stacks (`.font-arabic`), set `line-height: 1.9` on body and
+    `:lang(ar) p` (a descendant selector: `lang` on the poster cannot stop
+    it), and the mono stack's Arabic fell back to a font picked by page
+    language; the root class undoes all of it (default stacks pinned to
+    globals.css by `poster-locale.test.ts`; mono Arabic now Noto Naskh via
+    "Heartfolio Sans", the print's is DejaVu Sans Mono). Measured: every
+    element of all eight themes at the same position on /en and /ar, Latin
+    and Arabic.
+  - MIXED ARABIC/LATIN ORDER, the old open question, answered: every
+    single-line text (title, artist, footer, Award's plaque line) now follows
+    the same rule in preview and print, so they agree; Award's plaque line
+    with an Arabic artist now reads "HEARTFOLIO · artist" in the preview too.
+    One difference remains, by construction: a WRAPPED dedication takes one
+    direction for the whole paragraph in the browser, while the print decides
+    each line by its own first letter, so a wrapped Arabic dedication whose
+    later line starts with a Latin word orders that line differently. Making
+    the print use the paragraph's direction would close it (a backend change).
 - **UNEXPLAINED NAVIGATION TO THE HOME PAGE: a real, currently unreproduced
   bug (15 Oct 2026).** Three times during browser testing the page jumped to
   `/en` on its own: twice in the Song Poster Studio (once after switching the
@@ -559,6 +588,12 @@ Two were genuine product bugs: the `layout` default above, and
   pane traversed its history when its emulated viewport changed; if so, a
   real customer would never see it. Not yet proven: a deliberate
   reproduction is the next step if it matters.
+  **Stronger evidence (19 Oct 2026):** it happened on /ar and landed on `/ar`:
+  a fresh document whose request went to `/` and was redirected once (the
+  locale proxy sends the bare root to the saved locale cookie, then `ar`).
+  Nothing in `src` navigates to `/`; the preview pane was opened at
+  `http://localhost:3001`, the root. So the pane reloads its own start URL,
+  not the app; a customer never loads the bare root by accident.
 - **Graduation Keepsake (`graduation-keepsake`) is VISIBLE on the storefront (15
   Oct 2026), the second live-only product: one `live` pack at $15.99, one story
   told as one of five journeys** (Next Chapter Airways, Mission: Graduation,

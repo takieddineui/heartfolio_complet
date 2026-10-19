@@ -1,5 +1,6 @@
-import { useId, useMemo } from "react";
+import { useId, useLayoutEffect, useMemo, useRef, useState } from "react";
 import styles from "./sleeve-theme.module.css";
+import posterRoot from "./poster-root.module.css";
 
 const CANVAS_WIDTH = 1200;
 const CANVAS_HEIGHT = 800;
@@ -105,7 +106,52 @@ function DiscSvg({ idPrefix, ringSource, palette }: { idPrefix: string; ringSour
   );
 }
 
+/**
+ * Whether the two-line title is cut (`-webkit-line-clamp: 2`). Every title
+ * box has extra room below for an Arabic title's tails (19 Oct 2026), but
+ * Sleeve's lines sit only 1.04em apart, so when a third line exists (hidden,
+ * yet still painted) that room would show its top. A cut title keeps the old
+ * bottom edge (`.title[data-clamped]`); measured again when the title changes
+ * and once the fonts have loaded, since both change the wrapping.
+ */
+function useTitleClamped(track: string) {
+  const ref = useRef<HTMLHeadingElement>(null);
+  const [clamped, setClamped] = useState(false);
+  useLayoutEffect(() => {
+    let live = true;
+    // Counts the laid-out lines (hidden ones included), not `scrollHeight`:
+    // two lines of Arabic already overflow a box without the room, which
+    // would read as cut and take the room away again.
+    const measure = () => {
+      const el = ref.current;
+      if (!live || !el) return;
+      const range = document.createRange();
+      range.selectNodeContents(el);
+      const scale = el.getBoundingClientRect().height / (el.offsetHeight || 1) || 1;
+      const halfLine = (parseFloat(getComputedStyle(el).lineHeight) * scale) / 2 || 0;
+      let lines = 0;
+      let last = -Infinity;
+      // jsdom has no `getClientRects` on a range; every browser does.
+      const rects = typeof range.getClientRects === "function" ? [...range.getClientRects()] : [];
+      for (const top of rects.map((r) => r.top).sort((a, b) => a - b)) {
+        if (top - last > halfLine) {
+          lines += 1;
+          last = top;
+        }
+      }
+      setClamped(lines > 2);
+    };
+    measure();
+    document.fonts?.ready.then(measure);
+    return () => {
+      live = false;
+    };
+  }, [track]);
+  return [ref, clamped] as const;
+}
+
 export function SleeveTheme({ track, artist, dedication, photoUrl, sleevePaletteId }: SleeveThemeProps) {
+  const [titleRef, titleClamped] = useTitleClamped(track);
   const idPrefix = useId();
   const ringSource = (dedication || "").trim();
   const palette = getSleevePalette(sleevePaletteId);
@@ -120,7 +166,8 @@ export function SleeveTheme({ track, artist, dedication, photoUrl, sleevePalette
 
   return (
     <div
-      className={styles.sheet}
+      dir="ltr"
+      className={`${styles.sheet} ${posterRoot.root}`}
       style={{
         width: CANVAS_WIDTH,
         height: CANVAS_HEIGHT,
@@ -167,13 +214,15 @@ export function SleeveTheme({ track, artist, dedication, photoUrl, sleevePalette
               />
             </svg>
           </div>
-          <h1 className={styles.title}>{track || " "}</h1>
-          <p className={styles.artist}>{artist || " "}</p>
+          <h1 ref={titleRef} className={styles.title} data-clamped={titleClamped || undefined} dir="auto">
+            {track || " "}
+          </h1>
+          <p className={styles.artist} dir="auto">{artist || " "}</p>
         </div>
       </div>
 
       <div className={styles.foot}>
-        <span className={styles.footArtist}>{artist || " "}</span>
+        <span className={styles.footArtist} dir="auto">{artist || " "}</span>
         <span className={styles.footMark}>HEARTFOLIO</span>
       </div>
     </div>

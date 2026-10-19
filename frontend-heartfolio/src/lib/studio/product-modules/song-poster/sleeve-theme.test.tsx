@@ -1,5 +1,5 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { SleeveTheme, SLEEVE_PALETTES, DEFAULT_SLEEVE_PALETTE, getSleevePalette } from "./sleeve-theme";
 
 describe("SleeveTheme", () => {
@@ -63,5 +63,37 @@ describe("SleeveTheme", () => {
     const blackSwatches = Array.from(blackContainer.querySelectorAll("i")).map((el) => (el as HTMLElement).style.background);
     expect(creamSwatches).toEqual(blackSwatches);
     expect(creamSwatches).toEqual(["rgb(31, 110, 107)", "rgb(198, 67, 46)", "rgb(217, 162, 51)"]);
+  });
+});
+
+/**
+ * Every title box has room below for an Arabic title's tails (19 Oct 2026),
+ * but Sleeve's two-line title clamps a third line that is still painted, and
+ * the room would show its top. jsdom lays nothing out, so the line count is
+ * faked; the browser check measured the real thing (a cut title's hidden line
+ * stays 5 units below the box, a two-line Arabic title keeps every dot).
+ */
+describe("SleeveTheme: a cut title keeps its old bottom edge", () => {
+  function withLineTops(tops: number[]) {
+    if (!Range.prototype.getClientRects) {
+      Range.prototype.getClientRects = () => [] as unknown as DOMRectList;
+    }
+    vi.spyOn(Range.prototype, "getClientRects").mockReturnValue(tops.map((top) => ({ top }) as DOMRect) as unknown as DOMRectList);
+  }
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("marks a title laid out on three lines or more", () => {
+    withLineTops([0, 48, 96]);
+    const { container } = render(<SleeveTheme track="The Long and Winding Road That Leads Me Back" artist="A" />);
+    expect(container.querySelector("h1")).toHaveAttribute("data-clamped", "true");
+  });
+
+  it("leaves a title of two lines unmarked, so it keeps the room", () => {
+    withLineTops([0, 0, 48]);
+    const { container } = render(<SleeveTheme track="Bohemian Rhapsody" artist="A" />);
+    expect(container.querySelector("h1")).not.toHaveAttribute("data-clamped");
   });
 });

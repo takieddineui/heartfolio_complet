@@ -19,6 +19,10 @@
   background: #f6f3ec;
   color: #18191a;
   font-family: var(--font-sans, "Archivo", system-ui, sans-serif);
+  /* The print's layout on every site language: the root is always
+     left-to-right (`dir="ltr"`), and each text line takes its own direction
+     from its first letter (`dir="auto"`), aligned where the print puts it. */
+  text-align: left;
 }
 
 .photo {
@@ -59,6 +63,12 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  /* Room for the ink a one-line box would cut, given back by the margin so
+     nothing moves (19 Oct 2026): an Arabic title's dots and tails reached
+     up to 0.14em above and 0.37em below the box (Ledger), and Latin
+     descenders were cut too. */
+  padding-block: 0.16em 0.4em;
+  margin-block: -0.16em calc(7px - 0.4em);
 }
 .artist {
   font-weight: 400;

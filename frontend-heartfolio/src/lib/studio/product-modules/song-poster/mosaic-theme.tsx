@@ -1,4 +1,5 @@
 import styles from "./mosaic-theme.module.css";
+import posterRoot from "./poster-root.module.css";
 
 const CANVAS_WIDTH = 800;
 const CANVAS_HEIGHT = 1000;
@@ -56,7 +57,8 @@ const MOSAIC_MARKS: Mark[] = [
 export function MosaicTheme({ track, artist, dedication, photoUrl }: MosaicThemeProps) {
   return (
     <div
-      className={styles.sheet}
+      dir="ltr"
+      className={`${styles.sheet} ${posterRoot.root}`}
       style={{ width: CANVAS_WIDTH, height: CANVAS_HEIGHT }}
       data-testid="mosaic-theme"
     >
@@ -83,8 +85,8 @@ export function MosaicTheme({ track, artist, dedication, photoUrl }: MosaicTheme
         <div className={styles.heroBody}>
           <div className={styles.row}>
             <div className={styles.titleBlock}>
-              <h1 className={styles.title}>{track || " "}</h1>
-              <p className={styles.artist}>{artist || " "}</p>
+              <h1 className={styles.title} dir="auto">{track || " "}</h1>
+              <p className={styles.artist} dir="auto">{artist || " "}</p>
             </div>
             <svg className={styles.heart} viewBox="0 0 24 24" aria-hidden="true">
               <path
@@ -104,10 +106,10 @@ export function MosaicTheme({ track, artist, dedication, photoUrl }: MosaicTheme
             </div>
           </div>
 
-          {dedication && <p className={styles.dedication}>{dedication}</p>}
+          {dedication && <p className={styles.dedication} dir="auto">{dedication}</p>}
 
           <div className={styles.foot}>
-            <span className={styles.footArtist}>{artist || " "}</span>
+            <span className={styles.footArtist} dir="auto">{artist || " "}</span>
             <span className={styles.footMark}>HEARTFOLIO</span>
           </div>
         </div>

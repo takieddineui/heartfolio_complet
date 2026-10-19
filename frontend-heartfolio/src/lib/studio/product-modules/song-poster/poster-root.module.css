@@ -1,0 +1,31 @@
+/*
+  THE POSTER IS DRAWN THE SAME ON EVERY SITE LANGUAGE, as the print is
+  (19 Oct 2026). Every theme's root uses this class with `dir="ltr"`. On /ar,
+  globals.css reaches into the poster in these ways, all now undone here:
+  - `.font-arabic` on <html> swaps --font-serif and --font-sans for
+    Arabic-first stacks, whose taller metrics grew every line. The root puts
+    back the default stacks ("Heartfolio Serif" and "Heartfolio Sans" already
+    hand Arabic letters to Noto Kufi and Noto Naskh, as the print does);
+    `poster-locale.test.ts` pins them to globals.css.
+  - The mono stack has no Arabic face, so Arabic in a mono slot (Ledger's
+    artist, Contact Sheet's caption) fell back to whatever the device picks,
+    which also depends on the page language (40 units wider on /ar). The
+    poster's mono stack hands Arabic to "Heartfolio Sans" (Noto Naskh), the
+    site's own Arabic sans; the print draws it in DejaVu Sans Mono.
+  - `:lang(ar) body { line-height: 1.9 }` would be inherited: the root sets
+    the page's own 1.5 (Tailwind's on <html>).
+  - `:lang(ar) p`, `:lang(ar) h1` and `.font-arabic h1` set line heights on
+    every paragraph and heading under <html lang="ar">. They are base-layer
+    rules; the unlayered, zero-specificity rule below beats them and loses
+    to every theme's own rule, so each line inherits as it does on /en.
+*/
+.root {
+  --font-serif: "Heartfolio Serif", Georgia, "Times New Roman", serif;
+  --font-sans: "Heartfolio Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", "Heartfolio Sans", "GT America Mono", ui-monospace, monospace;
+  line-height: 1.5;
+}
+
+:where(.root) :where(p, li, h1, h2, h3) {
+  line-height: inherit;
+}

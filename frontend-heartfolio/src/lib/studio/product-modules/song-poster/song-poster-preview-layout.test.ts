@@ -27,7 +27,7 @@ const prop = (body: string, property: string) =>
 
 describe.each(["player", "mosaic"])("%s: a long title and artist stay on the poster", (theme) => {
   it("wraps the title and artist in a column that may shrink beside the heart", () => {
-    expect(tsx(theme)).toMatch(/<div className=\{styles\.titleBlock\}>\s*<h1 className=\{styles\.title\}>/);
+    expect(tsx(theme)).toMatch(/<div className=\{styles\.titleBlock\}>\s*<h1 className=\{styles\.title\} dir="auto">/);
     const block = rule(css(theme), "titleBlock");
     expect(prop(block, "min-width")).toBe("0");
     expect(prop(block, "flex")).toBe("1");
@@ -86,7 +86,7 @@ describe("award: the artist under the title", () => {
 describe.each(FOOTER_THEMES)("%s: the footer", (theme) => {
   it("names its artist and wordmark spans", () => {
     expect(tsx(theme)).toMatch(
-      /<div className=\{styles\.foot\}>\s*<span className=\{styles\.footArtist\}>\{artist \|\| " "\}<\/span>\s*<span className=\{styles\.footMark\}>HEARTFOLIO<\/span>/,
+      /<div className=\{styles\.foot\}>\s*<span className=\{styles\.footArtist\} dir="auto">\{artist \|\| " "\}<\/span>\s*<span className=\{styles\.footMark\}>HEARTFOLIO<\/span>/,
     );
   });
 
@@ -104,7 +104,7 @@ describe.each(FOOTER_THEMES)("%s: the footer", (theme) => {
 describe("award: the plaque's line", () => {
   it("keeps the separator and wordmark whole and cuts the artist", () => {
     expect(tsx("award")).toMatch(
-      /<p className=\{styles\.plaqueFoot\}>\s*<span className=\{styles\.plaqueArtist\}>\{artist \|\| " "\}<\/span>\s*<span className=\{styles\.plaqueMark\}> · HEARTFOLIO<\/span>/,
+      /<p className=\{styles\.plaqueFoot\} dir="auto">\s*<span className=\{styles\.plaqueArtist\}>\{artist \|\| " "\}<\/span>\s*<span className=\{styles\.plaqueMark\}> · HEARTFOLIO<\/span>/,
     );
     expect(prop(rule(css("award"), "plaqueFoot"), "display")).toBe("flex");
     const artist = rule(css("award"), "plaqueArtist");
@@ -114,5 +114,74 @@ describe("award: the plaque's line", () => {
     const mark = rule(css("award"), "plaqueMark");
     expect(prop(mark, "flex-shrink")).toBe("0");
     expect(prop(mark, "white-space")).toBe("pre");
+  });
+});
+
+/**
+ * THE TITLE BOX HAS ROOM FOR ITS INK (19 Oct 2026). Every title is one line
+ * (Sleeve's two) in a box with `overflow: hidden`, about one line tall: an
+ * Arabic title's dots and tails were cut in all eight themes (up to 0.14em
+ * above and 0.37em below, Ledger's), and Latin descenders too (Ledger's "Gypsy").
+ * The box gets padding above and below and gives it back in its margins, so
+ * nothing on the poster moves (measured in the browser, /en and /ar).
+ */
+const TITLE_MARGINS: Record<string, string> = {
+  player: "-0.16em calc(7px - 0.4em)",
+  ledger: "-0.16em calc(6px - 0.4em)",
+  ephemeris: "calc(26px - 0.16em) -0.4em",
+  "contact-sheet": "calc(22px - 0.16em) calc(6px - 0.4em)",
+  label: "calc(26px - 0.16em) calc(6px - 0.4em)",
+  award: "-0.16em -0.4em",
+  sleeve: "-0.16em calc(20px - 0.4em)",
+  mosaic: "-0.16em calc(3px - 0.4em)",
+};
+
+describe.each(ALL_THEMES)("%s: the title box", (theme) => {
+  it("has room above and below for its ink, given back by its margins", () => {
+    const title = rule(css(theme), "title");
+    expect(prop(title, "padding-block")).toBe("0.16em 0.4em");
+    expect(prop(title, "margin-block")).toBe(TITLE_MARGINS[theme]);
+  });
+});
+
+describe("sleeve: a cut title", () => {
+  it("keeps its old bottom edge, so the hidden third line never shows", () => {
+    const clamped = css("sleeve").match(/\n\.title\[data-clamped\]\s*\{([^}]*)\}/)?.[1];
+    expect(clamped, ".title[data-clamped]").toBeDefined();
+    expect(prop(clamped!, "padding-bottom")).toBe("0");
+    expect(prop(clamped!, "margin-bottom")).toBe("20px");
+    expect(tsx("sleeve")).toMatch(/<h1 ref=\{titleRef\} className=\{styles\.title\} data-clamped=\{titleClamped \|\| undefined\} dir="auto">/);
+  });
+});
+
+/**
+ * THE POSTER IS THE SAME ON EVERY SITE LANGUAGE (19 Oct 2026). On /ar every
+ * poster inherited right-to-left and mirrored (photo, footer, heart, Sleeve's
+ * column) while the print never does. The root is always left-to-right and
+ * left-aligned, and each line of the customer's text takes its direction from
+ * its first strong letter (`dir="auto"`), as the print's bidi does.
+ */
+const CUSTOMER_TEXT: Record<string, string[]> = {
+  player: ["title", "artist", "message"],
+  ledger: ["title", "artist", "dedication", "footArtist"],
+  ephemeris: ["title", "artist", "dedication", "footArtist"],
+  "contact-sheet": ["title", "artist", "caption", "footArtist"],
+  label: ["title", "artist", "dedication", "footArtist"],
+  award: ["title", "artist", "plaqueDedication", "plaqueFoot"],
+  sleeve: ["artist", "footArtist"],
+  mosaic: ["title", "artist", "dedication", "footArtist"],
+};
+
+describe.each(ALL_THEMES)("%s: direction", (theme) => {
+  it("draws the poster left to right, left-aligned, with the shared root class", () => {
+    expect(tsx(theme)).toMatch(/dir="ltr"\s*className=\{`\$\{styles\.sheet\} \$\{posterRoot\.root\}`\}/);
+    expect(tsx(theme)).toContain('import posterRoot from "./poster-root.module.css";');
+    expect(prop(rule(css(theme), "sheet"), "text-align")).toBe("left");
+  });
+
+  it("lets each line of the customer's text take its own direction", () => {
+    for (const cls of CUSTOMER_TEXT[theme]!) {
+      expect(tsx(theme), cls).toMatch(new RegExp(`className=\\{styles\\.${cls}\\}[^>]*dir="auto"`));
+    }
   });
 });
