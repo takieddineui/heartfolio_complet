@@ -200,11 +200,10 @@ CATALOG = [
         "name_i18n_key": "songPoster",
         "category": "music",
         "status": "available",
-        # These are now REAL, decided prices — the five-tier commercial
-        # structure (Digital / Digital+Wallpapers / Printable /
-        # Printable+Wallpapers / Complete) FastSpring's own new catalog
-        # defines, matching Love Story Timeline's structure exactly.
-        # `starting_price_cents` updated to match: $15.99 is the actual
+        # Sold as Love Story Timeline's combo model (owner's decision, 19 Oct
+        # 2026): Printable, Digital (`live`) and Printable + Digital. The
+        # older five-tier packs (FastSpring's catalog) stay as disabled rows.
+        # `starting_price_cents`: $15.99 is the actual
         # cheapest real pack below (`live`), not a placeholder guess —
         # this field is written verbatim to `Product.starting_price_cents`
         # by `seed()` below, the same protected-on-re-run mechanism every
@@ -228,11 +227,15 @@ CATALOG = [
             # stays as the record past orders point at. Price and targets
             # unchanged.
             ("wallpaper", 799, all_wallpaper_target_ids(), "disabled"),
+            # Wallpaper combos DISABLED, not deleted (owner's decision, 19 Oct
+            # 2026: Love Story Timeline's combo setup, without its wallpaper
+            # combos). The wallpaper add-on is hidden for every product
+            # (`SHOW_WALLPAPER_ADDON`), so no customer could reach them anyway.
             (
                 "printable-plus-wallpaper",
                 2799,
                 [*all_print_target_ids(), *all_wallpaper_target_ids()],
-                "active",
+                "disabled",
             ),
             # NEW — this product's live page (`song-live-keepsake.tsx`,
             # `live_views.py`'s product dispatch) has been real and
@@ -245,8 +248,19 @@ CATALOG = [
             # from Love Story Timeline's own equivalent pack and
             # repriced, not new fulfillment logic.
             ("live", 1599, ["__live__"], "active"),
+            # Printable + Digital (owner's decision, 19 Oct 2026): Love Story
+            # Timeline's combo, at its price for the same reason ($22.99 +
+            # $15.99 = $38.98, less a flat discount, rounded). With it the
+            # checkout shows the Printable/Digital toggle
+            # (`unitSelectionModel`), as Love Story Timeline's does.
+            (
+                "printable-plus-digital",
+                3599,
+                [*all_print_target_ids(), "__live__"],
+                "active",
+            ),
             # NEW — same reasoning, the wallpaper-combo equivalent.
-            ("digital-plus-wallpaper", 2099, ["__live__", *all_wallpaper_target_ids()], "active"),
+            ("digital-plus-wallpaper", 2099, ["__live__", *all_wallpaper_target_ids()], "disabled"),
             # "Complete" now means everything sellable, matching Love
             # Story Timeline's own Complete and the new commercial
             # definition of this tier: every print, every wallpaper, AND
@@ -254,11 +268,15 @@ CATALOG = [
             # no live pack existed yet to include — that gap is what
             # this change closes. `"__live__"` added; nothing else in
             # this pack's targets removed or altered.
+            # RETIRED by the combo model (owner's decision, 19 Oct 2026):
+            # disabled, never deleted, as Love Story Timeline's. Song Poster was
+            # never sellable, so no order points at it; the row stays the same
+            # record either way. Price and targets unchanged.
             (
                 "complete",
                 3999,
                 [*all_print_target_ids(), *all_wallpaper_target_ids(), "__live__"],
-                "active",
+                "disabled",
             ),
         ],
     },

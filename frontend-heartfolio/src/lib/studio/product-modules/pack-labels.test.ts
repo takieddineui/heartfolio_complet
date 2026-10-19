@@ -2,6 +2,8 @@ import { existsSync, readFileSync } from "node:fs";
 import { isAbsolute, join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { resolveModuleText } from "@/lib/studio/i18n";
+import { packForUnits, unitSavingsCents, unitSelectionModel } from "@/lib/commerce/pack-presentation";
+import type { DeliveryPack } from "@/types/commerce";
 import { productModuleRegistry } from "./registry";
 
 /**
@@ -24,31 +26,40 @@ function backendRoot(): string {
   throw new Error(`Cannot locate the Django backend. Set HEARTFOLIO_BACKEND_PATH. Tried: ${candidates.join(" | ")}`);
 }
 
-/** product slug -> its pack slugs, from `CATALOG`'s `"packs"` lists, whose
- *  tuples open with `("<slug>", <price cents>`. */
-function seededPacks(): Map<string, string[]> {
+interface SeededPack {
+  slug: string;
+  priceCents: number;
+  status: string;
+}
+
+/** product slug -> its packs, from `CATALOG`'s `"packs"` lists, whose tuples
+ *  read `("<slug>", <price cents>, <targets>, "<status>")`. */
+function seededPacks(): Map<string, SeededPack[]> {
   const source = readFileSync(join(backendRoot(), "seed_catalog.py"), "utf8");
-  const products = new Map<string, string[]>();
+  const products = new Map<string, SeededPack[]>();
   const chunks = source.split(/\n {8}"slug": "/).slice(1);
   for (const chunk of chunks) {
     const slug = chunk.slice(0, chunk.indexOf('"'));
     const packsAt = chunk.indexOf('"packs": [');
     expect(packsAt, `${slug} has a packs list`).toBeGreaterThan(-1);
-    products.set(slug, [...chunk.slice(packsAt).matchAll(/\(\s*"([a-z0-9-]+)",\s*\d+/g)].map((m) => m[1]!));
+    const packs = [...chunk.slice(packsAt).matchAll(/\(\s*"([a-z0-9-]+)",\s*(\d+),[\s\S]*?"(active|disabled)",?\s*\)/g)];
+    products.set(slug, packs.map((m) => ({ slug: m[1]!, priceCents: Number(m[2]), status: m[3]! })));
   }
   return products;
 }
 
-const SEEDED = seededPacks();
+const SEEDED_PACKS = seededPacks();
+const SEEDED = new Map([...SEEDED_PACKS].map(([product, packs]) => [product, packs.map((pack) => pack.slug)]));
 
 describe("the seed, as read here", () => {
-  it("finds every product and Song Poster's six packs", () => {
+  it("finds every product and Song Poster's seven packs", () => {
     expect([...SEEDED.keys()]).toEqual(expect.arrayContaining(["love-story-timeline", "song-poster", "reasons-i-love-you"]));
     expect(SEEDED.get("song-poster")).toEqual([
       "printable",
       "wallpaper",
       "printable-plus-wallpaper",
       "live",
+      "printable-plus-digital",
       "digital-plus-wallpaper",
       "complete",
     ]);
@@ -76,5 +87,44 @@ describe("song-poster's packs", () => {
         expect(messages[locale]?.[`packs.${pack}.${field}`], `${locale} packs.${pack}.${field}`).toBeTruthy();
       }
     }
+  });
+});
+
+/**
+ * SONG POSTER SELLS LOVE STORY TIMELINE'S COMBO MODEL (19 Oct 2026, owner's
+ * decision): Printable, Digital and Printable + Digital; `complete` and the
+ * wallpaper combos are disabled, never deleted. The checkout's Printable /
+ * Digital toggle appears for any product whose active packs include the combo
+ * (`unitSelectionModel`), so this builds the packs the API would send (active
+ * only) from the seed itself.
+ */
+describe("song-poster's checkout", () => {
+  const active: DeliveryPack[] = SEEDED_PACKS.get("song-poster")!
+    .filter((pack) => pack.status === "active")
+    .map((pack) => ({
+      id: pack.slug,
+      productId: "song-poster",
+      nameKey: `packs.${pack.slug}.name`,
+      descriptionKey: `packs.${pack.slug}.description`,
+      priceCents: pack.priceCents,
+      currency: "USD",
+      includedTargets: [],
+    }));
+
+  it("sells exactly Printable, Digital and Printable + Digital", () => {
+    expect(active.map((pack) => [pack.id, pack.priceCents])).toEqual([
+      ["printable", 2299],
+      ["live", 1599],
+      ["printable-plus-digital", 3599],
+    ]);
+  });
+
+  it("shows the Printable / Digital toggle, both ticked meaning the combo", () => {
+    expect(unitSelectionModel(active)?.map((option) => [option.unit, option.pack.id])).toEqual([
+      ["printable", "printable"],
+      ["digital", "live"],
+    ]);
+    expect(packForUnits(active, ["printable", "digital"])?.id).toBe("printable-plus-digital");
+    expect(unitSavingsCents(active, ["printable", "digital"])).toBe(2299 + 1599 - 3599);
   });
 });

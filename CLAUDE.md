@@ -322,9 +322,17 @@ Two were genuine product bugs: the `layout` default above, and
   the VPS goes live. Its standalone `wallpaper` pack is now `disabled` in the
   seed (as Love Story Timeline's; the owner's real seed run applies it); the
   wallpaper add-on checkbox was already hidden for every product
-  (`SHOW_WALLPAPER_ADDON`). Its `complete` pack is still the old
-  print + wallpaper + digital bundle, predating "combos, not a bundle"; whether
-  it gets the combo treatment is the owner's open decision. An investigation of
+  (`SHOW_WALLPAPER_ADDON`). **Packs DECIDED (19 Oct 2026): Love Story
+  Timeline's combo model, without its wallpaper combos.** Sellable:
+  `printable` $22.99, `live` (Digital) $15.99, `printable-plus-digital`
+  $35.99 (new); `complete` and both wallpaper combos are disabled, never
+  deleted (`SongPosterCatalogStateTests`, `SongPosterComboSeedTests`). The
+  checkout's Printable/Digital toggle needs no code: `unitSelectionModel`
+  shows it for any product whose active packs include the combo
+  (`pack-labels.test.ts` builds Song Poster's from the seed). Committed but
+  NOT live: the owner creates three Freemius plans, Claude maps them, then the
+  owner runs the real seed and a sandbox checkout. FastSpring's map is not
+  extended, as for every new pack. An investigation of
   its Studio, preview and print (15 Oct 2026) found real problems, not yet
   fixed. **The YouTube blocker is FIXED (15 Oct 2026):** nothing in the Studio
   called `YouTubeValidateView`, so `youtubeVideoId` was never set and no

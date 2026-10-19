@@ -369,6 +369,38 @@ class StandaloneWallpaperPackTests(TestCase):
         self.assertEqual(again.price_cents, 699)  # prices are never rewritten on a re-run
 
 
+class SongPosterComboSeedTests(TestCase):
+    """Song Poster sells Love Story Timeline's combo model (owner's decision,
+    19 Oct 2026). A database seeded before it has `complete` and the wallpaper
+    combos ACTIVE and no `printable-plus-digital`; one seed run must leave
+    exactly the three sellable packs active, flipping the old rows in place."""
+
+    def test_a_seed_run_leaves_printable_digital_and_the_combo_on_sale(self):
+        import seed_catalog
+
+        from apps.products.models import DeliveryPack
+
+        seed_catalog.seed()
+        old = DeliveryPack.objects.filter(
+            product__slug="song-poster", slug__in=["complete", "printable-plus-wallpaper", "digital-plus-wallpaper"]
+        )
+        before = {pack.slug: (pack.pk, pack.price_cents) for pack in old}
+        old.update(status=DeliveryPack.STATUS_ACTIVE)
+        DeliveryPack.objects.filter(product__slug="song-poster", slug="printable-plus-digital").delete()
+
+        seed_catalog.seed()
+        packs = DeliveryPack.objects.filter(product__slug="song-poster")
+        self.assertEqual(
+            {pack.slug for pack in packs if pack.status == DeliveryPack.STATUS_ACTIVE},
+            {"printable", "live", "printable-plus-digital"},
+        )
+        for slug, (pk, price) in before.items():
+            with self.subTest(slug=slug):
+                again = packs.get(slug=slug)
+                self.assertEqual((again.pk, again.price_cents, again.status), (pk, price, DeliveryPack.STATUS_DISABLED))
+        self.assertEqual(packs.get(slug="printable-plus-digital").price_cents, 3599)
+
+
 class CatalogTargetMapParityTests(TestCase):
     """The admin form and the seed script each hardcode which targets a
     product can be sold with (`_supported_targets` in admin.py,

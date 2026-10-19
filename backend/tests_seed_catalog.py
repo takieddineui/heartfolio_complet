@@ -183,3 +183,59 @@ class RealCatalogStateTests(SimpleTestCase):
         packs = self._love_story_packs()
         self.assertNotIn("ar", packs)
         self.assertNotIn("ar-plus-wallpaper", packs)
+
+
+class SongPosterCatalogStateTests(SimpleTestCase):
+    """Song Poster's packs as the owner decided on 19 Oct 2026: Love Story
+    Timeline's combo model, without its wallpaper combos. Three sellable
+    packs, each to get its own Freemius plan; every older pack kept as a
+    disabled row, never deleted."""
+
+    def _packs(self):
+        from seed_catalog import CATALOG
+
+        entry = next(e for e in CATALOG if e["slug"] == "song-poster")
+        return {pack[0]: pack for pack in entry["packs"]}
+
+    def test_three_packs_are_sold_and_the_rest_are_disabled_not_deleted(self):
+        packs = self._packs()
+        statuses = {slug: (pack[3] if len(pack) > 3 else "active") for slug, pack in packs.items()}
+        self.assertEqual(
+            {slug for slug, status in statuses.items() if status == "active"},
+            {"printable", "live", "printable-plus-digital"},
+        )
+        self.assertEqual(
+            {slug for slug, status in statuses.items() if status == "disabled"},
+            {"wallpaper", "printable-plus-wallpaper", "digital-plus-wallpaper", "complete"},
+        )
+
+    def test_prices_match_the_approved_state_exactly(self):
+        packs = self._packs()
+        expected = {
+            "printable": 2299,
+            "live": 1599,
+            "printable-plus-digital": 3599,
+            # Disabled rows keep the prices they were seeded with.
+            "wallpaper": 799,
+            "printable-plus-wallpaper": 2799,
+            "digital-plus-wallpaper": 2099,
+            "complete": 3999,
+        }
+        self.assertEqual({slug: pack[1] for slug, pack in packs.items()}, expected)
+
+    def test_printable_plus_digital_is_the_real_union_of_its_two_sources(self):
+        packs = self._packs()
+        self.assertEqual(set(packs["printable-plus-digital"][2]), set(packs["printable"][2]) | set(packs["live"][2]))
+
+    def test_printable_plus_digital_is_cheaper_than_its_parts_but_not_free(self):
+        packs = self._packs()
+        printable, live, combo = packs["printable"][1], packs["live"][1], packs["printable-plus-digital"][1]
+        self.assertLess(combo, printable + live)
+        self.assertGreater(combo, max(printable, live))
+
+    def test_the_combo_matches_love_story_timelines_price(self):
+        from seed_catalog import CATALOG
+
+        lst = next(e for e in CATALOG if e["slug"] == "love-story-timeline")
+        lst_combo = next(pack for pack in lst["packs"] if pack[0] == "printable-plus-digital")
+        self.assertEqual(self._packs()["printable-plus-digital"][1], lst_combo[1])
