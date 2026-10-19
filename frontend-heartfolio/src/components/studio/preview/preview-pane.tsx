@@ -18,8 +18,13 @@ export function PreviewPane({ session }: PreviewPaneProps) {
     );
   }
 
+  // `min-w-0`: this column is a flex item, and its default `min-width: auto`
+  // let a fixed-size canvas (Song Poster's 1200px Award and Sleeve) stretch it
+  // past the screen, so `ScaleToFit` measured the canvas instead of the pane:
+  // off screen at 1280 and 1440, and the whole Studio wider than a phone
+  // (19 Oct 2026). `preview-pane-layout.test.ts` pins it.
   return (
-    <div className="flex h-full min-h-[420px] flex-1 flex-col p-4 sm:p-6 lg:p-10">
+    <div className="flex h-full min-h-[420px] min-w-0 flex-1 flex-col p-4 sm:p-6 lg:p-10">
       {Renderer ? <Renderer config={session.module.renderer} session={session} /> : <PreviewEmptyState />}
     </div>
   );

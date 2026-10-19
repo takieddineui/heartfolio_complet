@@ -82,7 +82,7 @@ export function MosaicTheme({ track, artist, dedication, photoUrl }: MosaicTheme
         </div>
         <div className={styles.heroBody}>
           <div className={styles.row}>
-            <div>
+            <div className={styles.titleBlock}>
               <h1 className={styles.title}>{track || " "}</h1>
               <p className={styles.artist}>{artist || " "}</p>
             </div>

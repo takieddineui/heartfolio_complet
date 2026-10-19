@@ -73,6 +73,14 @@
   align-items: flex-start;
   gap: 14px;
 }
+/* The title and artist's own column in the row beside the heart. A flex item
+   keeps `min-width: auto` by default, so the one-line title stretched it and
+   the row ran off the poster (163 units at 60+60 characters, the heart pushed
+   out); `min-width: 0` lets the title's ellipsis work (19 Oct 2026). */
+.titleBlock {
+  flex: 1;
+  min-width: 0;
+}
 .title {
   font-weight: 800;
   font-size: 26px;
@@ -89,6 +97,10 @@
   text-transform: uppercase;
   color: #a9a9a2;
   margin: 0;
+  /* One line ending with "…", as the print draws it on one line. */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .heart {
   width: 16px;

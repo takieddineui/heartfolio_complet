@@ -88,7 +88,7 @@ export function PlayerTheme({ track, artist, dedication, photoUrl, youtubeVideoI
       </div>
 
       <div className={styles.head}>
-        <div>
+        <div className={styles.titleBlock}>
           <h1 className={styles.title}>{track || " "}</h1>
           <p className={styles.artist}>{artist || " "}</p>
         </div>

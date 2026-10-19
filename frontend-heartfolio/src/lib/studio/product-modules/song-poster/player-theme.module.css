@@ -42,6 +42,14 @@
   align-items: flex-start;
   gap: 16px;
 }
+/* The title and artist's own column in the row beside the heart. A flex item
+   keeps `min-width: auto` by default, so the one-line title stretched it and
+   the row ran off the poster (Player 506 units at 60+60 characters, the heart
+   pushed out); `min-width: 0` lets the title's ellipsis work (19 Oct 2026). */
+.titleBlock {
+  flex: 1;
+  min-width: 0;
+}
 .title {
   font-weight: 800;
   font-size: 40px;
@@ -57,6 +65,10 @@
   font-size: 16px;
   color: #6b6a63;
   margin: 0;
+  /* One line ending with "…", as the print draws it on one line. */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .heart {
   width: 21px;
@@ -80,6 +92,10 @@
 .eq {
   position: absolute;
   inset-inline: 0;
+  /* An <svg> is a replaced element: `inset-inline: 0` alone leaves it at its
+     intrinsic width, 800 units from its viewBox, 60 past the poster's edge.
+     The print draws the bars across the 680-unit row (19 Oct 2026). */
+  width: 100%;
   top: -4px;
   height: 20px;
   color: #18191a;

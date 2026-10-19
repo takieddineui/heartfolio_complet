@@ -391,6 +391,32 @@ Two were genuine product bugs: the `layout` default above, and
   out of scope. **Still open, seen in these renders and not fixed:** a long
   artist touches the title in Ledger and Sleeve; Mosaic's long artist runs
   into the heart and the wordmark.
+  **The Studio preview fits its screen (19 Oct 2026).** Three layout bugs, all
+  a fixed size stretching its container:
+  - The shared preview column (`components/studio/preview/preview-pane.tsx`,
+    EVERY product) was a flex item with the default `min-width: auto`, so a
+    canvas wider than the pane stretched it and `ScaleToFit` measured the
+    canvas, not the pane: Award and Sleeve (1200px) ran 238px off screen at
+    1280 and were still off at 1440, and ON A PHONE every product's Studio
+    was wider than the screen (Song Poster 833px, Love Story Timeline 572px
+    on a 375px phone). `min-w-0` fixes it. LST at 1280/1440/1920 is unchanged
+    to the pixel (same scale and position, measured before and after).
+  - Player's and Mosaic's title and artist sat in an unclassed flex item, so
+    the one-line title stretched it and the row ran off the poster (Player 506
+    design units at 60+60 characters, Mosaic 163; the heart pushed out). Now
+    `.titleBlock { flex: 1; min-width: 0 }`; the title ends "…", and the
+    artist is one line ending "…" too (owner's choice, as the print draws it).
+  - Player's waveform `<svg>` kept its viewBox width (800) in a 680 row: a
+    replaced element ignores `inset-inline: 0` for its width. `width: 100%`.
+    The print already drew 680; it does not change.
+  jsdom has no layout, so `preview-pane-layout.test.ts` and
+  `song-poster-preview-layout.test.ts` pin the CSS rules (8 of 8 mutants
+  caught); the proof is a scripted browser measurement (every element past
+  the canvas edge, scale, sideways scroll) at 1280, 1440, 1920 and phone width.
+  **Measuring trap:** in a hidden pane `ResizeObserver` does not fire until a
+  frame renders, so a scale read right after a resize or theme switch can be
+  STALE (1920 first read 0.779, the 1440 value; 0.959 after a screenshot woke
+  the pane). Take a screenshot before every measurement.
   **The print's font folder now holds what the themes ask for (18 Oct 2026).**
   Arabic printed as EMPTY BOXES in Ephemeris's title and dedication and
   Player's dedication: DejaVu Serif (all three files) and every DejaVu
@@ -476,6 +502,19 @@ Two were genuine product bugs: the `layout` default above, and
   demand; with a real click, Continue opened the checkout normally. When the
   Studio jumped, the customer's unsaved draft (text and photo) was lost.
   Flagged for whoever investigates next, outside any fix so far.
+  **New evidence (18 Oct 2026), pointing at the BROWSER PANE, not the app:** it
+  happened again right after the pane's viewport emulation was resized
+  (1280 to 1440) in the Song Poster Studio. The page now showing was the
+  tab's ORIGINAL first history entry: its document was created when the
+  preview server started (`performance.timeOrigin`, 4 minutes earlier, before
+  the Studio was opened), it had no referrer, and it had gone through exactly
+  one redirect (`/` to `/en`, the locale redirect of the preview's start
+  URL). A navigation by the app's own code would leave the Studio as the
+  referrer, and `src` has no `history.back`/`go`, `router.back` or `location`
+  assignment at all. A second resize did not reproduce it. Most likely the
+  pane traversed its history when its emulated viewport changed; if so, a
+  real customer would never see it. Not yet proven: a deliberate
+  reproduction is the next step if it matters.
 - **Graduation Keepsake (`graduation-keepsake`) is VISIBLE on the storefront (15
   Oct 2026), the second live-only product: one `live` pack at $15.99, one story
   told as one of five journeys** (Next Chapter Airways, Mission: Graduation,
