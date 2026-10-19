@@ -5,6 +5,7 @@ import { useYouTubePlayer } from "./use-youtube-player";
 import { downsample, generateEnvelope, seedForOrder } from "./waveform";
 import styles from "./player-theme.module.css";
 import posterRoot from "./poster-root.module.css";
+import { lineDirection } from "./line-direction";
 
 const EQ_BARS = 60;
 const CANVAS_WIDTH = 800;
@@ -91,8 +92,8 @@ export function PlayerTheme({ track, artist, dedication, photoUrl, youtubeVideoI
 
       <div className={styles.head}>
         <div className={styles.titleBlock}>
-          <h1 className={styles.title} dir="auto">{track || " "}</h1>
-          <p className={styles.artist} dir="auto">{artist || " "}</p>
+          <h1 className={styles.title} dir={lineDirection(track)}>{track || " "}</h1>
+          <p className={styles.artist} dir={lineDirection(artist)}>{artist || " "}</p>
         </div>
         <svg className={styles.heart} viewBox="0 0 24 24" aria-hidden="true">
           <path
@@ -201,7 +202,7 @@ export function PlayerTheme({ track, artist, dedication, photoUrl, youtubeVideoI
       </div>
 
       <div className={styles.bottom}>
-        {dedication && <p className={styles.message} dir="auto">{dedication}</p>}
+        {dedication && <p className={styles.message} dir={lineDirection(dedication)}>{dedication}</p>}
         {liveCodeSvg && <div className={styles.code}>{liveCodeSvg}</div>}
       </div>
 

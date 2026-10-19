@@ -1,5 +1,6 @@
 import styles from "./mosaic-theme.module.css";
 import posterRoot from "./poster-root.module.css";
+import { lineDirection } from "./line-direction";
 
 const CANVAS_WIDTH = 800;
 const CANVAS_HEIGHT = 1000;
@@ -85,8 +86,8 @@ export function MosaicTheme({ track, artist, dedication, photoUrl }: MosaicTheme
         <div className={styles.heroBody}>
           <div className={styles.row}>
             <div className={styles.titleBlock}>
-              <h1 className={styles.title} dir="auto">{track || " "}</h1>
-              <p className={styles.artist} dir="auto">{artist || " "}</p>
+              <h1 className={styles.title} dir={lineDirection(track)}>{track || " "}</h1>
+              <p className={styles.artist} dir={lineDirection(artist)}>{artist || " "}</p>
             </div>
             <svg className={styles.heart} viewBox="0 0 24 24" aria-hidden="true">
               <path
@@ -106,10 +107,10 @@ export function MosaicTheme({ track, artist, dedication, photoUrl }: MosaicTheme
             </div>
           </div>
 
-          {dedication && <p className={styles.dedication} dir="auto">{dedication}</p>}
+          {dedication && <p className={styles.dedication} dir={lineDirection(dedication)}>{dedication}</p>}
 
           <div className={styles.foot}>
-            <span className={styles.footArtist} dir="auto">{artist || " "}</span>
+            <span className={styles.footArtist} dir={lineDirection(artist)}>{artist || " "}</span>
             <span className={styles.footMark}>HEARTFOLIO</span>
           </div>
         </div>

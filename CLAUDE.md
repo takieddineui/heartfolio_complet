@@ -555,9 +555,18 @@ Two were genuine product bugs: the `layout` default above, and
     too.
   - ON /ar EVERY PREVIEW MIRRORED (photo, footer, heart, Sleeve's column)
     while the print never does. Each theme's root is now `dir="ltr"`,
-    `text-align: left`, with `poster-root.module.css`, and every line of the
-    customer's text has `dir="auto"`: its direction from its first strong
-    letter, HTML's form of the print's rule. On /ar globals.css also swapped
+    `text-align: start`, with `poster-root.module.css`, and every line of the
+    customer's text has an explicit `dir` from `lineDirection()`
+    (`line-direction.ts`): its first strong letter's, the print's rule. A
+    right-to-left line is aligned `end` (`[dir="rtl"]` in the root
+    stylesheet), so it starts at the poster's left as printed.
+    **Two traps, found 19 Oct 2026:** the first version used `text-align:
+    left`, which `rtl.test.ts` forbids in renderer CSS (it failed outside the
+    folders that change ran, fixed the same day); and `dir="auto"` cannot be
+    styled here, because the CSS build (Lightning CSS) rewrites `:dir(rtl)`
+    into `:lang(ar)`-style checks of the PAGE's language (so on /ar it matched
+    Latin lines too), and Chromium has no `text-align: match-parent`.
+    On /ar globals.css also swapped
     the font stacks (`.font-arabic`), set `line-height: 1.9` on body and
     `:lang(ar) p` (a descendant selector: `lang` on the poster cannot stop
     it), and the mono stack's Arabic fell back to a font picked by page
@@ -575,6 +584,15 @@ Two were genuine product bugs: the `layout` default above, and
     each line by its own first letter, so a wrapped Arabic dedication whose
     later line starts with a Latin word orders that line differently. Making
     the print use the paragraph's direction would close it (a backend change).
+- **Song Poster's Studio sidebar matches Love Story Timeline's (19 Oct 2026):**
+  Content, Appearance, Files, in that order, in en, fr and ar. It also had an
+  "Export" panel listing every print and wallpaper size (wallpapers it no
+  longer sells included), because Love Story Timeline opts out of that list in
+  its module config (`hideCustomerFacingList`, §15) and Song Poster never did.
+  Now it does too (`export-list.test.ts` pins both). Nothing else reads the
+  list: the checkout and delivery use each pack's `includedTargets` from the
+  backend. Reasons and Graduation are hosted products and show a one-line
+  hosted card instead. Where We Met still shows the list (withdrawn, untouched).
 - **UNEXPLAINED NAVIGATION TO THE HOME PAGE: a real, currently unreproduced
   bug (15 Oct 2026).** Three times during browser testing the page jumped to
   `/en` on its own: twice in the Song Poster Studio (once after switching the

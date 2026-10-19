@@ -30,7 +30,11 @@ export const songPosterModule: ProductModuleConfig<SongPosterValues> = {
   pricing: songPosterPricing,
   delivery: {
     mode: "export",
-    export: songPosterExports,
+    // As Love Story Timeline's (§15): the raw list of print and wallpaper
+    // sizes is implementation detail, not a customer decision, and it listed
+    // wallpapers Song Poster no longer sells (19 Oct 2026). `targets` stays
+    // populated for anything that reads it; only the sidebar panel is off.
+    export: { ...songPosterExports, hideCustomerFacingList: true },
   },
   messages: songPosterMessages,
   createInitialState,

@@ -27,7 +27,7 @@ const prop = (body: string, property: string) =>
 
 describe.each(["player", "mosaic"])("%s: a long title and artist stay on the poster", (theme) => {
   it("wraps the title and artist in a column that may shrink beside the heart", () => {
-    expect(tsx(theme)).toMatch(/<div className=\{styles\.titleBlock\}>\s*<h1 className=\{styles\.title\} dir="auto">/);
+    expect(tsx(theme)).toMatch(/<div className=\{styles\.titleBlock\}>\s*<h1 className=\{styles\.title\} dir=\{lineDirection\(track\)\}>/);
     const block = rule(css(theme), "titleBlock");
     expect(prop(block, "min-width")).toBe("0");
     expect(prop(block, "flex")).toBe("1");
@@ -86,7 +86,7 @@ describe("award: the artist under the title", () => {
 describe.each(FOOTER_THEMES)("%s: the footer", (theme) => {
   it("names its artist and wordmark spans", () => {
     expect(tsx(theme)).toMatch(
-      /<div className=\{styles\.foot\}>\s*<span className=\{styles\.footArtist\} dir="auto">\{artist \|\| " "\}<\/span>\s*<span className=\{styles\.footMark\}>HEARTFOLIO<\/span>/,
+      /<div className=\{styles\.foot\}>\s*<span className=\{styles\.footArtist\} dir=\{lineDirection\(artist\)\}>\{artist \|\| " "\}<\/span>\s*<span className=\{styles\.footMark\}>HEARTFOLIO<\/span>/,
     );
   });
 
@@ -104,7 +104,7 @@ describe.each(FOOTER_THEMES)("%s: the footer", (theme) => {
 describe("award: the plaque's line", () => {
   it("keeps the separator and wordmark whole and cuts the artist", () => {
     expect(tsx("award")).toMatch(
-      /<p className=\{styles\.plaqueFoot\} dir="auto">\s*<span className=\{styles\.plaqueArtist\}>\{artist \|\| " "\}<\/span>\s*<span className=\{styles\.plaqueMark\}> · HEARTFOLIO<\/span>/,
+      /<p className=\{styles\.plaqueFoot\} dir=\{lineDirection\(`\$\{artist \?\? ""\} · HEARTFOLIO`\)\}>\s*<span className=\{styles\.plaqueArtist\}>\{artist \|\| " "\}<\/span>\s*<span className=\{styles\.plaqueMark\}> · HEARTFOLIO<\/span>/,
     );
     expect(prop(rule(css("award"), "plaqueFoot"), "display")).toBe("flex");
     const artist = rule(css("award"), "plaqueArtist");
@@ -150,7 +150,7 @@ describe("sleeve: a cut title", () => {
     expect(clamped, ".title[data-clamped]").toBeDefined();
     expect(prop(clamped!, "padding-bottom")).toBe("0");
     expect(prop(clamped!, "margin-bottom")).toBe("20px");
-    expect(tsx("sleeve")).toMatch(/<h1 ref=\{titleRef\} className=\{styles\.title\} data-clamped=\{titleClamped \|\| undefined\} dir="auto">/);
+    expect(tsx("sleeve")).toMatch(/<h1 ref=\{titleRef\} className=\{styles\.title\} data-clamped=\{titleClamped \|\| undefined\} dir=\{lineDirection\(track\)\}>/);
   });
 });
 
@@ -159,7 +159,7 @@ describe("sleeve: a cut title", () => {
  * poster inherited right-to-left and mirrored (photo, footer, heart, Sleeve's
  * column) while the print never does. The root is always left-to-right and
  * left-aligned, and each line of the customer's text takes its direction from
- * its first strong letter (`dir="auto"`), as the print's bidi does.
+ * its first strong letter (`lineDirection`, set as `dir`), as the print's bidi does.
  */
 const CUSTOMER_TEXT: Record<string, string[]> = {
   player: ["title", "artist", "message"],
@@ -173,15 +173,16 @@ const CUSTOMER_TEXT: Record<string, string[]> = {
 };
 
 describe.each(ALL_THEMES)("%s: direction", (theme) => {
-  it("draws the poster left to right, left-aligned, with the shared root class", () => {
+  it("draws the poster left to right, start-aligned, with the shared root class", () => {
     expect(tsx(theme)).toMatch(/dir="ltr"\s*className=\{`\$\{styles\.sheet\} \$\{posterRoot\.root\}`\}/);
     expect(tsx(theme)).toContain('import posterRoot from "./poster-root.module.css";');
-    expect(prop(rule(css(theme), "sheet"), "text-align")).toBe("left");
+    // Logical, as `rtl.test.ts` requires: the root is `dir="ltr"`, so `start` is its left.
+    expect(prop(rule(css(theme), "sheet"), "text-align")).toBe("start");
   });
 
   it("lets each line of the customer's text take its own direction", () => {
     for (const cls of CUSTOMER_TEXT[theme]!) {
-      expect(tsx(theme), cls).toMatch(new RegExp(`className=\\{styles\\.${cls}\\}[^>]*dir="auto"`));
+      expect(tsx(theme), cls).toMatch(new RegExp(`className=\\{styles\\.${cls}\\}[^>]*dir=\\{lineDirection\\(`));
     }
   });
 });

@@ -1,5 +1,6 @@
 import styles from "./award-theme.module.css";
 import posterRoot from "./poster-root.module.css";
+import { lineDirection } from "./line-direction";
 
 const CANVAS_WIDTH = 1200;
 const CANVAS_HEIGHT = 800;
@@ -74,15 +75,15 @@ export function AwardTheme({ track, artist, dedication, photoUrl }: AwardThemePr
             <circle cx={DISC_R} cy={DISC_R} r={38} fill="none" stroke="#cfc8b4" strokeWidth={1} vectorEffect="non-scaling-stroke" />
             <circle cx={DISC_R} cy={DISC_R} r={2} fill="#1a1917" />
           </svg>
-          <h1 className={styles.title} dir="auto">{track || " "}</h1>
-          <p className={styles.artist} dir="auto">{artist || " "}</p>
+          <h1 className={styles.title} dir={lineDirection(track)}>{track || " "}</h1>
+          <p className={styles.artist} dir={lineDirection(artist)}>{artist || " "}</p>
         </div>
       </div>
 
       <div className={styles.plaque}>
         <div className={styles.plaqueRule} />
-        {dedication && <p className={styles.plaqueDedication} dir="auto">{dedication}</p>}
-        <p className={styles.plaqueFoot} dir="auto">
+        {dedication && <p className={styles.plaqueDedication} dir={lineDirection(dedication)}>{dedication}</p>}
+        <p className={styles.plaqueFoot} dir={lineDirection(`${artist ?? ""} · HEARTFOLIO`)}>
           <span className={styles.plaqueArtist}>{artist || " "}</span>
           <span className={styles.plaqueMark}> · HEARTFOLIO</span>
         </p>

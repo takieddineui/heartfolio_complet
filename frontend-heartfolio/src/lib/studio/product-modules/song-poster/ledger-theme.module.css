@@ -28,9 +28,10 @@
   padding: 52px 54px 74px;
   box-sizing: border-box;
   /* The print's layout on every site language: the root is always
-     left-to-right (`dir="ltr"`), and each text line takes its own direction
-     from its first letter (`dir="auto"`), aligned where the print puts it. */
-  text-align: left;
+     left-to-right (`dir="ltr"`), so `start` is its left, and each text line
+     takes its own direction from its first letter (`dir="auto"`) while
+     staying aligned where the print puts it (`poster-root.module.css`). */
+  text-align: start;
 }
 
 .head {

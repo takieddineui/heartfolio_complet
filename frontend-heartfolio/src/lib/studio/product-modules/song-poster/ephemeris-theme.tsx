@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { downsample, generateEnvelope, seedForOrder } from "./waveform";
 import styles from "./ephemeris-theme.module.css";
 import posterRoot from "./poster-root.module.css";
+import { lineDirection } from "./line-direction";
 
 const CANVAS_WIDTH = 800;
 const CANVAS_HEIGHT = 1000;
@@ -87,13 +88,13 @@ export function EphemerisTheme({ track, artist, dedication, photoUrl }: Ephemeri
         </div>
       </div>
 
-      <h1 className={styles.title} dir="auto">{track || " "}</h1>
-      <p className={styles.artist} dir="auto">{artist || " "}</p>
+      <h1 className={styles.title} dir={lineDirection(track)}>{track || " "}</h1>
+      <p className={styles.artist} dir={lineDirection(artist)}>{artist || " "}</p>
 
-      {dedication && <p className={styles.dedication} dir="auto">{dedication}</p>}
+      {dedication && <p className={styles.dedication} dir={lineDirection(dedication)}>{dedication}</p>}
 
       <div className={styles.foot}>
-        <span className={styles.footArtist} dir="auto">{artist || " "}</span>
+        <span className={styles.footArtist} dir={lineDirection(artist)}>{artist || " "}</span>
         <span className={styles.footMark}>HEARTFOLIO</span>
       </div>
     </div>

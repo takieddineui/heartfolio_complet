@@ -1,6 +1,7 @@
 import { useId, useLayoutEffect, useMemo, useRef, useState } from "react";
 import styles from "./sleeve-theme.module.css";
 import posterRoot from "./poster-root.module.css";
+import { lineDirection } from "./line-direction";
 
 const CANVAS_WIDTH = 1200;
 const CANVAS_HEIGHT = 800;
@@ -214,15 +215,15 @@ export function SleeveTheme({ track, artist, dedication, photoUrl, sleevePalette
               />
             </svg>
           </div>
-          <h1 ref={titleRef} className={styles.title} data-clamped={titleClamped || undefined} dir="auto">
+          <h1 ref={titleRef} className={styles.title} data-clamped={titleClamped || undefined} dir={lineDirection(track)}>
             {track || " "}
           </h1>
-          <p className={styles.artist} dir="auto">{artist || " "}</p>
+          <p className={styles.artist} dir={lineDirection(artist)}>{artist || " "}</p>
         </div>
       </div>
 
       <div className={styles.foot}>
-        <span className={styles.footArtist} dir="auto">{artist || " "}</span>
+        <span className={styles.footArtist} dir={lineDirection(artist)}>{artist || " "}</span>
         <span className={styles.footMark}>HEARTFOLIO</span>
       </div>
     </div>

@@ -35,4 +35,8 @@ describe("the poster root", () => {
     expect(globals).toMatch(/:lang\(ar\) body,\s*:lang\(ar\) p,\s*:lang\(ar\) li \{\s*line-height: 1\.9;/);
     expect(globals).toMatch(/\.font-arabic \{[^}]*--font-serif:/);
   });
+
+  it("keeps a right-to-left line of the customer's text aligned to the poster's start, as the print does", () => {
+    expect(root).toMatch(/:where\(\.root\) :where\(\[dir="rtl"\]\) \{\s*text-align: end;\s*\}/);
+  });
 });

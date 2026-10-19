@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { downsample, generateEnvelope, seedForOrder } from "./waveform";
 import styles from "./ledger-theme.module.css";
 import posterRoot from "./poster-root.module.css";
+import { lineDirection } from "./line-direction";
 
 const CANVAS_WIDTH = 800;
 const CANVAS_HEIGHT = 1000;
@@ -68,8 +69,8 @@ export function LedgerTheme({ track, artist, dedication, photoUrl }: LedgerTheme
       </div>
       <div className={styles.rule} />
 
-      <h1 className={styles.title} dir="auto">{track || " "}</h1>
-      <p className={styles.artist} dir="auto">{artist || " "}</p>
+      <h1 className={styles.title} dir={lineDirection(track)}>{track || " "}</h1>
+      <p className={styles.artist} dir={lineDirection(artist)}>{artist || " "}</p>
 
       <div className={styles.mid}>
         <div className={styles.photo}>
@@ -102,10 +103,10 @@ export function LedgerTheme({ track, artist, dedication, photoUrl }: LedgerTheme
         )}
       </div>
 
-      {dedication && <p className={styles.dedication} dir="auto">{dedication}</p>}
+      {dedication && <p className={styles.dedication} dir={lineDirection(dedication)}>{dedication}</p>}
 
       <div className={styles.foot}>
-        <span className={styles.footArtist} dir="auto">{artist || " "}</span>
+        <span className={styles.footArtist} dir={lineDirection(artist)}>{artist || " "}</span>
         <span className={styles.footMark}>HEARTFOLIO</span>
       </div>
     </div>

@@ -29,3 +29,15 @@
 :where(.root) :where(p, li, h1, h2, h3) {
   line-height: inherit;
 }
+
+/* A line of the customer's text takes its direction from its first strong
+   letter (`lineDirection`, set as `dir`), so one that starts in Arabic is
+   right-to-left and the inherited `start` would mean its right; the print
+   draws it from the same left edge as any other line, which for a
+   right-to-left line is its `end` (logical, as `rtl.test.ts` requires).
+   An attribute selector, not `:dir(rtl)`: the CSS build rewrites `:dir()`
+   into checks of the page's language. Zero specificity: a theme's own
+   alignment (the centred titles) still wins. */
+:where(.root) :where([dir="rtl"]) {
+  text-align: end;
+}
