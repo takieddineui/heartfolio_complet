@@ -282,23 +282,23 @@
     "songPoster": {
       "name": "Song Poster",
       "shortDescription": "The song that played the whole way home.",
-      "fullDescription": "The soundwave of a song that mattered, rendered like sheet music for people who don't read it.",
+      "fullDescription": "A song that mattered, given a soundwave of its own and set like sheet music for people who don't read it.",
       "meta": {
         "title": "Personalized Song Poster | Heartfolio",
-        "description": "The song that mattered, drawn as its own soundwave — a personalized digital keepsake from {price}, delivered instantly.",
-        "imageAlt": "A personalized Heartfolio song poster showing a song's soundwave as artwork",
-        "descriptionNoPrice": "The song that mattered, drawn as its own soundwave — a personalized digital keepsake, delivered instantly."
+        "description": "The song that mattered, turned into soundwave artwork — a personalized digital keepsake from {price}, delivered instantly.",
+        "imageAlt": "A personalized Heartfolio song poster with soundwave artwork, a song title and its artist",
+        "descriptionNoPrice": "The song that mattered, turned into soundwave artwork — a personalized digital keepsake, delivered instantly."
       },
       "storyTitle": "A song, seen instead of heard.",
-      "story": "Every song has a shape. A Song Poster draws that shape — the actual waveform of the track you choose — and sets it beneath the title, the artist and the moment it belongs to. It reads as artwork first and as a memory second, which is exactly the right order.",
+      "story": "Every song deserves a shape. A Song Poster gives yours one — a soundwave designed for your order — and sets it with the title, the artist and the moment it belongs to. It reads as artwork first and as a memory second, which is exactly the right order.",
       "faq": [
         {
           "question": "Which songs can I use?",
-          "answer": "Any track you can identify by title and artist. The keepsake is artwork generated from the song's waveform — no audio is sold, included or distributed."
+          "answer": "Any song with a YouTube link: you give its title, artist and link, and we check the video is available. The soundwave is designed for your order, not taken from the recording. No audio is sold, included or distributed."
         },
         {
           "question": "Can I add my own words?",
-          "answer": "Yes. A short line beneath the waveform — a date, a lyric fragment, a name — is part of the personalization."
+          "answer": "Yes. A short dedication — a date, a lyric fragment, a name — is part of the personalization."
         },
         {
           "question": "Will it look good in a frame?",

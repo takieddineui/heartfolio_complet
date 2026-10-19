@@ -282,23 +282,23 @@
     "songPoster": {
       "name": "Affiche musicale",
       "shortDescription": "La chanson qui a accompagné tout le trajet du retour.",
-      "fullDescription": "L'onde sonore d'une chanson qui a compté, rendue comme une partition pour ceux qui ne la lisent pas.",
+      "fullDescription": "Une chanson qui a compté, dotée de sa propre onde sonore et mise en page comme une partition pour ceux qui ne la lisent pas.",
       "meta": {
         "title": "Affiche de chanson personnalisée | Heartfolio",
-        "description": "La chanson qui compte, dessinée par son onde sonore — un souvenir numérique personnalisé à partir de {price}, livré instantanément.",
-        "imageAlt": "Une affiche de chanson Heartfolio personnalisée montrant l'onde sonore d'un morceau",
-        "descriptionNoPrice": "La chanson qui compte, dessinée par son onde sonore — un souvenir numérique personnalisé, livré instantanément."
+        "description": "La chanson qui compte, devenue une œuvre en onde sonore — un souvenir numérique personnalisé à partir de {price}, livré instantanément.",
+        "imageAlt": "Une affiche de chanson Heartfolio personnalisée avec une œuvre en onde sonore, le titre d'une chanson et son artiste",
+        "descriptionNoPrice": "La chanson qui compte, devenue une œuvre en onde sonore — un souvenir numérique personnalisé, livré instantanément."
       },
       "storyTitle": "Une chanson, vue plutôt qu'écoutée.",
-      "story": "Chaque chanson a une forme. L'Affiche de chanson dessine cette forme — l'onde réelle du morceau que vous choisissez — et la pose sous le titre, l'artiste et le moment auquel elle appartient. On y voit d'abord une œuvre, ensuite un souvenir : c'est exactement le bon ordre.",
+      "story": "Chaque chanson mérite une forme. L'Affiche de chanson donne la sienne à la vôtre — une onde sonore conçue pour votre commande — et l'accompagne du titre, de l'artiste et du moment auquel elle appartient. On y voit d'abord une œuvre, ensuite un souvenir : c'est exactement le bon ordre.",
       "faq": [
         {
           "question": "Quelles chansons puis-je utiliser ?",
-          "answer": "Tout morceau que vous pouvez identifier par son titre et son artiste. Le souvenir est une œuvre générée à partir de la forme d'onde — aucun fichier audio n'est vendu, inclus ni distribué."
+          "answer": "Toute chanson disponible sur YouTube : vous indiquez son titre, son artiste et le lien, et nous vérifions que la vidéo est disponible. L'onde sonore est conçue pour votre commande, elle n'est pas tirée de l'enregistrement. Aucun fichier audio n'est vendu, inclus ni distribué."
         },
         {
           "question": "Puis-je ajouter mes propres mots ?",
-          "answer": "Oui. Une courte ligne sous l'onde — une date, un fragment de parole, un prénom — fait partie de la personnalisation."
+          "answer": "Oui. Une courte dédicace — une date, un fragment de parole, un prénom — fait partie de la personnalisation."
         },
         {
           "question": "Le rendu est-il bon encadré ?",

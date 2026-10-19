@@ -341,9 +341,24 @@ Two were genuine product bugs: the `layout` default above, and
   the mock-payment path completed a paid order, its downloads and a live page
   that plays the song. YouTube's oEmbed is intermittently unreachable from the
   company network (timeouts), which shows as "couldn't check" plus retry, as
-  designed. Still open, found during that checkout: the pack cards show raw
-  keys (`packs.live.name`), because Song Poster's messages define no pack
-  names, the same family as its raw `exports.*` labels.
+  designed. **Raw labels and the false waveform claim FIXED (19 Oct 2026).**
+  Song Poster's messages had no `exports.*` or `packs.*` keys, so its Studio
+  export list and checkout pack cards showed raw keys. The 9 shared print and
+  wallpaper labels now live once in `lib/studio/export-labels.ts`
+  (`SHARED_EXPORT_LABELS`, Love Story Timeline's wording moved unchanged;
+  both modules spread it, and LST's resolved dictionary was diffed identical
+  in all three locales), and Song Poster names and describes all six seeded
+  packs in en/fr/ar. `pack-labels.test.ts` reads the pack slugs from
+  `seed_catalog.py` and fails if any product's pack has no English name or
+  description (all five pass), or Song Poster's lacks any locale's own. The
+  product page claimed "the actual waveform of the track you choose"; the
+  waveform is seeded per order (`waveform.ts`), so the copy now says "a
+  soundwave designed for your order" (positive phrasing in the marketing
+  copy, by the owner's decision) and only the FAQ says plainly it is "not
+  taken from the recording". The FAQ also said any track "you can identify
+  by title and artist"; it now says a YouTube link is needed.
+  `song-poster-labels.test.ts` pins both. French and Arabic are plain
+  translations, not native-reviewed.
   **Player's placeholder code is FIXED (18 Oct 2026):** every Player print used
   to end with a fake 5x5 "code" (the prototype's `codeSVG`, which nothing
   could scan) and the designer's label "CODE POSITION — LINKS TO YOUR PAGE",
@@ -352,9 +367,7 @@ Two were genuine product bugs: the `layout` default above, and
   `PLAYER_*` constants in `png_renderer.py`, read against the CSS by
   `player-print-parity.test.ts`. The renders for every other theme, and
   Player's wallpapers, are byte-identical (264 of 288 hashed; the 24 changed
-  are Player's print sizes). Still open from the audit: raw
-  `exports.*`/`packs.*` keys, and the product page's false "actual waveform"
-  claim. **Frameless prints FIT, never cut (18 Oct 2026):** `render_png` scaled
+  are Player's print sizes). **Frameless prints FIT, never cut (18 Oct 2026):** `render_png` scaled
   frameless prints with `max`, cutting off whatever did not fit when the
   paper's shape differs from the design's (Award's "ARDED FOR ONE RECORDING"
   on 8x10; 66.7 design units each side of every portrait theme on the 12x18
