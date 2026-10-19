@@ -263,6 +263,72 @@ def _fit_title(draw: ImageDraw.ImageDraw, text: str, theme: str, scale: float, m
     return kept + [_fit_text(draw, rest, font, max_width)], font
 
 
+#: THE ARTIST STAYS ON ITS LINE (19 Oct 2026). Nothing limited the artist's
+#: width: a long one ran under Mosaic's heart and past its card, off the page
+#: in seven themes (60 "W"s), and into every footer's HEARTFOLIO. Every preview
+#: now shows the artist on one line ending "…" (owner's decision), under the
+#: title and in the footer; the print fits it the way it fits a title: at full
+#: size when it fits, else shrinking to `TITLE_MIN_SCALE`, and only at that
+#: floor "…", so it shows at least what the preview shows although DejaVu is
+#: wider. Each theme's column under the title is the preview's artist box,
+#: measured in the browser (19 Oct 2026; Award's is its info column, Mosaic's
+#: stops beside the heart). Pinned by `ArtistFitTests`.
+ARTIST_COLUMN = {
+    "player": 643.0,
+    "ledger": 692.0,
+    "ephemeris": 688.0,
+    "contactsheet": 700.0,
+    "label": 680.0,
+    "award": 552.0,
+    "sleeve": 496.0,
+    "mosaic": 478.0,
+}
+#: The footer's artist stops this far before HEARTFOLIO: Contact Sheet's
+#: `.foot { gap: 16px }`, now every preview footer's.
+FOOT_GAP = 16.0
+#: ... and never comes closer than this to the title's last line's ink. The
+#: print steps down by the title's ink HEIGHT, not to its ink bottom, which put
+#: Ledger's artist 1.1-2.7 units INTO every title and Sleeve's under a second
+#: line's descenders (6 units in). A floor, not a new spacing (owner's
+#: decision, the value Ephemeris's Arabic fix used on 18 Oct): every theme
+#: keeps its own spacing where it is already this clear. Measured without the
+#: floor, Mosaic's artist sits only 0.7-1.6 units under its title and Label's
+#: 1.9 on the 8x10 edged print, so those move too, by at most 1.3 units. The
+#: previews leave more room (6.3-20.8 units; Ledger's about none), a known
+#: drift.
+ARTIST_TITLE_CLEARANCE = 2.0
+
+
+def _fit_line(draw: ImageDraw.ImageDraw, text: str, font_file: str, size: float, scale: float, max_width: float, *, suffix: str = "") -> tuple[str, MixedScriptFont]:
+    """`text` on one line within `max_width` px, with `suffix` drawn after it
+    in the same font (Award's " · HEARTFOLIO"): at full size when it fits
+    (exactly as before), else the largest size down to `TITLE_MIN_SCALE` at
+    which it does, and at that floor cut with "…"."""
+    steps = round((1 - TITLE_MIN_SCALE) / _TITLE_SCALE_STEP)
+    for i in range(steps + 1):
+        font = _font(font_file, size * (1 - i * _TITLE_SCALE_STEP), scale)
+        if draw.textlength(text + suffix, font=font) <= max_width:
+            return text, font
+    return _fit_text(draw, text, font, max_width - draw.textlength(suffix, font=font)), font
+
+
+def _below_title(cursor_y: float, title_ink_bottom: float, text: str, font, scale: float) -> float:
+    """Where to draw the artist (top-anchored, design units): at `cursor_y`,
+    or lower if its ink would come closer than `ARTIST_TITLE_CLEARANCE` to the
+    title's last line's ink bottom (`title_ink_bottom`, design units)."""
+    return max(cursor_y, title_ink_bottom + ARTIST_TITLE_CLEARANCE - font.getbbox(text)[1] / scale)
+
+
+def _draw_foot_artist(draw: ImageDraw.ImageDraw, song, xy, max_width: float, foot_font, font_file: str, size: float, scale: float, fill) -> None:
+    """The footer's artist, on one line before HEARTFOLIO (`_fit_line`). A
+    shrunk one keeps the wordmark's baseline."""
+    text, font = _fit_line(draw, song.artist.upper(), font_file, size, scale, max_width)
+    if font.size == foot_font.size:
+        draw.text(xy, text, font=font, fill=fill)
+    else:
+        draw.text((xy[0], xy[1] + foot_font.getmetrics()[0]), text, font=font, fill=fill, anchor="ls")
+
+
 def _dedication_lines(draw: ImageDraw.ImageDraw, song, theme: str, font, scale: float) -> tuple[list[str], float]:
     """The dedication wrapped to its theme's preview width, and the distance
     between its lines in design units."""
@@ -346,7 +412,6 @@ def _draw_player(canvas: Image.Image, song: NormalizedSongPoster, *, scale: floa
     # prototype's Archivo, and a guessed height would silently
     # reintroduce the same class of bug at a smaller scale.
     title_font = _font("DejaVuSans-Bold.ttf", 40, scale)
-    artist_font = _font("DejaVuSans.ttf", 16, scale)
 
     cursor_y = photo_top + photo_height + 24  # `.pl-head`'s margin-top
     title_x, title_y = pt(60, cursor_y)
@@ -356,9 +421,11 @@ def _draw_player(canvas: Image.Image, song: NormalizedSongPoster, *, scale: floa
     title_box = draw.textbbox((title_x, title_y), title_text, font=title_font)
     cursor_y += (title_box[3] - title_box[1]) / scale + 7  # `.pl-title`'s own margin-bottom
 
+    artist_text, artist_font = _fit_line(draw, song.artist, "DejaVuSans.ttf", 16, scale, ARTIST_COLUMN["player"] * scale)
+    cursor_y = _below_title(cursor_y, (title_box[3] - oy) / scale, artist_text, artist_font, scale)
     artist_x, artist_y = pt(60, cursor_y)
-    draw.text((artist_x, artist_y), song.artist, font=artist_font, fill=_SOFT)
-    artist_box = draw.textbbox((artist_x, artist_y), song.artist, font=artist_font)
+    draw.text((artist_x, artist_y), artist_text, font=artist_font, fill=_SOFT)
+    artist_box = draw.textbbox((artist_x, artist_y), artist_text, font=artist_font)
     cursor_y += (artist_box[3] - artist_box[1]) / scale
 
     # --- progress row: waveform + rule, STATIC (see module docstring) -
@@ -467,7 +534,6 @@ def _draw_ledger(canvas: Image.Image, song: NormalizedSongPoster, *, scale: floa
 
     head_font = _font("DejaVuSans.ttf", 14.5, scale)
     title_font = _font("DejaVuSans-Bold.ttf", 66, scale)
-    artist_font = _font("DejaVuSansMono.ttf", 16, scale)
     caption_font = _font("DejaVuSans.ttf", 13.5, scale)
     wavelab_font = _font("DejaVuSans.ttf", 13.5, scale)
     dedication_font = _dedication_font("ledger", scale)
@@ -493,8 +559,10 @@ def _draw_ledger(canvas: Image.Image, song: NormalizedSongPoster, *, scale: floa
     title_box = draw.textbbox(pt(54, cursor_y), title_text, font=title_font)
     cursor_y += (title_box[3] - title_box[1]) / scale + 6
 
-    draw.text(pt(54, cursor_y), song.artist, font=artist_font, fill=ink)
-    artist_box = draw.textbbox(pt(54, cursor_y), song.artist, font=artist_font)
+    artist_text, artist_font = _fit_line(draw, song.artist, "DejaVuSansMono.ttf", 16, scale, ARTIST_COLUMN["ledger"] * scale)
+    cursor_y = _below_title(cursor_y, (title_box[3] - oy) / scale, artist_text, artist_font, scale)
+    draw.text(pt(54, cursor_y), artist_text, font=artist_font, fill=ink)
+    artist_box = draw.textbbox(pt(54, cursor_y), artist_text, font=artist_font)
     cursor_y += (artist_box[3] - artist_box[1]) / scale + 28  # `.lg-mid`'s margin-top
 
     # --- photo, filed evidence-style ---------------------------------
@@ -553,9 +621,9 @@ def _draw_ledger(canvas: Image.Image, song: NormalizedSongPoster, *, scale: floa
     # --- foot: artist + wordmark, anchored to the sheet's own bottom --
     foot_y = DESIGN_H - 40 - 13.5
     draw.line([pt(54, foot_y - 8), pt(746, foot_y - 8)], fill=rule_colour, width=max(1, round(scale)))
-    draw.text(pt(54, foot_y), song.artist.upper(), font=foot_font, fill=soft)
     wordmark = "HEARTFOLIO"
     ww = draw.textlength(wordmark, font=foot_font)
+    _draw_foot_artist(draw, song, pt(54, foot_y), (746 - 54 - FOOT_GAP) * scale - ww, foot_font, "DejaVuSans.ttf", 13.5, scale, soft)
     draw.text((pt(746, foot_y)[0] - ww, pt(0, foot_y)[1]), wordmark, font=foot_font, fill=soft)
 
 
@@ -571,11 +639,6 @@ def _polar_ring_points(envelope, *, cx: float, cy: float, radius: float, amplitu
         r = radius + (envelope[i] - 0.5) * amplitude * 2
         points.append((cx + math.cos(angle) * r, cy + math.sin(angle) * r))
     return points
-
-
-#: Design units between the bottom of Ephemeris's title ink and the top of
-#: its artist's, at the least (18 Oct 2026; see `_draw_ephemeris`).
-EPHEMERIS_TITLE_CLEARANCE = 2.0
 
 
 def _draw_ephemeris(canvas: Image.Image, song: NormalizedSongPoster, *, scale: float, origin: tuple[int, int], customer) -> None:
@@ -598,7 +661,6 @@ def _draw_ephemeris(canvas: Image.Image, song: NormalizedSongPoster, *, scale: f
 
     head_font = _font("DejaVuSans.ttf", 14, scale)
     title_font = _font("DejaVuSerif.ttf", 56, scale)
-    artist_font = _font("DejaVuSans.ttf", 13.5, scale)
     dedication_font = _dedication_font("ephemeris", scale)
     foot_font = _font("DejaVuSans.ttf", 13.5, scale)
 
@@ -683,16 +745,13 @@ def _draw_ephemeris(canvas: Image.Image, song: NormalizedSongPoster, *, scale: f
     title_top = cursor_y
     cursor_y += (title_box[3] - title_box[1]) / scale + 11
 
-    artist_text = song.artist.upper()
+    artist_text, artist_font = _fit_line(draw, song.artist.upper(), "DejaVuSans.ttf", 13.5, scale, ARTIST_COLUMN["ephemeris"] * scale)
     aw = draw.textlength(artist_text, font=artist_font)
     artist_box = draw.textbbox((0, 0), artist_text, font=artist_font)
-    # The flow advances by the title's ink height, not its ink bottom, which
-    # leaves a Latin title 3-5 design units clear of the artist. Kufi's
-    # Arabic reaches further below the line, so its descenders came down
-    # into the artist's letters; the artist now always starts this far below
-    # the title's lowest ink. A floor Latin titles never reach: their renders
-    # are unchanged.
-    cursor_y = max(cursor_y, title_top + title_box[3] / scale + EPHEMERIS_TITLE_CLEARANCE - artist_box[1] / scale)
+    # Kufi's Arabic reaches further below the line than Latin, so its
+    # descenders came down into the artist's letters (18 Oct 2026); this
+    # floor was first written for it, and Latin titles never reach it here.
+    cursor_y = _below_title(cursor_y, title_top + title_box[3] / scale, artist_text, artist_font, scale)
     draw.text((ox + 400 * scale - aw / 2, pt(0, cursor_y)[1]), artist_text, font=artist_font, fill=soft)
     cursor_y += (artist_box[3] - artist_box[1]) / scale + 22
 
@@ -706,9 +765,9 @@ def _draw_ephemeris(canvas: Image.Image, song: NormalizedSongPoster, *, scale: f
     # --- foot: artist + wordmark, anchored to the sheet's own bottom ----
     foot_y = DESIGN_H - 78 - 13.5
     draw.line([pt(56, foot_y - 13), pt(744, foot_y - 13)], fill=rule_colour, width=max(1, round(scale)))
-    draw.text(pt(56, foot_y), song.artist.upper(), font=foot_font, fill=soft)
     wordmark = "HEARTFOLIO"
     ww = draw.textlength(wordmark, font=foot_font)
+    _draw_foot_artist(draw, song, pt(56, foot_y), (744 - 56 - FOOT_GAP) * scale - ww, foot_font, "DejaVuSans.ttf", 13.5, scale, soft)
     draw.text((pt(744, foot_y)[0] - ww, pt(0, foot_y)[1]), wordmark, font=foot_font, fill=soft)
 
 
@@ -731,7 +790,6 @@ def _draw_contact_sheet(canvas: Image.Image, song: NormalizedSongPoster, *, scal
 
     head_font = _font("DejaVuSans.ttf", 14.5, scale)
     title_font = _font("DejaVuSans-Bold.ttf", 34, scale)
-    artist_font = _font("DejaVuSans.ttf", 15.5, scale)
     num_font = _font("DejaVuSansMono.ttf", 13.5, scale)
     caption_font = _dedication_font("contactsheet", scale)
     foot_font = _font("DejaVuSans.ttf", 14, scale)
@@ -822,8 +880,10 @@ def _draw_contact_sheet(canvas: Image.Image, song: NormalizedSongPoster, *, scal
     title_box = draw.textbbox(pt(50, cursor_y), title_text, font=title_font)
     cursor_y += (title_box[3] - title_box[1]) / scale + 6
 
-    draw.text(pt(50, cursor_y), song.artist.upper(), font=artist_font, fill=soft)
-    artist_box = draw.textbbox(pt(50, cursor_y), song.artist.upper(), font=artist_font)
+    artist_text, artist_font = _fit_line(draw, song.artist.upper(), "DejaVuSans.ttf", 15.5, scale, ARTIST_COLUMN["contactsheet"] * scale)
+    cursor_y = _below_title(cursor_y, (title_box[3] - oy) / scale, artist_text, artist_font, scale)
+    draw.text(pt(50, cursor_y), artist_text, font=artist_font, fill=soft)
+    artist_box = draw.textbbox(pt(50, cursor_y), artist_text, font=artist_font)
     cursor_y += (artist_box[3] - artist_box[1]) / scale + 20  # `.cs-wavebox`'s margin-top
 
     # --- waveform: bottom-anchored bars, unplayed (static, see module
@@ -849,9 +909,9 @@ def _draw_contact_sheet(canvas: Image.Image, song: NormalizedSongPoster, *, scal
     # --- foot ----------------------------------------------------------
     foot_y = DESIGN_H - 42 - 14
     draw.line([pt(50, foot_y - 9), pt(750, foot_y - 9)], fill=rule_colour, width=max(1, round(scale)))
-    draw.text(pt(50, foot_y), song.artist.upper(), font=foot_font, fill=soft)
     wordmark = "HEARTFOLIO"
     ww = draw.textlength(wordmark, font=foot_font)
+    _draw_foot_artist(draw, song, pt(50, foot_y), (750 - 50 - FOOT_GAP) * scale - ww, foot_font, "DejaVuSans.ttf", 14, scale, soft)
     draw.text((pt(750, foot_y)[0] - ww, pt(0, foot_y)[1]), wordmark, font=foot_font, fill=soft)
 
 
@@ -876,7 +936,6 @@ def _draw_label(canvas: Image.Image, song: NormalizedSongPoster, *, scale: float
 
     head_font = _font("DejaVuSans.ttf", 14.5, scale)
     title_font = _font("DejaVuSans-Bold.ttf", 38, scale)
-    artist_font = _font("DejaVuSans.ttf", 16, scale)
     dedication_font = _dedication_font("label", scale)
     foot_font = _font("DejaVuSans.ttf", 14, scale)
 
@@ -943,9 +1002,11 @@ def _draw_label(canvas: Image.Image, song: NormalizedSongPoster, *, scale: float
     tw = draw.textlength(title_text, font=title_font)
     draw.text((ox + 400 * scale - tw / 2, pt(0, cursor_y)[1]), title_text, font=title_font, fill=ink)
     title_box = draw.textbbox((0, 0), title_text, font=title_font)
+    title_top = cursor_y
     cursor_y += (title_box[3] - title_box[1]) / scale + 6
 
-    artist_text = song.artist.upper()
+    artist_text, artist_font = _fit_line(draw, song.artist.upper(), "DejaVuSans.ttf", 16, scale, ARTIST_COLUMN["label"] * scale)
+    cursor_y = _below_title(cursor_y, title_top + title_box[3] / scale, artist_text, artist_font, scale)
     aw = draw.textlength(artist_text, font=artist_font)
     draw.text((ox + 400 * scale - aw / 2, pt(0, cursor_y)[1]), artist_text, font=artist_font, fill=soft)
     artist_box = draw.textbbox((0, 0), artist_text, font=artist_font)
@@ -961,9 +1022,9 @@ def _draw_label(canvas: Image.Image, song: NormalizedSongPoster, *, scale: float
     # --- foot ----------------------------------------------------------
     foot_y = DESIGN_H - 44 - 14
     draw.line([pt(60, foot_y - 14), pt(740, foot_y - 14)], fill=rule_colour, width=max(1, round(scale)))
-    draw.text(pt(60, foot_y), song.artist.upper(), font=foot_font, fill=soft)
     wordmark = "HEARTFOLIO"
     ww = draw.textlength(wordmark, font=foot_font)
+    _draw_foot_artist(draw, song, pt(60, foot_y), (740 - 60 - FOOT_GAP) * scale - ww, foot_font, "DejaVuSans.ttf", 14, scale, soft)
     draw.text((pt(740, foot_y)[0] - ww, pt(0, foot_y)[1]), wordmark, font=foot_font, fill=soft)
 
 
@@ -992,9 +1053,7 @@ def _draw_award(canvas: Image.Image, song: NormalizedSongPoster, *, scale: float
 
     head_font = _font("DejaVuSans.ttf", 14.5, scale)
     title_font = _font("DejaVuSans-Bold.ttf", 44, scale)
-    artist_font = _font("DejaVuSans.ttf", 15, scale)
     plaque_font = _dedication_font("award", scale)
-    plaque_foot_font = _font("DejaVuSans.ttf", 14, scale)
 
     # --- frame: two nested borders ------------------------------------
     draw.rectangle([pt(26, 26), pt(AWARD_DESIGN_W - 26, AWARD_DESIGN_H - 26)], outline=ink, width=max(1, round(scale)))
@@ -1067,7 +1126,9 @@ def _draw_award(canvas: Image.Image, song: NormalizedSongPoster, *, scale: float
     title_box = draw.textbbox(pt(info_x, info_cursor_y), title_text, font=title_font)
     info_cursor_y += (title_box[3] - title_box[1]) / scale + 8
 
-    draw.text(pt(info_x, info_cursor_y), song.artist.upper(), font=artist_font, fill=soft)
+    artist_text, artist_font = _fit_line(draw, song.artist.upper(), "DejaVuSans.ttf", 15, scale, ARTIST_COLUMN["award"] * scale)
+    info_cursor_y = _below_title(info_cursor_y, (title_box[3] - oy) / scale, artist_text, artist_font, scale)
+    draw.text(pt(info_x, info_cursor_y), artist_text, font=artist_font, fill=soft)
 
     # --- plaque: brass box, dedication + artist/wordmark line -----------
     plaque_left, plaque_right = 72.0, AWARD_DESIGN_W - 72.0
@@ -1081,7 +1142,11 @@ def _draw_award(canvas: Image.Image, song: NormalizedSongPoster, *, scale: float
     if song.dedication:
         lines, line_height = _dedication_lines(draw, song, "award", plaque_font, scale)
 
-    foot_text = f"{song.artist.upper()} · HEARTFOLIO"
+    # One line, the artist fitted so the whole line stays inside the plaque.
+    plaque_artist, plaque_foot_font = _fit_line(
+        draw, song.artist.upper(), "DejaVuSans.ttf", 14, scale, (plaque_right - plaque_left - 2 * pad_x) * scale, suffix=" · HEARTFOLIO"
+    )
+    foot_text = f"{plaque_artist} · HEARTFOLIO"
     rule_h = 1.0
     content_h = rule_h + 10  # rule + its own margin-bottom
     if lines:
@@ -1260,7 +1325,6 @@ def _draw_sleeve(canvas: Image.Image, song: NormalizedSongPoster, *, scale: floa
     # scope): it draws letter by letter, so Arabic there is unjoined either way.
     ring_font = ImageFont.truetype(str(_FONT_DIR / "DejaVuSans.ttf"), size=max(8, round(6.3 * scale)))
     title_font = _font("DejaVuSans-Bold.ttf", 46, scale)
-    artist_font = _font("DejaVuSans.ttf", 15, scale)
     foot_font = _font("DejaVuSans.ttf", 14.5, scale)
 
     # --- layout constants, design space -------------------------------
@@ -1327,15 +1391,18 @@ def _draw_sleeve(canvas: Image.Image, song: NormalizedSongPoster, *, scale: floa
     for i, line in enumerate(title_lines):
         draw.text(pt(info_x, cursor_y + i * title_step), line, font=title_font, fill=ink)
     title_box = draw.textbbox(pt(info_x, cursor_y), title_lines[0], font=title_font)
+    last_line_box = draw.textbbox(pt(info_x, cursor_y + (len(title_lines) - 1) * title_step), title_lines[-1], font=title_font)
     cursor_y += (title_box[3] - title_box[1]) / scale + (len(title_lines) - 1) * title_step + 8
 
-    draw.text(pt(info_x, cursor_y), song.artist.upper(), font=artist_font, fill=soft)
+    artist_text, artist_font = _fit_line(draw, song.artist.upper(), "DejaVuSans.ttf", 15, scale, ARTIST_COLUMN["sleeve"] * scale)
+    cursor_y = _below_title(cursor_y, (last_line_box[3] - oy) / scale, artist_text, artist_font, scale)
+    draw.text(pt(info_x, cursor_y), artist_text, font=artist_font, fill=soft)
 
     # --- foot ----------------------------------------------------------
     foot_y = SLEEVE_DESIGN_H - 40 - 14.5
-    draw.text(pt(56, foot_y), song.artist.upper(), font=foot_font, fill=soft)
     wordmark = "HEARTFOLIO"
     ww = draw.textlength(wordmark, font=foot_font)
+    _draw_foot_artist(draw, song, pt(56, foot_y), (SLEEVE_DESIGN_W - 56 - 56 - FOOT_GAP) * scale - ww, foot_font, "DejaVuSans.ttf", 14.5, scale, soft)
     draw.text((pt(SLEEVE_DESIGN_W - 56, foot_y)[0] - ww, pt(0, foot_y)[1]), wordmark, font=foot_font, fill=soft)
 
 
@@ -1383,7 +1450,7 @@ def _draw_vector_heart(canvas: Image.Image, *, cx: float, cy: float, size: float
     canvas.paste(rotated, (round(cx - tile.width / 2), round(cy - tile.height / 2)), rotated)
 
 
-def _mosaic_card_height(draw, song: NormalizedSongPoster, *, scale, title_text, title_font, artist_font, dedication_lines, dedication_font, dedication_line_height, times_font, foot_font) -> float:
+def _mosaic_card_height(draw, song: NormalizedSongPoster, *, scale, title_text, title_font, artist_text, artist_font, artist_drop, foot_artist, dedication_lines, dedication_font, dedication_line_height, times_font, foot_font) -> float:
     """The card's total height IN DESIGN UNITS, which depends on the title's
     fitted size and the dedication's wrapped lines: computed once, DRY-RUN
     style, so the card can be vertically centred (`top:50%;
@@ -1400,13 +1467,13 @@ def _mosaic_card_height(draw, song: NormalizedSongPoster, *, scale, title_text, 
 
     height = 340.0  # `.ms-hero .art`'s fixed photo height
     height += 20  # `.ms-hero-body`'s own top padding
-    height += h(title_text, title_font) + 3
-    height += h(song.artist.upper(), artist_font)
+    height += h(title_text, title_font) + 3 + artist_drop
+    height += h(artist_text, artist_font)
     height += 16 + 20 + 5  # `.ms-progress`'s margin-top + its height + `.ms-times`'s margin-top
     height += h("0:00", times_font)
     if dedication_lines:
         height += 16 + h(dedication_lines[0], dedication_font) + (len(dedication_lines) - 1) * dedication_line_height
-    height += 10 + h(song.artist.upper(), foot_font)  # `.ms-foot`'s margin-top
+    height += 10 + h(foot_artist, foot_font)  # `.ms-foot`'s margin-top
     height += 24  # `.ms-hero-body`'s own bottom padding
     return height
 
@@ -1427,7 +1494,6 @@ def _draw_mosaic(canvas: Image.Image, song: NormalizedSongPoster, *, scale: floa
         return (round(ox + x * scale), round(oy + y * scale))
 
     title_font = _font("DejaVuSans-Bold.ttf", 26, scale)
-    artist_font = _font("DejaVuSans.ttf", 14.5, scale)
     dedication_font = _dedication_font("mosaic", scale)
     times_font = _font("DejaVuSansMono.ttf", 13, scale)
     foot_font = _font("DejaVuSans.ttf", 13, scale)
@@ -1443,12 +1509,22 @@ def _draw_mosaic(canvas: Image.Image, song: NormalizedSongPoster, *, scale: floa
     card_w = 560.0
     body_w = card_w - 2 * 26
     [title_text], title_font = _fit_title(draw, song.track, "mosaic", scale, (body_w - 30) * scale)
+    artist_text, artist_font = _fit_line(draw, song.artist.upper(), "DejaVuSans.ttf", 14.5, scale, ARTIST_COLUMN["mosaic"] * scale)
+    # How far the artist drops to clear the title (`_below_title`), known
+    # before the card is sized so the card grows by it.
+    title_ink = draw.textbbox((0, 0), title_text, font=title_font)
+    title_advance = (title_ink[3] - title_ink[1]) / scale + 3
+    artist_drop = _below_title(title_advance, title_ink[3] / scale, artist_text, artist_font, scale) - title_advance
+    wordmark = "HEARTFOLIO"
+    ww = draw.textlength(wordmark, font=foot_font)
+    foot_artist, foot_artist_font = _fit_line(draw, song.artist.upper(), "DejaVuSans.ttf", 13, scale, (body_w - FOOT_GAP) * scale - ww)
     dedication_lines: list[str] = []
     dedication_line_height = 0.0
     if song.dedication:
         dedication_lines, dedication_line_height = _dedication_lines(draw, song, "mosaic", dedication_font, scale)
     card_h = _mosaic_card_height(
-        draw, song, scale=scale, title_text=title_text, title_font=title_font, artist_font=artist_font,
+        draw, song, scale=scale, title_text=title_text, title_font=title_font, artist_text=artist_text,
+        artist_font=artist_font, artist_drop=artist_drop, foot_artist=foot_artist,
         dedication_lines=dedication_lines, dedication_font=dedication_font,
         dedication_line_height=dedication_line_height, times_font=times_font, foot_font=foot_font,
     )
@@ -1491,10 +1567,10 @@ def _draw_mosaic(canvas: Image.Image, song: NormalizedSongPoster, *, scale: floa
 
     draw.text(pt(body_left, cursor_y), title_text, font=title_font, fill=ink)
     title_box = draw.textbbox(pt(body_left, cursor_y), title_text, font=title_font)
-    cursor_y += (title_box[3] - title_box[1]) / scale + 3
+    cursor_y += (title_box[3] - title_box[1]) / scale + 3 + artist_drop
 
-    draw.text(pt(body_left, cursor_y), song.artist.upper(), font=artist_font, fill=soft)
-    artist_box = draw.textbbox(pt(body_left, cursor_y), song.artist.upper(), font=artist_font)
+    draw.text(pt(body_left, cursor_y), artist_text, font=artist_font, fill=soft)
+    artist_box = draw.textbbox(pt(body_left, cursor_y), artist_text, font=artist_font)
 
     # A small heart, top-right of the row — matches `.ms-heart`'s own
     # SVG outline. Reuses `_draw_vector_heart` rather than a plain
@@ -1527,9 +1603,10 @@ def _draw_mosaic(canvas: Image.Image, song: NormalizedSongPoster, *, scale: floa
 
     # --- footer ----------------------------------------------------------
     cursor_y += 10
-    draw.text(pt(body_left, cursor_y), song.artist.upper(), font=foot_font, fill=soft)
-    wordmark = "HEARTFOLIO"
-    ww = draw.textlength(wordmark, font=foot_font)
+    if foot_artist_font.size == foot_font.size:
+        draw.text(pt(body_left, cursor_y), foot_artist, font=foot_artist_font, fill=soft)
+    else:  # a shrunk artist keeps the wordmark's baseline
+        draw.text((pt(body_left, 0)[0], pt(0, cursor_y)[1] + foot_font.getmetrics()[0]), foot_artist, font=foot_artist_font, fill=soft, anchor="ls")
     draw.text((pt(body_right, cursor_y)[0] - ww, pt(0, cursor_y)[1]), wordmark, font=foot_font, fill=soft)
 
 
@@ -1598,10 +1675,18 @@ def _draw_wallpaper(canvas: Image.Image, song: NormalizedSongPoster, *, device, 
     # units rather than a fixed rem size.
     unit = min(width, height)
     title_font = ImageFont.truetype(str(_FONT_DIR / "DejaVuSans-Bold.ttf"), size=max(18, round(unit * 0.045)))
-    artist_font = ImageFont.truetype(str(_FONT_DIR / "DejaVuSans.ttf"), size=max(12, round(unit * 0.028)))
 
     pad_bottom = round(height * device.safe_bottom) + round(unit * 0.03)
+    # One line within the title's 84%, shrinking to `TITLE_MIN_SCALE` before
+    # "…", as every artist does (`_fit_line`; this one is plain DejaVu Sans).
+    artist_size = max(12, round(unit * 0.028))
     artist_text = song.artist
+    for step in range(round((1 - TITLE_MIN_SCALE) / _TITLE_SCALE_STEP) + 1):
+        artist_font = ImageFont.truetype(str(_FONT_DIR / "DejaVuSans.ttf"), size=max(12, round(artist_size * (1 - step * _TITLE_SCALE_STEP))))
+        if draw.textlength(artist_text, font=artist_font) <= width * 0.84:
+            break
+    else:
+        artist_text = _fit_text(draw, artist_text, artist_font, width * 0.84)
     artist_box = draw.textbbox((0, 0), artist_text, font=artist_font)
     artist_h = artist_box[3] - artist_box[1]
     artist_y = height - pad_bottom - artist_h

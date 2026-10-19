@@ -97,6 +97,11 @@
   text-transform: uppercase;
   color: #6b675c;
   margin: 8px 0 0;
+  /* One line ending with "…", as the print draws it (19 Oct 2026). */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
 }
 
 .plaque {
@@ -127,4 +132,19 @@
   letter-spacing: 0.22em;
   text-transform: uppercase;
   margin: 0;
+  display: flex;
+  justify-content: center;
+}
+
+/* The plaque's line stays on one line: the artist ends with "…" so the
+   separator and wordmark always show, as the print draws it (19 Oct 2026). */
+.plaqueArtist {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.plaqueMark {
+  flex-shrink: 0;
+  white-space: pre;
 }

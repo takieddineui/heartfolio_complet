@@ -83,8 +83,8 @@ export function ContactSheetTheme({ track, artist, dedication, photoUrl }: Conta
       {dedication && <p className={styles.caption}>{dedication}</p>}
 
       <div className={styles.foot}>
-        <span>{artist || " "}</span>
-        <span>HEARTFOLIO</span>
+        <span className={styles.footArtist}>{artist || " "}</span>
+        <span className={styles.footMark}>HEARTFOLIO</span>
       </div>
     </div>
   );

@@ -81,7 +81,8 @@ export function AwardTheme({ track, artist, dedication, photoUrl }: AwardThemePr
         <div className={styles.plaqueRule} />
         {dedication && <p className={styles.plaqueDedication}>{dedication}</p>}
         <p className={styles.plaqueFoot}>
-          {artist || " "} · HEARTFOLIO
+          <span className={styles.plaqueArtist}>{artist || " "}</span>
+          <span className={styles.plaqueMark}> · HEARTFOLIO</span>
         </p>
       </div>
     </div>

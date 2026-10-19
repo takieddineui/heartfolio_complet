@@ -215,3 +215,13 @@ describe("Arabic, preview against print", () => {
     expect(SITE.sans.weight).toBe(`${low} ${high}`);
   });
 });
+
+describe("the footer artist's gap before HEARTFOLIO", () => {
+  it.each(["ledger", "ephemeris", "contact-sheet", "label", "sleeve", "mosaic"])(
+    "is the print's FOOT_GAP in %s's preview",
+    (theme) => {
+      const gap = rule(css(theme), "foot").match(/(?:^|;|\s)gap\s*:\s*([\d.]+)px;/)?.[1];
+      expect(Number(gap)).toBe(pyNumber("FOOT_GAP"));
+    },
+  );
+});

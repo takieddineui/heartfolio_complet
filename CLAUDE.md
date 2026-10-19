@@ -401,9 +401,40 @@ Two were genuine product bugs: the `layout` default above, and
   `song-poster-print-parity.test.ts` (both tables against the CSS). 102 of
   288 renders changed: every theme at maximum length, and only Ledger, Sleeve
   and Mosaic otherwise; wallpapers are byte-identical. Sleeve's ring text is
-  out of scope. **Still open, seen in these renders and not fixed:** a long
-  artist touches the title in Ledger and Sleeve; Mosaic's long artist runs
-  into the heart and the wordmark.
+  out of scope.
+  **The artist line FIXED (19 Oct 2026).** Worse than the audit saw: EVERY
+  Ledger print overlapped the artist with the title (1.1-2.7 design units
+  in, even "The Beatles"), because the print steps down by the title's ink
+  HEIGHT, not to its ink bottom; Sleeve's artist sat under a second title
+  line's descenders (6 in); nothing limited the artist's width, so a long one
+  ran under Mosaic's heart and past its card, off the page in 7 themes (60
+  "W"s) and into every footer's HEARTFOLIO. Now (`png_renderer.py`):
+  - `_below_title`: the artist never comes closer than
+    `ARTIST_TITLE_CLEARANCE` (2 units, Ephemeris's old Arabic floor, now one
+    constant) to the title's LAST line's ink. A floor, not a new spacing
+    (owner's choice): measured with the floor off, the previews leave 6.3-20.8
+    units (Ledger about 0) and the print 3-5, so matching the preview would
+    have moved every theme. Mosaic naturally sits only 0.7-1.6 under its
+    title, so its Latin prints move too (by at most 1.3 units).
+  - `_fit_line`: the artist, under the title and in every footer (Award's
+    plaque line with its " · HEARTFOLIO"), stays on ONE line in its column:
+    full size if it fits, else shrinking to `TITLE_MIN_SCALE` (80%, the
+    titles' floor, owner's refinement) and only then "…". Columns
+    (`ARTIST_COLUMN`) are the preview's, measured in the browser; footers stop
+    `FOOT_GAP` (16) before HEARTFOLIO, and a shrunk footer artist keeps the
+    wordmark's baseline. Wallpapers fit theirs to the title's 84%.
+  - Previews (owner's decision (a)): all eight show the artist on one line
+    with "…" (six used to wrap it), every footer artist too, with
+    `gap: 16px` (pinned against `FOOT_GAP` by the parity test); Award's plaque
+    line keeps " · HEARTFOLIO" whole and cuts the artist. The preview's letter
+    spacing (0.12-0.34em, not drawn by the print) means it cuts sooner than
+    the print, which shows at least as much.
+  Renders: 196 of 576 changed (8 themes x 9 targets x 8 text cases): every
+  Ledger render, Mosaic's Latin prints, Sleeve's two-line and long-artist
+  cases, 2 Award, wallpapers whose artist is wider than 84%, and every
+  60-"W" render; Player, Ephemeris, Contact Sheet and Label are otherwise
+  byte-identical. Pinned by `ArtistFitTests` (one render pass, about 35s) and
+  `song-poster-preview-layout.test.ts`.
   **The Studio preview fits its screen (19 Oct 2026).** Three layout bugs, all
   a fixed size stretching its container:
   - The shared preview column (`components/studio/preview/preview-pane.tsx`,
@@ -477,7 +508,7 @@ Two were genuine product bugs: the `layout` default above, and
   - Ephemeris's flow advances by the title's ink HEIGHT, not its ink bottom,
     which leaves Latin titles only 3-5 design units clear of the artist; Kufi
     reaches lower, so Arabic descenders came down into the artist's line. The
-    artist now starts at least `EPHEMERIS_TITLE_CLEARANCE` (2) below the
+    artist now starts at least `ARTIST_TITLE_CLEARANCE` (2) below the
     title's ink, a floor Latin never reaches (byte-identical).
   Pinned by `PrintFontTests` (every named font is in the folder and no
   `.exists()` fallback; no printed CHARACTER, Arabic or not, is the empty

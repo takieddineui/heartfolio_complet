@@ -173,8 +173,8 @@ export function SleeveTheme({ track, artist, dedication, photoUrl, sleevePalette
       </div>
 
       <div className={styles.foot}>
-        <span>{artist || " "}</span>
-        <span>HEARTFOLIO</span>
+        <span className={styles.footArtist}>{artist || " "}</span>
+        <span className={styles.footMark}>HEARTFOLIO</span>
       </div>
     </div>
   );

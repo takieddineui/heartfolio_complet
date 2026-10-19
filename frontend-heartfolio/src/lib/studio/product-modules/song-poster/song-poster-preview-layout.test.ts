@@ -57,3 +57,62 @@ describe("player: the waveform", () => {
     expect(prop(rule(css("player"), "eq"), "width")).toBe("100%");
   });
 });
+
+/**
+ * EVERY ARTIST LINE IS ONE LINE (19 Oct 2026, owner's decision). Six previews
+ * wrapped the artist under the title and every footer wrapped it before
+ * HEARTFOLIO; the print now fits one line (shrinking, then "…"), so the
+ * previews end it with "…" too. The footer keeps 16px before the wordmark (the
+ * print's `FOOT_GAP`, pinned against the CSS by the parity test).
+ */
+const ALL_THEMES = ["player", "ledger", "ephemeris", "contact-sheet", "label", "award", "sleeve", "mosaic"];
+const FOOTER_THEMES = ["ledger", "ephemeris", "contact-sheet", "label", "sleeve", "mosaic"];
+
+describe.each(ALL_THEMES)("%s: the artist under the title", (theme) => {
+  it("is one line ending with an ellipsis", () => {
+    const artist = rule(css(theme), "artist");
+    expect(prop(artist, "white-space")).toBe("nowrap");
+    expect(prop(artist, "overflow")).toBe("hidden");
+    expect(prop(artist, "text-overflow")).toBe("ellipsis");
+  });
+});
+
+describe("award: the artist under the title", () => {
+  it("is held to its column, which shrinks to fit its content otherwise", () => {
+    expect(prop(rule(css("award"), "artist"), "max-width")).toBe("100%");
+  });
+});
+
+describe.each(FOOTER_THEMES)("%s: the footer", (theme) => {
+  it("names its artist and wordmark spans", () => {
+    expect(tsx(theme)).toMatch(
+      /<div className=\{styles\.foot\}>\s*<span className=\{styles\.footArtist\}>\{artist \|\| " "\}<\/span>\s*<span className=\{styles\.footMark\}>HEARTFOLIO<\/span>/,
+    );
+  });
+
+  it("keeps the artist to one line ending with an ellipsis, 16px short of the wordmark", () => {
+    const artist = rule(css(theme), "footArtist");
+    expect(prop(artist, "min-width")).toBe("0");
+    expect(prop(artist, "white-space")).toBe("nowrap");
+    expect(prop(artist, "overflow")).toBe("hidden");
+    expect(prop(artist, "text-overflow")).toBe("ellipsis");
+    expect(prop(rule(css(theme), "footMark"), "flex-shrink")).toBe("0");
+    expect(prop(rule(css(theme), "foot"), "gap")).toBe("16px");
+  });
+});
+
+describe("award: the plaque's line", () => {
+  it("keeps the separator and wordmark whole and cuts the artist", () => {
+    expect(tsx("award")).toMatch(
+      /<p className=\{styles\.plaqueFoot\}>\s*<span className=\{styles\.plaqueArtist\}>\{artist \|\| " "\}<\/span>\s*<span className=\{styles\.plaqueMark\}> · HEARTFOLIO<\/span>/,
+    );
+    expect(prop(rule(css("award"), "plaqueFoot"), "display")).toBe("flex");
+    const artist = rule(css("award"), "plaqueArtist");
+    expect(prop(artist, "min-width")).toBe("0");
+    expect(prop(artist, "white-space")).toBe("nowrap");
+    expect(prop(artist, "text-overflow")).toBe("ellipsis");
+    const mark = rule(css("award"), "plaqueMark");
+    expect(prop(mark, "flex-shrink")).toBe("0");
+    expect(prop(mark, "white-space")).toBe("pre");
+  });
+});

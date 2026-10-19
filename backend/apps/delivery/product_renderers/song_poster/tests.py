@@ -492,7 +492,8 @@ class PngRenderingTests(TestCase):
             )
             lines, line_height = _dedication_lines(draw, song, "mosaic", fonts["dedication_font"], scale) if song.dedication else ([], 0.0)
             return _mosaic_card_height(
-                draw, song, scale=scale, title_text=song.track, dedication_lines=lines, dedication_line_height=line_height, **fonts
+                draw, song, scale=scale, title_text=song.track, artist_text=song.artist.upper(), artist_drop=0.0,
+                foot_artist=song.artist.upper(), dedication_lines=lines, dedication_line_height=line_height, **fonts
             )
 
         self.assertGreater(height(song_long, 1.0), height(song_short, 1.0))
@@ -1139,6 +1140,221 @@ class TitleFitTests(TestCase):
                 self.assertEqual(" ".join(calls[0]["lines"]), "Here Comes the Sun")
         # Sleeve keeps its full size and takes a second line, as its preview does.
         self.assertEqual(len(calls[0]["lines"]), 2)
+
+
+class ArtistFitTests(TestCase):
+    """The artist line (19 Oct 2026). Nothing limited its width: a long one ran
+    under Mosaic's heart and past its card, off the page in seven themes and
+    into every footer's HEARTFOLIO. And the print stepped down by the title's
+    ink HEIGHT, so Ledger's artist sat 2.3 units INTO every title and Sleeve's
+    under a second line's descenders. Now the artist fits one line in its
+    column (shrinking to the title's 80% floor before "…") and never comes
+    closer than `ARTIST_TITLE_CLEARANCE` to the title's last line.
+
+    One render pass for the whole class (`setUpTestData`): every theme, every
+    artist case and every print size, plus the wallpapers."""
+
+    TRACK = "Bohemian Rhapsody"  # descenders, and two lines in Sleeve
+    ARTISTS = (
+        "Edith Piaf",
+        "Florence + the Machine & the London Symphony",  # 44, realistic
+        "Sir Paul McCartney and the Royal Liverpool Philharmonic Orch",  # 60, the limit
+        "W" * 60,  # the widest the limit allows
+        "عبد الرحمن بن سلطان العتيبي وفرقة الموسيقى العربية الكبرى",
+    )
+    TARGETS = ("print-classic-frameless", "print-a4-edged", "print-poster-frameless")
+    WALLPAPERS = ("wallpaper-phone", "wallpaper-tablet", "wallpaper-desktop")
+
+    @classmethod
+    def setUpTestData(cls):
+        from unittest.mock import patch
+
+        from . import png_renderer
+
+        customer = make_customer()
+        photo = values_with_real_photo(customer)["photo"]
+        cls.renders = []
+        for theme in png_renderer._THEME_RENDERERS:
+            targets = cls.TARGETS + (cls.WALLPAPERS if theme == "player" else ())  # every theme shares one wallpaper
+            for artist in cls.ARTISTS:
+                for target in targets:
+                    song = validate_and_normalize({**VALID_VALUES, "photo": photo, "track": cls.TRACK, "artist": artist}, {"theme": theme})
+                    fits, titles, hearts, scales = [], [], [], []
+                    real_fit, real_title, real_heart = png_renderer._fit_line, png_renderer._fit_title, png_renderer._draw_vector_heart
+                    real_poster = png_renderer._THEME_RENDERERS[theme]["poster"]
+
+                    def fit(draw, text, font_file, size, scale, max_width, *, suffix=""):
+                        # Numbers only: keeping `draw` would keep every canvas alive.
+                        answer, font = real_fit(draw, text, font_file, size, scale, max_width, suffix=suffix)
+                        full = png_renderer._font(font_file, size, scale)
+                        floor = png_renderer._font(font_file, size * png_renderer.TITLE_MIN_SCALE, scale)
+                        fits.append({
+                            "text": text, "suffix": suffix, "answer": answer, "max_width": max_width,
+                            "size": font.size, "full_size": full.size, "floor_size": floor.size,
+                            "answer_width": draw.textlength(answer + suffix, font=font),
+                            "whole_width_at_floor": draw.textlength(text + suffix, font=floor),
+                        })
+                        return answer, font
+
+                    def title(draw, text, theme_id, scale, max_width):
+                        lines, font = real_title(draw, text, theme_id, scale, max_width)
+                        titles.extend(lines)
+                        return lines, font
+
+                    def heart(canvas, *, cx, cy, size, rotation_deg, opacity):
+                        hearts.append((cx - size / 2, cy - size / 2, cx + size / 2, cy + size / 2))
+                        return real_heart(canvas, cx=cx, cy=cy, size=size, rotation_deg=rotation_deg, opacity=opacity)
+
+                    def poster(canvas, song, *, scale, origin, customer):
+                        scales.append(scale)
+                        return real_poster(canvas, song, scale=scale, origin=origin, customer=customer)
+
+                    with _DrawRecorder() as drawn, patch.object(png_renderer, "_fit_line", fit), \
+                            patch.object(png_renderer, "_fit_title", title), \
+                            patch.object(png_renderer, "_draw_vector_heart", heart), \
+                            patch.dict(png_renderer._THEME_RENDERERS[theme], {"poster": poster}):
+                        content = render_png(song, target_id=target, customer=customer)
+                    with Image.open(io.BytesIO(content)) as img:
+                        page = (0, 0, *img.size)
+                    texts = [{"text": t["text"], "box": t["box"], "font": t["font"], "xy": t["xy"]} for t in drawn.texts]
+                    cards = [r["box"] for r in drawn.rects if r["fill"] == "#0e0f10"]  # Mosaic's card
+                    cls.renders.append({"theme": theme, "artist": artist, "target": target, "page": page, "texts": texts, "cards": cards,
+                                        "fits": fits, "titles": titles, "hearts": hearts, "scale": scales[0] if scales else None})
+
+    def _artist_texts(self, render):
+        """(drawn text, its fit) for each artist line the render drew."""
+        found = []
+        for fit in render["fits"]:
+            wanted = fit["answer"] + fit["suffix"]
+            [drawn] = [t for t in render["texts"] if t["text"] == wanted and t not in (f for f, _ in found)][:1] or [None]
+            self.assertIsNotNone(drawn, f"{fit['answer']!r} was fitted but not drawn")
+            found.append((drawn, fit))
+        return found
+
+    def _posters(self):
+        return [r for r in self.renders if r["target"].startswith("print-")]
+
+    def test_the_layout_constants_are_the_approved_ones(self):
+        """The preview's columns as measured in the browser on 19 Oct 2026, the
+        footer gap and the clearance floor. Changing one is a decision."""
+        from . import png_renderer
+
+        self.assertEqual(png_renderer.ARTIST_COLUMN, {
+            "player": 643.0, "ledger": 692.0, "ephemeris": 688.0, "contactsheet": 700.0,
+            "label": 680.0, "award": 552.0, "sleeve": 496.0, "mosaic": 478.0,
+        })
+        self.assertEqual(png_renderer.FOOT_GAP, 16.0)
+        self.assertEqual(png_renderer.ARTIST_TITLE_CLEARANCE, 2.0)
+        self.assertEqual(png_renderer.TITLE_MIN_SCALE, 0.8)
+
+    def test_every_poster_fits_the_artist_under_the_title_and_in_the_footer(self):
+        from . import png_renderer
+
+        expected = {"player": 1, "award": 2}  # head only; head and plaque line
+        for render in self._posters():
+            with self.subTest(theme=render["theme"], artist=render["artist"][:12], target=render["target"]):
+                fits = render["fits"]
+                self.assertEqual(len(fits), expected.get(render["theme"], 2))
+                self.assertEqual(fits[0]["max_width"], png_renderer.ARTIST_COLUMN[render["theme"]] * render["scale"])
+
+    def test_no_artist_leaves_its_column_or_the_page_or_touches_anything(self):
+        for render in self._posters():
+            others = [t for t in render["texts"] if t["box"]]
+            for drawn, fit in self._artist_texts(render):
+                with self.subTest(theme=render["theme"], artist=render["artist"][:12], target=render["target"], line=drawn["text"][:16]):
+                    box = drawn["box"]
+                    self.assertTrue(_inside(box, render["page"]), f"{drawn['text']!r} leaves the page")
+                    self.assertLessEqual(box[2] - box[0], fit["max_width"] + 1, "wider than its column")
+                    for other in others:
+                        if other is not drawn:
+                            self.assertFalse(_intersects(box, other["box"]), f"{drawn['text']!r} overlaps {other['text']!r}")
+                    for heart in render["hearts"]:
+                        if heart[2] - heart[0] < 0.05 * render["page"][2]:  # the card's heart, not a ground mark
+                            self.assertFalse(_intersects(box, heart), "runs under the heart")
+
+    def test_the_footer_artist_stops_short_of_heartfolio(self):
+        from . import png_renderer
+
+        for render in self._posters():
+            if render["theme"] in ("player", "award"):
+                continue  # no footer; Award's plaque line is one text, checked by its width
+            with self.subTest(theme=render["theme"], artist=render["artist"][:12], target=render["target"]):
+                [(drawn, fit)] = self._artist_texts(render)[1:]
+                [wordmark] = [t for t in render["texts"] if t["text"] == "HEARTFOLIO" and abs(t["box"][1] - drawn["box"][1]) < 0.05 * render["page"][3]]
+                self.assertLessEqual(drawn["box"][2], wordmark["box"][0] - png_renderer.FOOT_GAP * render["scale"] + 1)
+                if render["artist"].isascii() and not any(c in render["artist"].upper() for c in ",;Q"):
+                    # Capitals with no descender: the artist, shrunk or not, sits on
+                    # the wordmark's baseline.
+                    self.assertLessEqual(abs(drawn["box"][3] - wordmark["box"][3]), 1)
+
+    def test_the_artist_clears_the_titles_last_line(self):
+        from . import png_renderer
+
+        for render in self._posters():
+            with self.subTest(theme=render["theme"], artist=render["artist"][:12], target=render["target"]):
+                [(head, _)] = self._artist_texts(render)[:1]
+                title_lines = [t for t in render["texts"] if t["text"] in render["titles"] and t["box"]]
+                self.assertEqual(len(title_lines), len(render["titles"]))
+                floor = png_renderer.ARTIST_TITLE_CLEARANCE
+                bottom = max(t["box"][3] for t in title_lines)
+                self.assertGreaterEqual(head["box"][1] - bottom, floor * render["scale"] - 1)
+
+    def test_an_artist_is_cut_only_at_the_floor_and_printed_whole_otherwise(self):
+        for render in self.renders:
+            for fit in render["fits"]:
+                with self.subTest(theme=render["theme"], artist=render["artist"][:12], target=render["target"], suffix=fit["suffix"]):
+                    self.assertLessEqual(fit["answer_width"], fit["max_width"])
+                    if fit["answer"] == fit["text"]:
+                        continue
+                    self.assertTrue(fit["answer"].endswith("…"))
+                    self.assertTrue(fit["text"].startswith(fit["answer"][:-1]))
+                    self.assertEqual(fit["size"], fit["floor_size"], "cut before shrinking to the floor")
+                    self.assertGreater(fit["whole_width_at_floor"], fit["max_width"], "cut although it fits at the floor")
+
+    def test_a_realistic_artist_prints_whole_at_full_size(self):
+        for render in self._posters():
+            if render["artist"] not in self.ARTISTS[:2]:
+                continue
+            for fit in render["fits"]:
+                with self.subTest(theme=render["theme"], artist=render["artist"][:12], target=render["target"], suffix=fit["suffix"]):
+                    self.assertEqual(fit["answer"], fit["text"])
+                    self.assertEqual(fit["size"], fit["full_size"])
+
+    def test_mosaics_card_grows_by_the_artists_drop(self):
+        """Mosaic's card is sized before it is drawn (`_mosaic_card_height`): when
+        the artist drops to clear the title, the card must grow by as much, or
+        its 24-unit bottom padding shrinks. The footer is drawn at the wordmark's
+        top-left; the card ends the footer artist's ink height and the padding
+        below it."""
+        from . import png_renderer
+
+        for render in self._posters():
+            if render["theme"] != "mosaic":
+                continue
+            with self.subTest(artist=render["artist"][:12], target=render["target"]):
+                [card] = render["cards"]
+                scale = render["scale"]
+                [wordmark] = [t for t in render["texts"] if t["text"] == "HEARTFOLIO" and _inside(t["box"], card)]
+                foot_artist = render["fits"][1]["answer"]
+                ink = png_renderer._font("DejaVuSans.ttf", 13, scale).getbbox(foot_artist)
+                expected = wordmark["xy"][1] + ink[3] - ink[1] + 24 * scale
+                self.assertLessEqual(abs(card[3] - expected), 1.5)
+
+    def test_the_wallpaper_artist_stays_inside_the_title_width_and_clear_of_it(self):
+        for render in self.renders:
+            if not render["target"].startswith("wallpaper-"):
+                continue
+            with self.subTest(artist=render["artist"][:12], target=render["target"]):
+                width = render["page"][2]
+                [title] = [t for t in render["texts"] if t["text"] == self.TRACK]
+                [artist] = [t for t in render["texts"] if t["text"] == render["artist"]
+                            or (t["text"].endswith("…") and render["artist"].startswith(t["text"][:-1]))]
+                box = artist["box"]
+                self.assertTrue(_inside(box, render["page"]))
+                self.assertLessEqual(box[2] - box[0], width * 0.84 + 1)
+                self.assertFalse(_intersects(box, title["box"]))
+                if render["artist"] in self.ARTISTS[:2]:
+                    self.assertEqual(artist["text"], render["artist"])
 
 
 class RendererTests(TestCase):

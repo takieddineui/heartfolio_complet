@@ -66,8 +66,8 @@ export function LabelTheme({ track, artist, dedication, photoUrl }: LabelThemePr
       {dedication && <p className={styles.dedication}>{dedication}</p>}
 
       <div className={styles.foot}>
-        <span>{artist || " "}</span>
-        <span>HEARTFOLIO</span>
+        <span className={styles.footArtist}>{artist || " "}</span>
+        <span className={styles.footMark}>HEARTFOLIO</span>
       </div>
     </div>
   );

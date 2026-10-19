@@ -95,6 +95,10 @@
   text-transform: uppercase;
   color: #8e8c82;
   margin: 11px 0 0;
+  /* One line ending with "…", as the print draws it (19 Oct 2026). */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .dedication {
@@ -119,4 +123,17 @@
   color: #8e8c82;
   border-top: 1px solid #3a4049;
   padding-top: 13px;
+  gap: 16px;
+}
+
+/* The footer's artist stays on one line ending with "…", 16px short of the
+   wordmark, as the print draws it (19 Oct 2026). */
+.footArtist {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.footMark {
+  flex-shrink: 0;
 }

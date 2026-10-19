@@ -107,8 +107,8 @@ export function MosaicTheme({ track, artist, dedication, photoUrl }: MosaicTheme
           {dedication && <p className={styles.dedication}>{dedication}</p>}
 
           <div className={styles.foot}>
-            <span>{artist || " "}</span>
-            <span>HEARTFOLIO</span>
+            <span className={styles.footArtist}>{artist || " "}</span>
+            <span className={styles.footMark}>HEARTFOLIO</span>
           </div>
         </div>
       </div>
