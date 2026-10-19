@@ -36,14 +36,16 @@ monorepo no longer exists, and the stale description broke both
 | Database | **Supabase** | Session-mode Supavisor pooler. Not changed by the move off Railway/Vercel; which database the VPS uses is not settled by this note |
 | Payments | **Three providers exist in code — Paddle, FastSpring, Freemius.** Freemius is the only one wired into checkout, and is still **sandbox** | `FREEMIUS_ENABLED` / `isFreemiusCheckoutActive()` pick it. Paddle and FastSpring are complete code paths left in place, untouched |
 
-**`FREEMIUS_PLAN_MAPPING` covers only `love-story-timeline`,
-`reasons-i-love-you` (plan 71990, its `live` pack) and `graduation-keepsake`
-(plan 72194, its `live` pack)**
+**`FREEMIUS_PLAN_MAPPING` covers four products: `love-story-timeline`,
+`reasons-i-love-you` (plan 71990, its `live` pack), `graduation-keepsake`
+(plan 72194, its `live` pack) and `song-poster` (plans 73260 `printable`,
+73263 `live`, 73264 `printable-plus-digital`, mapped 19 Oct 2026)**
 (`apps/commerce/freemius_integration.py`). There is ONE Freemius product
 (`FREEMIUS_PRODUCT_ID`, one public key, one secret key for webhooks): a new
 product is new PLANS under it, never a second Freemius product, whose webhooks
-would fail the signature check. `heart-map` and `song-poster` (VISIBLE since 15 Oct 2026, for testing only) have no plan, so `stage_freemius_checkout` raises `FreemiusPlanNotConfigured` for
-them: **they cannot be bought through Freemius yet.** Freemius has no custom
+would fail the signature check. `heart-map` has no plan, so
+`stage_freemius_checkout` raises `FreemiusPlanNotConfigured` for it: **it cannot
+be bought through Freemius yet.** Freemius has no custom
 amount and sells one plan per checkout, so every purchasable pack needs its
 own plan, mapped by `"product:pack"` — adding a product's packs means creating
 plans in the Freemius dashboard first. FastSpring's map
@@ -314,12 +316,18 @@ Two were genuine product bugs: the `layout` default above, and
   has not had a native review. Live-page photos load lazily, so their 300s
   presigned links can expire before a reason is opened; the page refetches its
   payload once (20s cooldown) when a photo fails.
-- **Song Poster (`song-poster`) is VISIBLE but NOT SELLABLE (15 Oct 2026).**
-  `hidden` was flipped to `false` so the owner can open its real Studio and
-  test it; it has NO Freemius plan, so a customer reaching checkout uploads
-  their media and is then refused (`FreemiusPlanNotConfigured`, shown as the
-  raw English backend sentence). Map plans or set `hidden: true` again before
-  the VPS goes live. Its standalone `wallpaper` pack is now `disabled` in the
+- **Song Poster (`song-poster`) is VISIBLE (15 Oct 2026) and its Freemius plans
+  are MAPPED (19 Oct 2026): sellable once the owner runs the real seed.**
+  Plans 73260 (`printable`, $22.99), 73263 (`live`, $15.99) and 73264
+  (`printable-plus-digital`, $35.99), one-off, single price point each, its
+  own (not Love Story Timeline's same-priced 69404 / 70517 / 70543); pinned by
+  `FreemiusPlanMappingTests` (each id, none reused, exactly the seed's active
+  packs at the plans' prices, the retired packs unmapped) and staged through
+  the real table by `FreemiusStagingTests` (song_poster tests). **Still to do,
+  the owner's:** the real seed (adds the combo, disables `complete` and the
+  wallpaper combos), then one sandbox checkout (rebuild `web` first). Until
+  the seed runs, the real database has no combo and still sells `complete`,
+  which has no plan, so checkout refuses it. Its standalone `wallpaper` pack is now `disabled` in the
   seed (as Love Story Timeline's; the owner's real seed run applies it); the
   wallpaper add-on checkbox was already hidden for every product
   (`SHOW_WALLPAPER_ADDON`). **Packs DECIDED (19 Oct 2026): Love Story
@@ -329,9 +337,7 @@ Two were genuine product bugs: the `layout` default above, and
   deleted (`SongPosterCatalogStateTests`, `SongPosterComboSeedTests`). The
   checkout's Printable/Digital toggle needs no code: `unitSelectionModel`
   shows it for any product whose active packs include the combo
-  (`pack-labels.test.ts` builds Song Poster's from the seed). Committed but
-  NOT live: the owner creates three Freemius plans, Claude maps them, then the
-  owner runs the real seed and a sandbox checkout. FastSpring's map is not
+  (`pack-labels.test.ts` builds Song Poster's from the seed). FastSpring's map is not
   extended, as for every new pack. An investigation of
   its Studio, preview and print (15 Oct 2026) found real problems, not yet
   fixed. **The YouTube blocker is FIXED (15 Oct 2026):** nothing in the Studio

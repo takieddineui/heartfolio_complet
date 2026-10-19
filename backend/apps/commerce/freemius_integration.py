@@ -93,6 +93,16 @@ FREEMIUS_PLAN_MAPPING: dict[str, dict[str, str]] = {
     # live-only product). Its OWN plan, created new under the same Freemius
     # product, single price point, so plan_id alone is precise. Plan 72194.
     "graduation-keepsake:live": {"plan_id": "72194"},
+    # Song Poster's three sellable packs (Love Story Timeline's combo model,
+    # decided 19 Oct 2026): Printable ($22.99), Digital ($15.99, DB pack slug
+    # "live") and Printable + Digital ($35.99). Their OWN plans, created new
+    # under the same Freemius product on 19 Oct 2026, one-off, single price
+    # point each, so plan_id alone is precise. Not Love Story Timeline's
+    # same-priced plans (69404 / 70517 / 70543). `complete` and the wallpaper
+    # combos are disabled in the seed and have no plan.
+    "song-poster:printable": {"plan_id": "73260"},
+    "song-poster:live": {"plan_id": "73263"},
+    "song-poster:printable-plus-digital": {"plan_id": "73264"},
 }
 
 

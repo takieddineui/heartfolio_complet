@@ -1357,6 +1357,60 @@ class ArtistFitTests(TestCase):
                     self.assertEqual(artist["text"], render["artist"])
 
 
+class FreemiusStagingTests(TestCase):
+    """Song Poster's checkout through the REAL, unpatched plan table (plans
+    73260, 73263 and 73264, mapped 19 Oct 2026; pinned with the others in
+    `apps.commerce.tests.FreemiusPlanMappingTests`). Before they were mapped,
+    staging raised `FreemiusPlanNotConfigured`. The packs are the seed's own
+    rows: slug, price, targets and status."""
+
+    def _seeded(self):
+        import seed_catalog
+
+        entry = next(e for e in seed_catalog.CATALOG if e["slug"] == "song-poster")
+        product = make_song_poster_product()
+        for slug, price_cents, targets, *status in entry["packs"]:
+            make_delivery_pack(
+                product, slug=slug, price_cents=price_cents, included_targets=list(targets),
+                status=status[0] if status else DeliveryPack.STATUS_ACTIVE,
+            )
+        customer = make_customer()
+        project = Project.objects.create(
+            customer=customer, product=product,
+            data={"version": 1, "values": values_with_real_photo(customer), "themeSelections": {"theme": "player"}},
+        )
+        return customer, project
+
+    def test_every_sellable_pack_stages_a_checkout_at_its_seeded_price(self):
+        from django.test import override_settings
+
+        from apps.commerce.services import stage_freemius_checkout
+
+        customer, project = self._seeded()
+        expected = {"printable": 2299, "live": 1599, "printable-plus-digital": 3599}
+        with override_settings(FREEMIUS_ENABLED=True):
+            for pack, price_cents in expected.items():
+                with self.subTest(pack=pack):
+                    staging = stage_freemius_checkout(
+                        customer, product_slug="song-poster", delivery_pack_slug=pack, project_id=project.id
+                    )
+                    self.assertEqual(staging.delivery_pack.slug, pack)
+                    self.assertEqual(staging.expected_total_cents, price_cents)
+                    self.assertEqual(staging.project, project)
+
+    def test_a_retired_pack_cannot_be_staged(self):
+        from django.test import override_settings
+
+        from apps.commerce.services import stage_freemius_checkout
+        from apps.common.exceptions.api_errors import DeliveryPackDisabled
+
+        customer, project = self._seeded()
+        with override_settings(FREEMIUS_ENABLED=True):
+            for pack in ("complete", "printable-plus-wallpaper", "digital-plus-wallpaper", "wallpaper"):
+                with self.subTest(pack=pack), self.assertRaises(DeliveryPackDisabled):
+                    stage_freemius_checkout(customer, product_slug="song-poster", delivery_pack_slug=pack, project_id=project.id)
+
+
 class RendererTests(TestCase):
     def test_render_with_no_project_raises(self):
         renderer = SongPosterRenderer()

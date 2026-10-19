@@ -3516,3 +3516,48 @@ class FreemiusPlanMappingTests(SimpleTestCase):
         self.assertEqual(len(plan_ids), len(set(plan_ids)))
         for plan_id in plan_ids:
             self.assertTrue(plan_id.isdigit(), plan_id)
+
+    SONG_POSTER_PLANS = {"printable": "73260", "live": "73263", "printable-plus-digital": "73264"}
+    # The prices the three plans were created with in Freemius (19 Oct 2026).
+    SONG_POSTER_PRICES = {"printable": 2299, "live": 1599, "printable-plus-digital": 3599}
+
+    def test_song_poster_packs_map_to_their_own_plans(self):
+        for pack, plan_id in self.SONG_POSTER_PLANS.items():
+            with self.subTest(pack=pack):
+                self.assertEqual(freemius_integration.plan_for_pack("song-poster", pack), {"plan_id": plan_id})
+
+    def test_song_poster_reuses_no_other_products_plan(self):
+        """Above all not Love Story Timeline's same-priced plans: Digital 69404,
+        Printable 70517 and Printable + Digital 70543. Completion identifies the
+        pack by its plan, so a shared one would complete the wrong product."""
+        others = {
+            key: plan["plan_id"]
+            for key, plan in freemius_integration.FREEMIUS_PLAN_MAPPING.items()
+            if not key.startswith("song-poster:")
+        }
+        for pack, plan_id in self.SONG_POSTER_PLANS.items():
+            with self.subTest(pack=pack):
+                self.assertNotIn(plan_id, others.values())
+        self.assertTrue({"69404", "70517", "70543"} <= set(others.values()))
+        self.assertTrue({"69404", "70517", "70543"}.isdisjoint(self.SONG_POSTER_PLANS.values()))
+
+    def test_song_poster_plans_are_for_the_packs_the_catalog_sells_at_their_prices(self):
+        """The mapped packs are exactly the ones `seed_catalog.py` sells for the
+        product, each at the price its plan was created with (completion
+        cross-checks the amount, so a drift would refuse every payment)."""
+        import seed_catalog
+
+        entry = next(e for e in seed_catalog.CATALOG if e["slug"] == "song-poster")
+        active = {pack[0]: pack[1] for pack in entry["packs"] if (pack[3] if len(pack) > 3 else "active") == "active"}
+        mapped = {
+            key.split(":", 1)[1] for key in freemius_integration.FREEMIUS_PLAN_MAPPING if key.startswith("song-poster:")
+        }
+        self.assertEqual(mapped, set(active))
+        self.assertEqual(active, self.SONG_POSTER_PRICES)
+
+    def test_song_poster_retired_packs_have_no_plan(self):
+        """`complete` and the wallpaper packs are disabled in the seed: nothing
+        may be staged for them, and no plan should suggest otherwise."""
+        for pack in ("complete", "printable-plus-wallpaper", "digital-plus-wallpaper", "wallpaper"):
+            with self.subTest(pack=pack):
+                self.assertIsNone(freemius_integration.plan_for_pack("song-poster", pack))
