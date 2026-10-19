@@ -172,6 +172,32 @@ task.**
   - (c) before a VPS deploy.
 - **Every report states which tests ran and why that set is sufficient**, so
   narrow coverage is visible.
+- **Plus the repo-wide GUARD tests for the kind of change (owner's addition,
+  19 Oct 2026).** Some tests scan files across the repo for forbidden patterns
+  or pin one file against another (often frontend against backend). They live
+  outside the folders a change touches, so a targeted run skips them: 470c79c
+  put `text-align: left` in eight poster stylesheets and broke
+  `src/components/studio/rtl.test.ts` unnoticed until a later change ran it.
+  Run every row that matches the change, in addition to the targeted tests,
+  and name them in the report. To find guards not listed here:
+  `grep -rlE "readdirSync|readFileSync|backendRoot" src --include="*.test.*"`
+  (frontend) and `grep -rln "read_text\|frontend-heartfolio" --include="*.py"`
+  (backend); add new ones to this table.
+
+| Change touches | Run (frontend paths under `frontend-heartfolio/`; backend as `manage.py test` labels) | Guards |
+|---|---|---|
+| Any CSS, or component/renderer markup (Studio chrome, product modules, live pages) | `src/components/studio/rtl.test.ts` | No physical left/right: Studio `className`s and every `*.css` under `src/lib/studio/product-modules` |
+| Copy: `src/messages/*.json`, module `messages.ts`, or `t()`/`useTranslations` call sites | `src/messages/messages.test.ts`, `src/lib/studio/product-modules/pack-labels.test.ts`, `src/lib/studio/export-labels.test.ts`, `src/components/product/product-view.test.tsx` | Same keys in every locale; no price written into copy; no templated key called without values; every seeded pack named and described |
+| A route or page that fetches the catalog, or a loading state | `src/components/ui/skeleton.test.ts` | Every catalog-fetching route has a skeleton |
+| JSON-LD, `dangerouslySetInnerHTML`, the AR scene | `src/lib/json-ld.test.ts` | No raw `JSON.stringify` into `dangerouslySetInnerHTML`, anywhere |
+| Fonts: `@font-face`, `public/fonts/`, font tokens (`themes.ts`), the font stacks in `globals.css`, a print's font files | Frontend: `src/lib/studio/product-modules/love-story-timeline/typography-fonts.test.ts`, `.../love-story-timeline/lst-arabic-print-parity.test.ts`, `.../song-poster/song-poster-print-parity.test.ts`, `.../song-poster/poster-locale.test.ts`, `src/components/live/live-theme.test.tsx`, `src/components/live-graduation/graduation-fonts.test.ts`, `src/components/live-reasons/reasons-fonts.test.ts`. Backend: `apps.delivery.product_renderers.song_poster.tests.PrintFontTests`, `apps.delivery.product_renderers.love_story_timeline.tests.ArabicPrintTests`, `apps.delivery.tests_mixed_script` | Every named family registered and its file present, with its licence; preview and print agree on serif/sans/mono, weight, slant and the Arabic faces; the print's font files byte-identical to `public/fonts` |
+| Anything in `src/app/globals.css` | The fonts row, plus `rtl.test.ts` | |
+| Preview CSS or print layout numbers, either side, of a product with a print | `src/lib/studio/product-modules/love-story-timeline/composition-parity.test.ts`, `.../song-poster/song-poster-print-parity.test.ts`, `.../song-poster/player-print-parity.test.ts`, `.../love-story-timeline/lst-arabic-print-parity.test.ts` | These read the Python renderer; a value changed on one side only fails here |
+| Live pages (`src/components/live*`) | `src/components/live/live-motion.test.tsx`, `src/components/live/live-keepsake.test.ts`, `src/components/live/live-theme.test.tsx`, and the product's own keepsake test (`graduation-keepsake.test.tsx`, `reasons-keepsake.test.tsx` scan their whole folder) | Motion values named once; no window scroll listener; palettes and fonts from the Studio's tokens |
+| `seed_catalog.py`, packs or prices | Frontend: `src/lib/studio/product-modules/pack-labels.test.ts`. Backend: `tests_seed_catalog`, `apps.products` (incl. `CatalogTargetMapParityTests`, the admin's target map), `apps.commerce.tests.FreemiusPlanMappingTests`, `apps.commerce.tests.FastSpringProductPathMappingTests` | Labels for every seeded pack; seed and admin target maps agree; every sellable pack has its plan at its price |
+| A live product's limits (`limits.ts` or its backend `data.py`), or upload/media limits | `src/lib/studio/product-modules/reasons-i-love-you/reasons-module.test.ts`, `.../graduation-keepsake/graduation-module.test.ts`, `src/lib/studio/media-values.test.ts` | Frontend limits equal the backend's `data.py` and `base.py` |
+| Settings, environment or `.env.example` files, the test runner | `apps.common.tests.ProductionSettingsLoadingTests`, `apps.common.tests.HermeticTestRunnerTests`, `apps.assets.tests.EnvExampleUploadTypesTests` | Production settings load (throttle rates merged); tests reach no outside host; `.env.example` sets no upload type list |
+| A print renderer's PNG saving | `apps.delivery.tests_png_encoding` | No `optimize=True` on the full-screen save paths |
 
 Backend — **always** redirect to the throwaway Postgres, never Supabase:
 
