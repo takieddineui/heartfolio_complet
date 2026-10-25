@@ -311,6 +311,20 @@ Two were genuine product bugs: the `layout` default above, and
 - **No accounts.** Recovery is `/api/v1/ops/resend/`, which re-sends a
   fresh 30-day link. Photos never expire and artwork renders on demand, so
   a paid order stays deliverable indefinitely.
+- **Pre-launch decisions (owner, 25 Oct 2026):**
+  - Production takes payments through **Freemius only**. Paddle and FastSpring
+    stay in the code but are off, and production settings must not require
+    their configuration.
+  - Refunds: none once the keepsake is delivered, except when it is broken or
+    not as described, and the customer contacts support@theheartfolio.com
+    within 14 days. Freemius is named as the payment provider.
+  - Google Analytics stays, consent-based through the cookie banner, and the
+    privacy page says so.
+  - The receipt email (subject included), the thank-you and how-to-print PDFs
+    and the gift QR card's text are translated into fr and ar, chosen by the
+    order's `locale`.
+  - The order page and the receipt email carry a copyable gift link (the
+    `/live/<id>` URL) beside the QR.
 
 ---
 
@@ -325,8 +339,8 @@ Two were genuine product bugs: the `layout` default above, and
   product) is mapped as `reasons-i-love-you:live` and pinned by
   `FreemiusPlanMappingTests`. The real seed ran on 14 Oct 2026 (product and
   `live` pack created in Supabase; 4 products / 17 packs) and `hidden` is now
-  `false`. **Still to do: one sandbox checkout by the owner** (rebuild `web`
-  first: `docker compose up --build web`). v1 leaves out, by
+  `false`. **The owner's sandbox checkout is DONE (confirmed 25 Oct 2026).**
+  v1 leaves out, by
   decision and without stubs: the recipient's reply, any open/read tracking,
   the own-song upload, a scheduled send, drag to reorder, edits after
   purchase; the branding line is always shown, as on the other live pages.
@@ -343,18 +357,19 @@ Two were genuine product bugs: the `layout` default above, and
   presigned links can expire before a reason is opened; the page refetches its
   payload once (20s cooldown) when a photo fails.
 - **Song Poster (`song-poster`) is VISIBLE (15 Oct 2026) and its Freemius plans
-  are MAPPED (19 Oct 2026): sellable once the owner runs the real seed.**
+  are MAPPED (19 Oct 2026), and the real seed HAS RUN (confirmed 25 Oct
+  2026).**
   Plans 73260 (`printable`, $22.99), 73263 (`live`, $15.99) and 73264
   (`printable-plus-digital`, $35.99), one-off, single price point each, its
   own (not Love Story Timeline's same-priced 69404 / 70517 / 70543); pinned by
   `FreemiusPlanMappingTests` (each id, none reused, exactly the seed's active
   packs at the plans' prices, the retired packs unmapped) and staged through
-  the real table by `FreemiusStagingTests` (song_poster tests). **Still to do,
-  the owner's:** the real seed (adds the combo, disables `complete` and the
-  wallpaper combos), then one sandbox checkout (rebuild `web` first). Until
-  the seed runs, the real database has no combo and still sells `complete`,
-  which has no plan, so checkout refuses it. Its standalone `wallpaper` pack is now `disabled` in the
-  seed (as Love Story Timeline's; the owner's real seed run applies it); the
+  the real table by `FreemiusStagingTests` (song_poster tests). The owner's
+  real seed run added the combo and disabled `complete` and the wallpaper
+  combos (latest run: 5 products / 19 packs, matching `seed_catalog.py`).
+  **Still to do, the owner's: one sandbox checkout** (rebuild `web` first).
+  Its standalone `wallpaper` pack is `disabled` too (as Love Story
+  Timeline's); the
   wallpaper add-on checkbox was already hidden for every product
   (`SHOW_WALLPAPER_ADDON`). **Packs DECIDED (19 Oct 2026): Love Story
   Timeline's combo model, without its wallpaper combos.** Sellable:
@@ -662,11 +677,10 @@ Two were genuine product bugs: the `layout` default above, and
   one-off, single price point, under the existing Freemius product, created 15
   Oct 2026) is mapped as `graduation-keepsake:live` and pinned by
   `FreemiusPlanMappingTests`. `hidden` is `false` (pinned by
-  `graduation-module.test.ts` and the visible-list tests). **Still to do, the
-  owner's:** the real seed (rehearsed on the throwaway database: it creates the
-  product and its `live` pack, ending at 5 products / 18 packs), then one sandbox
-  checkout (rebuild `web` first). Until the seed has run, the product page has
-  no pack to sell. Decided, and not stubbed: no reply or reactions, no report back to
+  `graduation-module.test.ts` and the visible-list tests). The real seed HAS
+  RUN (confirmed 25 Oct 2026; latest run 5 products / 19 packs, with Song
+  Poster's combo). **Still to do, the owner's: one sandbox checkout** (rebuild
+  `web` first). Decided, and not stubbed: no reply or reactions, no report back to
   the creator, no collection link, no scheduled send, chapters in a fixed order,
   captions untimed, no edits after purchase, branding always shown, sound
   effects only (no music; the prototype has none either). **Limits approved 14
@@ -712,13 +726,11 @@ Two were genuine product bugs: the `layout` default above, and
   what a file really is and `reencode_audio` rewrites every audio file to AAC
   (cut to 60 seconds of samples). A received file the browser left untyped
   gets a type from its extension (`withInferredAudioType`).
-- **Printable + Digital is seeded and mapped (4 Oct 2026) but not yet
-  exercised end to end.** Freemius plan **70543**, $35.99, mapped as
-  `love-story-timeline:printable-plus-digital`; the pack is active and `complete`
-  is disabled in the real database. Still to do: one sandbox checkout of the
-  combo, run by the user (never by Claude — it writes to Supabase). Rebuild the
-  `web` image (`docker compose up --build web`) to get the unit toggle; the
-  running `web` container predates it.
+- **Printable + Digital is seeded, mapped and exercised: the owner's sandbox
+  checkout of the combo is DONE (confirmed 25 Oct 2026).** Freemius plan
+  **70543**, $35.99, mapped as `love-story-timeline:printable-plus-digital`;
+  the pack is active and `complete` is disabled in the real database.
+  Checkouts against Supabase are always the owner's, never Claude's.
 - **Plan 70518 is Complete and must stay Complete.** The real database has **7
   paid orders on `complete`** (of 31 paid overall). The combo was briefly set up
   by editing 70518 in the Freemius dashboard instead of creating a new plan; it
@@ -880,8 +892,10 @@ Two were genuine product bugs: the `layout` default above, and
 - Ten `TODO(HEARTFOLIO-PREDEPLOY)` markers in the frontend — mostly
   placeholder artwork; the two commercial ones are Merchant-of-Record
   readiness and final pricing
-- Music presets resolve to `/audio/presets/<id>.mp3` and **no audio files
-  exist**. Deliberate, per that file's comment; four tracks need sourcing
+- Music presets resolve to `/audio/presets/<id>.mp3`, and all four files exist
+  (checked 25 Oct 2026; an older note here said none did). Only
+  `tender-piano` has a licence certificate beside it (Pixabay); the owner is to
+  file certificates for `evening-glow`, `quiet-strings` and `still-waters`
 - Where We Met (`heart-map`) is `status: available` and fully registered on
   both sides, but has never been opened in a browser
 - **Love Story Timeline: Arabic in the print, PHASE 1 (18 Oct 2026).** No
