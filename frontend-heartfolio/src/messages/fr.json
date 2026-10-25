@@ -645,40 +645,85 @@
         "description": "Comment Heartfolio collecte, utilise et protège vos données personnelles."
       },
       "title": "Politique de confidentialité",
-      "updated": "Dernière mise à jour : cette politique est revue avant chaque mise en ligne.",
-      "intro": "Heartfolio collecte le moins d'informations possible, et n'utilise celles qu'il collecte que pour livrer le souvenir demandé et vous accompagner ensuite.",
+      "updated": "Dernière mise à jour : {updated}",
+      "intro": "Cette politique explique ce que Heartfolio collecte lorsque vous créez ou recevez un souvenir, pourquoi, qui le traite pour nous et combien de temps nous le conservons. Le responsable du traitement de vos données est {controller}.",
       "sections": [
         {
           "title": "Ce que nous collectons",
           "body": [
-            "Les détails que vous saisissez pour personnaliser un souvenir — une date, un lieu, un prénom ou un court message. Ils servent à générer votre œuvre.",
-            "Votre adresse e-mail, pour vous livrer vos fichiers et vous répondre en cas de problème.",
-            "Les informations techniques de base transmises par votre navigateur, comme la langue et le type d'appareil, utilisées pour afficher le site correctement."
+            "Ce que vous mettez dans un souvenir : noms, dates, lieux, messages et autres informations que vous saisissez ; photos et dessins que vous importez ; notes vocales et enregistrements que vous ajoutez ; pour l'Affiche musicale, le lien YouTube de votre chanson.",
+            "Votre adresse e-mail, pour livrer votre commande et vous répondre.",
+            "Les détails de la commande : ce que vous avez acheté, le prix et la référence de paiement de Freemius. Nous ne recevons jamais les données de votre carte.",
+            "Des données techniques : votre adresse IP et les informations de votre navigateur parviennent à nos serveurs à chaque requête et sont conservées brièvement dans les journaux du serveur.",
+            "Vos messages : ce que vous nous dites dans un avis ou lorsque vous nous écrivez."
           ]
         },
         {
-          "title": "Ce que nous ne collectons pas",
+          "title": "Comment nous les utilisons",
           "body": [
-            "Nous ne demandons ni ne conservons vos données de carte bancaire. Les paiements sont traités par notre prestataire de paiement, selon ses propres conditions.",
-            "Nous n'utilisons pas vos détails de personnalisation à des fins publicitaires et nous ne les vendons pas."
+            "Pour créer, conserver et livrer votre souvenir et la page Numérique que vous partagez.",
+            "Pour vous envoyer votre reçu et le lien de votre commande, et répondre à vos demandes d'assistance.",
+            "Pour assurer la sécurité et le bon fonctionnement du service, par exemple en limitant le nombre de requêtes possibles en peu de temps.",
+            "Uniquement avec votre consentement, pour mesurer l'utilisation du site (Google Analytics).",
+            "Nous ne vendons pas vos données et n'utilisons pas votre contenu à des fins publicitaires."
           ]
         },
         {
-          "title": "Cookies et préférences",
+          "title": "Qui peut voir un souvenir Numérique",
           "body": [
-            "Nous enregistrons votre choix de langue et votre préférence clair/sombre dans votre navigateur pour que le site s'ouvre comme vous l'avez laissé. Ce sont des préférences fonctionnelles, pas du pistage."
+            "Une page de souvenir Numérique n'est pas répertoriée : toute personne qui dispose de son lien ou de sa carte QR peut l'ouvrir et voir ce que vous y avez mis."
+          ]
+        },
+        {
+          "title": "Les services qui traitent des données pour nous",
+          "body": [
+            "Freemius : paiement, taxes et reçus. En tant que vendeur officiel, il traite aussi vos données selon sa propre politique de confidentialité.",
+            "Supabase : notre base de données (commandes, brouillons, texte de votre souvenir).",
+            "Cloudflare R2 : le stockage des photos, dessins et enregistrements.",
+            "Resend : l'envoi de nos e-mails.",
+            "Telegram : des notifications internes sur les commandes et l'assistance. Elles comprennent une référence de commande et, pour certaines alertes, l'adresse e-mail du client.",
+            "Mapbox : la recherche de lieux dans le Studio. Ce que vous tapez dans un champ de lieu est envoyé à Mapbox pour suggérer des lieux.",
+            "YouTube (Google) : pour l'Affiche musicale, nous vérifions votre lien auprès de YouTube, et la page Numérique joue la chanson dans le lecteur de YouTube. Ce lecteur est soumis à la politique de confidentialité de Google et peut déposer ses propres cookies lorsqu'il se charge.",
+            "Google Analytics : uniquement si vous acceptez la mesure d'audience dans le bandeau cookies.",
+            "Notre hébergeur, {hosting} : il fait fonctionner les serveurs du site.",
+            "Certains de ces prestataires traitent des données en dehors de votre pays, notamment aux États-Unis, avec leurs propres garanties."
+          ]
+        },
+        {
+          "title": "Cookies et stockage dans le navigateur",
+          "body": [
+            "Toujours utilisés, car le site en a besoin : un cookie de session qui garde votre brouillon et votre commande ensemble pendant 30 jours ; un cookie de sécurité qui protège les formulaires ; et votre choix de langue, pendant un an.",
+            "Votre préférence clair/sombre et votre choix concernant les cookies sont enregistrés dans le stockage de votre navigateur.",
+            "Uniquement si vous acceptez : les cookies de Google Analytics, qui mesurent les visites. Choisir « Non merci » les laisse désactivés, et le site fonctionne de la même façon. Pour modifier votre choix plus tard, effacez les données de ce site dans votre navigateur."
+          ]
+        },
+        {
+          "title": "Combien de temps nous les conservons",
+          "body": [
+            "Un souvenir payé (ses informations, photos, dessins et enregistrements) : aussi longtemps que votre souvenir est en ligne, pour que vos fichiers restent téléchargeables et que votre page Numérique continue de fonctionner.",
+            "Les notes vocales et enregistrements qui ne font jamais partie d'une commande payée : supprimés automatiquement 7 jours après leur import.",
+            "Les brouillons que vous n'avez pas achetés, avec leurs photos et enregistrements : supprimés après 12 mois d'inactivité.",
+            "Les données de commande : aussi longtemps que l'exigent les obligations fiscales et comptables.",
+            "Les journaux du serveur : renouvelés automatiquement et conservés peu de temps."
           ]
         },
         {
           "title": "Vos droits",
           "body": [
-            "Vous pouvez demander une copie des informations que nous détenons, leur correction ou leur suppression. Écrivez à {email} et nous y donnerons suite."
+            "Vous pouvez nous demander une copie de vos données, leur rectification ou leur suppression, ou vous opposer à leur utilisation, en écrivant à {email}. Supprimer le contenu d'un souvenir payé met aussi sa page Numérique hors ligne et rend ses fichiers indisponibles. Nous conservons les données de commande que la loi nous oblige à garder.",
+            "Si vous êtes dans l'Union européenne ou au Royaume-Uni, vous pouvez aussi déposer une réclamation auprès de votre autorité de protection des données."
           ]
         },
         {
-          "title": "Nous contacter",
+          "title": "Enfants",
           "body": [
-            "Toute question sur la confidentialité peut être adressée à {email}."
+            "Heartfolio s'adresse aux adultes. Si vous incluez un enfant dans un souvenir, pour un diplôme par exemple, assurez-vous d'avoir l'accord de son parent ou de son tuteur."
+          ]
+        },
+        {
+          "title": "Contact et modifications",
+          "body": [
+            "Pour toute question sur la confidentialité, écrivez à {email}. Si nous modifions cette politique, la nouvelle version est publiée ici avec sa date."
           ]
         }
       ]
@@ -689,47 +734,71 @@
         "description": "Les conditions applicables à l'achat d'un souvenir numérique personnalisé Heartfolio."
       },
       "title": "Conditions générales",
-      "updated": "Dernière mise à jour : ces conditions sont revues avant chaque mise en ligne.",
-      "intro": "Ces conditions précisent ce que vend Heartfolio, ce que vous recevez, et ce dont chacun est responsable.",
+      "updated": "Dernière mise à jour : {updated}",
+      "intro": "Ces conditions s'appliquent lorsque vous créez et achetez un souvenir sur Heartfolio (theheartfolio.com). Elles expliquent ce que vous recevez, comment se passe le paiement et ce dont chacun de nous est responsable. Heartfolio est exploité par {controller}.",
       "sections": [
         {
-          "title": "Ce que vend Heartfolio",
+          "title": "Ce que vous achetez",
           "body": [
-            "Heartfolio vend des œuvres numériques personnalisées — des fichiers à télécharger. Aucun article physique n'est fabriqué, imprimé ni envoyé, et l'impression et l'encadrement ne sont inclus dans aucun prix.",
-            "Chaque souvenir est généré à partir des détails que vous fournissez : il n'en existe pas deux identiques."
+            "Heartfolio crée des souvenirs numériques personnalisés à partir des informations que vous saisissez dans notre Studio. Rien n'est fabriqué, imprimé ni expédié, et ni l'impression ni l'encadrement ne sont compris dans les prix.",
+            "Selon le souvenir, vous pouvez acheter : Imprimable, des fichiers d'impression haute résolution (PNG et PDF, en plusieurs formats) à télécharger et à imprimer où vous voulez ; Numérique, une page web privée créée pour le cadeau, qui s'ouvre depuis un lien ou la carte QR que nous vous remettons ; ou Imprimable + Numérique, les deux ensemble à un prix combiné.",
+            "« Les raisons pour lesquelles je t'aime » et le « Souvenir de diplôme » existent uniquement en version Numérique.",
+            "Chaque souvenir est créé à partir de vos informations : il n'y en a pas deux pareils. Ce que montre l'aperçu du Studio est ce que nous livrons ; à l'impression, les couleurs peuvent varier légèrement selon l'imprimante et le papier."
           ]
         },
         {
           "title": "Prix et paiement",
           "body": [
-            "Les prix sont affichés en dollars américains (USD). Votre banque ou votre prestataire de paiement peut appliquer son propre taux de change ou ses propres frais, hors de notre contrôle.",
-            "Les paiements sont traités par notre prestataire de paiement, qui agit en tant que vendeur officiel (merchant of record) et dont les conditions s'appliquent à la transaction."
+            "Les prix sont affichés en dollars américains (USD). Votre banque peut appliquer ses propres frais de change.",
+            "Les paiements sont traités par Freemius, qui agit comme notre revendeur et vendeur officiel (« merchant of record ») : Freemius vous vend le souvenir, encaisse le paiement, gère les éventuelles taxes et émet le reçu de la transaction, selon ses propres conditions. Nous ne voyons ni ne conservons jamais les données de votre carte."
           ]
         },
         {
           "title": "Livraison",
           "body": [
-            "Les fichiers sont mis à disposition dès que votre souvenir est terminé et le paiement confirmé. La livraison est numérique et immédiate ; il n'y a aucun colis à suivre.",
-            "Si un téléchargement échoue ou qu'un fichier est inutilisable, écrivez à {email} et nous le réémettrons."
+            "Votre souvenir est livré dès que votre paiement est confirmé. Votre page de commande et l'e-mail de reçu vous donnent les fichiers à télécharger (Imprimable) ainsi que le lien et la carte QR de la page du cadeau (Numérique).",
+            "Le lien de votre e-mail de reçu fonctionne pendant 30 jours. S'il ne fonctionne plus, écrivez à {email} et nous vous en enverrons un nouveau. Vos fichiers et votre page Numérique n'expirent pas avec le lien.",
+            "Votre souvenir est définitif une fois payé : ses détails ne peuvent plus être modifiés après l'achat. Vérifiez donc l'aperçu avant d'acheter."
           ]
         },
         {
-          "title": "Votre contenu et vos droits",
+          "title": "Votre souvenir Numérique",
           "body": [
-            "Les détails que vous fournissez restent les vôtres. Vous confirmez disposer du droit d'utiliser les noms, photographies ou textes transmis.",
-            "Votre souvenir est à vous : vous pouvez l'imprimer, l'exposer et l'offrir, pour un usage personnel. La revente ou la redistribution des œuvres Heartfolio comme produit propre n'est pas autorisée."
+            "Un souvenir Numérique est une page privée à une adresse non répertoriée. Toute personne disposant de son lien ou de sa carte QR peut l'ouvrir, et nous demandons aux moteurs de recherche de ne pas l'indexer. Ne la partagez qu'avec les personnes à qui elle est destinée.",
+            "Nous gardons les pages des souvenirs Numériques en ligne aussi longtemps que Heartfolio est en activité. Si cela devait changer, nous vous préviendrions par e-mail au moins 30 jours à l'avance.",
+            "L'Affiche musicale joue votre chanson à partir du lien YouTube que vous choisissez, dans le lecteur de YouTube. Nous ne fournissons pas la musique et n'en détenons pas les droits, et la chanson cesse d'être lue si son propriétaire la retire de YouTube. L'onde sonore de votre affiche est conçue pour votre commande ; elle n'est pas tirée de l'enregistrement."
           ]
         },
         {
-          "title": "Disponibilité",
+          "title": "Votre contenu",
           "body": [
-            "Certains souvenirs sont encore en développement et signalés par une mention « liste d'attente » ou « bientôt disponible ». Leur présence sur le site ne constitue pas une promesse de date de lancement."
+            "Ce que vous mettez dans votre souvenir reste à vous. Vous confirmez avoir le droit d'utiliser chaque photo, dessin, enregistrement, nom et message que vous ajoutez, ainsi que l'accord des personnes concernées (celui d'un parent ou d'un tuteur pour un enfant).",
+            "N'ajoutez rien d'illégal, de haineux ou qui porte atteinte aux droits d'autrui. Nous pouvons retirer une page Numérique qui le ferait, sans remboursement.",
+            "Vous nous autorisez à conserver et à traiter votre contenu uniquement pour créer, livrer et accompagner votre souvenir. Nous ne l'utilisons pas à des fins publicitaires et ne le montrons à personne d'autre."
           ]
         },
         {
-          "title": "Contact",
+          "title": "Utilisation de votre souvenir",
           "body": [
-            "Toute question sur ces conditions peut être adressée à {email}."
+            "Votre souvenir est destiné à un usage personnel : imprimez-le, exposez-le, offrez-le et partagez son lien. La revente des créations Heartfolio, ou leur présentation comme votre propre produit, n'est pas autorisée."
+          ]
+        },
+        {
+          "title": "Remboursements",
+          "body": [
+            "Les remboursements sont régis par notre Politique de remboursement."
+          ]
+        },
+        {
+          "title": "Notre responsabilité",
+          "body": [
+            "Nous faisons de notre mieux pour que Heartfolio reste disponible et que votre souvenir soit exact. Si un problème vient de nous, notre responsabilité consiste à corriger ou à réémettre votre souvenir, ou à vous rembourser ce que vous l'avez payé. Rien dans ces conditions ne limite les droits que vous accorde le droit de la consommation de votre pays."
+          ]
+        },
+        {
+          "title": "Modifications et contact",
+          "body": [
+            "Nous pouvons mettre à jour ces conditions. La version en vigueur au moment de votre achat s'applique à celui-ci. Pour toute question sur ces conditions, écrivez à {email}."
           ]
         }
       ]
@@ -740,33 +809,39 @@
         "description": "Comment fonctionnent les remboursements pour les souvenirs numériques personnalisés Heartfolio."
       },
       "title": "Politique de remboursement",
-      "updated": "Dernière mise à jour : cette politique est revue avant chaque mise en ligne.",
-      "intro": "Heartfolio vend des fichiers numériques personnalisés, générés pour vous et livrés immédiatement. Cela façonne le fonctionnement des remboursements — mais ne sera jamais un prétexte pour vous laisser avec un fichier défectueux.",
+      "updated": "Dernière mise à jour : {updated}",
+      "intro": "Chaque souvenir est créé à partir de vos informations et livré dès que vous payez : nous ne pouvons donc pas le reprendre comme un magasin reprend un colis. Ce que nous pouvons vous promettre, c'est que vous ne resterez jamais avec un souvenir qui ne fonctionne pas.",
       "sections": [
         {
-          "title": "Avant l'achat",
+          "title": "Avant d'acheter",
           "body": [
-            "Vous pouvez modifier chaque détail de votre souvenir — la date, le lieu, le texte, l'ambiance — autant de fois que vous le souhaitez avant de le télécharger. Rien n'est définitif avant ce moment."
+            "Le Studio vous montre exactement ce que vous recevrez. Modifiez chaque détail aussi souvent que vous le souhaitez et vérifiez attentivement l'aperçu : un souvenir ne peut plus être modifié après l'achat."
           ]
         },
         {
-          "title": "Quand nous corrigeons",
+          "title": "Notre politique",
           "body": [
-            "Si vos fichiers ne se téléchargent pas, arrivent endommagés ou inutilisables, ne correspondent pas à ce que vous avez créé, ou si vous avez été débité plusieurs fois, contactez-nous : nous corrigeons ou remboursons.",
-            "Si un détail a été mal rendu de notre fait, nous corrigeons et réémettons votre souvenir sans frais."
+            "Une fois votre souvenir livré (vos fichiers prêts à être téléchargés, ou votre page Numérique en ligne, ce qui se produit dès la confirmation du paiement), nous ne remboursons pas un changement d'avis.",
+            "Nous corrigeons en revanche le problème si votre souvenir est défectueux ou non conforme à sa description : les fichiers ne se téléchargent pas ou ne s'ouvrent pas, la page Numérique ne fonctionne pas, ce que nous avons produit ne correspond pas à votre aperçu, ou vous avez été débité deux fois."
           ]
         },
         {
-          "title": "Produits numériques personnalisés",
+          "title": "Comment faire une demande : sous 14 jours",
           "body": [
-            "Parce que chaque souvenir est réalisé d'après vos détails et livré en téléchargement immédiat, il ne peut pas être retourné comme un article physique. Un changement d'avis après téléchargement n'ouvre pas automatiquement droit à un remboursement.",
-            "Tout droit de rétractation légal applicable dans votre pays reste inchangé."
+            "Écrivez à {email} dans les 14 jours suivant votre achat, depuis l'adresse e-mail utilisée ou en indiquant votre référence de commande, et dites-nous ce qui ne va pas. Une capture d'écran aide, mais n'est pas obligatoire. Nous répondons à chaque demande.",
+            "Nous essaierons d'abord de corriger ou de réémettre votre souvenir. Si nous n'y parvenons pas, nous vous remboursons intégralement, sur la carte ou le compte utilisé pour le paiement."
           ]
         },
         {
-          "title": "Comment demander",
+          "title": "Paiements via Freemius",
           "body": [
-            "Écrivez à {email} en indiquant l'adresse e-mail utilisée et ce qui n'a pas fonctionné. Une capture d'écran aide, sans être obligatoire. Nous lisons et répondons à chaque demande."
+            "Freemius est le revendeur et vendeur officiel de chaque achat : les remboursements sont donc effectués via Freemius. Écrivez-nous d'abord plutôt que d'ouvrir une contestation auprès de votre banque : nous réglons généralement le problème rapidement."
+          ]
+        },
+        {
+          "title": "Vos droits légaux",
+          "body": [
+            "En finalisant votre achat, vous nous demandez de livrer immédiatement votre souvenir numérique et vous reconnaissez que le droit de rétractation pour un contenu numérique prend fin dès le début de la livraison, lorsque la loi le permet. Les autres droits que vous accorde le droit de la consommation de votre pays ne sont pas affectés."
           ]
         }
       ]

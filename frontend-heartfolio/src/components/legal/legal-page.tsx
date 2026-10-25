@@ -1,7 +1,7 @@
 "use client";
 
-import { useTranslations } from "next-intl";
-import { SUPPORT_EMAIL } from "@/lib/site-config";
+import { useLocale, useTranslations } from "next-intl";
+import { HOSTING_PROVIDER, LEGAL_CONTROLLER, LEGAL_LAST_UPDATED, SUPPORT_EMAIL } from "@/lib/site-config";
 
 export type LegalKey = "privacy" | "terms" | "refunds" | "contact";
 
@@ -22,10 +22,24 @@ interface Section {
  * printed the key, "Legal.contact.intro", on the contact page in every
  * language (found 25 Oct 2026). The section bodies are read raw and still
  * hold the token. `fill` turns the address, either way, into a mailto link.
+ *
+ * The owner's facts work the same way (25 Oct 2026): `{controller}` (who
+ * sells and is responsible for the data), `{hosting}` and `{updated}` come
+ * from site-config, so filling them in at deploy is one edit for all three
+ * languages. `{updated}` is the publication date in the page's own date
+ * format, or a visible placeholder until it is set.
  */
 export function LegalPage({ legalKey }: { legalKey: LegalKey }) {
   const t = useTranslations(`Legal.${legalKey}`);
+  const locale = useLocale();
   const sections = t.raw("sections") as Section[];
+  const values = {
+    email: SUPPORT_EMAIL,
+    controller: LEGAL_CONTROLLER,
+    hosting: HOSTING_PROVIDER,
+    updated: lastUpdated(locale),
+  };
+  const fill = (text: string) => linkSupport(substitute(text, values));
 
   return (
     <main id="main-content" className="bg-page pb-20 pt-16 md:pb-0">
@@ -34,8 +48,8 @@ export function LegalPage({ legalKey }: { legalKey: LegalKey }) {
           <h1 className="font-serif text-4xl leading-[1.15] text-heading sm:text-5xl">
             {t("title")}
           </h1>
-          <p className="mt-4 text-sm text-body/55">{t("updated")}</p>
-          <p className="mt-6 text-lg leading-relaxed text-body/75">{fill(t("intro", { email: SUPPORT_EMAIL }))}</p>
+          <p className="mt-4 text-sm text-body/55">{t("updated", values)}</p>
+          <p className="mt-6 text-lg leading-relaxed text-body/75">{fill(t("intro", values))}</p>
         </header>
 
         <div className="mt-14 space-y-12">
@@ -70,10 +84,21 @@ function supportLink(key: string) {
   );
 }
 
-/** The support address, as the `{email}` token or already formatted in, as a
- *  real mailto link. */
-function fill(text: string) {
-  const parts = text.replaceAll("{email}", SUPPORT_EMAIL).split(SUPPORT_EMAIL);
+/** The publication date in the page's language, or the placeholder that
+ *  marks it as not yet set. */
+function lastUpdated(locale: string): string {
+  if (!LEGAL_LAST_UPDATED) return "[date set when the pages go live]";
+  return new Intl.DateTimeFormat(locale, { dateStyle: "long", timeZone: "UTC" }).format(new Date(`${LEGAL_LAST_UPDATED}T00:00:00Z`));
+}
+
+/** Every `{name}` token a raw section string may hold. */
+function substitute(text: string, values: Record<string, string>): string {
+  return text.replace(/\{(\w+)\}/g, (token, name: string) => values[name] ?? token);
+}
+
+/** The support address, wherever it appears, as a real mailto link. */
+function linkSupport(text: string) {
+  const parts = text.split(SUPPORT_EMAIL);
   if (parts.length === 1) return text;
   return parts.flatMap((part, i) => (i === 0 ? [part] : [supportLink(`mail-${i}`), part]));
 }

@@ -47,7 +47,15 @@ the throwaway database (see the Phase 2 report).
    fill it in (section 2). Never commit it; `.gitignore` already keeps it out.
 5. **R2.** Set `X-Content-Type-Options: nosniff` on the bucket (see
    `DEPLOYMENT-GUIDE-DOCKER.md`, "Set X-Content-Type-Options").
-6. **Resend.** Verify `theheartfolio.com` in Resend (the DNS records its
+6. **Legal pages.** In `frontend-heartfolio/src/lib/site-config.ts`, fill in
+   `LEGAL_CONTROLLER` (legal name, postal address, country),
+   `HOSTING_PROVIDER` and `LEGAL_LAST_UPDATED` (YYYY-MM-DD, the day the pages
+   go live), then rebuild `web`. Until then the Terms, Refund and Privacy
+   pages show bracketed placeholders.
+7. **Freemius refund setting.** Set each product's refund policy in the
+   Freemius dashboard to match the site's: no refunds after delivery except
+   broken or not as described, requested within 14 days.
+8. **Resend.** Verify `theheartfolio.com` in Resend (the DNS records its
    Domains page lists: SPF/MX on its `send` subdomain and the DKIM
    `resend._domainkey` TXT record; a DMARC record is recommended). Create the
    `support@theheartfolio.com` mailbox with your mail provider: receipts tell

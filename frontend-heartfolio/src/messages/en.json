@@ -645,40 +645,85 @@
         "description": "How Heartfolio collects, uses and protects your personal information."
       },
       "title": "Privacy Policy",
-      "updated": "Last updated: this policy is reviewed before each release.",
-      "intro": "Heartfolio collects as little about you as it can, and uses what it does collect only to deliver the keepsake you asked for and to support you afterwards.",
+      "updated": "Last updated: {updated}",
+      "intro": "This policy explains what Heartfolio collects when you make or receive a keepsake, why, who handles it for us, and how long we keep it. The business responsible for your data (the \"controller\") is {controller}.",
       "sections": [
         {
           "title": "What we collect",
           "body": [
-            "The details you enter to personalize a keepsake — such as a date, a place, a name or a short message. These are used to generate your artwork.",
-            "Your email address, so we can deliver your files and answer you if something goes wrong.",
-            "Basic technical information your browser sends, such as language preference and device type, used to show the site correctly."
+            "What you put into a keepsake: names, dates, places, messages and the other details you type; photos and drawings you upload; voice notes and recordings you add; for Song Poster, the YouTube link of your song.",
+            "Your email address, to deliver your order and answer you.",
+            "Order details: what you bought, the price, and Freemius's payment reference. We never receive your card details.",
+            "Technical data: your IP address and browser details reach our servers with every request and are kept briefly in server logs.",
+            "Messages: what you tell us in feedback or when you write to us."
           ]
         },
         {
-          "title": "What we do not collect",
+          "title": "How we use it",
           "body": [
-            "We do not ask for or store payment card details. Payments are handled by our payment provider, who processes them under their own terms.",
-            "We do not use your personalization details for advertising, and we do not sell them."
+            "To make, store and deliver your keepsake and the Digital page you share.",
+            "To send your receipt and order link, and to answer support requests.",
+            "To keep the service secure and working, for example by limiting how many requests can be made in a short time.",
+            "Only with your consent, to measure how the site is used (Google Analytics).",
+            "We do not sell your data and do not use your content for advertising."
           ]
         },
         {
-          "title": "Cookies and preferences",
+          "title": "Who can see a Digital keepsake",
           "body": [
-            "We store your language choice and your light/dark preference in your browser so the site opens the way you left it. These are functional preferences, not tracking."
+            "A Digital keepsake page is unlisted: anyone who has its link or QR card can open it and see what you put in it."
           ]
         },
         {
-          "title": "Your choices",
+          "title": "Services that handle data for us",
           "body": [
-            "You can ask us for a copy of the information we hold about you, ask us to correct it, or ask us to delete it. Write to {email} and we will act on it."
+            "Freemius: payment, sales tax and receipts. As merchant of record it also processes your data under its own privacy policy.",
+            "Supabase: our database (orders, drafts, the text of your keepsake).",
+            "Cloudflare R2: storage for photos, drawings and recordings.",
+            "Resend: sends our emails.",
+            "Telegram: internal notifications to us about orders and support. These include an order reference and, for some alerts, the customer's email address.",
+            "Mapbox: place search in the Studio. What you type into a location field is sent to Mapbox to suggest places.",
+            "YouTube (Google): for Song Poster we check your link with YouTube, and the Digital page plays the song in YouTube's player. That player is subject to Google's privacy policy and may set its own cookies when it loads.",
+            "Google Analytics: only if you accept analytics in the cookie banner.",
+            "Our hosting provider, {hosting}: runs the servers the site is served from.",
+            "Some of these providers process data outside your country, including in the United States, under their own safeguards."
           ]
         },
         {
-          "title": "Contacting us",
+          "title": "Cookies and browser storage",
           "body": [
-            "Questions about privacy can be sent to {email}."
+            "Always used, because the site needs them: a session cookie that keeps your draft and order together, for 30 days; a security cookie that protects forms; and your language choice, for one year.",
+            "Your light/dark preference and your cookie choice are saved in your browser's storage.",
+            "Only if you accept: Google Analytics cookies, which measure visits. Choosing \"No thanks\" keeps them off, and the site works the same either way. To change your choice later, clear this site's data in your browser."
+          ]
+        },
+        {
+          "title": "How long we keep it",
+          "body": [
+            "A paid keepsake (its details, photos, drawings and recordings): for as long as your keepsake is online, so your files can be downloaded again and your Digital page keeps working.",
+            "Voice notes and recordings that never become part of a paid order: deleted automatically 7 days after upload.",
+            "Drafts you did not buy, with their photos and recordings: deleted after 12 months without activity.",
+            "Order records: for as long as tax and accounting law requires.",
+            "Server logs: rotated automatically and kept only for a short time."
+          ]
+        },
+        {
+          "title": "Your rights",
+          "body": [
+            "You can ask us for a copy of your data, to correct it, to delete it, or to object to how we use it, by writing to {email}. Deleting a paid keepsake's content also takes its Digital page offline and makes its files unavailable. We keep the order records the law requires us to keep.",
+            "If you are in the EU or the UK, you can also complain to your data protection authority."
+          ]
+        },
+        {
+          "title": "Children",
+          "body": [
+            "Heartfolio is for adults. If you include a child in a keepsake, for example a graduation, make sure you have their parent's or guardian's permission."
+          ]
+        },
+        {
+          "title": "Contact and changes",
+          "body": [
+            "Questions about privacy can be sent to {email}. If we change this policy, the new version is published here with its date."
           ]
         }
       ]
@@ -689,47 +734,71 @@
         "description": "The terms that apply when you buy a personalized digital keepsake from Heartfolio."
       },
       "title": "Terms & Conditions",
-      "updated": "Last updated: these terms are reviewed before each release.",
-      "intro": "These terms cover what Heartfolio sells, what you receive, and what each of us is responsible for.",
+      "updated": "Last updated: {updated}",
+      "intro": "These terms apply when you create and buy a keepsake on Heartfolio (theheartfolio.com). They explain what you receive, how payment works, and what each of us is responsible for. Heartfolio is run by {controller}.",
       "sections": [
         {
-          "title": "What Heartfolio sells",
+          "title": "What you buy",
           "body": [
-            "Heartfolio sells personalized digital artwork — files you download. No physical item is produced, printed or posted, and printing and framing are not included in any price.",
-            "Each keepsake is generated from the details you provide, so no two are identical."
+            "Heartfolio makes personalized digital keepsakes from the details you enter in our Studio. Nothing physical is made, printed or posted, and printing and framing are not included in any price.",
+            "Depending on the keepsake, you can buy: Printable, high-resolution print files (PNG and PDF, in several sizes) to download and print wherever you like; Digital, a private web page made for the gift, opened from a link or the QR card we give you; or Printable + Digital, both together at a combined price.",
+            "Reasons I Love You and Graduation Keepsake are Digital only.",
+            "Each keepsake is made from your details, so no two are the same. What the Studio preview shows is what we deliver; printed colours can vary slightly with the printer and paper."
           ]
         },
         {
           "title": "Prices and payment",
           "body": [
-            "Prices are displayed in US dollars (USD). Your bank or payment provider may apply its own exchange rate or fees, which are outside our control.",
-            "Payments are processed by our payment provider, who acts as the merchant of record for the sale and whose terms apply to the transaction itself."
+            "Prices are shown in US dollars (USD). Your bank may add its own exchange fees.",
+            "Payments are processed by Freemius, which acts as our reseller and merchant of record: Freemius sells the keepsake to you, takes the payment, handles any sales tax and issues the receipt for the transaction, under its own terms. We never see or store your card details."
           ]
         },
         {
           "title": "Delivery",
           "body": [
-            "Files are made available for download as soon as your keepsake is complete and payment is confirmed. Delivery is digital and immediate; there is no shipment to track.",
-            "If a download fails or a file is unusable, write to {email} and we will re-issue it."
+            "Your keepsake is delivered as soon as your payment is confirmed. Your order page and the receipt email give you the files to download (Printable) and the link and QR card for the gift's page (Digital).",
+            "The link in your receipt email works for 30 days. If it stops working, write to {email} and we will send a fresh one. Your files and your Digital page do not expire with the link.",
+            "Your keepsake is final once you pay: its details cannot be edited after purchase, so check the preview before you buy."
           ]
         },
         {
-          "title": "Your content and your rights",
+          "title": "Your Digital keepsake",
           "body": [
-            "The details you supply remain yours. You confirm you have the right to use any name, photograph or text you provide.",
-            "Your finished keepsake is yours to print, display and give as a gift, for personal use. Reselling or redistributing Heartfolio artwork as your own product is not permitted."
+            "A Digital keepsake is a private page at an unlisted address. Anyone with its link or QR card can open it, and search engines are asked not to list it. Share it only with the people you mean to.",
+            "We keep Digital keepsake pages online for as long as Heartfolio operates. If that ever has to change, we will email you at least 30 days before.",
+            "Song Poster plays your song from the YouTube link you choose, in YouTube's own player. We do not supply or license the music, and the song stops playing if its owner removes it from YouTube. The soundwave on your poster is designed for your order; it is not taken from the recording."
           ]
         },
         {
-          "title": "Availability",
+          "title": "Your content",
           "body": [
-            "Some keepsakes are still in development and are shown with a waitlist or coming-soon marker. Listing a keepsake is not a promise of a launch date."
+            "What you put into your keepsake stays yours. You confirm that you have the right to use every photo, drawing, recording, name and message you add, and the permission of the people in them (a parent's or guardian's for a child).",
+            "Do not add anything unlawful, hateful, or that infringes someone else's rights. We may take down a Digital keepsake page that does, without a refund.",
+            "You allow us to store and process your content only to make, deliver and support your keepsake. We do not use it for advertising and do not show it to anyone else."
           ]
         },
         {
-          "title": "Contact",
+          "title": "Using your keepsake",
           "body": [
-            "Questions about these terms can be sent to {email}."
+            "Your keepsake is for personal use: print it, display it, give it as a gift and share its link. Reselling Heartfolio designs, or offering them as your own product, is not allowed."
+          ]
+        },
+        {
+          "title": "Refunds",
+          "body": [
+            "Refunds are covered by our Refund Policy."
+          ]
+        },
+        {
+          "title": "Our responsibility",
+          "body": [
+            "We do our best to keep Heartfolio available and your keepsake correct. If something goes wrong on our side, our responsibility is to fix or re-issue your keepsake, or to refund what you paid for it. Nothing in these terms limits the rights you have under the consumer law where you live."
+          ]
+        },
+        {
+          "title": "Changes and contact",
+          "body": [
+            "We may update these terms. The version in force when you bought applies to your purchase. Questions about these terms can be sent to {email}."
           ]
         }
       ]
@@ -740,33 +809,39 @@
         "description": "How refunds work for Heartfolio's personalized digital keepsakes."
       },
       "title": "Refund Policy",
-      "updated": "Last updated: this policy is reviewed before each release.",
-      "intro": "Heartfolio sells personalized digital files that are generated for you and delivered immediately. That shapes how refunds work — but it is never an excuse to leave you with something broken.",
+      "updated": "Last updated: {updated}",
+      "intro": "Every keepsake is made from your details and delivered the moment you pay, so we cannot take it back the way a shop takes back a parcel. What we can promise is that you will never be left with a keepsake that does not work.",
       "sections": [
         {
           "title": "Before you buy",
           "body": [
-            "You can change every detail of your keepsake — the date, the place, the wording, the mood — as many times as you like before you download it. Nothing is final until you do."
+            "The Studio shows you exactly what you will receive. Change any detail as often as you like and check the preview carefully: a keepsake cannot be edited after purchase."
           ]
         },
         {
-          "title": "When we will put things right",
+          "title": "Our policy",
           "body": [
-            "If your files will not download, arrive damaged or unusable, do not match what you created, or you were charged more than once, contact us and we will fix the problem or refund you.",
-            "If a detail was rendered incorrectly by us, we will correct and re-issue your keepsake at no cost."
+            "Once your keepsake has been delivered (your files are ready to download, or your Digital page is live, which happens as soon as payment is confirmed), we do not refund a change of mind.",
+            "We do put it right if your keepsake is broken or not as described: the files will not download or will not open, the Digital page does not work, what we produced does not match what your preview showed, or you were charged twice."
           ]
         },
         {
-          "title": "Personalized digital goods",
+          "title": "How to ask: within 14 days",
           "body": [
-            "Because each keepsake is made to your details and delivered as an immediate download, it cannot be returned in the way a physical item can. A change of mind after downloading is not automatically refundable.",
-            "Any statutory right to cancel that applies where you live is unaffected by this policy."
+            "Write to {email} within 14 days of your purchase, from the email address you used or with your order reference, and tell us what is wrong. A screenshot helps but is not required. We answer every request.",
+            "We will first try to fix your keepsake or re-issue it. If we cannot, we refund you in full, to the card or account you paid with."
           ]
         },
         {
-          "title": "How to ask",
+          "title": "Payments through Freemius",
           "body": [
-            "Write to {email} with the email address you used and what went wrong. A screenshot helps but is not required. We read and respond to every request."
+            "Freemius is the reseller and merchant of record for every purchase, so refunds are issued through Freemius. Please write to us first rather than opening a dispute with your bank: we can usually sort it out quickly."
+          ]
+        },
+        {
+          "title": "Your legal rights",
+          "body": [
+            "By completing your purchase, you ask us to deliver your digital keepsake immediately, and you acknowledge that the right to cancel a purchase of digital content ends once delivery has started, where the law allows this. Any other rights you have under the consumer law where you live are unaffected."
           ]
         }
       ]

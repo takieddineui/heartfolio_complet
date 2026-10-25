@@ -159,5 +159,8 @@ describe.each(LOCALES)("%s", (locale) => {
     const { errors, text } = renderCollectingErrors(locale, <LegalPage legalKey={legalKey} />);
     expect(errors).toEqual([]);
     expect(text.match(KEY_PATH)?.[0]).toBeUndefined();
+    // Section bodies are read raw and their tokens substituted by the page,
+    // so a misspelt or unknown token would print as-is without an error.
+    expect(text.match(/\{\w+\}/)?.[0]).toBeUndefined();
   });
 });
