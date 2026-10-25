@@ -670,9 +670,14 @@ class GeneratedOutputNeverReachesR2Tests(TestCase):
         buf.seek(0)
         asset = upload_asset(customer, SimpleUploadedFile("photo.jpg", buf.getvalue(), content_type="image/jpeg"))
 
+        # Love Story Timeline needs 3 to 8 milestones (the fixture had one,
+        # so validation answered 400 and the boundary was never exercised);
+        # every milestone uses the real uploaded photo.
         values = {
             **VALID_VALUES,
-            "events": [{"date": "2020-01-01", "title": "X", "photo": {"assetId": str(asset.id)}}],
+            "events": [
+                {"date": f"202{i}-01-01", "title": f"Milestone {i}", "photo": {"assetId": str(asset.id)}} for i in range(3)
+            ],
         }
         product = make_lst_product()
         pack = make_lst_pack(product, included_targets=["print-png"])
@@ -691,7 +696,7 @@ class GeneratedOutputNeverReachesR2Tests(TestCase):
         with patch.object(MockAssetStorage, "upload", wraps=MockAssetStorage.upload, autospec=True) as spy_upload:
             response = client.get(f"/api/v1/entitlements/{entitlement.id}/download/")
 
-        self.assertEqual(response.status_code, http_status.HTTP_200_OK)
+        self.assertEqual(response.status_code, http_status.HTTP_200_OK, getattr(response, "data", None))
         # The photo was genuinely read (proves this test isn't vacuous)...
         self.assertIn(b"\x89PNG\r\n\x1a\n", response.content[:8])
         # ...but nothing was ever uploaded back to R2 during delivery.
@@ -1117,7 +1122,11 @@ class LiveExperienceDispatchTests(TestCase):
             target_ids=[LIVE_TARGET_SENTINEL],
             product=make_product(slug=product_slug),
         )
-        order.project.data = project_data
+        # The database requires `version`, `values` and `themeSelections`
+        # (ck_projects_data_has_required_keys); the callers pass the parts
+        # they care about, so the rest is filled in here. Without it none of
+        # these access-control tests ran (found 25 Oct 2026).
+        order.project.data = {"version": 1, "themeSelections": {}, **project_data}
         order.project.save(update_fields=["data"])
         if order_status != Order.STATUS_PAID:
             order.status = order_status
@@ -1158,12 +1167,17 @@ class LiveExperienceDispatchTests(TestCase):
         self.assertNotIn("theme", response.data["values"])
 
     def test_love_story_timeline_order_still_gets_the_original_ar_shaped_payload(self):
+        from .product_renderers.love_story_timeline.tests import VALID_THEME as LST_VALID_THEME
+        from .product_renderers.love_story_timeline.tests import VALID_VALUES as LST_VALID_VALUES
+
         """The regression check for the refactor itself: an LST order's
         live page must be BYTE-IDENTICAL in shape to before
         `_load_experience` was split into three functions."""
         _, _, experience = self._make_live_experience(
             product_slug="love-story-timeline",
-            project_data={"values": {"title": "Our Story"}, "themeSelections": {"palette": "warm"}},
+            # A valid project: Love Story Timeline now needs 3-8 milestones,
+            # and this fixture's single title was refused (generic 404).
+            project_data={"values": dict(LST_VALID_VALUES), "themeSelections": dict(LST_VALID_THEME)},
         )
 
         response = self.client.get(f"/api/v1/live/{experience.id}/")
@@ -1174,13 +1188,40 @@ class LiveExperienceDispatchTests(TestCase):
         self.assertIn("targetUrl", response.data)
         self.assertIn("media", response.data)
 
-    def test_unpaid_order_returns_the_same_generic_404_as_an_unknown_id(self):
-        _, _, experience = self._make_live_experience(
-            product_slug="song-poster",
-            project_data={"values": {"track": "T", "artist": "A"}, "themeSelections": {}},
-            order_status=Order.STATUS_PENDING,
-        )
+    #: A Song Poster project the live page accepts. The unpaid and revoked
+    #: tests below used data it refused (no YouTube link), so they returned
+    #: 404 whether or not payment and revocation were checked: deleting either
+    #: check left them green (mutation-checked, 25 Oct 2026).
+    VALID_SONG_POSTER = {
+        "values": {
+            "track": "Halfway Home",
+            "artist": "The Landing",
+            "photo": {"assetId": "asset-does-not-need-to-resolve-for-this-assertion"},
+            "youtubeUrl": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+            "youtubeVideoId": "dQw4w9WgXcQ",
+        },
+        "themeSelections": {"theme": "player"},
+    }
 
+    def test_unpaid_order_returns_the_same_generic_404_as_an_unknown_id(self):
+        _, order, experience = self._make_live_experience(product_slug="song-poster", project_data=self.VALID_SONG_POSTER)
+        # Control: paid, the same experience opens.
+        self.assertEqual(self.client.get(f"/api/v1/live/{experience.id}/").status_code, http_status.HTTP_200_OK)
+
+        order.status = Order.STATUS_PENDING
+        order.save(update_fields=["status"])
+        response = self.client.get(f"/api/v1/live/{experience.id}/")
+        unknown_response = self.client.get(f"/api/v1/live/{uuid.uuid4()}/")
+
+        self.assertEqual(response.status_code, http_status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.data, unknown_response.data)
+
+    def test_a_revoked_live_page_returns_the_same_generic_404_as_an_unknown_id(self):
+        _, _, experience = self._make_live_experience(product_slug="song-poster", project_data=self.VALID_SONG_POSTER)
+        self.assertEqual(self.client.get(f"/api/v1/live/{experience.id}/").status_code, http_status.HTTP_200_OK)
+
+        experience.status = PublicExperience.STATUS_REVOKED
+        experience.save(update_fields=["status"])
         response = self.client.get(f"/api/v1/live/{experience.id}/")
         unknown_response = self.client.get(f"/api/v1/live/{uuid.uuid4()}/")
 

@@ -103,8 +103,19 @@ class ARLifecycleTests(TestCase):
             price_cents=1500,
             included_targets=["ar-card"],
         )
+        # `themeSelections` is required by the database's own check
+        # constraint (ck_projects_data_has_required_keys); without it this
+        # setUp failed and none of these tests ran (found 25 Oct 2026).
+        # A VALID project: with empty values the payload builder refused it,
+        # so the revoked/unpaid tests below returned nothing whether or not
+        # those checks existed (mutation-checked, 25 Oct 2026).
+        # `test_a_paid_active_experience_loads` is the control.
+        from apps.delivery.product_renderers.love_story_timeline.tests import VALID_THEME, VALID_VALUES
+
         self.project = Project.objects.create(
-            customer=self.customer, product=self.product, data={"version": 1, "values": {}}
+            customer=self.customer,
+            product=self.product,
+            data={"version": 1, "values": dict(VALID_VALUES), "themeSelections": dict(VALID_THEME)},
         )
         self.order = Order.objects.create(
             customer=self.customer,
@@ -130,6 +141,35 @@ class ARLifecycleTests(TestCase):
         # the query, unlike a malformed one which fails while preparing it.
         # Both must be indistinguishable to the caller regardless.
         self.assertIsNone(_load_experience(str(uuid.uuid4())))
+
+    def test_a_paid_active_experience_loads(self):
+        """The control the tests below depend on: without it, a fixture the
+        payload builder rejects makes every "yields nothing" test pass for
+        the wrong reason."""
+        self.assertIsNotNone(_load_experience(self.experience.id))
+
+    def test_an_id_of_the_other_kind_answers_exactly_like_an_unknown_one(self):
+        """The property the source checks below stand in for, end to end: an
+        AR link used on the live route (and a live link on the AR route) gets
+        the same response, status and body, as an id that does not exist, so
+        nobody can tell a real id from a fake one (§21f)."""
+        from rest_framework.test import APIClient
+
+        from apps.commerce.models import Entitlement
+        from apps.delivery.models import PublicExperience
+
+        live = PublicExperience.objects.create(
+            entitlement=Entitlement.objects.create(order=self.order, product=self.product, target_id="__live__"),
+            kind=PublicExperience.KIND_LIVE,
+            status=PublicExperience.STATUS_ACTIVE,
+        )
+        client = APIClient()
+        unknown = str(uuid.uuid4())
+        for route, wrong_kind_id in (("live", self.experience.id), ("ar", live.id)):
+            wrong = client.get(f"/api/v1/{route}/{wrong_kind_id}/")
+            missing = client.get(f"/api/v1/{route}/{unknown}/")
+            self.assertEqual(wrong.status_code, 404, route)
+            self.assertEqual((wrong.status_code, wrong.content), (missing.status_code, missing.content), route)
 
     def test_a_revoked_experience_becomes_genuinely_inaccessible(self):
         # §21f — revoked must not merely be hidden from a listing that does
@@ -335,7 +375,10 @@ class SharedExperienceAccessTests(SimpleTestCase):
         from apps.delivery import live_views
 
         source = inspect.getsource(live_views)
-        self.assertIn("from apps.delivery.ar_views import _load_experience", source)
+        # The shared loader is `_load_paid_experience` (AR's `_load_experience`
+        # is now a thin wrapper over it); this test still named the old one.
+        self.assertIn("from apps.delivery.ar_views import _build_ar_payload, _load_paid_experience", source)
+        self.assertNotIn("PublicExperience.objects", source)
 
     def test_kind_is_filtered_in_the_query_not_checked_after(self):
         """An AR id used on the live route must be indistinguishable from an
@@ -349,8 +392,8 @@ class SharedExperienceAccessTests(SimpleTestCase):
 
         from apps.delivery import ar_views
 
-        source = inspect.getsource(ar_views._load_experience)
-        self.assertIn("kind=kind", source)
+        source = inspect.getsource(ar_views._load_paid_experience)
+        self.assertIn(".get(id=experience_id, kind=kind)", source)
 
     def test_the_live_endpoint_is_throttled_and_sessionless(self):
         from apps.delivery.live_views import LiveExperienceView
