@@ -33,7 +33,10 @@ export async function generateMetadata({
     metadataBase: new URL(SITE_URL),
     title: {
       default: t("title"),
-      template: `%s — ${SITE_NAME}`,
+      // The brand once, in the page's language: message titles no longer end
+      // in "| Heartfolio" (they did, so titles read "… | Heartfolio —
+      // Heartfolio", 25 Oct 2026), and Arabic pages use the Arabic name.
+      template: `%s — ${locale === "ar" ? "هارتفوليو" : SITE_NAME}`,
     },
     description: t("description"),
     // Per-locale canonical + full hreflang set. Pages that need their own

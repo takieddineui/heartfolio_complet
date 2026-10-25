@@ -78,7 +78,7 @@ function describeProduct(
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const { locale, slug } = await params;
   const product = getProductBySlug(slug);
-  if (!product) return {};
+  if (!product) notFound();
 
   const t = await getTranslations({ locale, namespace: `Products.${product.i18nKey}` });
   const title = t("meta.title");

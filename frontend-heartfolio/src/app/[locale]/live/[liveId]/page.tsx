@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { setRequestLocale } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { LiveKeepsake } from "@/components/live/live-keepsake";
 import { SongLiveKeepsake } from "@/components/live-song/song-live-keepsake";
 import { ReasonsLivePage } from "@/components/live-reasons/reasons-live-page";
@@ -23,10 +23,14 @@ import { getBackendOrigin } from "@/lib/backend-origin";
  */
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  title: "Heartfolio",
-  robots: { index: false, follow: false, nocache: true },
-};
+/** What the recipient's tab and a shared link's preview say: "A gift for you —
+ *  Heartfolio" in the link's language. It was "Heartfolio — Heartfolio"
+ *  (25 Oct 2026). Never indexed. */
+export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "PageTitles" });
+  return { title: t("live"), robots: { index: false, follow: false, nocache: true } };
+}
 
 type Params = Promise<{ locale: string; liveId: string }>;
 

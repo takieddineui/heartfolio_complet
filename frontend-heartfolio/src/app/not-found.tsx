@@ -1,21 +1,34 @@
+import { headers } from "next/headers";
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
+import { routing } from "@/i18n/routing";
 
 /**
- * Root 404 — outside any locale.
+ * Root 404 — every URL no route matches, including the products and Studio
+ * pages of a product that is not published (the proxy rewrites those here,
+ * `proxy.ts`), so it answers with a real 404 status.
  *
- * `[locale]/not-found.tsx` only catches routes that already matched a
- * locale segment. A request to something like `/pricing` or a stale link
- * with no locale never reaches it, and was getting Next's unstyled default
- * page: black Helvetica on white, no header, no way back.
+ * `[locale]/not-found.tsx` only catches routes that already matched and
+ * called `notFound()`. Everything else lands here, which was Next's unstyled
+ * default page and then an English-only one on /fr and /ar too.
  *
- * Deliberately self-contained. It cannot use `next-intl` — there is no
- * locale to translate into, which is the whole reason this file exists — and
- * it cannot use SiteHeader for the same reason. So it is English-only and
- * styled inline, and links into the default locale rather than guessing.
+ * IN THE URL'S LANGUAGE (25 Oct 2026): next-intl's proxy puts the locale on
+ * the request (`X-NEXT-INTL-LOCALE`), read here; a request with none (a path
+ * with no locale at all) gets English. Self-contained, with its own <html>,
+ * because no locale layout wraps it.
  */
-export default function RootNotFound() {
+export default async function RootNotFound() {
+  const requested = (await headers()).get("x-next-intl-locale") ?? "";
+  const locale = (routing.locales as readonly string[]).includes(requested) ? requested : routing.defaultLocale;
+  const t = await getTranslations({ locale, namespace: "NotFound" });
+  const rtl = locale === "ar";
+
   return (
-    <html lang="en" dir="ltr">
+    <html lang={locale} dir={rtl ? "rtl" : "ltr"}>
+      <head>
+        <title>{`${t("metaTitle")} — ${rtl ? "هارتفوليو" : "Heartfolio"}`}</title>
+        <meta name="robots" content="noindex" />
+      </head>
       <body
         style={{
           margin: 0,
@@ -25,20 +38,16 @@ export default function RootNotFound() {
           justifyContent: "center",
           background: "#F7F1E6",
           color: "#141B2E",
-          fontFamily: "Georgia, 'Times New Roman', serif",
+          fontFamily: rtl ? "'Segoe UI', Tahoma, sans-serif" : "Georgia, 'Times New Roman', serif",
           textAlign: "center",
           padding: "24px",
         }}
       >
         <div style={{ maxWidth: "28rem" }}>
-          <h1 style={{ fontSize: "2rem", margin: "0 0 12px", fontWeight: 400 }}>
-            This page doesn&rsquo;t exist.
-          </h1>
-          <p style={{ margin: "0 0 28px", lineHeight: 1.6, opacity: 0.75 }}>
-            The link may be old, or slightly mistyped.
-          </p>
+          <h1 style={{ fontSize: "2rem", margin: "0 0 12px", fontWeight: 400 }}>{t("title")}</h1>
+          <p style={{ margin: "0 0 28px", lineHeight: 1.6, opacity: 0.75 }}>{t("body")}</p>
           <Link
-            href="/en"
+            href={`/${locale}`}
             style={{
               display: "inline-block",
               background: "#141B2E",
@@ -48,7 +57,7 @@ export default function RootNotFound() {
               textDecoration: "none",
             }}
           >
-            Go to Heartfolio
+            {t("back")}
           </Link>
         </div>
       </body>

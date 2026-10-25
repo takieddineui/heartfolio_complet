@@ -284,7 +284,7 @@
       "shortDescription": "The song that played the whole way home.",
       "fullDescription": "A song that mattered, given a soundwave of its own and set like sheet music for people who don't read it.",
       "meta": {
-        "title": "Personalized Song Poster | Heartfolio",
+        "title": "Personalized Song Poster",
         "description": "The song that mattered, turned into soundwave artwork — a personalized digital keepsake from {price}, delivered instantly.",
         "imageAlt": "A personalized Heartfolio song poster with soundwave artwork, a song title and its artist",
         "descriptionNoPrice": "The song that mattered, turned into soundwave artwork — a personalized digital keepsake, delivered instantly."
@@ -315,7 +315,7 @@
       "shortDescription": "The exact spot it began.",
       "fullDescription": "A quiet, art-directed map of the coordinates that changed everything — marked with a single heart, right where you stood.",
       "meta": {
-        "title": "Where We Met — Personalized Map Print | Heartfolio",
+        "title": "Where We Met — Personalized Map Print",
         "description": "Where We Met turns the exact place something began into a quiet personalized map print — a digital keepsake from {price}, delivered instantly.",
         "imageAlt": "A personalized Heartfolio Where We Met map print marking the place where a story began",
         "descriptionNoPrice": "Where We Met turns the exact place something began into a quiet personalized map print — a digital keepsake, delivered instantly."
@@ -347,7 +347,7 @@
       "shortDescription": "Your milestones, told as one continuous story.",
       "fullDescription": "Three to five milestones — dates, photos, and the words only the two of you would use — laid out as a single keepsake timeline.",
       "meta": {
-        "title": "Personalized Love Story Timeline | Heartfolio",
+        "title": "Personalized Love Story Timeline",
         "description": "Turn your relationship's most meaningful moments into a beautiful personalized digital keepsake. From {price}, delivered instantly.",
         "imageAlt": "A personalized Heartfolio love story timeline showing five milestones along a single line",
         "descriptionNoPrice": "Turn your relationship's most meaningful moments into a beautiful personalized digital keepsake, delivered instantly."
@@ -383,7 +383,7 @@
       "shortDescription": "Up to ten reasons, opened one at a time.",
       "fullDescription": "Write up to ten reasons and choose how they are given: a jar of notes, a daisy, a deck of hearts or a plate of fortune cookies. They open them one by one, then find your last word and, if you like, a letter.",
       "meta": {
-        "title": "Reasons I Love You, a personalized digital gift | Heartfolio",
+        "title": "Reasons I Love You, a personalized digital gift",
         "description": "Up to ten reasons you love them, given as a jar of notes, a daisy, a deck of hearts or fortune cookies, and opened one at a time. From {price}, delivered instantly.",
         "imageAlt": "A Heartfolio Reasons I Love You gift: a jar of folded notes, each one a reason",
         "descriptionNoPrice": "Up to ten reasons you love them, given as a jar of notes, a daisy, a deck of hearts or fortune cookies, and opened one at a time. Delivered instantly."
@@ -466,7 +466,7 @@
       "shortDescription": "Their story so far, told as a journey.",
       "fullDescription": "Gather the years, the achievements and the messages from the people who got them there, then choose how the story is told: a flight, a space mission, an arcade game, a gallery or a mountain climb.",
       "meta": {
-        "title": "Graduation Keepsake, a personalized digital gift | Heartfolio",
+        "title": "Graduation Keepsake, a personalized digital gift",
         "description": "A graduate's story so far (photos through the years, achievements, messages and voice notes from family and friends) told as a flight, a mission, a game, a gallery or a climb. From {price}, delivered instantly.",
         "imageAlt": "A Heartfolio Graduation Keepsake: a boarding pass for the next chapter",
         "descriptionNoPrice": "A graduate's story so far (photos through the years, achievements, messages and voice notes from family and friends) told as a flight, a mission, a game, a gallery or a climb. Delivered instantly."
@@ -537,7 +537,7 @@
   },
   "Collection": {
     "meta": {
-      "title": "The Heartfolio Collection | Personalized Digital Keepsakes",
+      "title": "The Collection: Personalized Digital Keepsakes",
       "description": "Browse the Heartfolio collection — personalized love-story timeline keepsakes. Digital artwork from {price}, delivered instantly as high-resolution printable files.",
       "descriptionNoPrice": "Browse the Heartfolio collection — personalized love-story timeline keepsakes. Digital artwork, delivered instantly as high-resolution printable files."
     },
@@ -641,7 +641,7 @@
   "Legal": {
     "privacy": {
       "meta": {
-        "title": "Privacy Policy | Heartfolio",
+        "title": "Privacy Policy",
         "description": "How Heartfolio collects, uses and protects your personal information."
       },
       "title": "Privacy Policy",
@@ -730,7 +730,7 @@
     },
     "terms": {
       "meta": {
-        "title": "Terms & Conditions | Heartfolio",
+        "title": "Terms & Conditions",
         "description": "The terms that apply when you buy a personalized digital keepsake from Heartfolio."
       },
       "title": "Terms & Conditions",
@@ -805,7 +805,7 @@
     },
     "refunds": {
       "meta": {
-        "title": "Refund Policy | Heartfolio",
+        "title": "Refund Policy",
         "description": "How refunds work for Heartfolio's personalized digital keepsakes."
       },
       "title": "Refund Policy",
@@ -848,7 +848,7 @@
     },
     "contact": {
       "meta": {
-        "title": "Contact & Support | Heartfolio",
+        "title": "Contact & Support",
         "description": "Get help with a Heartfolio order, download, personalization detail or refund."
       },
       "title": "Contact & Support",
@@ -961,7 +961,7 @@
   },
   "FeedbackPage": {
     "meta": {
-      "title": "Tell us what you think — Heartfolio",
+      "title": "Tell us what you think",
       "description": "Share an idea, report something broken, or tell us what worked. Every note is read."
     },
     "title": "Tell us what you think.",
@@ -986,7 +986,7 @@
   "GiftIntents": {
     "printableGifts": {
       "meta": {
-        "title": "Printable gifts you can frame — Heartfolio",
+        "title": "Printable gifts you can frame",
         "description": "Personalized keepsakes delivered as high-resolution files you print yourself — in three sizes, framed or frameless, ready the moment you've paid."
       },
       "title": "Gifts you print, and keep.",
@@ -994,7 +994,7 @@
     },
     "anniversaryGifts": {
       "meta": {
-        "title": "Anniversary gifts, personalized — Heartfolio",
+        "title": "Anniversary gifts, personalized",
         "description": "Keepsakes built from your own dates and words, delivered instantly."
       },
       "title": "Anniversary gifts, made from your own story.",
@@ -1002,7 +1002,7 @@
     },
     "weddingGifts": {
       "meta": {
-        "title": "Wedding gifts, personalized — Heartfolio",
+        "title": "Wedding gifts, personalized",
         "description": "Personalized keepsakes for a wedding, delivered as instant downloads."
       },
       "title": "Wedding gifts worth keeping.",
@@ -1010,7 +1010,7 @@
     },
     "giftsForCouples": {
       "meta": {
-        "title": "Gifts for couples — Heartfolio",
+        "title": "Gifts for couples",
         "description": "Personalized digital keepsakes for two people with a history."
       },
       "title": "Gifts for two people with a history.",
@@ -1028,5 +1028,16 @@
     "title": "What people have said",
     "summary": "{average} out of 5 · {count} reviews",
     "ratingAria": "Rated {n} out of 5"
+  },
+  "NotFound": {
+    "metaTitle": "Page not found",
+    "title": "This page doesn't exist.",
+    "body": "The link may be old, or slightly mistyped.",
+    "back": "Back to Heartfolio"
+  },
+  "PageTitles": {
+    "studio": "{product} · Studio",
+    "order": "Your order",
+    "live": "A gift for you"
   }
 }

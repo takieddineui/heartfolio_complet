@@ -87,6 +87,20 @@ describe.each(Object.entries(LOCALES))("%s messages", (locale, messages) => {
   });
 });
 
+describe("page titles carry the brand once", () => {
+  /**
+   * The layout's title template appends " — Heartfolio" (" — هارتفوليو" on
+   * /ar). Titles that also ended in "| Heartfolio" read "… | Heartfolio —
+   * Heartfolio" in every tab and search result (25 Oct 2026).
+   */
+  it.each(Object.entries(LOCALES))("%s: no title ends with the brand", (_locale, messages) => {
+    const branded = flatten(messages as unknown as Json).filter(
+      ([path, text]) => path.endsWith(".title") && /(\||—|–|-)\s*(Heartfolio|هارتفوليو)\s*$/.test(text)
+    );
+    expect(branded.map(([path]) => path)).toEqual([]);
+  });
+});
+
 describe("locale parity", () => {
   it("gives every locale the same set of keys", () => {
     const keysFor = (m: unknown) => flatten(m as Json).map(([path]) => path).sort();

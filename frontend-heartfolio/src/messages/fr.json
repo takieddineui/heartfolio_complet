@@ -284,7 +284,7 @@
       "shortDescription": "La chanson qui a accompagné tout le trajet du retour.",
       "fullDescription": "Une chanson qui a compté, dotée de sa propre onde sonore et mise en page comme une partition pour ceux qui ne la lisent pas.",
       "meta": {
-        "title": "Affiche de chanson personnalisée | Heartfolio",
+        "title": "Affiche de chanson personnalisée",
         "description": "La chanson qui compte, devenue une œuvre en onde sonore — un souvenir numérique personnalisé à partir de {price}, livré instantanément.",
         "imageAlt": "Une affiche de chanson Heartfolio personnalisée avec une œuvre en onde sonore, le titre d'une chanson et son artiste",
         "descriptionNoPrice": "La chanson qui compte, devenue une œuvre en onde sonore — un souvenir numérique personnalisé, livré instantanément."
@@ -315,7 +315,7 @@
       "shortDescription": "L'endroit exact où tout a commencé.",
       "fullDescription": "Une carte sobre et soignée des coordonnées qui ont tout changé — marquée d'un seul cœur, à l'endroit exact où vous étiez.",
       "meta": {
-        "title": "Là où nous nous sommes rencontrés — Carte personnalisée | Heartfolio",
+        "title": "Là où nous nous sommes rencontrés — Carte personnalisée",
         "description": "« Là où nous nous sommes rencontrés » transforme le lieu exact où tout a commencé en une carte personnalisée tout en retenue — un souvenir numérique à partir de {price}, livré instantanément.",
         "imageAlt": "Une carte Heartfolio personnalisée « Là où nous nous sommes rencontrés » marquant le lieu où une histoire a commencé",
         "descriptionNoPrice": "« Là où nous nous sommes rencontrés » transforme le lieu exact où tout a commencé en une carte personnalisée tout en retenue — un souvenir numérique livré instantanément."
@@ -347,7 +347,7 @@
       "shortDescription": "Vos jalons, racontés comme une seule histoire continue.",
       "fullDescription": "De trois à cinq moments — dates, photos et les mots que vous seuls employez — disposés en une seule frise souvenir.",
       "meta": {
-        "title": "Frise d'histoire d'amour personnalisée | Heartfolio",
+        "title": "Frise d'histoire d'amour personnalisée",
         "description": "Transformez les moments les plus marquants de votre relation en un souvenir numérique personnalisé. À partir de {price}, livré instantanément.",
         "imageAlt": "Une frise d'histoire d'amour Heartfolio personnalisée montrant cinq moments sur une même ligne",
         "descriptionNoPrice": "Transformez les moments les plus marquants de votre relation en un souvenir numérique personnalisé, livré instantanément."
@@ -383,7 +383,7 @@
       "shortDescription": "Jusqu'à dix raisons, à ouvrir une par une.",
       "fullDescription": "Écrivez jusqu'à dix raisons et choisissez comment les offrir : un bocal de petits mots, une marguerite, un jeu de cœurs ou une assiette de biscuits de fortune. Elles s'ouvrent une à une, puis viennent votre dernier mot et, si vous le souhaitez, une lettre.",
       "meta": {
-        "title": "Les raisons pour lesquelles je t'aime, un cadeau numérique personnalisé | Heartfolio",
+        "title": "Les raisons pour lesquelles je t'aime, un cadeau numérique personnalisé",
         "description": "Jusqu'à dix raisons de l'aimer, offertes dans un bocal de petits mots, une marguerite, un jeu de cœurs ou des biscuits de fortune, à ouvrir une par une. À partir de {price}, livré instantanément.",
         "imageAlt": "Un cadeau Heartfolio « Les raisons pour lesquelles je t'aime » : un bocal de petits mots pliés, chacun une raison",
         "descriptionNoPrice": "Jusqu'à dix raisons de l'aimer, offertes dans un bocal de petits mots, une marguerite, un jeu de cœurs ou des biscuits de fortune, à ouvrir une par une. Livré instantanément."
@@ -466,7 +466,7 @@
       "shortDescription": "Son parcours jusqu'ici, raconté comme un voyage.",
       "fullDescription": "Réunissez les années, les réussites et les messages de ceux qui l'ont accompagné, puis choisissez comment l'histoire se raconte : un vol, une mission spatiale, un jeu d'arcade, une galerie ou une ascension.",
       "meta": {
-        "title": "Souvenir de diplôme, un cadeau numérique personnalisé | Heartfolio",
+        "title": "Souvenir de diplôme, un cadeau numérique personnalisé",
         "description": "Le parcours d'un diplômé (photos à travers les années, réussites, messages et notes vocales de la famille et des amis) raconté comme un vol, une mission, un jeu, une galerie ou une ascension. À partir de {price}, livré immédiatement.",
         "imageAlt": "Un Souvenir de diplôme Heartfolio : une carte d'embarquement pour la suite",
         "descriptionNoPrice": "Le parcours d'un diplômé (photos à travers les années, réussites, messages et notes vocales de la famille et des amis) raconté comme un vol, une mission, un jeu, une galerie ou une ascension. Livré immédiatement."
@@ -537,7 +537,7 @@
   },
   "Collection": {
     "meta": {
-      "title": "La collection Heartfolio | Souvenirs numériques personnalisés",
+      "title": "La collection : souvenirs numériques personnalisés",
       "description": "Découvrez la collection Heartfolio : des frises d'histoire d'amour personnalisées. Œuvres numériques à partir de {price}, livrées instantanément, en haute résolution et prêtes à imprimer.",
       "descriptionNoPrice": "Découvrez la collection Heartfolio : des frises d'histoire d'amour personnalisées. Œuvres numériques livrées instantanément, en haute résolution et prêtes à imprimer."
     },
@@ -641,7 +641,7 @@
   "Legal": {
     "privacy": {
       "meta": {
-        "title": "Politique de confidentialité | Heartfolio",
+        "title": "Politique de confidentialité",
         "description": "Comment Heartfolio collecte, utilise et protège vos données personnelles."
       },
       "title": "Politique de confidentialité",
@@ -730,7 +730,7 @@
     },
     "terms": {
       "meta": {
-        "title": "Conditions générales | Heartfolio",
+        "title": "Conditions générales",
         "description": "Les conditions applicables à l'achat d'un souvenir numérique personnalisé Heartfolio."
       },
       "title": "Conditions générales",
@@ -805,7 +805,7 @@
     },
     "refunds": {
       "meta": {
-        "title": "Politique de remboursement | Heartfolio",
+        "title": "Politique de remboursement",
         "description": "Comment fonctionnent les remboursements pour les souvenirs numériques personnalisés Heartfolio."
       },
       "title": "Politique de remboursement",
@@ -848,7 +848,7 @@
     },
     "contact": {
       "meta": {
-        "title": "Contact & assistance | Heartfolio",
+        "title": "Contact & assistance",
         "description": "Obtenez de l'aide pour une commande, un téléchargement, une personnalisation ou un remboursement Heartfolio."
       },
       "title": "Contact & assistance",
@@ -961,7 +961,7 @@
   },
   "FeedbackPage": {
     "meta": {
-      "title": "Dites-nous ce que vous en pensez — Heartfolio",
+      "title": "Dites-nous ce que vous en pensez",
       "description": "Partagez une idée, signalez un problème, ou dites-nous ce qui vous a plu. Chaque message est lu."
     },
     "title": "Dites-nous ce que vous en pensez.",
@@ -986,7 +986,7 @@
   "GiftIntents": {
     "printableGifts": {
       "meta": {
-        "title": "Cadeaux à imprimer et à encadrer — Heartfolio",
+        "title": "Cadeaux à imprimer et à encadrer",
         "description": "Des souvenirs personnalisés livrés en fichiers haute résolution que vous imprimez vous-même — en trois formats, avec ou sans marges, prêts dès le paiement."
       },
       "title": "Des cadeaux que vous imprimez, et que vous gardez.",
@@ -994,7 +994,7 @@
     },
     "anniversaryGifts": {
       "meta": {
-        "title": "Cadeaux d'anniversaire de rencontre, personnalisés — Heartfolio",
+        "title": "Cadeaux d'anniversaire de rencontre, personnalisés",
         "description": "Des souvenirs composés à partir de vos propres dates et de vos mots, livrés instantanément."
       },
       "title": "Des cadeaux d'anniversaire faits de votre propre histoire.",
@@ -1002,7 +1002,7 @@
     },
     "weddingGifts": {
       "meta": {
-        "title": "Cadeaux de mariage personnalisés — Heartfolio",
+        "title": "Cadeaux de mariage personnalisés",
         "description": "Des souvenirs personnalisés pour un mariage, livrés en téléchargement immédiat."
       },
       "title": "Des cadeaux de mariage que l'on garde.",
@@ -1010,7 +1010,7 @@
     },
     "giftsForCouples": {
       "meta": {
-        "title": "Cadeaux pour les couples — Heartfolio",
+        "title": "Cadeaux pour les couples",
         "description": "Des souvenirs numériques personnalisés pour deux personnes qui ont une histoire."
       },
       "title": "Des cadeaux pour deux personnes qui ont une histoire.",
@@ -1028,5 +1028,16 @@
     "title": "Ce qu'on nous a dit",
     "summary": "{average} sur 5 · {count} avis",
     "ratingAria": "Noté {n} sur 5"
+  },
+  "NotFound": {
+    "metaTitle": "Page introuvable",
+    "title": "Cette page n'existe pas.",
+    "body": "Le lien est peut-être ancien, ou légèrement mal saisi.",
+    "back": "Retour à Heartfolio"
+  },
+  "PageTitles": {
+    "studio": "{product} · Studio",
+    "order": "Votre commande",
+    "live": "Un cadeau pour toi"
   }
 }

@@ -1,5 +1,15 @@
-import { setRequestLocale } from "next-intl/server";
+import type { Metadata } from "next";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { OrderStatusView } from "@/components/commerce/order-status-view";
+
+/** "Your order — Heartfolio" in the page's language (it showed the site's
+ *  default title, 25 Oct 2026). Never indexed: the address carries a private
+ *  access token. */
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "PageTitles" });
+  return { title: t("order"), robots: { index: false, follow: false } };
+}
 
 /**
  * `/orders/:id` — where a customer lands if they refresh during checkout,

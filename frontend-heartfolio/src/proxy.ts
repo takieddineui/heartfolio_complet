@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import createMiddleware from "next-intl/middleware";
 import { routing } from "./i18n/routing";
+import { getProductById, getProductBySlug } from "./lib/products/registry";
 
 const intlMiddleware = createMiddleware(routing);
 
@@ -62,6 +63,31 @@ function detectLocaleFromBrowser(request: NextRequest): SiteLocale {
   return routing.defaultLocale;
 }
 
+/**
+ * A REAL 404 FOR A PRODUCT THAT IS NOT PUBLISHED (25 Oct 2026).
+ * `/products/<slug>` and `/studio/<slug>` for a hidden or unknown product
+ * answered 200 with `index, follow`: the `[locale]` loading boundary starts
+ * streaming before the page's own `notFound()` runs, so the status is
+ * already sent. Checked here, before rendering, against the same visible
+ * registry the pages use; the request is rewritten to a path no route
+ * matches, which Next answers with the root not-found page and a 404 status,
+ * in the URL's language (the locale header `app/not-found.tsx` reads).
+ */
+const PRODUCT_ROUTE = /^\/[a-z]{2}\/(products|studio)\/([^/]+)/;
+
+function unpublishedProductPath(pathname: string, locale: SiteLocale) {
+  const match = PRODUCT_ROUTE.exec(pathname);
+  if (!match) return null;
+  const slug = decodeURIComponent(match[2]!);
+  const published = match[1] === "studio" ? getProductBySlug(slug) ?? getProductById(slug) : getProductBySlug(slug);
+  if (published) return null;
+  return (request: NextRequest) => {
+    const headers = new Headers(request.headers);
+    headers.set("X-NEXT-INTL-LOCALE", locale);
+    return NextResponse.rewrite(new URL(`/${locale}/__not-found__`, request.url), { request: { headers } });
+  };
+}
+
 export default function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
@@ -78,6 +104,8 @@ export default function proxy(request: NextRequest) {
   // Arabic for everyone, regardless of cookie or browser. Detection is
   // NOT re-run here (§22: no automatic detection on every navigation).
   if (pathnameLocale) {
+    const missing = unpublishedProductPath(pathname, pathnameLocale);
+    if (missing) return missing(request);
     return intlMiddleware(request);
   }
 
