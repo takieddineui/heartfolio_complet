@@ -32,9 +32,9 @@ monorepo no longer exists, and the stale description broke both
 | Piece | Where | Notes |
 |---|---|---|
 | Development | **Local Docker** — `docker-compose.yml` runs `api`, `web` and a throwaway `db` | Where all development and testing happens now |
-| Production | **Not deployed yet.** Will be a **VPS running this same Docker setup** | **Railway and Vercel are no longer used** — both were past hosts, not the plan. Anything still describing a Railway deploy window, a Railway-managed backend or a push-to-deploy Vercel frontend is stale |
+| Production | **Not deployed yet.** A **VPS running `docker-compose.prod.yml`** (25 Oct 2026): Caddy (HTTPS, the only published ports) in front of `web` and `api`, production settings, no source mount, its own compose project `heartfolio-prod`. **`DEPLOYMENT-VPS.md` is the guide**, with every env var and build arg (`.env.production.example`) | **Railway and Vercel are no longer used** — both were past hosts, not the plan. Anything still describing a Railway deploy window, a Railway-managed backend or a push-to-deploy Vercel frontend is stale. `DJANGO_SECURE_SSL_REDIRECT=false` there on purpose: Caddy redirects public HTTP, and Django's redirect would bounce `web`'s internal calls to `http://api:8000` |
 | Database | **Supabase** | Session-mode Supavisor pooler. Not changed by the move off Railway/Vercel; which database the VPS uses is not settled by this note |
-| Payments | **Three providers exist in code — Paddle, FastSpring, Freemius.** Freemius is the only one wired into checkout, and is still **sandbox** | `FREEMIUS_ENABLED` / `isFreemiusCheckoutActive()` pick it. Paddle and FastSpring are complete code paths left in place, untouched |
+| Payments | **Three providers exist in code — Paddle, FastSpring, Freemius.** Freemius is the only one wired into checkout, and is still **sandbox** | `FREEMIUS_ENABLED` / `isFreemiusCheckoutActive()` pick it. **Production is Freemius only** (owner, 25 Oct 2026): `PAYMENT_PROVIDER` defaults to `freemius` there, which needs no Paddle/FastSpring keys and makes the generic pay endpoint refuse (409). Production also runs Freemius LIVE only (`FREEMIUS_LIVE_CONFIRMED` required), and completion then refuses any licence Freemius does not mark `environment` 0 (production). Sandbox checkouts run on local Docker. Paddle and FastSpring are complete code paths left in place, switched off |
 
 **`FREEMIUS_PLAN_MAPPING` covers four products: `love-story-timeline`,
 `reasons-i-love-you` (plan 71990, its `live` pack), `graduation-keepsake`
@@ -87,6 +87,16 @@ the dict fresh silently drops every scope `base.py` defines but the block
 does not restate. DRF then raises `ImproperlyConfigured` the first time a
 view with a missing scope is hit — surfacing as a 500 on an unrelated
 endpoint, not at startup.
+
+**Rate limits see the Next SERVER as one client.** Measured on the production
+stack (25 Oct 2026): browser requests, direct or through the `/api/backend`
+rewrite, reach Django with the visitor's address in `X-Forwarded-For` (Caddy
+sets it and drops a client-supplied one; Next passes it on), so DRF throttles
+per visitor. But the Next server's OWN fetches (`catalog-server.ts`, the live
+page's payload) send no `X-Forwarded-For`: DRF sees the web container for
+every customer. The live page's `ar_access` throttle is therefore left at
+1000/min in production. Tighten it only after the live page forwards the
+visitor's address.
 
 **Two hardcoded `supported_targets` maps must stay in sync**, in
 `apps/products/admin.py` and `seed_catalog.py`. A new product's packs

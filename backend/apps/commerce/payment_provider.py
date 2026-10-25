@@ -21,8 +21,13 @@ which is completely unmodified.
 never on `paddle_billing` directly — see `paddle_integration.py` for
 all Paddle-specific code.
 
-`get_payment_provider()` recognizes exactly three values of
-`settings.PAYMENT_PROVIDER`: "paddle", "fastspring", and "mock". Anything
+`settings.PAYMENT_PROVIDER` has four recognized values: "paddle",
+"fastspring", "mock" and "freemius". "freemius" (the production default
+since 25 Oct 2026, the owner's decision: Freemius only) means no provider
+behind this abstraction at all: Freemius has its own flow
+(`stage_freemius_checkout` / `_complete_freemius_purchase`), so
+`get_payment_provider()` refuses with `OrderPaymentNotOffered` and
+`payment_provider_id()` names it. Anything
 else — unset-but-somehow-not-defaulted, a typo, a provider name set
 before its code exists — raises `UnrecognizedPaymentProvider` rather than
 silently falling through to `MockPaymentProvider`. That fallback used to
@@ -40,12 +45,19 @@ from dataclasses import dataclass
 
 from django.conf import settings
 
+from apps.common.exceptions.api_errors import OrderPaymentNotOffered
+
 from .fastspring_integration import (
     FastSpringCheckoutResult,
     FastSpringConfigurationError,
     create_session,
 )
 from .paddle_integration import PaddleCheckoutResult, PaddleConfigurationError, create_transaction
+
+
+#: `PAYMENT_PROVIDER` value for a deployment that takes payment through
+#: Freemius only (its own checkout flow, not this abstraction).
+FREEMIUS_ONLY = "freemius"
 
 
 class UnrecognizedPaymentProvider(Exception):
@@ -148,6 +160,17 @@ def get_payment_provider() -> PaymentProvider:
         return FastSpringPaymentProvider()
     if settings.PAYMENT_PROVIDER == "mock":
         return MockPaymentProvider()
+    if settings.PAYMENT_PROVIDER == FREEMIUS_ONLY:
+        raise OrderPaymentNotOffered()
     raise UnrecognizedPaymentProvider(
-        f"Unrecognized PAYMENT_PROVIDER: {settings.PAYMENT_PROVIDER!r}. Expected 'paddle', 'fastspring', or 'mock'."
+        f"Unrecognized PAYMENT_PROVIDER: {settings.PAYMENT_PROVIDER!r}. "
+        "Expected 'paddle', 'fastspring', 'mock' or 'freemius'."
     )
+
+
+def payment_provider_id() -> str:
+    """The active provider's id, for display (an order with no payment yet),
+    without instantiating it, so it works with PAYMENT_PROVIDER=freemius."""
+    if settings.PAYMENT_PROVIDER == FREEMIUS_ONLY:
+        return FREEMIUS_ONLY
+    return get_payment_provider().id

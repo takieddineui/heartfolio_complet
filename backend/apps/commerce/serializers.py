@@ -20,7 +20,7 @@ contracts (Phase 3.6, src/types/commerce.ts):
 from django.conf import settings
 from rest_framework import serializers
 
-from apps.commerce.payment_provider import get_payment_provider
+from apps.commerce.payment_provider import payment_provider_id
 
 from . import freemius_integration
 from .models import Entitlement, FreemiusCheckoutStaging, Order, Payment
@@ -89,7 +89,7 @@ class OrderSerializer(serializers.ModelSerializer):
 
     def get_paymentProvider(self, obj):
         latest = self._latest_payment(obj)
-        return latest.provider if latest else get_payment_provider().id
+        return latest.provider if latest else payment_provider_id()
 
     def get_paymentStatus(self, obj):
         latest = self._latest_payment(obj)

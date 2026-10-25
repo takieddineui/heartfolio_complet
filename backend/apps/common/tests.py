@@ -294,6 +294,49 @@ class ProductionSettingsLoadingTests(TestCase):
         "FREEMIUS_ENABLED": "false",
     }
 
+    #: Removed from the inherited environment before every subprocess. The
+    #: container's own `.env.docker` sets real R2 and payment values, so a
+    #: test meant to prove "missing R2 credentials fail loudly" had them
+    #: present and failed for another reason (found in the 25 Oct 2026 full
+    #: run). Each test now supplies exactly what it means to.
+    _NOT_INHERITED = (
+        "PAYMENT_PROVIDER",
+        "ASSET_STORAGE_BACKEND",
+        "PADDLE_API_KEY",
+        "PADDLE_CLIENT_TOKEN",
+        "PADDLE_WEBHOOK_SECRET",
+        "FASTSPRING_API_USERNAME",
+        "FASTSPRING_API_PASSWORD",
+        "FASTSPRING_ACCESS_KEY",
+        "FASTSPRING_WEBHOOK_SECRET",
+        "R2_ACCESS_KEY_ID",
+        "R2_SECRET_ACCESS_KEY",
+        "R2_BUCKET_NAME",
+        "R2_ENDPOINT_URL",
+        "FREEMIUS_LIVE_CONFIRMED",
+        "FREEMIUS_PRODUCT_ID",
+        "FREEMIUS_API_TOKEN",
+        "FREEMIUS_SECRET_KEY",
+        "FREEMIUS_PUBLIC_KEY",
+    )
+
+    _R2 = {
+        "ASSET_STORAGE_BACKEND": "r2",
+        "R2_ACCESS_KEY_ID": "test_id",
+        "R2_SECRET_ACCESS_KEY": "test_secret_key",
+        "R2_BUCKET_NAME": "test-bucket",
+        "R2_ENDPOINT_URL": "https://example.r2.cloudflarestorage.com",
+    }
+
+    _FREEMIUS_LIVE = {
+        "FREEMIUS_ENABLED": "true",
+        "FREEMIUS_LIVE_CONFIRMED": "true",
+        "FREEMIUS_PRODUCT_ID": "12345",
+        "FREEMIUS_API_TOKEN": "test_api_token",
+        "FREEMIUS_SECRET_KEY": "sk_test_secret",
+        "FREEMIUS_PUBLIC_KEY": "pk_test_public",
+    }
+
     def _load_settings(self, extra_env: dict, code: str | None = None) -> subprocess.CompletedProcess:
         # Inherit the full parent environment rather than
         # reconstructing a bare-PATH-only one — Windows specifically
@@ -308,6 +351,8 @@ class ProductionSettingsLoadingTests(TestCase):
         # real Windows/Winsock/network fault, and is unrelated to
         # anything this test class is actually meant to verify.
         env = os.environ.copy()
+        for name in self._NOT_INHERITED:
+            env.pop(name, None)
         env.update(self._BASE_ENV)
         env.update(extra_env)
         return subprocess.run(
@@ -485,6 +530,41 @@ class ProductionSettingsLoadingTests(TestCase):
         )
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("SETTINGS_LOADED_OK", result.stdout)
+
+    def test_freemius_only_production_settings_load_with_no_paddle_or_fastspring_config(self):
+        """The owner's decision (25 Oct 2026): production takes payment through
+        Freemius only. With PAYMENT_PROVIDER unset, the default is "freemius",
+        and settings load with the Freemius and R2 configuration alone: no
+        PADDLE_* or FASTSPRING_* value exists in this environment at all.
+        """
+        result = self._load_settings(
+            {**self._R2, **self._FREEMIUS_LIVE},
+            code=(
+                "import django; django.setup(); from django.conf import settings; "
+                "assert not any(getattr(settings, k) for k in ('PADDLE_API_KEY', 'PADDLE_CLIENT_TOKEN', "
+                "'PADDLE_WEBHOOK_SECRET', 'FASTSPRING_API_USERNAME', 'FASTSPRING_API_PASSWORD', "
+                "'FASTSPRING_ACCESS_KEY', 'FASTSPRING_WEBHOOK_SECRET')); "
+                "print(settings.PAYMENT_PROVIDER, settings.FREEMIUS_ENABLED, settings.FREEMIUS_LIVE_CONFIRMED)"
+            ),
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stdout.strip(), "freemius True True")
+
+    def test_freemius_provider_without_freemius_enabled_fails_loudly(self):
+        # Freemius-only with Freemius off would boot a store that cannot take
+        # payment at all.
+        result = self._load_settings({**self._R2, "PAYMENT_PROVIDER": "freemius", "FREEMIUS_ENABLED": "false"})
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("ImproperlyConfigured", result.stderr)
+        self.assertIn("PAYMENT_PROVIDER=freemius but FREEMIUS_ENABLED is not true", result.stderr)
+
+    def test_freemius_provider_with_missing_freemius_credentials_fails_loudly(self):
+        live = {**self._FREEMIUS_LIVE, "FREEMIUS_SECRET_KEY": "", "FREEMIUS_PUBLIC_KEY": ""}
+        result = self._load_settings({**self._R2, **live})
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("Production requires Freemius payment configuration", result.stderr)
+        self.assertIn("FREEMIUS_SECRET_KEY", result.stderr)
+        self.assertIn("FREEMIUS_PUBLIC_KEY", result.stderr)
 
     def test_debug_is_hardcoded_false_even_if_env_says_otherwise(self):
         """`DEBUG = False` in production.py is a plain assignment, not

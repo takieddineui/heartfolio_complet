@@ -16,6 +16,7 @@
 !**/.env.example
 !.env.docker.example
 !**/.env.docker.example
+!.env.production.example
 
 # SSH keys and certificates (a private key sits in ./.ssh)
 .ssh/

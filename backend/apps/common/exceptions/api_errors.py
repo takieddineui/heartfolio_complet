@@ -199,6 +199,15 @@ class FastSpringWebhookSignatureInvalid(ApplicationError):
     default_detail = "The webhook signature could not be verified."
 
 
+class OrderPaymentNotOffered(ApplicationError):
+    """PAYMENT_PROVIDER=freemius: orders are paid only through the Freemius
+    checkout (`checkout/freemius/...`), so the generic pay endpoint has no
+    provider behind it and refuses, rather than a 500."""
+
+    status_code = status.HTTP_409_CONFLICT
+    default_detail = "Orders are paid through the Freemius checkout."
+
+
 class FreemiusNotEnabled(ApplicationError):
     status_code = status.HTTP_501_NOT_IMPLEMENTED
     default_detail = "Freemius checkout is not enabled."

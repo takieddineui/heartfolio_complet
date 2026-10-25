@@ -928,6 +928,19 @@ def _complete_freemius_purchase(staging: FreemiusCheckoutStaging, license_id: st
         if license_.is_cancelled:
             raise FreemiusVerificationFailed("This license has been cancelled.")
 
+        # LIVE MEANS LIVE (25 Oct 2026). A sandbox purchase is a real-looking
+        # licence that cost nothing; once the store is live it must never
+        # mint a paid order. Before go-live both are accepted, since sandbox
+        # checkouts are how the store is tested. A licence that does not say
+        # is refused too: Freemius documents `environment` on every licence,
+        # so its absence is not a production purchase we can vouch for.
+        if settings.FREEMIUS_LIVE_CONFIRMED and license_.environment != freemius_integration.ENVIRONMENT_PRODUCTION:
+            logger.error(
+                "freemius_non_production_license_refused",
+                extra={"staging_id": str(staging.id), "license_id": license_id, "environment": license_.environment},
+            )
+            raise FreemiusVerificationFailed("This license is not a live purchase.")
+
         # The cross-check that makes re-fetching the license worth doing:
         # a real, previously-legitimate license_id (from a DIFFERENT,
         # cheaper purchase) must not be resubmittable against a staging
@@ -983,7 +996,7 @@ def _complete_freemius_purchase(staging: FreemiusCheckoutStaging, license_id: st
     )
     send_order_confirmation(order)
     send_alert(
-        "PAID (Freemius, sandbox)\n"
+        f"PAID (Freemius, {freemius_integration.environment_label(license_.environment)})\n"
         f"order: {order.id}\n"
         f"product: {order.product.slug if order.product_id else '—'}\n"
         f"pack: {order.delivery_pack.slug if order.delivery_pack_id else '—'}\n"

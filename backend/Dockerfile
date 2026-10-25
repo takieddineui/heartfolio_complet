@@ -60,7 +60,8 @@ RUN DJANGO_SECRET_KEY=build-time-only \
     R2_ACCOUNT_ID=build R2_ACCESS_KEY_ID=build R2_SECRET_ACCESS_KEY=build \
     R2_BUCKET_NAME=build R2_ENDPOINT_URL=https://build.invalid \
     R2_PUBLIC_BASE_URL=https://build.invalid \
-    PADDLE_API_KEY=build PADDLE_CLIENT_TOKEN=build PADDLE_WEBHOOK_SECRET=build \
+    FREEMIUS_ENABLED=true FREEMIUS_LIVE_CONFIRMED=true FREEMIUS_PRODUCT_ID=build \
+    FREEMIUS_API_TOKEN=build FREEMIUS_SECRET_KEY=build FREEMIUS_PUBLIC_KEY=build \
     DJANGO_ALLOWED_HOSTS=build.invalid \
     CORS_ALLOWED_ORIGINS=https://build.invalid \
     python manage.py collectstatic --noinput
@@ -99,11 +100,25 @@ EXPOSE 8000
 # point) rather than editing this file, so the change is a dashboard
 # variable and not a redeploy.
 #
-# `--timeout 120` stays: a poster render legitimately takes tens of
+# `--timeout` defaults to 120: a poster render legitimately takes tens of
 # seconds, and with a single worker a timeout kills the only one there is.
+# It matches the frontend proxy's `proxyTimeout` (next.config.ts), which is
+# baked in at build time; raise both together or neither.
+#
+# The production compose file (docker-compose.prod.yml) sets the workers
+# (2), the timeout and `--max-requests`, which recycles a worker after that
+# many requests so the per-render font and image caches cannot grow without
+# bound. 0 (the default here) never recycles.
+#
+# The build-time collectstatic above passes dummy FREEMIUS_* values because
+# production settings take payment through Freemius by default
+# (PAYMENT_PROVIDER=freemius) and refuse to load without its configuration.
 CMD ["sh", "-c", "gunicorn config.wsgi:application \
      --bind 0.0.0.0:${PORT:-8000} \
      --workers ${GUNICORN_WORKERS:-1} \
-     --timeout 120 \
+     --timeout ${GUNICORN_TIMEOUT:-120} \
+     --graceful-timeout 30 \
+     --max-requests ${GUNICORN_MAX_REQUESTS:-0} \
+     --max-requests-jitter ${GUNICORN_MAX_REQUESTS_JITTER:-0} \
      --access-logfile - \
      --error-logfile -"]

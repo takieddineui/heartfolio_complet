@@ -1,0 +1,285 @@
+# Deploying Heartfolio to the VPS
+
+**Written:** 25 October 2026. This is the production guide.
+`DEPLOYMENT-GUIDE-DOCKER.md` is the older Railway/Vercel record and local
+Docker notes; where they disagree, this file wins.
+
+Production is one VPS running `docker-compose.prod.yml`:
+
+```
+internet ──443/80──► caddy ──► web  (Next.js, port 3000)  ──► api (internal)
+                          └──► api  (Django + gunicorn, port 8000)
+                                 └──► Supabase (database), R2 (photos/audio),
+                                      Freemius, Resend, Telegram
+```
+
+- **caddy** is the only container with published ports. It gets and renews
+  Let's Encrypt certificates by itself, redirects HTTP to HTTPS, and proxies:
+  - `SITE_HOST` (www.theheartfolio.com) to `web`;
+  - `APEX_HOST` (theheartfolio.com), which only redirects to `SITE_HOST`;
+  - `API_HOST` (api.theheartfolio.com) to `api`, for the Freemius webhook,
+    Django admin and the ops screens.
+- **web** reaches **api** over the internal Docker network
+  (`http://api:8000`), both for the browser's `/api/backend/*` calls (rewritten
+  by Next) and for its own server-side fetches.
+- **api** runs production settings: DEBUG off, Freemius as the only payment
+  provider, R2 storage required.
+
+Who does what: every step below that touches the VPS, DNS, Freemius,
+Supabase, Resend or real data is **yours**. Nothing here has been run
+against real services; the stack was built and exercised locally against
+the throwaway database (see the Phase 2 report).
+
+---
+
+## 1. One-time setup
+
+1. **The VPS.** Ubuntu 24.04 or similar, at least 2 vCPU and 4 GB RAM (a
+   heavy pack render has been measured above 512 MB per worker). Install
+   Docker Engine and the compose plugin. Firewall: allow only 22, 80 and 443.
+2. **DNS.** Three `A` records (and `AAAA` if the VPS has IPv6) pointing at
+   the VPS: `theheartfolio.com`, `www.theheartfolio.com`,
+   `api.theheartfolio.com`. Caddy cannot get certificates until they resolve.
+3. **The code.** Clone the repository to the VPS (for example
+   `/opt/heartfolio`), with the `backend/` and `frontend-heartfolio/` folders
+   side by side as in development.
+4. **The environment.** `cp .env.production.example .env.production`, then
+   fill it in (section 2). Never commit it; `.gitignore` already keeps it out.
+5. **R2.** Set `X-Content-Type-Options: nosniff` on the bucket (see
+   `DEPLOYMENT-GUIDE-DOCKER.md`, "Set X-Content-Type-Options").
+6. **Resend.** Verify `theheartfolio.com` in Resend (the DNS records its
+   Domains page lists: SPF/MX on its `send` subdomain and the DKIM
+   `resend._domainkey` TXT record; a DMARC record is recommended). Create the
+   `support@theheartfolio.com` mailbox with your mail provider: receipts tell
+   customers to reply, and replies go there.
+
+## 2. Every variable
+
+All in `.env.production`. "Build" means the value is baked into the `web`
+image: changing it needs `up -d --build web`, not a restart.
+
+### Hosts
+
+| Variable | Set to | If wrong or unset |
+|---|---|---|
+| `SITE_HOST` | `www.theheartfolio.com` | Compose refuses to start |
+| `APEX_HOST` | `theheartfolio.com` | Compose refuses to start |
+| `API_HOST` | `api.theheartfolio.com` | Compose refuses to start |
+| `ACME_EMAIL` | your address | Compose refuses to start; Let's Encrypt cannot warn you about certificates |
+| `DJANGO_ALLOWED_HOSTS` | `api.theheartfolio.com,api` | `api` is the internal name the web container uses; without it every page that reads the catalog fails |
+| `CORS_ALLOWED_ORIGINS` | `https://www.theheartfolio.com` | Settings refuse to load |
+| `CSRF_TRUSTED_ORIGINS` | `https://www.theheartfolio.com,https://api.theheartfolio.com` | Defaults to the CORS list; the admin login on `API_HOST` then fails CSRF |
+| `FRONTEND_URL` | `https://www.theheartfolio.com` | Defaults to that. **Every emailed link and printed QR code points here** |
+| `BACKEND_PUBLIC_URL` | `https://api.theheartfolio.com` | The ops digest omits its links |
+
+### Django
+
+| Variable | Set to | Notes |
+|---|---|---|
+| `DJANGO_SECRET_KEY` | a long random string | Required |
+| `DJANGO_SECURE_SSL_REDIRECT` | `false` | Caddy redirects public HTTP; Django's own redirect would bounce the web container's internal calls |
+| `DJANGO_SECURE_HSTS_SECONDS` | unset (30 days) | HSTS is sent on HTTPS requests |
+| `DJANGO_LOG_LEVEL` | `INFO` | |
+| `DATABASE_URL` | Supabase **session-mode** pooler URL | Transaction mode is not supported (CLAUDE.md) |
+
+### Payments: Freemius only
+
+| Variable | Set to | Notes |
+|---|---|---|
+| `PAYMENT_PROVIDER` | unset | Defaults to `freemius` in production. `paddle` and `fastspring` still work if ever chosen, each requiring its own keys |
+| `FREEMIUS_ENABLED` | `true` | With `PAYMENT_PROVIDER=freemius`, settings refuse to load without it |
+| `FREEMIUS_LIVE_CONFIRMED` | `true` | Production settings refuse `FREEMIUS_ENABLED` without it. Live means: no sandbox mode offered at checkout, and sandbox licences refused |
+| `FREEMIUS_PRODUCT_ID`, `FREEMIUS_API_TOKEN`, `FREEMIUS_SECRET_KEY`, `FREEMIUS_PUBLIC_KEY` | from Freemius, Settings → API & Keys | All four required |
+| `NEXT_PUBLIC_FREEMIUS_ENABLED` (build) | `true` | The storefront opens the Freemius checkout |
+| every `PADDLE_*`, `FASTSPRING_*` | unset | Their webhooks then reject every request |
+
+### Storage, email, alerts
+
+| Variable | Set to | Notes |
+|---|---|---|
+| `ASSET_STORAGE_BACKEND` | `r2` | `mock` is refused in production |
+| `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME`, `R2_ENDPOINT_URL`, `R2_PUBLIC_BASE_URL` | from Cloudflare | The four credentials are checked at startup |
+| `ASSET_BYTES_CACHE_MAX_MB` | `128` | Code default 64 overflowed at 8 photos |
+| `RESEND_API_KEY` | from Resend | Unset: no receipts are sent (logged) |
+| `RESEND_FROM_EMAIL` | `no-reply@theheartfolio.com` | The domain must be verified |
+| `RESEND_REPLY_TO_EMAIL` | `support@theheartfolio.com` | Empty: no Reply-To |
+| `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` | your bot and chat | Unset: no PAID or failure alerts |
+
+### Frontend build args
+
+| Variable | Set to | If unset |
+|---|---|---|
+| `NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN` | a Mapbox public token | Love Story Timeline's location search says it is unavailable |
+| `NEXT_PUBLIC_GA_ID` | `G-…` | No Google Analytics. When set, GA loads only after a visitor accepts the cookie banner |
+| `NEXT_PUBLIC_PLAUSIBLE_DOMAIN` | optional | Not loaded |
+
+`docker-compose.prod.yml` fixes the rest of the web build:
+`NEXT_PUBLIC_API_BASE_PATH=/api/backend` and `BACKEND_API_ORIGIN=http://api:8000`.
+
+### Gunicorn and rate limits
+
+| Variable | Default | Notes |
+|---|---|---|
+| `GUNICORN_WORKERS` | `2` | About one per GB of free memory. Each sync worker serves one request at a time |
+| `GUNICORN_TIMEOUT` | `120` | Matches the web proxy's timeout, which is baked into the image. Raise both together or neither |
+| `GUNICORN_MAX_REQUESTS` / `_JITTER` | `200` / `50` | Recycles workers so render caches cannot grow without bound |
+| `THROTTLE_RATE_*` | production defaults | Listed, commented out, at the end of the example file. Browser requests are limited per visitor (Caddy's X-Forwarded-For, which a client cannot forge). The live page's first load is fetched by the Next server, so it shares one identity: that is why `THROTTLE_RATE_AR_ACCESS` stays at 1000/min |
+
+Development-only variables that must stay unset here:
+`HEARTFOLIO_BACKEND_PATH`, `HEARTFOLIO_INTEGRATION_BASE`.
+
+## 3. First deploy
+
+```bash
+cd /opt/heartfolio
+docker compose -f docker-compose.prod.yml --env-file .env.production up -d --build
+docker compose -f docker-compose.prod.yml --env-file .env.production ps
+```
+
+The first build takes several minutes. Then, only if the database is new
+(the existing Supabase database is already migrated and seeded):
+
+```bash
+docker compose -f docker-compose.prod.yml --env-file .env.production exec api python manage.py migrate
+docker compose -f docker-compose.prod.yml --env-file .env.production exec api python manage.py createsuperuser
+docker compose -f docker-compose.prod.yml --env-file .env.production exec api python seed_catalog.py
+```
+
+Migrations and seeding are never run automatically. Against an existing
+database, run `migrate` after any release that adds migrations.
+
+**Check it:**
+
+```bash
+curl -sI http://www.theheartfolio.com | head -3      # 308 to https://
+curl -sI https://theheartfolio.com | head -3         # 301 to https://www.theheartfolio.com/
+curl -s https://api.theheartfolio.com/api/v1/health/ready/   # {"status":"ok","database":"reachable"}
+curl -s https://www.theheartfolio.com/api/backend/products | head -c 200
+curl -s https://www.theheartfolio.com/robots.txt
+```
+
+Then open the storefront, a product page and a Studio in a browser, and
+`https://api.theheartfolio.com/api/v1/ops/status/` with your staff login: it
+says whether Supabase, R2 and the rest are reachable from the server.
+
+## 4. Scheduled jobs
+
+On the VPS host, `crontab -e` (adjust the path):
+
+```
+*/10 * * * *  cd /opt/heartfolio && docker compose -f docker-compose.prod.yml --env-file .env.production exec -T api python manage.py check_services
+15 * * * *    cd /opt/heartfolio && docker compose -f docker-compose.prod.yml --env-file .env.production exec -T api python manage.py expire_freemius_staging
+30 3 * * *    cd /opt/heartfolio && docker compose -f docker-compose.prod.yml --env-file .env.production exec -T api python manage.py expire_provisional_assets
+0 8 * * *     cd /opt/heartfolio && docker compose -f docker-compose.prod.yml --env-file .env.production exec -T api python manage.py send_digest --period=daily
+```
+
+`expire_provisional_assets` is the only thing that deletes unpaid voice
+notes and videos; run it once with `--dry-run` first. `check_services` and
+`send_digest` alert through Telegram.
+
+## 5. Freemius: sandbox to live
+
+Until this section is done, sandbox checkouts are run on local Docker, never
+on the VPS (production settings only run Freemius live).
+
+Already done in the code (Phase 2):
+
+- Production starts with Freemius alone; Paddle and FastSpring need no keys.
+- The PAID alert names the licence's own environment ("live" or "sandbox"),
+  instead of always saying "sandbox".
+- With `FREEMIUS_LIVE_CONFIRMED=true`, order completion refuses any licence
+  that Freemius does not mark as production (`environment` 0). This covers
+  sandbox licences and licences that don't say. The same check covers the
+  checkout and the webhook safety net.
+
+Yours, in order:
+
+1. **Freemius account.** Confirm in the dashboard that the account is
+   approved for live payments (production settings call it "provisionally
+   accepted pending review").
+2. **Plans.** Plan ids belong to the product, and sandbox is a checkout mode
+   of the same product, so the ids should not change. Confirm in the
+   dashboard that each mapped plan exists, is one-off with a single price
+   point, and has the price the seed sells:
+
+   | Plan | Product : pack | Price |
+   |---|---|---|
+   | 70517 | love-story-timeline : printable | $22.99 |
+   | 69404 | love-story-timeline : live | $15.99 |
+   | 70543 | love-story-timeline : printable-plus-digital | $35.99 |
+   | 70518 | love-story-timeline : complete (disabled; past orders only) | — |
+   | 71990 | reasons-i-love-you : live | $15.99 |
+   | 72194 | graduation-keepsake : live | $15.99 |
+   | 73260 | song-poster : printable | $22.99 |
+   | 73263 | song-poster : live | $15.99 |
+   | 73264 | song-poster : printable-plus-digital | $35.99 |
+
+3. **Keys.** Product id, public key, secret key and an API token into
+   `.env.production`. Sandbox and live use the same keys.
+4. **Webhook.** In Freemius, add
+   `https://api.theheartfolio.com/api/v1/webhooks/freemius/` for the
+   `payment.created` and `license.created` events. It is verified with the
+   secret key.
+5. **Environment.** `FREEMIUS_ENABLED=true`, `FREEMIUS_LIVE_CONFIRMED=true`,
+   `NEXT_PUBLIC_FREEMIUS_ENABLED=true`, then
+   `up -d --build web api`.
+6. **One real purchase** of the cheapest pack, with your own card. Check:
+   - the order page opens and downloads work;
+   - the receipt arrives, and replying reaches support@;
+   - the Telegram alert reads "PAID (Freemius, live)";
+   - the api log has no `freemius_non_production_license_refused`. If it
+     does, Freemius did not mark the licence as production: stop and tell me.
+7. **Refund it** in the Freemius dashboard.
+8. **Remove the test orders** (section 6).
+
+## 6. Removing test orders
+
+Before launch every order in the database is a test. Two commands, both
+yours to run; Claude never runs them against Supabase.
+
+```bash
+# 1. List. Read-only (it runs in a READ ONLY transaction). Writes the
+#    selected ids to a file inside the container.
+docker compose -f docker-compose.prod.yml --env-file .env.production exec api \
+  python manage.py list_test_orders --check-freemius --ids-out /tmp/test-order-ids.txt
+
+# 2. Dry run: shows what would be deleted, deletes nothing.
+docker compose -f docker-compose.prod.yml --env-file .env.production exec api \
+  python manage.py cleanup_test_orders --ids-file /tmp/test-order-ids.txt --check-freemius
+
+# 3. Delete, giving the count the dry run showed.
+docker compose -f docker-compose.prod.yml --env-file .env.production exec api \
+  python manage.py cleanup_test_orders --ids-file /tmp/test-order-ids.txt --check-freemius --execute --confirm <N>
+```
+
+- **What the listing selects:**
+  - mock, Paddle and FastSpring orders (none ever ran live);
+  - Freemius orders whose licence Freemius marks as sandbox;
+  - orders never paid.
+- **What is never selected:**
+  - a live Freemius licence;
+  - one that can't be read;
+  - a Freemius order when `--check-freemius` is not given.
+- **The cleanup re-checks every id.** If any one is no longer a test order,
+  it deletes nothing.
+- **What deleting an order removes:** its payments, entitlements and live/AR
+  links. Feedback and checkout records stay, unlinked. Projects, customers
+  and photos are not touched.
+- **When to run it:** after the live test purchase in section 5 is refunded.
+  Take a Supabase backup first.
+
+## 7. Updating and rolling back
+
+```bash
+git pull
+docker compose -f docker-compose.prod.yml --env-file .env.production up -d --build
+docker compose -f docker-compose.prod.yml --env-file .env.production exec api python manage.py migrate   # if the release adds migrations
+```
+
+Rebuild `web` whenever a `NEXT_PUBLIC_*` value changes. To roll back,
+check out the previous commit and run the same `up -d --build`. Migrations in
+this project are additive, so the previous image runs against the migrated
+schema; do not roll the database back.
+
+Logs: `docker compose -f docker-compose.prod.yml --env-file .env.production logs -f api`
+(also `web`, `caddy`). Each container keeps at most 5 × 10 MB of logs.

@@ -1,5 +1,11 @@
 # Deploying and updating Heartfolio
 
+> **For the VPS, read `DEPLOYMENT-VPS.md` (25 Oct 2026) instead.** It is the
+> production guide: `docker-compose.prod.yml`, Caddy for HTTPS, every
+> environment variable and build arg, the Freemius sandbox-to-live checklist
+> and the test-order cleanup. This file remains the Railway/Vercel record and
+> the local-Docker notes.
+>
 > **Hosting status (updated):** Railway and Vercel are **no longer used**.
 > Development is local Docker (§2). Production is planned as a **VPS running
 > this same Docker setup**; the database for the VPS is still undecided.

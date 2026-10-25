@@ -479,9 +479,10 @@ ALLOWED_ASSET_MIME_TYPES = env.list(
 # Mirrors the ASSET_STORAGE_BACKEND pattern from Phase 3.5 exactly:
 # `PAYMENT_PROVIDER` selects the implementation, defaulting to "mock"
 # so local dev/tests work with zero Paddle credentials. Production
-# requires "paddle" explicitly — see production.py, which fails at
-# settings-load time if required PADDLE_* config is missing, and
-# refuses to start with PAYMENT_PROVIDER=mock.
+# defaults to "freemius" (Freemius only, owner's decision 25 Oct 2026: no
+# provider behind this abstraction; see payment_provider.py) and still
+# accepts "paddle" or "fastspring", each validated at settings-load time —
+# see production.py, which also refuses PAYMENT_PROVIDER=mock.
 #
 # Paddle distinguishes three credential types, used in different
 # places (never mixed):

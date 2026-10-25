@@ -135,6 +135,13 @@ def _get(path: str) -> dict[str, Any]:
     return response.json()
 
 
+#: Freemius's `environment` property on every entity, licences included:
+#: "0 means it belongs to the production environment, 1 means it belongs to
+#: the sandbox environment" (API reference, "Retrieve a license").
+ENVIRONMENT_PRODUCTION = 0
+ENVIRONMENT_SANDBOX = 1
+
+
 @dataclass(frozen=True)
 class FreemiusLicense:
     id: str
@@ -142,6 +149,18 @@ class FreemiusLicense:
     pricing_id: str | None
     user_id: str
     is_cancelled: bool
+    #: `ENVIRONMENT_PRODUCTION`, `ENVIRONMENT_SANDBOX`, or None if Freemius
+    #: did not say. Once the store is live, only production is accepted.
+    environment: int | None = None
+
+
+def environment_label(environment: int | None) -> str:
+    """For alerts and logs: what kind of purchase this licence is."""
+    if environment == ENVIRONMENT_PRODUCTION:
+        return "live"
+    if environment == ENVIRONMENT_SANDBOX:
+        return "sandbox"
+    return "environment unknown"
 
 
 def get_license(license_id: str) -> FreemiusLicense:
@@ -164,6 +183,7 @@ def get_license(license_id: str) -> FreemiusLicense:
         pricing_id=str(data["pricing_id"]) if data.get("pricing_id") is not None else None,
         user_id=str(data["user_id"]),
         is_cancelled=bool(data.get("is_cancelled", False)),
+        environment=int(data["environment"]) if data.get("environment") is not None else None,
     )
 
 

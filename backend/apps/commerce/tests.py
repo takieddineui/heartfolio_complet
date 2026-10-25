@@ -781,6 +781,34 @@ class PaymentFlowAPITests(TestCase):
         order_id = self._create_order_via_api(self.client)
         self.assertEqual(Entitlement.objects.filter(order_id=order_id).count(), 0)
 
+    @override_settings(PAYMENT_PROVIDER="freemius")
+    def test_freemius_only_refuses_the_generic_pay_endpoint_and_still_serializes_orders(self):
+        """Production is Freemius only (25 Oct 2026): nothing stands behind the
+        generic pay endpoint, so it refuses with a 409 and pays, charges and
+        grants nothing. An order with no payment yet still serializes: its
+        provider used to be read by instantiating the active provider."""
+        login_as_guest(self.client)
+        product = Product.objects.create(
+            slug="love-story-timeline", name_i18n_key="x", category=Product.CATEGORY_TIMELINE, status=Product.STATUS_AVAILABLE
+        )
+        pack = make_delivery_pack(product=product, slug="printable", price_cents=1200, included_targets=["print-png"])
+        created = self.client.post(
+            "/api/v1/orders/",
+            {"productId": product.slug, "deliveryPackId": pack.slug},
+            format="json",
+            **csrf_headers(self.client),
+        )
+        self.assertEqual(created.status_code, http_status.HTTP_201_CREATED, created.data)
+        self.assertEqual(created.data["paymentProvider"], "freemius")
+
+        response = self.client.post(f"/api/v1/orders/{created.data['id']}/pay/", **csrf_headers(self.client))
+
+        self.assertEqual(response.status_code, http_status.HTTP_409_CONFLICT)
+        order = Order.objects.get(id=created.data["id"])
+        self.assertEqual(order.status, Order.STATUS_PENDING)
+        self.assertFalse(Payment.objects.filter(order=order).exists())
+        self.assertFalse(Entitlement.objects.filter(order=order).exists())
+
     def test_another_customer_cannot_pay_someone_elses_order(self):
         login_as_guest(self.client)
         order_id = self._create_order_via_api(self.client)
@@ -3317,6 +3345,83 @@ class FreemiusCompletionServiceTests(TestCase):
 
         staging.refresh_from_db()
         self.assertEqual(staging.status, FreemiusCheckoutStaging.STATUS_EXPIRED)
+
+
+@override_settings(FREEMIUS_ENABLED=True)
+class FreemiusLiveLicenseTests(TestCase):
+    """GO-LIVE GUARD (25 Oct 2026). Freemius marks every licence with
+    `environment` (0 production, 1 sandbox). Once FREEMIUS_LIVE_CONFIRMED is
+    set, completion accepts only production licences, whichever path calls
+    it (the frontend's completion and the webhook safety net share
+    `_complete_freemius_purchase`). Before that, sandbox checkouts keep
+    working, because they are how the store is tested. The PAID alert names
+    the licence's own environment; it used to say "sandbox" whatever was
+    bought."""
+
+    def _staged(self):
+        customer = make_customer()
+        product, pack, key, plan = _stage_ready_product_pack()
+        self.enterContext(patch.dict(freemius_integration.FREEMIUS_PLAN_MAPPING, {key: plan}))
+        staging = stage_freemius_checkout(customer, product_slug=product.slug, delivery_pack_slug=pack.slug)
+        return customer, staging, plan
+
+    def _license(self, plan, license_id, environment):
+        return FreemiusLicense(
+            id=license_id,
+            plan_id=plan["plan_id"],
+            pricing_id=plan["pricing_id"],
+            user_id="u1",
+            is_cancelled=False,
+            environment=environment,
+        )
+
+    def _complete(self, environment, license_id):
+        customer, staging, plan = self._staged()
+        with patch.object(freemius_integration, "get_license", return_value=self._license(plan, license_id, environment)):
+            with patch("apps.commerce.services.send_alert") as alert, patch("apps.commerce.services.send_order_confirmation"):
+                order = complete_freemius_checkout(customer, staging.id, license_id)
+        return order, alert
+
+    def _assert_refused(self, environment, license_id):
+        customer, staging, plan = self._staged()
+        with patch.object(freemius_integration, "get_license", return_value=self._license(plan, license_id, environment)):
+            with patch("apps.commerce.services.send_alert") as alert, patch("apps.commerce.services.send_order_confirmation"):
+                with self.assertRaises(FreemiusVerificationFailed):
+                    complete_freemius_checkout(customer, staging.id, license_id)
+        alert.assert_not_called()
+        staging.refresh_from_db()
+        self.assertEqual(staging.status, FreemiusCheckoutStaging.STATUS_AWAITING_PAYMENT)
+        self.assertFalse(Payment.objects.filter(provider="freemius", provider_reference=license_id).exists())
+        self.assertFalse(Order.objects.filter(customer=customer).exists())
+
+    @override_settings(FREEMIUS_LIVE_CONFIRMED=True)
+    def test_live_store_refuses_a_sandbox_license(self):
+        self._assert_refused(freemius_integration.ENVIRONMENT_SANDBOX, "lic_sandbox")
+
+    @override_settings(FREEMIUS_LIVE_CONFIRMED=True)
+    def test_live_store_refuses_a_license_that_does_not_say_its_environment(self):
+        self._assert_refused(None, "lic_unknown")
+
+    @override_settings(FREEMIUS_LIVE_CONFIRMED=True)
+    def test_live_store_accepts_a_production_license_and_alerts_it_as_live(self):
+        order, alert = self._complete(freemius_integration.ENVIRONMENT_PRODUCTION, "lic_live")
+        self.assertEqual(order.status, Order.STATUS_PAID)
+        text = alert.call_args.args[0]
+        self.assertEqual(text.splitlines()[0], "PAID (Freemius, live)")
+
+    @override_settings(FREEMIUS_LIVE_CONFIRMED=False)
+    def test_before_go_live_a_sandbox_license_still_completes_and_alerts_as_sandbox(self):
+        order, alert = self._complete(freemius_integration.ENVIRONMENT_SANDBOX, "lic_test")
+        self.assertEqual(order.status, Order.STATUS_PAID)
+        self.assertEqual(alert.call_args.args[0].splitlines()[0], "PAID (Freemius, sandbox)")
+
+    def test_the_environment_is_read_from_the_license_record(self):
+        record = {"id": 9, "plan_id": 73260, "pricing_id": None, "user_id": 4, "is_cancelled": False}
+        for raw, expected in ((0, 0), (1, 1), ("0", 0)):
+            with patch.object(freemius_integration, "_get", return_value={**record, "environment": raw}):
+                self.assertEqual(freemius_integration.get_license("9").environment, expected)
+        with patch.object(freemius_integration, "_get", return_value=record):
+            self.assertIsNone(freemius_integration.get_license("9").environment)
 
 
 @override_settings(FREEMIUS_ENABLED=True)

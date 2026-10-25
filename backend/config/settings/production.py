@@ -93,11 +93,27 @@ elif ASSET_STORAGE_BACKEND == "mock":
     )
 
 # Same reasoning as ASSET_STORAGE_BACKEND above: "mock" (Phase 3.4's
-# MockPaymentProvider) is for local dev/tests only. Production must use
-# real Paddle and must fail at settings-load time, not at the first
-# checkout attempt, if required configuration is missing.
-PAYMENT_PROVIDER = env("PAYMENT_PROVIDER", default="paddle")
-if PAYMENT_PROVIDER == "paddle":
+# MockPaymentProvider) is for local dev/tests only, and production must fail
+# at settings-load time, not at the first checkout attempt, if the chosen
+# provider's configuration is missing.
+#
+# FREEMIUS ONLY BY DEFAULT (owner's decision, 25 Oct 2026). "freemius" puts
+# no provider behind the generic pay endpoint (it refuses, see
+# payment_provider.py) and requires no Paddle or FastSpring configuration:
+# their code stays, switched off, and their webhooks reject everything while
+# their secrets are unset. It does require Freemius itself, validated in the
+# Freemius block below. "paddle" and "fastspring" remain selectable, each
+# validated as before.
+PAYMENT_PROVIDER = env("PAYMENT_PROVIDER", default="freemius")
+if PAYMENT_PROVIDER == "freemius":
+    if not env.bool("FREEMIUS_ENABLED", default=False):
+        from django.core.exceptions import ImproperlyConfigured
+
+        raise ImproperlyConfigured(
+            "PAYMENT_PROVIDER=freemius but FREEMIUS_ENABLED is not true: production would have no way "
+            "to take payment. Set FREEMIUS_ENABLED=true with the FREEMIUS_* configuration."
+        )
+elif PAYMENT_PROVIDER == "paddle":
     _required_paddle_settings = {
         "PADDLE_API_KEY": PADDLE_API_KEY,  # noqa: F405
         "PADDLE_CLIENT_TOKEN": PADDLE_CLIENT_TOKEN,  # noqa: F405
@@ -137,8 +153,8 @@ elif PAYMENT_PROVIDER == "mock":
     from django.core.exceptions import ImproperlyConfigured
 
     raise ImproperlyConfigured(
-        "PAYMENT_PROVIDER=mock is not permitted in production — set PAYMENT_PROVIDER=paddle "
-        "with the required PADDLE_* environment variables instead."
+        "PAYMENT_PROVIDER=mock is not permitted in production — leave PAYMENT_PROVIDER unset "
+        "(or set it to freemius) with the required FREEMIUS_* environment variables instead."
     )
 else:
     # Anything that isn't "paddle", "fastspring", or "mock" — a typo, or a
@@ -153,7 +169,7 @@ else:
 
     raise ImproperlyConfigured(
         f"Unrecognized PAYMENT_PROVIDER: {PAYMENT_PROVIDER!r}. "
-        "Production requires PAYMENT_PROVIDER=paddle or PAYMENT_PROVIDER=fastspring."
+        "Production accepts PAYMENT_PROVIDER=freemius (the default), paddle or fastspring."
     )
 
 # Freemius is orthogonal to PAYMENT_PROVIDER (see base.py's own comment) and
@@ -210,5 +226,17 @@ REST_FRAMEWORK = {
         "asset_upload": env("THROTTLE_RATE_ASSET_UPLOAD", default="30/min"),
         "order_create": env("THROTTLE_RATE_ORDER_CREATE", default="20/min"),
         "delivery_download": env("THROTTLE_RATE_DELIVERY_DOWNLOAD", default="60/min"),
+        # Left at base.py's development 1000/min in production until 25 Oct
+        # 2026. The feedback form is unauthenticated and posts from the
+        # browser, so this limit applies per visitor.
+        #
+        # `ar_access` is deliberately NOT tightened: the live page fetches its
+        # payload from the Next SERVER (BACKEND_API_ORIGIN), which sends no
+        # X-Forwarded-For, so DRF sees every recipient as the web container
+        # and a per-client rate would be one bucket shared by all of them
+        # (measured on the production stack, 25 Oct 2026). Browser calls
+        # carry the visitor's address (Caddy sets X-Forwarded-For and drops a
+        # client-supplied one; Next's rewrite passes it on).
+        "feedback_create": env("THROTTLE_RATE_FEEDBACK_CREATE", default="10/min"),
     },
 }

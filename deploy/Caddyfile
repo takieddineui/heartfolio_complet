@@ -1,0 +1,32 @@
+# Heartfolio's HTTPS front door (docker-compose.prod.yml, DEPLOYMENT-VPS.md).
+#
+# Caddy obtains and renews a Let's Encrypt certificate for every host below
+# on its own, and answers plain HTTP with a redirect to HTTPS. It sets
+# X-Forwarded-For/-Proto/-Host on what it proxies, and ignores those headers
+# when a client sends them (only trusted proxies may set them, and none are
+# configured), so Django can trust X-Forwarded-Proto.
+#
+# Host names come from .env.production.
+
+{
+	email {$ACME_EMAIL}
+}
+
+# The bare domain only redirects: the site's canonical address is SITE_HOST
+# (FRONTEND_URL, every emailed link and every printed QR code use it).
+{$APEX_HOST} {
+	redir https://{$SITE_HOST}{uri} permanent
+}
+
+# The storefront. The browser reaches the API through it as well
+# (/api/backend/*, rewritten by Next to the api container).
+{$SITE_HOST} {
+	encode zstd gzip
+	reverse_proxy web:3000
+}
+
+# The API directly: the Freemius webhook, Django admin and the ops screens.
+{$API_HOST} {
+	encode zstd gzip
+	reverse_proxy api:8000
+}

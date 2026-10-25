@@ -1,0 +1,107 @@
+# Heartfolio in production, on one VPS (DEPLOYMENT-VPS.md is the guide).
+#
+# A standalone file, NOT an override of docker-compose.yml: that one is for
+# development (development settings, the source tree mounted over /app, a
+# throwaway database) and compose merges volumes and environments into an
+# override rather than replacing them. Run with:
+#
+#   docker compose -f docker-compose.prod.yml --env-file .env.production up -d --build
+#
+# `.env.production` (copied from .env.production.example, never committed)
+# feeds the api's environment, the web image's build args and Caddy's host
+# names. Migrations and seeding stay manual, as everywhere in this project.
+#
+# Only Caddy is published. It terminates HTTPS (certificates from Let's
+# Encrypt, renewed by itself), redirects HTTP to HTTPS, and is the only path
+# to the other two containers, which is what makes Django's trust in
+# X-Forwarded-Proto safe (see production.py).
+
+# Its own project name: the development stack (docker-compose.yml) is the
+# `heartfolio` project, and sharing a name would make each replace the
+# other's containers on any machine that has both.
+name: heartfolio-prod
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "5"
+
+services:
+  api:
+    build:
+      context: ./backend
+    env_file: .env.production
+    environment:
+      DJANGO_SETTINGS_MODULE: config.settings.production
+      GUNICORN_WORKERS: ${GUNICORN_WORKERS:-2}
+      GUNICORN_TIMEOUT: ${GUNICORN_TIMEOUT:-120}
+      GUNICORN_MAX_REQUESTS: ${GUNICORN_MAX_REQUESTS:-200}
+      GUNICORN_MAX_REQUESTS_JITTER: ${GUNICORN_MAX_REQUESTS_JITTER:-50}
+    expose:
+      - "8000"
+    restart: unless-stopped
+    logging: *logging
+    healthcheck:
+      # Liveness only (no database): `api` is the Host the other containers
+      # use, so it must be in DJANGO_ALLOWED_HOSTS anyway.
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen(urllib.request.Request('http://127.0.0.1:8000/api/v1/health/', headers={'Host': 'api'}), timeout=5)"
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  web:
+    build:
+      context: ./frontend-heartfolio
+      args:
+        # NEXT_PUBLIC_* values and BACKEND_API_ORIGIN are inlined at BUILD
+        # time: changing any of them needs a rebuild, not a restart.
+        NEXT_PUBLIC_FREEMIUS_ENABLED: ${NEXT_PUBLIC_FREEMIUS_ENABLED:-true}
+        NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN: ${NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN:-}
+        NEXT_PUBLIC_GA_ID: ${NEXT_PUBLIC_GA_ID:-}
+        NEXT_PUBLIC_PLAUSIBLE_DOMAIN: ${NEXT_PUBLIC_PLAUSIBLE_DOMAIN:-}
+        # Must not be empty: the client reads it with `??`, so "" would
+        # replace the default and break every API call.
+        NEXT_PUBLIC_API_BASE_PATH: /api/backend
+        BACKEND_API_ORIGIN: http://api:8000
+    environment:
+      BACKEND_API_ORIGIN: http://api:8000
+    expose:
+      - "3000"
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+    logging: *logging
+
+  caddy:
+    image: caddy:2.8.4-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      SITE_HOST: ${SITE_HOST:?set SITE_HOST in .env.production}
+      APEX_HOST: ${APEX_HOST:?set APEX_HOST in .env.production}
+      API_HOST: ${API_HOST:?set API_HOST in .env.production}
+      ACME_EMAIL: ${ACME_EMAIL:?set ACME_EMAIL in .env.production}
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - web
+      - api
+    restart: unless-stopped
+    logging: *logging
+
+volumes:
+  # Certificates and ACME account: losing this volume means re-issuing every
+  # certificate, which Let's Encrypt rate-limits.
+  caddy_data:
+  caddy_config:
