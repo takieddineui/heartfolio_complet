@@ -78,7 +78,8 @@ def _order_has_live_page(order) -> bool:
 
 
 def _render(order, link: str, *, include_qr: bool | None = None) -> tuple[str, str, str]:
-    """Returns (subject, html, text).
+    """Returns (subject, html, text), in the order's language
+    (`email_copy.RECEIPT`; English for every order until 25 Oct 2026).
 
     A plain-text alternative is included because some clients render it in
     preference to HTML, and a receipt that arrives blank is worse than a
@@ -89,10 +90,20 @@ def _render(order, link: str, *, include_qr: bool | None = None) -> tuple[str, s
     image can never describe something that is not there. Left as None — a
     direct caller — it falls back to "does this pack have a live page".
     """
-    product_name = order.product.slug.replace("-", " ").title()
-    total = f"{order.total_cents / 100:.2f} {order.currency}"
+    from html import escape
 
-    subject = f"Your Heartfolio order — {product_name}"
+    from .email_copy import RECEIPT, copy_locale, product_name
+
+    language = copy_locale(order.locale)
+    copy = RECEIPT[language]
+    rtl = language == "ar"
+    product = product_name(
+        getattr(order.product, "name_i18n_key", None), order.product.slug, language
+    )
+    total = f"{order.total_cents / 100:.2f} {order.currency}"
+    days = settings.ORDER_ACCESS_TOKEN_MAX_AGE_DAYS
+
+    subject = copy["subject"].format(product=product)
 
     # §18d — the GIFT QR card, for orders whose pack includes the live page.
     #
@@ -111,6 +122,9 @@ def _render(order, link: str, *, include_qr: bool | None = None) -> tuple[str, s
     #
     # THE COPY DOES NOT SAY "PRINT IT" AS THE ONLY USE: people forward the
     # email or show the phone screen as often as they print.
+    #
+    # THE GIFT LINK goes under it (owner's decision, 25 Oct 2026): the same
+    # permanent /live/<id> address the card encodes, to paste into a message.
     if include_qr is None:
         include_qr = _order_has_live_page(order)
     qr_html = ""
@@ -120,64 +134,80 @@ def _render(order, link: str, *, include_qr: bool | None = None) -> tuple[str, s
             f"{settings.FRONTEND_URL}/api/backend/orders/{order.id}/qr/recipient/"
             f"{generate_order_access_token(order.id)}/"
         )
+        gift_url = _gift_link(order)
+        gift_html = ""
+        if gift_url:
+            gift_html = f"""
+    <p style="line-height:1.6;margin:0 0 24px;text-align:center;font-size:14px;color:#6b6b75;">
+      {escape(copy["gift_link"])}<br>
+      <a href="{gift_url}" dir="ltr" style="color:#2b2b33;word-break:break-all;">{gift_url}</a>
+    </p>"""
         qr_html = f"""
     <p style="margin:0 0 8px;text-align:center;">
-      <img src="{qr_url}" alt="Scan to open the keepsake" width="220"
+      <img src="{qr_url}" alt="{escape(copy["qr_alt"])}" width="220"
            style="width:220px;max-width:70%;height:auto;border-radius:8px;" />
     </p>
-    <p style="line-height:1.6;margin:0 0 24px;text-align:center;font-size:14px;color:#6b6b75;">
-      This QR card is for the gift — scanning it opens the keepsake directly
-      on a phone. Print it, show it on a screen, or simply forward it as it
-      is. It is attached to this email too.
-    </p>"""
-        qr_text = (
-            "\nA QR card for the gift is attached — scanning it opens the "
-            "keepsake directly on a phone. Print it, show it on a screen, or "
-            "simply forward it as it is.\n"
-        )
+    <p style="line-height:1.6;margin:0 0 16px;text-align:center;font-size:14px;color:#6b6b75;">
+      {escape(copy["qr_caption"])}
+    </p>{gift_html}"""
+        qr_text = f"\n{copy['qr_text']}\n" + (f"{copy['gift_link']} {gift_url}\n" if gift_url else "")
 
+    align = "right" if rtl else "left"
+    # Each template is escaped, then its one value goes in as markup
+    # (escaping leaves the `{name}` braces alone). Numbers, the amount and the
+    # reference stay left to right inside an Arabic sentence.
+    paid_html = escape(copy["paid"]).replace("{product}", f"<strong>{escape(product)}</strong>")
+    total_html = escape(copy["total"]).replace("{total}", f'<strong dir="ltr">{escape(total)}</strong>')
+    reference_html = escape(copy["reference"]).replace("{reference}", f'<span dir="ltr">{order.id}</span>')
     html = f"""<!DOCTYPE html>
-<html lang="en" dir="ltr">
+<html lang="{language}" dir="{'rtl' if rtl else 'ltr'}">
 <head><meta charset="utf-8"></head>
 <body style="margin:0;padding:24px;background:#faf7f2;font-family:Georgia,serif;color:#2b2b33;">
-  <div style="max-width:520px;margin:0 auto;background:#fffdfa;padding:32px;border-radius:8px;">
-    <h1 style="font-size:22px;margin:0 0 16px;">Thank you — your keepsake is ready</h1>
+  <div dir="{'rtl' if rtl else 'ltr'}" style="max-width:520px;margin:0 auto;background:#fffdfa;padding:32px;border-radius:8px;text-align:{align};">
+    <h1 style="font-size:22px;margin:0 0 16px;">{escape(copy["heading"])}</h1>
     <p style="line-height:1.6;margin:0 0 16px;">
-      Your payment for <strong>{product_name}</strong> has gone through, and your
-      files are waiting for you.
+      {paid_html}
     </p>
-    <p style="line-height:1.6;margin:0 0 24px;">Total paid: <strong>{total}</strong></p>
+    <p style="line-height:1.6;margin:0 0 24px;">{total_html}</p>
     <p style="margin:0 0 24px;">
       <a href="{link}"
          style="display:inline-block;background:#2b2b33;color:#fffdfa;text-decoration:none;
-                padding:12px 24px;border-radius:6px;">Open your order</a>
+                padding:12px 24px;border-radius:6px;">{escape(copy["button"])}</a>
     </p>
     {qr_html}
     <p style="line-height:1.6;margin:0 0 8px;font-size:14px;color:#6b6b75;">
-      This link works on any device and does not need a password. It stays
-      valid for {settings.ORDER_ACCESS_TOKEN_MAX_AGE_DAYS} days — if it ever
-      stops working, just reply to this email and we will send a fresh one.
+      {escape(copy["link_note"].format(days=days))}
     </p>
     <p style="line-height:1.6;margin:16px 0 0;font-size:14px;color:#6b6b75;">
-      Order reference: {order.id}
+      {reference_html}
     </p>
   </div>
 </body>
 </html>"""
 
     text = (
-        "Thank you — your keepsake is ready\n\n"
-        f"Your payment for {product_name} has gone through, and your files are waiting.\n"
-        f"Total paid: {total}\n\n"
-        f"Open your order: {link}\n\n"
-        f"This link works on any device and does not need a password. It stays valid for "
-        f"{settings.ORDER_ACCESS_TOKEN_MAX_AGE_DAYS} days — if it stops working, reply to this "
-        "email and we will send a fresh one.\n\n"
+        f"{copy['heading']}\n\n"
+        f"{copy['paid'].format(product=product)}\n"
+        f"{copy['total'].format(total=total)}\n\n"
+        f"{copy['button']}: {link}\n\n"
+        f"{copy['link_note'].format(days=days)}\n\n"
         f"{qr_text}"
-        f"Order reference: {order.id}\n"
+        f"{copy['reference'].format(reference=order.id)}\n"
     )
 
     return subject, html, text
+
+
+def _gift_link(order) -> str | None:
+    """The recipient's /live/<id> address, or None when the live page is not
+    available (the email then shows the QR section without a link)."""
+    try:
+        from apps.delivery.bonuses import _recipient_live_url
+
+        return _recipient_live_url(order)
+    except Exception:  # noqa: BLE001 — a missing link must not cost the receipt
+        logger.warning("receipt_gift_link_unavailable", extra={"order_id": str(order.id)})
+        return None
 
 
 def send_order_confirmation(order) -> bool:

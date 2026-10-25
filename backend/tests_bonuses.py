@@ -9,6 +9,7 @@ import re
 import uuid
 import zipfile
 from types import SimpleNamespace
+from unittest.mock import patch
 
 from django.test import SimpleTestCase, override_settings
 
@@ -277,3 +278,88 @@ class QrCaptionTests(SimpleTestCase):
         for name in ("DejaVuSerif.ttf", "DejaVuSans.ttf", "noto-kufi-arabic.woff2"):
             with self.subTest(font=name):
                 self.assertTrue((bonuses._CARD_FONT_DIR / name).is_file())
+
+
+class LocalizedBonusTests(SimpleTestCase):
+    """THE BONUS FILES AND THE QR CARD SPEAK THE ORDER'S LANGUAGE (owner's
+    decision, 25 Oct 2026: they were English for every order). Each
+    document's words come from `bonus_copy`, wrapped to the page; Arabic is
+    drawn right to left as shaped lines."""
+
+    def _drawn(self, render, locale):
+        """Every line the PDF draws: (text, right_to_left, width, room)."""
+        from apps.delivery import bonuses
+
+        drawn = []
+        real_line = bonuses._PdfText.line
+
+        def record(text_self, line, y, size, colour, *, bold=False, italic=False, inset=0.0):
+            drawn.append((line, text_self.rtl, text_self.width(line, size, bold=bold, italic=italic),
+                          text_self.right - text_self.left - inset))
+            return real_line(text_self, line, y, size, colour, bold=bold, italic=italic, inset=inset)
+
+        with patch.object(bonuses._PdfText, "line", record):
+            pdf = render(locale)
+        self.assertTrue(pdf.startswith(b"%PDF-"))
+        return drawn
+
+    def _documents(self):
+        from apps.delivery.bonus_copy import PRINT_ADVICE, THANK_YOU
+
+        return (
+            (render_thank_you_card, lambda l: [THANK_YOU[l]["title"], *THANK_YOU[l]["paragraphs"]]),
+            (render_printing_advice_pdf, lambda l: [PRINT_ADVICE[l]["title"]] + [
+                part for heading, paragraphs in PRINT_ADVICE[l]["sections"] for part in [heading, *paragraphs]]),
+        )
+
+    def test_each_language_draws_its_own_words_and_none_of_the_english(self):
+        for render, words in self._documents():
+            english = " ".join(words("en"))
+            for locale in ("en", "fr", "ar"):
+                with self.subTest(render.__name__, locale=locale):
+                    drawn = " ".join(line for line, *_ in self._drawn(render, locale))
+                    for part in words(locale):
+                        self.assertIn(part, drawn)
+                    if locale != "en":
+                        self.assertNotIn(english[:60], drawn)
+
+    def test_arabic_is_drawn_right_to_left_and_the_others_left_to_right(self):
+        for render, _ in self._documents():
+            for locale in ("en", "fr", "ar"):
+                with self.subTest(render.__name__, locale=locale):
+                    self.assertEqual({rtl for _, rtl, *_ in self._drawn(render, locale)}, {locale == "ar"})
+
+    def test_every_line_fits_the_page(self):
+        for render, _ in self._documents():
+            for locale in ("en", "fr", "ar"):
+                for line, _, width, room in self._drawn(render, locale):
+                    with self.subTest(render.__name__, locale=locale, line=line[:30]):
+                        self.assertLessEqual(width, room + 0.5)
+
+    def test_an_unknown_language_gets_the_english_documents(self):
+        from apps.delivery.bonus_copy import THANK_YOU
+
+        drawn = " ".join(line for line, *_ in self._drawn(render_thank_you_card, "de"))
+        self.assertIn(THANK_YOU["en"]["paragraphs"][0], drawn)
+
+    def test_the_thank_you_card_no_longer_promises_files(self):
+        """A Digital-only order has no files; the card is the same for every order."""
+        from apps.delivery.bonus_copy import THANK_YOU
+
+        self.assertNotIn("files", " ".join(THANK_YOU["en"]["paragraphs"]).lower())
+
+    def test_the_qr_card_default_caption_is_in_the_order_language(self):
+        from apps.delivery import bonuses
+        from apps.delivery.bonus_copy import QR_DEFAULT_CAPTION
+
+        for locale in ("en", "fr", "ar"):
+            captured = {}
+            real = bonuses._caption_layout
+
+            def spy(draw, text, **kwargs):
+                captured["text"] = text
+                return real(draw, text, **kwargs)
+
+            with self.subTest(locale), patch.object(bonuses, "_caption_layout", spy):
+                bonuses._render_qr_card("https://example.test/x", "dark", caption=None, locale=locale)
+                self.assertEqual(captured["text"], QR_DEFAULT_CAPTION[locale])

@@ -436,10 +436,10 @@ class OrderBonusesDownloadView(APIView):
         written = 0
         with zipfile.ZipFile(buffer, "w", compression=zipfile.ZIP_DEFLATED) as archive:
             if BONUS_THANK_YOU in bonuses:
-                archive.writestr("thank-you.pdf", render_thank_you_card())
+                archive.writestr("thank-you.pdf", render_thank_you_card(order.locale))
                 written += 1
             if BONUS_PRINT_ADVICE in bonuses:
-                archive.writestr("how-to-print.pdf", render_printing_advice_pdf())
+                archive.writestr("how-to-print.pdf", render_printing_advice_pdf(order.locale))
                 written += 1
 
         if written == 0:
@@ -624,9 +624,9 @@ def _iter_pack_archive_uncached(order, pdf_targets: set[str]):
     try:
         for bonus in bonus_targets_for_order(order):
             if bonus == BONUS_THANK_YOU:
-                archive.writestr("bonus/thank-you.pdf", render_thank_you_card())
+                archive.writestr("bonus/thank-you.pdf", render_thank_you_card(order.locale))
             elif bonus == BONUS_PRINT_ADVICE:
-                archive.writestr("bonus/how-to-print.pdf", render_printing_advice_pdf())
+                archive.writestr("bonus/how-to-print.pdf", render_printing_advice_pdf(order.locale))
             elif bonus == BONUS_QR:
                 # All card designs ship, for BOTH audiences — the
                 # buyer's and the recipient's (see `_qr_card_files`).

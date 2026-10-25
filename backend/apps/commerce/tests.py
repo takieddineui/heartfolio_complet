@@ -19,7 +19,7 @@ from django.core.signing import TimestampSigner
 from django.test import SimpleTestCase, TestCase, TransactionTestCase, override_settings
 from django.utils import timezone
 
-from .emails import build_order_link, send_order_confirmation
+from .emails import _render, build_order_link, send_order_confirmation
 from .paddle_integration import parse_webhook_payload
 from .analytics import (
     average_order_value_cents,
@@ -2548,14 +2548,15 @@ class OrderAccessTokenTests(SimpleTestCase):
 class OrderEmailTests(SimpleTestCase):
     """§12 — the receipt itself."""
 
-    def _order(self):
+    def _order(self, locale="en"):
         order = MagicMock()
         order.id = uuid.uuid4()
         order.guest_email = "buyer@example.com"
         order.total_cents = 1800
         order.currency = "USD"
-        order.locale = "ar"
+        order.locale = locale
         order.product.slug = "love-story-timeline"
+        order.product.name_i18n_key = "loveStoryTimeline"
         return order
 
     @override_settings(RESEND_API_KEY="", FRONTEND_URL="https://example.test")
@@ -2600,19 +2601,51 @@ class OrderEmailTests(SimpleTestCase):
         self.assertIn(str(order.id), link)
 
     @override_settings(RESEND_API_KEY="key", FRONTEND_URL="https://example.test")
-    def test_the_first_version_is_english_regardless_of_order_locale(self):
-        # `Order.locale` exists and is recorded, but the decision was to keep
-        # v1 English-only. Asserted so that changing the template language
-        # later is a deliberate act rather than an accident.
-        order = self._order()  # locale is "ar"
-        response = MagicMock(status_code=200, text="{}")
+    def test_the_receipt_is_in_the_order_language(self):
+        """The owner's decision (25 Oct 2026): it was English for every order,
+        subject included. Each language's own words, its product name as the
+        storefront spells it, and right to left for Arabic."""
+        from .email_copy import RECEIPT
 
-        with patch("apps.commerce.emails.requests.post", return_value=response) as post:
-            send_order_confirmation(order)
+        expectations = {
+            "en": ("Love Story Timeline", 'lang="en" dir="ltr"'),
+            "fr": ("Chronologie d'histoire d'amour", 'lang="fr" dir="ltr"'),
+            "ar": ("الخط الزمني لقصة الحب", 'lang="ar" dir="rtl"'),
+        }
+        for locale, (product, html_attrs) in expectations.items():
+            with self.subTest(locale):
+                subject, html, text = _render(self._order(locale), "https://example.test/o", include_qr=False)
+                self.assertEqual(subject, RECEIPT[locale]["subject"].format(product=product))
+                self.assertIn(html_attrs, html)
+                self.assertIn(RECEIPT[locale]["button"], html)
+                self.assertTrue(text.startswith(RECEIPT[locale]["heading"]))
+                self.assertIn(RECEIPT[locale]["paid"].format(product=product), text)
 
-        payload = post.call_args.kwargs["json"]
-        self.assertIn('lang="en"', payload["html"])
-        self.assertIn("Thank you", payload["text"])
+    def test_an_unknown_language_gets_the_english_receipt(self):
+        subject, html, _ = _render(self._order("de"), "https://example.test/o", include_qr=False)
+        self.assertEqual(subject, "Your Heartfolio order — Love Story Timeline")
+        self.assertIn('lang="en"', html)
+
+    @override_settings(FRONTEND_URL="https://example.test")
+    def test_the_gift_link_goes_under_the_qr_card(self):
+        """The owner's decision (25 Oct 2026): the gift's /live/<id> link, to
+        paste into a message, beside the QR card, in the HTML and the text."""
+        link = "https://example.test/fr/live/0ca9e80b-d888-4b09-90a3-f6511ccbf463"
+        with patch("apps.delivery.bonuses._recipient_live_url", return_value=link):
+            _, html, text = _render(self._order("fr"), "https://example.test/o", include_qr=True)
+        self.assertIn(f'href="{link}"', html)
+        self.assertIn("Ou envoyez le lien du cadeau", html)
+        self.assertIn(link, text)
+
+    @override_settings(FRONTEND_URL="https://example.test")
+    def test_no_gift_link_when_the_live_page_is_unavailable_and_the_qr_section_stays(self):
+        from apps.common.exceptions.api_errors import RendererNotAvailable
+
+        with patch("apps.delivery.bonuses._recipient_live_url", side_effect=RendererNotAvailable("revoked")):
+            _, html, text = _render(self._order(), "https://example.test/o", include_qr=True)
+        self.assertNotIn("/live/", html)
+        self.assertNotIn("send them the gift link", html)
+        self.assertIn("This QR card is for the gift", html)
 
     @override_settings(RESEND_API_KEY="key", FRONTEND_URL="https://example.test")
     def test_replies_go_to_the_support_inbox_not_the_sending_address(self):
@@ -2773,7 +2806,7 @@ class OrderEmailTests(SimpleTestCase):
     def test_the_open_your_order_link_is_unchanged_alongside_the_gift_qr(self):
         sent = self._send_receipt()
         order, payload = sent["order"], sent["payload"]
-        order_link_prefix = f"https://example.test/ar/orders/{order.id}/"
+        order_link_prefix = f"https://example.test/{order.locale}/orders/{order.id}/"
 
         self.assertIn("Open your order", payload["html"])
         self.assertIn(f'href="{order_link_prefix}', payload["html"])

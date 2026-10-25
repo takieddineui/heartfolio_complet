@@ -852,6 +852,25 @@ class OrderPackDownloadAPITests(TestCase):
         self.assertEqual(sorted(archive.namelist()), ["bonus/thank-you.pdf", "portrait-png.png", "story-png.png"])
         self.assertEqual(archive.read("story-png.png"), b"bytes-for-story-png")
 
+    def test_the_bonus_documents_are_in_the_order_language(self):
+        """Both downloads (the whole pack and the bonuses zip) ask for the
+        thank-you card and the printing advice in the ORDER's language
+        (25 Oct 2026: they were English for every order)."""
+        customer, order, _ = make_paid_order_with_entitlements(target_ids=["print-a4-frameless"])
+        order.locale = "fr"
+        order.save(update_fields=["locale"])
+        self._login_as(customer)
+
+        with patch("apps.delivery.views.render_thank_you_card", return_value=b"%PDF-thanks") as thanks,                 patch("apps.delivery.views.render_printing_advice_pdf", return_value=b"%PDF-advice") as advice:
+            response = self.client.get(f"/api/v1/orders/{order.id}/download/bonuses/")
+            self.assertEqual(response.status_code, http_status.HTTP_200_OK)
+            with patch.dict("apps.delivery.registry._REGISTRY", {order.product.slug: self._multi_renderer()}):
+                self._streamed_content(self.client.get(f"/api/v1/orders/{order.id}/download/"))
+
+        self.assertEqual({call.args for call in thanks.call_args_list}, {("fr",)})
+        self.assertEqual({call.args for call in advice.call_args_list}, {("fr",)})
+        self.assertEqual(thanks.call_count, 2)
+
     def test_archive_contains_only_the_purchased_pack_not_every_target(self):
         # The renderer could produce other sizes; the archive must
         # contain exactly what was bought.

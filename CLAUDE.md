@@ -105,6 +105,14 @@ unbought drafts and their uploads, 25 Oct 2026). A test that backdates a
 project must disable the trigger for that update, after `SET CONSTRAINTS ALL
 IMMEDIATE` (see `apps/projects/tests_draft_cleanup.py`).
 
+**reportlab cannot join Arabic letters** (no shaping, and no reshaper library
+is installed). The bonus PDFs (`bonuses._text_pdf`, translated 25 Oct 2026)
+draw each Arabic line with Pillow/raqm in the print renderer's faces
+(`MixedScriptFont`, Noto Naskh + DejaVu) and place it as a ~290 DPI image,
+right-aligned; English and French stay vector Helvetica. The receipt email,
+the PDFs and the QR card's default caption follow `order.locale`
+(`apps/commerce/email_copy.py`, `apps/delivery/bonus_copy.py`).
+
 **Two hardcoded `supported_targets` maps must stay in sync**, in
 `apps/products/admin.py` and `seed_catalog.py`. A new product's packs
 cannot be saved or seeded until both know about it. They drifted once
@@ -204,7 +212,7 @@ task.**
 | Change touches | Run (frontend paths under `frontend-heartfolio/`; backend as `manage.py test` labels) | Guards |
 |---|---|---|
 | Any CSS, or component/renderer markup (Studio chrome, product modules, live pages) | `src/components/studio/rtl.test.ts` | No physical left/right: Studio `className`s and every `*.css` under `src/lib/studio/product-modules` |
-| Copy: `src/messages/*.json`, module `messages.ts`, or `t()`/`useTranslations` call sites | `src/messages/messages.test.ts`, `src/messages/rendered-copy.test.tsx`, `src/lib/studio/product-modules/pack-labels.test.ts`, `src/lib/studio/export-labels.test.ts`, `src/components/product/product-view.test.tsx` | Same keys in every locale; no price written into copy; no templated key called without values; every seeded pack named and described; every visible product's page and the four legal pages render in en/fr/ar with no next-intl error (a key missing from EVERY file, or a template rendered without its values, both print the key) |
+| Copy: `src/messages/*.json`, module `messages.ts`, or `t()`/`useTranslations` call sites; product names; the backend's `email_copy.py` | `src/messages/messages.test.ts`, `src/messages/rendered-copy.test.tsx`, `src/messages/email-product-names.test.ts`, `src/lib/studio/product-modules/pack-labels.test.ts`, `src/lib/studio/export-labels.test.ts`, `src/components/product/product-view.test.tsx` | Same keys in every locale; no price written into copy; no templated key called without values; every seeded pack named and described; every visible product's page and the four legal pages render in en/fr/ar with no next-intl error (a key missing from EVERY file, or a template rendered without its values, both print the key) |
 | A route or page that fetches the catalog, or a loading state | `src/components/ui/skeleton.test.ts` | Every catalog-fetching route has a skeleton |
 | JSON-LD, `dangerouslySetInnerHTML`, the AR scene | `src/lib/json-ld.test.ts` | No raw `JSON.stringify` into `dangerouslySetInnerHTML`, anywhere |
 | Fonts: `@font-face`, `public/fonts/`, font tokens (`themes.ts`), the font stacks in `globals.css`, a print's font files | Frontend: `src/lib/studio/product-modules/love-story-timeline/typography-fonts.test.ts`, `.../love-story-timeline/lst-arabic-print-parity.test.ts`, `.../song-poster/song-poster-print-parity.test.ts`, `.../song-poster/poster-locale.test.ts`, `src/components/live/live-theme.test.tsx`, `src/components/live-graduation/graduation-fonts.test.ts`, `src/components/live-reasons/reasons-fonts.test.ts`. Backend: `apps.delivery.product_renderers.song_poster.tests.PrintFontTests`, `apps.delivery.product_renderers.love_story_timeline.tests.ArabicPrintTests`, `apps.delivery.tests_mixed_script` | Every named family registered and its file present, with its licence; preview and print agree on serif/sans/mono, weight, slant and the Arabic faces; the print's font files byte-identical to `public/fonts` |

@@ -340,7 +340,9 @@ def render_live_qr_card(order, variant: str = "dark", *, caption: str | None = N
     to someone else — that matters more than usual. A card says whose it is
     and what happens when you scan it.
     """
-    return _render_qr_card(_order_access_url(order), variant, caption=caption or _qr_caption_for_order(order))
+    return _render_qr_card(
+        _order_access_url(order), variant, caption=caption or _qr_caption_for_order(order), locale=order.locale
+    )
 
 
 def render_recipient_qr_card(order, variant: str = "dark", *, caption: str | None = None) -> bytes:
@@ -356,13 +358,18 @@ def render_recipient_qr_card(order, variant: str = "dark", *, caption: str | Non
     "which of these four do I want" a question with no good answer for
     either the buyer or the recipient.
     """
-    return _render_qr_card(_recipient_live_url(order), variant, caption=caption or _qr_caption_for_order(order))
+    return _render_qr_card(
+        _recipient_live_url(order), variant, caption=caption or _qr_caption_for_order(order), locale=order.locale
+    )
 
 
-def _render_qr_card(url: str, variant: str, *, caption: str | None = None) -> bytes:
+def _render_qr_card(url: str, variant: str, *, caption: str | None = None, locale: str = "en") -> bytes:
     """The shared card drawing body behind both `render_live_qr_card` and
     `render_recipient_qr_card` — identical design, differing only in which
-    URL the symbol encodes and what caption is printed under it."""
+    URL the symbol encodes and what caption is printed under it. With no
+    caption (no names to show), the order's language picks the default line
+    (`bonus_copy.QR_DEFAULT_CAPTION`; it was English for every order)."""
+    from .bonus_copy import QR_DEFAULT_CAPTION, copy_locale
     from PIL import Image, ImageDraw
 
     matrix = _qr_matrix(url)
@@ -418,7 +425,7 @@ def _render_qr_card(url: str, variant: str, *, caption: str | None = None) -> by
     wordmark_font = _card_font("DejaVuSans.ttf", int(size[0] * 0.024))
     wordmark_box = draw.textbbox((0, 0), "HEARTFOLIO", font=wordmark_font)
     lines, font, pitch = _caption_layout(
-        draw, caption or "Scan to open your keepsake", card_size=size,
+        draw, caption or QR_DEFAULT_CAPTION[copy_locale(locale)], card_size=size,
         room=size[1] * (1 - CAPTION_BOTTOM_MARGIN) - wordmark_top - (wordmark_box[3] - wordmark_box[1]),
     )
     for index, line in enumerate(lines):
@@ -622,7 +629,13 @@ def _draw_mark(pdf: canvas.Canvas, x: float, y: float, size: float) -> None:
     pdf.restoreState()
 
 
-def _text_pdf(title: str, blocks: list[tuple[str, list[str]]], *, closing: str | None = None) -> bytes:
+def _text_pdf(
+    title: str,
+    blocks: list[tuple[str, list[str]]],
+    *,
+    closing: str | None = None,
+    locale: str = "en",
+) -> bytes:
     """A dark, branded A4 document.
 
     WAS PLAIN, NOW DESIGNED. The earlier version was deliberately
@@ -635,12 +648,21 @@ def _text_pdf(title: str, blocks: list[tuple[str, list[str]]], *, closing: str |
     is a card. Worth knowing for the printing-advice sheet, which some
     people will send to a printer — it is readable either way, but it is not
     an economical page to print.
+
+    IN THE ORDER'S LANGUAGE (25 Oct 2026). `blocks` are (heading, paragraphs);
+    each paragraph is wrapped to the text width here, so translations need no
+    hand-placed line breaks. English and French are vector Helvetica (it
+    covers French). Arabic is right to left, and reportlab cannot join Arabic
+    letters, so each Arabic line is shaped by Pillow/raqm in the print
+    renderer's own faces (`_PdfText`) and placed as an image, right-aligned,
+    with the mark on the right.
     """
     buffer = io.BytesIO()
     pdf = canvas.Canvas(buffer, pagesize=A4)
     width, height = A4
     left = 22 * mm
     right = width - 22 * mm
+    text = _PdfText(pdf, rtl=locale == "ar", left=left, right=right)
 
     def new_page() -> float:
         # Full-bleed background first, everything else on top of it.
@@ -650,11 +672,12 @@ def _text_pdf(title: str, blocks: list[tuple[str, list[str]]], *, closing: str |
 
     y = new_page()
 
-    _draw_mark(pdf, left, y - 6 * mm, 14 * mm)
-
-    pdf.setFillColorRGB(*_CREAM)
-    pdf.setFont("Helvetica-Bold", 19)
-    pdf.drawString(left + 19 * mm, y + 1 * mm, title)
+    if text.rtl:
+        _draw_mark(pdf, right - 14 * mm, y - 6 * mm, 14 * mm)
+        text.line(title, y + 1 * mm, 19, _CREAM, bold=True, inset=19 * mm)
+    else:
+        _draw_mark(pdf, left, y - 6 * mm, 14 * mm)
+        text.line(title, y + 1 * mm, 19, _CREAM, bold=True, inset=19 * mm)
 
     # A hairline in bronze under the header, the one piece of ornament.
     y -= 12 * mm
@@ -663,41 +686,41 @@ def _text_pdf(title: str, blocks: list[tuple[str, list[str]]], *, closing: str |
     pdf.line(left, y, right, y)
     y -= 12 * mm
 
-    for heading, lines in blocks:
+    for heading, paragraphs in blocks:
         if y < 45 * mm:
             pdf.showPage()
             y = new_page()
 
         if heading:
-            pdf.setFillColorRGB(*_ROSE)
-            pdf.setFont("Helvetica-Bold", 12)
-            pdf.drawString(left, y, heading)
-            y -= 7.5 * mm
+            for line in text.wrap(heading, 12, bold=True):
+                text.line(line, y, 12, _ROSE, bold=True)
+                y -= 6.5 * mm
+            y -= 1 * mm
 
-        pdf.setFont("Helvetica", 10.5)
-        for line in lines:
-            if y < 28 * mm:
-                pdf.showPage()
-                y = new_page()
-                pdf.setFont("Helvetica", 10.5)
-            # An empty string is a deliberate paragraph break, not a bullet.
-            pdf.setFillColorRGB(*_CREAM if line else _CREAM_DIM)
-            pdf.drawString(left, y, line)
-            y -= 5.8 * mm
+        for index, paragraph in enumerate(paragraphs):
+            if index:
+                y -= 2.5 * mm
+            for line in text.wrap(paragraph, 10.5):
+                if y < 28 * mm:
+                    pdf.showPage()
+                    y = new_page()
+                text.line(line, y, 10.5, _CREAM)
+                y -= 5.8 * mm
         y -= 6 * mm
 
     if closing:
         if y < 40 * mm:
             pdf.showPage()
             y = new_page()
-        pdf.setFillColorRGB(*_BRONZE)
-        pdf.setFont("Helvetica-Oblique", 11)
-        pdf.drawString(left, y, closing)
+        text.line(closing, y, 11, _BRONZE, italic=True)
 
     # Footer wordmark, same on every page-final render.
     pdf.setFillColorRGB(*_CREAM_DIM)
     pdf.setFont("Helvetica", 8)
-    pdf.drawString(left, 16 * mm, "HEARTFOLIO")
+    if text.rtl:
+        pdf.drawRightString(right, 16 * mm, "HEARTFOLIO")
+    else:
+        pdf.drawString(left, 16 * mm, "HEARTFOLIO")
     pdf.setFillColorRGB(*_INK_SOFT)
     pdf.setStrokeColorRGB(*_INK_SOFT)
 
@@ -706,8 +729,93 @@ def _text_pdf(title: str, blocks: list[tuple[str, list[str]]], *, closing: str |
     return buffer.getvalue()
 
 
-def render_printing_advice_pdf() -> bytes:
-    """§18b — one combined sheet covering BOTH print methods.
+class _PdfText:
+    """Draws and wraps the documents' text, left to right in Helvetica, or
+    right to left with Arabic shaped by Pillow/raqm (`MixedScriptFont`: Noto
+    Naskh Arabic with DejaVu Sans for digits and Latin, the print renderer's
+    own files) and placed as a transparent image at `_PDF_TEXT_SCALE` pixels
+    per point, so it prints sharp."""
+
+    def __init__(self, pdf, *, rtl: bool, left: float, right: float):
+        self.pdf, self.rtl, self.left, self.right = pdf, rtl, left, right
+        self._fonts: dict = {}
+
+    def _helvetica(self, bold: bool, italic: bool) -> str:
+        if bold:
+            return "Helvetica-Bold"
+        return "Helvetica-Oblique" if italic else "Helvetica"
+
+    def _shaped_font(self, size: float, bold: bool):
+        key = (size, bold)
+        if key not in self._fonts:
+            from apps.delivery.mixed_script import MixedScriptFont
+            from apps.delivery.product_renderers.love_story_timeline.png_renderer import (
+                _ARABIC_RANGES,
+                ARABIC_FACES,
+                _arabic_face,
+            )
+
+            pixels = round(size * _PDF_TEXT_SCALE)
+            self._fonts[key] = MixedScriptFont(
+                str(_CARD_FONT_DIR / ("DejaVuSans-Bold.ttf" if bold else "DejaVuSans.ttf")), pixels,
+                second=_arabic_face(ARABIC_FACES["sans"], pixels, 700 if bold else 400),
+                second_range=_ARABIC_RANGES,
+            )
+        return self._fonts[key]
+
+    def width(self, line: str, size: float, *, bold: bool = False, italic: bool = False) -> float:
+        if self.rtl:
+            return self._shaped_font(size, bold).getlength(line) / _PDF_TEXT_SCALE
+        from reportlab.pdfbase.pdfmetrics import stringWidth
+
+        return stringWidth(line, self._helvetica(bold, italic), size)
+
+    def wrap(self, paragraph: str, size: float, *, bold: bool = False, inset: float = 0.0) -> list[str]:
+        room = self.right - self.left - inset
+        lines, current = [], ""
+        for word in paragraph.split():
+            candidate = f"{current} {word}" if current else word
+            if not current or self.width(candidate, size, bold=bold) <= room:
+                current = candidate
+            else:
+                lines.append(current)
+                current = word
+        return lines + ([current] if current else [])
+
+    def line(self, line: str, y: float, size: float, colour, *, bold: bool = False, italic: bool = False, inset: float = 0.0) -> None:
+        """One line on baseline `y`, starting `inset` in from the leading edge
+        (the left, or the right for right-to-left text)."""
+        if not self.rtl:
+            self.pdf.setFillColorRGB(*colour)
+            self.pdf.setFont(self._helvetica(bold, italic), size)
+            self.pdf.drawString(self.left + inset, y, line)
+            return
+
+        from PIL import Image, ImageDraw
+        from reportlab.lib.utils import ImageReader
+
+        font = self._shaped_font(size, bold)
+        probe = ImageDraw.Draw(Image.new("L", (1, 1)))
+        l, t, r, b = probe.textbbox((0, 0), line, font=font)
+        pad = 4
+        image = Image.new("RGBA", (r - l + 2 * pad, b - t + 2 * pad), (0, 0, 0, 0))
+        fill = tuple(round(channel * 255) for channel in colour) + (255,)
+        ImageDraw.Draw(image).text((pad - l, pad - t), line, font=font, fill=fill)
+        ascent, _ = font.getmetrics()
+        baseline_in_image = pad - t + ascent
+        w, h = image.size[0] / _PDF_TEXT_SCALE, image.size[1] / _PDF_TEXT_SCALE
+        x = self.right - inset - w
+        bottom = y - (image.size[1] - baseline_in_image) / _PDF_TEXT_SCALE
+        self.pdf.drawImage(ImageReader(image), x, bottom, width=w, height=h, mask="auto")
+
+
+#: Pixels per PDF point for shaped (Arabic) lines: 4 is about 290 DPI.
+_PDF_TEXT_SCALE = 4
+
+
+def render_printing_advice_pdf(locale: str = "en") -> bytes:
+    """§18b — one combined sheet covering BOTH print methods, in the order's
+    language (`bonus_copy.PRINT_ADVICE`).
 
     §18b is explicit that this is a single PDF covering both, because after
     §3 the two variants need genuinely different instructions: the frameless
@@ -715,91 +823,25 @@ def render_printing_advice_pdf() -> bytes:
     frame. Splitting them into two documents would mean a customer who
     bought both received two sheets that each looked like the whole answer.
     """
-    return _text_pdf(
-        "How to print your keepsake",
-        [
-            (
-                "You received two versions of every size",
-                [
-                    "Frameless - the artwork runs to the edge of the paper, with no border.",
-                    "With edges - the artwork sits inside a half-inch margin.",
-                    "",
-                    "They are different files, not the same file cropped. Use whichever",
-                    "matches how you intend to display it.",
-                ],
-            ),
-            (
-                "The frameless version - glass or acrylic mounting",
-                [
-                    "Ask a print shop for an acrylic mount, a glass print, or a face-mount.",
-                    "Say the artwork is full-bleed and must not be trimmed or scaled.",
-                    "These are pressed under or behind the surface, so nothing overlaps the",
-                    "print - which is why this version has no margin to lose.",
-                ],
-            ),
-            (
-                "The with-edges version - an ordinary picture frame",
-                [
-                    "Any print shop, or a home printer, on 200-250gsm matte or satin paper.",
-                    "Matte hides fingerprints and reflections; satin gives deeper colour.",
-                    "The half-inch margin is there so the frame's lip cannot cover any part",
-                    "of the design. Do not trim it off.",
-                    "Choose the frame size matching the file: A4 or A3, 8x10 or 16x20,",
-                    "12x18 or 24x36.",
-                ],
-            ),
-            (
-                "A few things worth knowing",
-                [
-                    "Every file is 300 DPI, which is full photographic print quality.",
-                    "The larger size of each pair is the same file printed bigger - a poster",
-                    "at 24x36 lands around 150 DPI, which is normal at that viewing distance.",
-                    "Ask for no auto-enhance, no auto-crop and no colour correction. The",
-                    "colours were chosen deliberately.",
-                    "Both PNG and PDF are included. Most print shops prefer the PDF.",
-                ],
-            ),
-        ],
-    )
+    from .bonus_copy import PRINT_ADVICE, copy_locale
+
+    language = copy_locale(locale)
+    copy = PRINT_ADVICE[language]
+    return _text_pdf(copy["title"], copy["sections"], locale=language)
 
 
-def render_thank_you_card() -> bytes:
-    """§18a — the same card for everyone, not rendered per customer.
-
-    NO LONGER A PLACEHOLDER. This was a plain typographic stand-in while
-    there was no brand to apply. It now carries the real mark, the brand
-    palette and the dark treatment used across the product, so §18a is
-    satisfied by generated output rather than waiting on a designed file.
+def render_thank_you_card(locale: str = "en") -> bytes:
+    """§18a — the same card for everyone (one per language), not rendered per
+    customer; the words are in `bonus_copy.THANK_YOU`.
 
     Still generated rather than a static asset, deliberately: a PDF built
     here stays in step with wording that has to remain true — the promise
-    about access below was wrong once already, and a static file would have
-    kept being wrong.
+    about access was wrong once already ("to re-download for as long as you
+    want", which nothing could keep), and "Your files are yours" was wrong
+    for a Digital-only order, which has no files (corrected 25 Oct 2026).
     """
-    return _text_pdf(
-        "Thank you.",
-        [
-            (
-                "",
-                [
-                    "Someone made something for someone else, and that is the whole",
-                    "point of this. Thank you for letting us be part of it.",
-                    "",
-                    # WORDING CORRECTED. This used to promise files were yours
-                    # "to re-download for as long as you want", which is not
-                    # something the product can keep: there are no accounts,
-                    # and the link in the receipt expires after 30 days. The
-                    # files themselves do last — photos never expire and the
-                    # artwork is re-rendered on demand — so the honest version
-                    # promises the files and names the way back to them.
-                    "Your files are yours. Keep them somewhere safe, and print",
-                    "them whenever you like.",
-                    "",
-                    "The link in your receipt opens your order on any device for",
-                    "30 days. If it ever stops working, reply to that email and",
-                    "we will send you a fresh one.",
-                ],
-            )
-        ],
-        closing="- Heartfolio",
-    )
+    from .bonus_copy import SIGNATURE, THANK_YOU, copy_locale
+
+    language = copy_locale(locale)
+    copy = THANK_YOU[language]
+    return _text_pdf(copy["title"], [("", copy["paragraphs"])], closing=SIGNATURE[language], locale=language)
