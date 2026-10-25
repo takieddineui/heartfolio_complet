@@ -291,6 +291,10 @@
       },
       "storyTitle": "Une chanson, vue plutôt qu'écoutée.",
       "story": "Chaque chanson mérite une forme. L'Affiche de chanson donne la sienne à la vôtre — une onde sonore conçue pour votre commande — et l'accompagne du titre, de l'artiste et du moment auquel elle appartient. On y voit d'abord une œuvre, ensuite un souvenir : c'est exactement le bon ordre.",
+      "audience": {
+        "title": "Pour qui",
+        "body": "Pour toute personne qui associe une chanson à quelqu'un : la première danse d'un couple, la berceuse qu'un parent fredonne encore, le morceau qu'un ami lance toujours sur le chemin du retour. Il vous suffit du lien YouTube de la chanson, d'une photo et, si vous le souhaitez, de quelques mots de dédicace. Choisissez l'un des huit styles, et le design est fait pour vous."
+      },
       "faq": [
         {
           "question": "Quelles chansons puis-je utiliser ?",

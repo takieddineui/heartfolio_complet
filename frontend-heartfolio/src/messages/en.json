@@ -291,6 +291,10 @@
       },
       "storyTitle": "A song, seen instead of heard.",
       "story": "Every song deserves a shape. A Song Poster gives yours one — a soundwave designed for your order — and sets it with the title, the artist and the moment it belongs to. It reads as artwork first and as a memory second, which is exactly the right order.",
+      "audience": {
+        "title": "Who it's for",
+        "body": "Anyone with a song that belongs to someone: a couple's first dance, the lullaby a parent still hums, the track a friend always puts on for the drive home. All you need is the song's YouTube link, a photo and, if you like, a few words of dedication. Pick one of eight styles and the design is done for you."
+      },
       "faq": [
         {
           "question": "Which songs can I use?",

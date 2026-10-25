@@ -16,8 +16,12 @@ interface Section {
  * as the rest of the site — a French or Arabic buyer should not hit an
  * English-only refund policy at the exact moment they need it.
  *
- * `{email}` in any body string is substituted with the single support
- * address from site-config, so there is one place to change it.
+ * `{email}` in any string is substituted with the single support address
+ * from site-config, so there is one place to change it. The intro is an ICU
+ * message and gets the address as a VALUE; called without one, next-intl
+ * printed the key, "Legal.contact.intro", on the contact page in every
+ * language (found 25 Oct 2026). The section bodies are read raw and still
+ * hold the token. `fill` turns the address, either way, into a mailto link.
  */
 export function LegalPage({ legalKey }: { legalKey: LegalKey }) {
   const t = useTranslations(`Legal.${legalKey}`);
@@ -31,7 +35,7 @@ export function LegalPage({ legalKey }: { legalKey: LegalKey }) {
             {t("title")}
           </h1>
           <p className="mt-4 text-sm text-body/55">{t("updated")}</p>
-          <p className="mt-6 text-lg leading-relaxed text-body/75">{fill(t("intro"))}</p>
+          <p className="mt-6 text-lg leading-relaxed text-body/75">{fill(t("intro", { email: SUPPORT_EMAIL }))}</p>
         </header>
 
         <div className="mt-14 space-y-12">
@@ -53,22 +57,23 @@ export function LegalPage({ legalKey }: { legalKey: LegalKey }) {
   );
 }
 
-/** Replace the `{email}` token with a real mailto link. */
-function fill(text: string) {
-  if (!text.includes("{email}")) return text;
-  const parts = text.split("{email}");
-  return parts.flatMap((part, i) =>
-    i === 0
-      ? [part]
-      : [
-          <a
-            key={`mail-${i}`}
-            href={`mailto:${SUPPORT_EMAIL}`}
-            className="underline decoration-champagne-gold decoration-1 underline-offset-4 hover:text-heading"
-          >
-            {SUPPORT_EMAIL}
-          </a>,
-          part,
-        ]
+/** The support address as a mailto link. */
+function supportLink(key: string) {
+  return (
+    <a
+      key={key}
+      href={`mailto:${SUPPORT_EMAIL}`}
+      className="underline decoration-champagne-gold decoration-1 underline-offset-4 hover:text-heading"
+    >
+      {SUPPORT_EMAIL}
+    </a>
   );
+}
+
+/** The support address, as the `{email}` token or already formatted in, as a
+ *  real mailto link. */
+function fill(text: string) {
+  const parts = text.replaceAll("{email}", SUPPORT_EMAIL).split(SUPPORT_EMAIL);
+  if (parts.length === 1) return text;
+  return parts.flatMap((part, i) => (i === 0 ? [part] : [supportLink(`mail-${i}`), part]));
 }
