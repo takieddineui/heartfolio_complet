@@ -509,7 +509,9 @@ export interface ProductModuleConfig<TValues = unknown> {
   pricing: PricingConfig;
   delivery: DeliveryConfig;
   messages: ProductModuleMessages;
-  createInitialState: () => TValues;
+  /** The sample content a new Studio opens with, in the Studio's language
+   *  (`locale`, the site locale) where the module provides one. */
+  createInitialState: (locale?: string) => TValues;
   createInitialThemeSelections: () => ThemeSelections;
   /** Product-specific rules beyond generic `required`/`maxLength`/
    * `minItems` checks (e.g. "no two milestones share a date"). Optional

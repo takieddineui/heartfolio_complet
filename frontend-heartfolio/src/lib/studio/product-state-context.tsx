@@ -67,7 +67,7 @@ export function ProductStateProvider({ session, children }: { session: StudioSes
    * nothing to translate on the way back in.
    */
   const [values, setValuesState] = useState<Record<string, unknown>>(
-    () => session.restored?.values ?? (session.module.createInitialState() as Record<string, unknown>)
+    () => session.restored?.values ?? (session.module.createInitialState(locale) as Record<string, unknown>)
   );
   const [themeSelections, setThemeSelectionsState] = useState<ThemeSelections>(
     () => session.restored?.themeSelections ?? session.module.createInitialThemeSelections()

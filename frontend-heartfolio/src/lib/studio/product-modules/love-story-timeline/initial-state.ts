@@ -1,3 +1,4 @@
+import { exampleLocale, type ExampleLocale } from "@/lib/studio/example-locale";
 import { DEFAULT_LAYOUT_ID } from "./layouts";
 import { DEFAULT_STORY_TYPE, type StoryTypeId } from "./story-types";
 import { DEFAULT_MUSIC_PRESET } from "./music-presets";
@@ -72,24 +73,72 @@ export interface TimelineValues {
  * (rather than blank fields) so the preview shows something meaningful
  * the moment the Studio opens, matching the prototype's own behavior of
  * always rendering a complete poster. */
-export function createInitialState(): TimelineValues {
-  return {
-    storyType: DEFAULT_STORY_TYPE,
-    people: [{ name: "Emma" }, { name: "James" }],
+/** The sample story in each Studio language (25 Oct 2026: /fr and /ar
+ *  opened with the English one). Dates are shared. */
+const EXAMPLES: Record<ExampleLocale, {
+  people: [string, string];
+  posterTitle: string;
+  dedication: string;
+  endingText: string;
+  events: [string, string, string][];
+}> = {
+  en: {
+    people: ["Emma", "James"],
     posterTitle: "Our Love Story",
-    subtitle: "",
     dedication: "Every love story is beautiful, but ours is my favorite.",
     endingText: "To be continued…",
+    events: [
+      ["We Met", "A rainy afternoon, a shared umbrella.", "Lisbon"],
+      ["First Trip Together", "Three days, one tiny car.", "Andalusia"],
+      ["He Proposed", "On the beach, at sunset.", "Cascais"],
+    ],
+  },
+  fr: {
+    people: ["Emma", "Lucas"],
+    posterTitle: "Notre histoire d'amour",
+    dedication: "Toutes les histoires d'amour sont belles, mais la nôtre est ma préférée.",
+    endingText: "À suivre…",
+    events: [
+      ["Notre rencontre", "Un après-midi de pluie, un parapluie partagé.", "Lisbonne"],
+      ["Premier voyage ensemble", "Trois jours, une toute petite voiture.", "Andalousie"],
+      ["Sa demande en mariage", "Sur la plage, au coucher du soleil.", "Cascais"],
+    ],
+  },
+  ar: {
+    people: ["نور", "عمر"],
+    posterTitle: "قصة حبنا",
+    dedication: "كل قصص الحب جميلة، لكن قصتنا هي المفضّلة لديّ.",
+    endingText: "يتبع…",
+    events: [
+      ["لقاؤنا الأول", "بعد ظهر ممطر، ومظلة واحدة لنا معًا.", "لشبونة"],
+      ["أول رحلة معًا", "ثلاثة أيام، وسيارة صغيرة جدًا.", "الأندلس"],
+      ["طلب الزواج", "على الشاطئ، عند الغروب.", "كاشكايش"],
+    ],
+  },
+};
+
+const EXAMPLE_DATES = ["2019-04-12", "2020-06-20", "2022-09-03"];
+
+export function createInitialState(locale?: string): TimelineValues {
+  const example = EXAMPLES[exampleLocale(locale)];
+  return {
+    storyType: DEFAULT_STORY_TYPE,
+    people: example.people.map((name) => ({ name })),
+    posterTitle: example.posterTitle,
+    subtitle: "",
+    dedication: example.dedication,
+    endingText: example.endingText,
     backgroundMusic: DEFAULT_MUSIC_PRESET,
     showDuration: true,
     autoSort: true,
     // Three, because that is now the minimum (§4) — a sample story below
     // the floor would put a new project into an invalid state on open.
-    events: [
-      { date: "2019-04-12", title: "We Met", description: "A rainy afternoon, a shared umbrella.", location: "Lisbon" },
-      { date: "2020-06-20", title: "First Trip Together", description: "Three days, one tiny car.", location: "Andalusia" },
-      { date: "2022-09-03", title: "He Proposed", description: "On the beach, at sunset.", location: "Cascais" },
-    ],
+    events: example.events.map(([title, description, location], index) => ({
+      date: EXAMPLE_DATES[index]!,
+      title,
+      description,
+      location,
+    })),
   };
 }
 
