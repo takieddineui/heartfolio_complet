@@ -2587,6 +2587,27 @@ class OrderEmailTests(SimpleTestCase):
         self.assertIn("Thank you", payload["text"])
 
     @override_settings(RESEND_API_KEY="key", FRONTEND_URL="https://example.test")
+    def test_replies_go_to_the_support_inbox_not_the_sending_address(self):
+        """The receipt tells customers to reply if their link stops working
+        (19 Oct 2026: the support address became support@theheartfolio.com)."""
+        response = MagicMock(status_code=200, text="{}")
+        with patch("apps.commerce.emails.requests.post", return_value=response) as post:
+            send_order_confirmation(self._order())
+        payload = post.call_args.kwargs["json"]
+        self.assertEqual(payload["reply_to"], "support@theheartfolio.com")
+        # The sending address comes from the environment (no-reply@ in the
+        # Docker setup); whatever it is, a reply must not go back to it.
+        self.assertNotEqual(payload["reply_to"], payload["from"])
+        self.assertIn("reply to this", payload["text"])
+
+    @override_settings(RESEND_API_KEY="key", FRONTEND_URL="https://example.test", RESEND_REPLY_TO_EMAIL="")
+    def test_no_reply_to_is_sent_when_none_is_configured(self):
+        response = MagicMock(status_code=200, text="{}")
+        with patch("apps.commerce.emails.requests.post", return_value=response) as post:
+            send_order_confirmation(self._order())
+        self.assertNotIn("reply_to", post.call_args.kwargs["json"])
+
+    @override_settings(RESEND_API_KEY="key", FRONTEND_URL="https://example.test")
     def test_a_plain_text_alternative_is_always_included(self):
         # Some clients prefer text/plain; a receipt that arrives blank is
         # worse than a plain one.

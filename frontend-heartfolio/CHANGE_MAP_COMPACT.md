@@ -99,7 +99,7 @@ Background `CelestialSequence`/`StarField` → blocked on B5.
 
 ## 9. Support email — P0
 
-`site-config.ts:22` → `heartfolioapp@gmail.com`. One constant → footer, 4 legal pages (`{email}`, 9 spots ×3 locales), `Organization.email` + `contactPoint.email`. Remove TODO.
+`site-config.ts:22` → `support@theheartfolio.com`. One constant → footer, 4 legal pages (`{email}`, 9 spots ×3 locales), `Organization.email` + `contactPoint.email`. Remove TODO.
 
 ## 10. Refund — no change
 

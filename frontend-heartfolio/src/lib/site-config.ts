@@ -26,9 +26,11 @@ export const SITE_DOMAIN = SITE_URL.replace(/^https?:\/\//, "");
 export const WEB_MARK = `Made with Heartfolio · ${SITE_DOMAIN}`;
 
 /**
- * Support inbox for the current development/landing-page phase.
- * Approved in Pass A (§17) — explicitly NOT the domain address, which can
- * come later once a domain-hosted inbox actually exists and is monitored.
+ * Support inbox: the domain address (owner's decision, 19 Oct 2026, before
+ * launch; it replaced the development-phase Gmail inbox). Read by
+ * the footer, the legal pages and the Organization/contactPoint JSON-LD. The
+ * backend's receipt email sets the same address as its reply-to
+ * (`RESEND_REPLY_TO_EMAIL`), since it tells customers to reply.
  *
  * TODO(HEARTFOLIO-PREDEPLOY):
  * Future purchase recovery/re-delivery flow has not been finalized.
@@ -41,7 +43,7 @@ export const WEB_MARK = `Made with Heartfolio · ${SITE_DOMAIN}`;
  * (support-ticket based or otherwise) will be decided later — this
  * address is where that will land in the meantime.
  */
-export const SUPPORT_EMAIL = "heartfolioapp@gmail.com";
+export const SUPPORT_EMAIL = "support@theheartfolio.com";
 
 /** Public prices are quoted in USD only (see brief §15). */
 export const PRICE_CURRENCY = "USD";

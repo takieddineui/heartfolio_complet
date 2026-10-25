@@ -400,6 +400,11 @@ TELEGRAM_CHAT_ID = env("TELEGRAM_CHAT_ID", default="")
 # send and never fail an order because of it.
 RESEND_API_KEY = env("RESEND_API_KEY", default="")
 RESEND_FROM_EMAIL = env("RESEND_FROM_EMAIL", default="orders@theheartfolio.com")
+# Where a reply to the receipt goes. The receipt tells customers to reply if
+# their link stops working, so this is the support inbox (the address the
+# site shows, `SUPPORT_EMAIL` in the frontend's site-config.ts), not the
+# sending address. Empty sends no reply-to.
+RESEND_REPLY_TO_EMAIL = env("RESEND_REPLY_TO_EMAIL", default="support@theheartfolio.com")
 FRONTEND_URL = env("FRONTEND_URL", default="https://www.theheartfolio.com")
 
 # §9 — where the Telegram digest's "Reports"/"Status" buttons point.

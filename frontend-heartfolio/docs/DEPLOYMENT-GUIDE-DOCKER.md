@@ -76,6 +76,7 @@ them. What each does when unset:
 |---|---|---|
 | `RESEND_API_KEY` | `""` | **No receipt emails are sent.** Logged, not silent. |
 | `RESEND_FROM_EMAIL` | `orders@theheartfolio.com` | Used as-is |
+| `RESEND_REPLY_TO_EMAIL` | `support@theheartfolio.com` | Where replies to the receipt go (the support inbox the site shows) |
 | `FRONTEND_URL` | production URL | Magic links and QR codes point here — **wrong value means broken links in printed material** |
 | `TELEGRAM_BOT_TOKEN` / `_CHAT_ID` | `""` | No alerts. The scheduled job says so out loud. |
 | `ORDER_ACCESS_TOKEN_MAX_AGE_DAYS` | `30` | Emailed order links expire after this |

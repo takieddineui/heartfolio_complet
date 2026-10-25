@@ -324,7 +324,7 @@ Homepage FAQ is the biggest offender — it reads as one product's FAQ.
 
 ## 9. SUPPORT EMAIL (§26) — P0
 
-`src/lib/site-config.ts:22` → `heartfolioapp@gmail.com`. Single constant;
+`src/lib/site-config.ts:22` → `support@theheartfolio.com`. Single constant;
 propagates to the footer, all four legal pages (`{email}` token, 9 spots
 × 3 locales) and `Organization.email` + `contactPoint.email` JSON-LD on the
 homepage. Remove the TODO comment.

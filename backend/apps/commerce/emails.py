@@ -261,6 +261,8 @@ def _send(order) -> bool:
             json={
                 "from": settings.RESEND_FROM_EMAIL,
                 "to": [order.guest_email],
+                # The receipt says "reply to this email": replies go to support.
+                **({"reply_to": settings.RESEND_REPLY_TO_EMAIL} if settings.RESEND_REPLY_TO_EMAIL else {}),
                 "subject": subject,
                 "html": html,
                 "text": text,

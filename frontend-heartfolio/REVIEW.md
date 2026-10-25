@@ -415,7 +415,7 @@ Agreed. Documented at the top of `src/lib/og.tsx`: the reason (satori does no Ar
 Nothing touches Studio, checkout, Paddle, the Django API or AR/VR. Four reviewable passes.
 
 **Pass A — truth and naming** *(the P0s; everything else builds on it)*
-- Support email → `heartfolioapp@gmail.com`
+- Support email → `support@theheartfolio.com`
 - Product renaming once §2 is answered: Where We Met, plus whatever you decide on Moon Phase. Includes `id`/`slug` decoupling, `previousSlugs` + redirects, waitlist data note
 - Claim audit: I bring the full §10 list with a proposed rewording for each; you approve line by line. Nothing changes without sign-off — these are business commitments, not copy preferences
 - Fix the landing pricing section: "From $12 USD", derived, model-explaining (§6)

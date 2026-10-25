@@ -69,7 +69,7 @@
 
 ## 7. Support
 
-`heartfolioapp@gmail.com` — set once in `src/lib/site-config.ts` (`SUPPORT_EMAIL`), consumed by the footer, all four legal pages, and Organization/contactPoint structured data.
+`support@theheartfolio.com` — set once in `src/lib/site-config.ts` (`SUPPORT_EMAIL`), consumed by the footer, all four legal pages, and Organization/contactPoint structured data.
 
 ---
 

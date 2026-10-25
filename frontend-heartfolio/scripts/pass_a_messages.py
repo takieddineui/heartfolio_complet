@@ -309,7 +309,7 @@ LST_DIGITAL_OVERRIDE = {
 }
 
 # ---- Support email ----
-SUPPORT_EMAIL = "heartfolioapp@gmail.com"
+SUPPORT_EMAIL = "support@theheartfolio.com"
 
 # ---- Legal.refunds "We answer every request" (absolute claim) ----
 REFUNDS_HOW_TO_ASK = {
