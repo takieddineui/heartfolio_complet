@@ -1422,7 +1422,9 @@ class RendererTests(TestCase):
         product = make_song_poster_product()
         pack = make_delivery_pack(product)
         values = values_with_real_photo(customer)
-        project = Project.objects.create(customer=customer, product=product, data={"version": 1, "values": values})
+        project = Project.objects.create(
+            customer=customer, product=product, data={"version": 1, "values": values, "themeSelections": {"theme": "player"}}
+        )
 
         renderer = SongPosterRenderer()
         result = renderer.render(project, DeliveryType.PRINTABLE, pack, "print-classic-frameless")
@@ -1435,7 +1437,9 @@ class RendererTests(TestCase):
         product = make_song_poster_product()
         pack = make_delivery_pack(product)
         values = values_with_real_photo(customer)
-        project = Project.objects.create(customer=customer, product=product, data={"version": 1, "values": values})
+        project = Project.objects.create(
+            customer=customer, product=product, data={"version": 1, "values": values, "themeSelections": {"theme": "player"}}
+        )
 
         renderer = SongPosterRenderer()
         with self.assertRaises(SongPosterRenderFailed):

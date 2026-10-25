@@ -233,12 +233,10 @@ class RendererRegistryTests(TestCase):
     def test_not_implemented_renderer_raises_structured_error_on_render(self):
         from apps.common.exceptions.api_errors import RendererNotAvailable
 
-        # A genuinely unregistered product — "love-story-timeline" and
-        # "heart-map" both have real renderers as of Phase 3.9/3.11, so
-        # neither is a valid example of "nothing registered" anymore
-        # (see the registered-renderer tests below, and each product's
-        # own test suite, which cover those cases for real).
-        renderer = get_renderer("song-poster", DeliveryType.PRINTABLE)
+        # A genuinely unregistered product: every real product has a
+        # renderer now ("song-poster" since its print work), so this uses a
+        # name nothing registers.
+        renderer = get_renderer("some-unregistered-product", DeliveryType.PRINTABLE)
         with self.assertRaises(RendererNotAvailable):
             renderer.render(project=None, delivery_type=DeliveryType.PRINTABLE, delivery_pack=None, target_id="print-png")
 
@@ -397,8 +395,14 @@ class EntitlementDownloadAPITests(TestCase):
         with patch.dict("apps.delivery.registry._REGISTRY", {order.product.slug: fake}):
             response = self.client.get(f"/api/v1/entitlements/{entitlements[0].id}/download/")
 
+        # Digital is the hosted live page: delivery answers with its link and
+        # never asks the renderer (the old expectation, a renderer-made
+        # `/g/...` URL, predates the live page).
+        from django.conf import settings
+
+        experience = PublicExperience.objects.get(entitlement=entitlements[0], kind=PublicExperience.KIND_LIVE)
         self.assertEqual(response.status_code, http_status.HTTP_200_OK)
-        self.assertEqual(response.data, {"url": "https://theheartfolio.com/g/abc123"})
+        self.assertEqual(response.data, {"url": f"{settings.FRONTEND_URL}/{order.locale}/live/{experience.id}"})
 
     def test_unimplemented_renderer_returns_structured_501(self):
         customer, order, entitlements = make_paid_order_with_entitlements(target_ids=["print-png"])
@@ -618,12 +622,16 @@ class DeliveryQueryBudgetTests(TestCase):
     """Locks in the query count for a full real-renderer download so a
     future regression (e.g. losing a `select_related` chain) is caught
     by a failing test rather than discovered as a slow endpoint later.
-    Exactly 3 queries: session lookup, customer lookup (session
-    resolution), and the entitlement fetch itself — which, via
-    `select_related` all the way through `order__project__customer`,
-    is the only query that touches Order/Product/DeliveryPack/Project/
-    that Project's Customer. No renderer in this codebase currently
-    issues additional queries of its own for the fixtures used here.
+    3 base queries: session lookup, customer lookup (session resolution),
+    and the entitlement fetch itself, which, via `select_related` all the
+    way through `order__project__customer`, is the only query that touches
+    Order/Product/DeliveryPack/Project/that Project's Customer. Then ONE
+    asset lookup per photo the keepsake shows (8 at most).
+
+    It used to say "exactly 3": that held only because the fixture's photos
+    never resolved ("asset-1" is not an id), so no asset was looked up.
+    Batching the asset lookups into one query would make it flat; until
+    then this pins one per photo, so any extra query still fails here.
     """
 
     def test_full_download_query_count_is_flat_regardless_of_target_count(self):
@@ -637,9 +645,15 @@ class DeliveryQueryBudgetTests(TestCase):
             response = client.get(f"/api/v1/entitlements/{entitlement.id}/download/")
 
         self.assertEqual(response.status_code, http_status.HTTP_200_OK)
-        self.assertLessEqual(
-            len(ctx.captured_queries), 3,
-            f"Expected at most 3 queries, got {len(ctx.captured_queries)}: "
+        from apps.projects.draft_cleanup import referenced_asset_ids
+
+        photos = len(referenced_asset_ids(order.project.data))
+        self.assertGreater(photos, 0, "the fixture must show real photos, or this budget proves nothing")
+        asset_queries = [q for q in ctx.captured_queries if 'FROM "assets"' in q["sql"]]
+        self.assertEqual(
+            (len(ctx.captured_queries), len(asset_queries)),
+            (3 + photos, photos),
+            f"Expected 3 + {photos} queries, got {len(ctx.captured_queries)}: "
             f"{[q['sql'][:120] for q in ctx.captured_queries]}",
         )
 
@@ -833,7 +847,9 @@ class OrderPackDownloadAPITests(TestCase):
         self.assertEqual(response["Content-Type"], "application/zip")
 
         archive = zipfile.ZipFile(io.BytesIO(content))
-        self.assertEqual(sorted(archive.namelist()), ["portrait-png.png", "story-png.png"])
+        # Every pack also carries the thank-you card (BONUS_THANK_YOU is
+        # unconditional, §18a); these targets are not prints, so no how-to-print.
+        self.assertEqual(sorted(archive.namelist()), ["bonus/thank-you.pdf", "portrait-png.png", "story-png.png"])
         self.assertEqual(archive.read("story-png.png"), b"bytes-for-story-png")
 
     def test_archive_contains_only_the_purchased_pack_not_every_target(self):
@@ -847,7 +863,9 @@ class OrderPackDownloadAPITests(TestCase):
             content = self._streamed_content(response)
 
         archive = zipfile.ZipFile(io.BytesIO(content))
-        self.assertEqual(archive.namelist(), ["story-png.png"])
+        purchased = [name for name in archive.namelist() if not name.startswith("bonus/")]
+        self.assertEqual(purchased, ["story-png.png"])
+        self.assertEqual([name for name in archive.namelist() if name.startswith("bonus/")], ["bonus/thank-you.pdf"])
 
     def test_unpaid_order_is_denied(self):
         customer, order, _ = make_paid_order_with_entitlements(target_ids=["print-png"])

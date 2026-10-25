@@ -124,7 +124,8 @@ class RendererRegistrationTests(TestCase):
             renderer.render(order.project, DeliveryType.PRINTABLE, order.delivery_pack, "landscape-png")
 
     def test_unregistered_product_still_falls_back_to_not_implemented(self):
-        renderer = get_renderer("song-poster", DeliveryType.PRINTABLE)
+        # "song-poster" has its own renderer now; not an unregistered example.
+        renderer = get_renderer("some-unregistered-product", DeliveryType.PRINTABLE)
         self.assertIsInstance(renderer, NotImplementedRenderer)
 
     def test_love_story_timeline_renderer_unaffected_by_this_registration(self):

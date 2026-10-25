@@ -192,9 +192,9 @@ class RendererRegistrationTests(TestCase):
             renderer.render(order.project, DeliveryType.PRINTABLE, order.delivery_pack, "totally-unknown-target")
 
     def test_unregistered_product_still_falls_back_to_not_implemented(self):
-        # "heart-map" has a real renderer as of Phase 3.11 — no longer
-        # a valid "unregistered" example.
-        renderer = get_renderer("song-poster", DeliveryType.PRINTABLE)
+        # "heart-map" and "song-poster" both have real renderers now, so
+        # neither is a valid "unregistered" example.
+        renderer = get_renderer("some-unregistered-product", DeliveryType.PRINTABLE)
         self.assertIsInstance(renderer, NotImplementedRenderer)
 
 
@@ -209,7 +209,8 @@ class DataValidationTests(TestCase):
         # because two slots made the product couple-only. The fixture was
         # updated; this assertion was not.
         self.assertEqual(timeline.people, ["Alex", "Sam"])
-        self.assertEqual(len(timeline.events), 2)
+        # The fixture has 3 milestones, the minimum since the 3-8 rule.
+        self.assertEqual(len(timeline.events), len(VALID_VALUES["events"]))
 
     def test_missing_people_rejected(self):
         # Was `{**VALID_VALUES, "partner1": ""}` — a key the validator has
@@ -509,7 +510,11 @@ class DigitalRenderingTests(TestCase):
         uploaded = SimpleUploadedFile("p.jpg", buf.read(), content_type="image/jpeg")
         asset = upload_asset(customer, uploaded)
 
-        values = {**VALID_VALUES, "events": [{"date": "2020-01-01", "title": "X", "photo": {"assetId": str(asset.id)}}]}
+        # Three milestones, the minimum; each shows the uploaded photo.
+        values = {
+            **VALID_VALUES,
+            "events": [{"date": f"202{i}-01-01", "title": "X", "photo": {"assetId": str(asset.id)}} for i in range(3)],
+        }
         timeline = validate_and_normalize(values, VALID_THEME)
         content = render_html(timeline, customer=customer).decode("utf-8")
 
