@@ -196,6 +196,23 @@ export async function downloadEntitlement(
 }
 
 /**
+ * The Digital keepsake's link, to show and copy beside the gift QR card
+ * (owner's decision, 25 Oct 2026). Same endpoint and server checks as
+ * `downloadEntitlement`, without opening a window. `null` when the
+ * entitlement does not answer with a link.
+ */
+export async function fetchGiftLink(entitlementId: string, token?: string, signal?: AbortSignal): Promise<string | null> {
+  const response = await apiFetch<Response>(withToken(`/entitlements/${entitlementId}/download`, token), {
+    method: "GET",
+    parse: "response",
+    signal,
+  });
+  if (!(response.headers.get("Content-Type") ?? "").includes("application/json")) return null;
+  const payload = (await response.json()) as { url?: string };
+  return payload.url ?? null;
+}
+
+/**
  * The raw bytes of a deliverable, rather than a browser download (§21i).
  *
  * `downloadEntitlement` exists to SAVE a file — it triggers the browser's

@@ -1,12 +1,13 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { useLocale } from "next-intl";
 import { Download, Loader2 } from "lucide-react";
 import {
   DownloadIncompleteError,
   downloadOrderCategory,
   downloadOrderPack,
+  fetchGiftLink,
   type DownloadCategory,
 } from "@/lib/api/delivery";
 import { ApiError } from "@/lib/api/errors";
@@ -94,6 +95,83 @@ function CategoryButton({
       )}
       {label}
     </button>
+  );
+}
+
+/**
+ * The gift's link, to paste into a message, beside the QR card (owner's
+ * decision, 25 Oct 2026: on a computer there was no way to send the gift
+ * except as a QR image). Asked for once from the Digital entitlement's own
+ * endpoint, which checks ownership and payment like every download. If it
+ * cannot be fetched, nothing is shown: the QR card still works.
+ */
+function GiftLink({
+  entitlementId,
+  accessToken,
+  st,
+}: {
+  entitlementId: string;
+  accessToken?: string;
+  st: (key: string) => string;
+}) {
+  const [url, setUrl] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+  const inputId = useId();
+
+  useEffect(() => {
+    const controller = new AbortController();
+    fetchGiftLink(entitlementId, accessToken, controller.signal)
+      .then(setUrl)
+      .catch(() => setUrl(null));
+    return () => controller.abort();
+  }, [entitlementId, accessToken]);
+
+  if (!url) return null;
+
+  async function copy(link: string) {
+    try {
+      await navigator.clipboard.writeText(link);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // No clipboard (an insecure context, or permission refused): select the
+      // text so it can be copied by hand.
+      const input = document.getElementById(inputId) as HTMLInputElement | null;
+      input?.select();
+    }
+  }
+
+  return (
+    <div className="mt-2 w-full space-y-1.5 text-start">
+      <label htmlFor={inputId} className="block text-xs text-body/60">
+        {st("checkout.giftLinkLabel")}
+      </label>
+      <div className="flex gap-2">
+        <input
+          id={inputId}
+          readOnly
+          value={url}
+          dir="ltr"
+          onFocus={(event) => event.currentTarget.select()}
+          className="min-w-0 flex-1 rounded-[var(--radius-sm)] border border-subtle bg-transparent px-2 py-1.5 text-xs text-heading"
+        />
+        <button
+          type="button"
+          onClick={() => copy(url)}
+          className="shrink-0 rounded-[var(--radius-sm)] border border-subtle px-3 py-1.5 text-xs text-heading transition-colors hover:border-champagne-gold"
+        >
+          {copied ? st("checkout.giftLinkCopied") : st("checkout.copyGiftLink")}
+        </button>
+      </div>
+      <a
+        href={url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="inline-block text-xs text-body/70 underline decoration-champagne-gold underline-offset-4 hover:text-heading"
+      >
+        {st("checkout.openGiftLink")}
+      </a>
+    </div>
   );
 }
 
@@ -245,6 +323,7 @@ export function OrderDownloads({
               {st("checkout.downloadGiftQr")}
             </a>
           </Button>
+          <GiftLink entitlementId={outsideArchive[0]!.id} accessToken={accessToken} st={st} />
         </figure>
       )}
 

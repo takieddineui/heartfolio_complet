@@ -1,7 +1,7 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-const download = vi.hoisted(() => ({ pack: vi.fn(), category: vi.fn() }));
+const download = vi.hoisted(() => ({ pack: vi.fn(), category: vi.fn(), giftLink: vi.fn((): Promise<string | null> => Promise.resolve(null)) }));
 
 vi.mock("next-intl", () => ({ useLocale: () => "en" }));
 vi.mock("@/lib/api/delivery", async () => {
@@ -10,6 +10,7 @@ vi.mock("@/lib/api/delivery", async () => {
     ...actual,
     downloadOrderPack: download.pack,
     downloadOrderCategory: download.category,
+    fetchGiftLink: download.giftLink,
   };
 });
 
@@ -23,6 +24,7 @@ const entitlements = [
 afterEach(() => {
   cleanup();
   vi.clearAllMocks();
+  download.giftLink.mockImplementation((): Promise<string | null> => Promise.resolve(null));
 });
 
 describe("OrderDownloads — truncated archives", () => {
@@ -351,5 +353,51 @@ describe("OrderDownloads — the gift QR download", () => {
   it("is absent for an order with no live page", () => {
     render(<OrderDownloads orderId="o1" entitlements={entitlementsFor(PACKS.printable)} variant="summary" />);
     expect(screen.queryByRole("link", { name: /gift qr/i })).toBeNull();
+  });
+});
+
+describe("OrderDownloads — the gift link (owner's decision, 25 Oct 2026)", () => {
+  const withLive = [
+    ...entitlements,
+    { id: "e2", orderId: "o1", productId: "p1", targetId: "__live__", createdAt: "2026-01-01T00:00:00Z" },
+  ];
+  const LINK = "https://www.theheartfolio.com/en/live/0ca9e80b-d888-4b09-90a3-f6511ccbf463";
+
+  it("shows the gift's own link beside the QR card, asked for with the live entitlement and the magic-link token", async () => {
+    download.giftLink.mockResolvedValue(LINK);
+    render(<OrderDownloads orderId="o1" entitlements={withLive} accessToken="tok" />);
+
+    const field = (await screen.findByLabelText("Or send the gift link")) as HTMLInputElement;
+    expect(field.value).toBe(LINK);
+    expect(field.readOnly).toBe(true);
+    expect(download.giftLink).toHaveBeenCalledWith("e2", "tok", expect.anything());
+    expect(screen.getByRole("link", { name: "Open the gift" }).getAttribute("href")).toBe(LINK);
+  });
+
+  it("copies the link and says so", async () => {
+    download.giftLink.mockResolvedValue(LINK);
+    const writeText = vi.fn(() => Promise.resolve());
+    Object.assign(navigator, { clipboard: { writeText } });
+    render(<OrderDownloads orderId="o1" entitlements={withLive} />);
+
+    fireEvent.click(await screen.findByRole("button", { name: "Copy link" }));
+
+    await vi.waitFor(() => expect(writeText).toHaveBeenCalledWith(LINK));
+    expect(await screen.findByRole("button", { name: "Copied" })).toBeTruthy();
+  });
+
+  it("shows nothing extra when the link cannot be fetched, and the QR card stays", async () => {
+    download.giftLink.mockRejectedValue(new Error("network"));
+    render(<OrderDownloads orderId="o1" entitlements={withLive} />);
+
+    await vi.waitFor(() => expect(download.giftLink).toHaveBeenCalled());
+    expect(screen.queryByLabelText("Or send the gift link")).toBeNull();
+    expect(screen.getAllByRole("img")).toHaveLength(1);
+  });
+
+  it("never asks for a link when the order has no live page", () => {
+    render(<OrderDownloads orderId="o1" entitlements={entitlements} />);
+
+    expect(download.giftLink).not.toHaveBeenCalled();
   });
 });
