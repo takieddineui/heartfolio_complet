@@ -33,11 +33,15 @@ export function LegalPage({ legalKey }: { legalKey: LegalKey }) {
   const t = useTranslations(`Legal.${legalKey}`);
   const locale = useLocale();
   const sections = t.raw("sections") as Section[];
+  // The owner's facts are usually Latin text with commas ("Name, address,
+  // country"); inside an Arabic sentence the bidi algorithm reordered their
+  // parts (seen on /ar/privacy, 25 Oct 2026). A first-strong isolate (U+2068
+  // ... U+2069, invisible) keeps each value in its own direction and order.
   const values = {
     email: SUPPORT_EMAIL,
-    controller: LEGAL_CONTROLLER,
-    hosting: HOSTING_PROVIDER,
-    updated: lastUpdated(locale),
+    controller: isolate(LEGAL_CONTROLLER),
+    hosting: isolate(HOSTING_PROVIDER),
+    updated: isolate(lastUpdated(locale)),
   };
   const fill = (text: string) => linkSupport(substitute(text, values));
 
@@ -89,6 +93,12 @@ function supportLink(key: string) {
 function lastUpdated(locale: string): string {
   if (!LEGAL_LAST_UPDATED) return "[date set when the pages go live]";
   return new Intl.DateTimeFormat(locale, { dateStyle: "long", timeZone: "UTC" }).format(new Date(`${LEGAL_LAST_UPDATED}T00:00:00Z`));
+}
+
+/** Wraps text in a first-strong isolate so a sentence in the other direction
+ *  cannot reorder its parts. */
+function isolate(text: string): string {
+  return `⁨${text}⁩`;
 }
 
 /** Every `{name}` token a raw section string may hold. */
