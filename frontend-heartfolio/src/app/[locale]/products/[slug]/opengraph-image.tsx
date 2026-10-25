@@ -2,7 +2,9 @@ import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { routing } from "@/i18n/routing";
 import { OG_CONTENT_TYPE, OG_SIZE, ogTextLocale, renderOgImage } from "@/lib/og";
-import { getAllProducts, getProductBySlug, getStartingPrice } from "@/lib/products/registry";
+import { getCatalogStartingPrice } from "@/lib/products/catalog";
+import { getCatalogProductDetail } from "@/lib/products/catalog-server";
+import { getAllProducts, getProductBySlug } from "@/lib/products/registry";
 import { formatPrice } from "@/lib/site-config";
 
 export const size = OG_SIZE;
@@ -30,7 +32,10 @@ export default async function Image({
 
   const t = await getTranslations({ locale: textLocale, namespace: `Products.${product.i18nKey}` });
   const tPage = await getTranslations({ locale: textLocale, namespace: "ProductPage" });
-  const starting = getStartingPrice(product);
+  // Django's starting price, as the product page shows it; the registry has
+  // none (its offerings are empty), so the card carried no price before.
+  const { product: catalogProduct } = await getCatalogProductDetail(product);
+  const starting = getCatalogStartingPrice(catalogProduct);
 
   return renderOgImage({
     locale: textLocale,

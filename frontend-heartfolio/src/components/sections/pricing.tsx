@@ -6,7 +6,6 @@ import { motion } from "framer-motion";
 import { Reveal } from "@/components/motion/reveal";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
-import { getAllProducts, getStartingPrice } from "@/lib/products/registry";
 import { formatPrice } from "@/lib/site-config";
 
 /**
@@ -15,28 +14,15 @@ import { formatPrice } from "@/lib/site-config";
  * ---------------------------------------------------------------------
  * Previously `Pricing.single.price` was the literal string "$12" —
  * hardcoded three sections above product pages that show four prices up
- * to $30. That contradiction is gone: the figure shown here is the
- * minimum `getStartingPrice()` across every product currently in the
- * registry, so it can never drift from what the product pages actually
- * charge. Add a cheaper offering anywhere and this number updates itself.
+ * to $30. The figure is now the lowest starting price in the catalog the
+ * home page already fetched (`lowestCatalogStartingPrice`), passed in as a
+ * prop. It was the minimum over the registry's offerings, which hold no
+ * prices, so the line was never shown (found 25 Oct 2026). With no catalog
+ * (Django unreachable), nothing is claimed.
  */
-function useOverallStartingPrice(): { amount: number; currency: string } | null {
-  const products = getAllProducts();
-  let lowest: { amount: number; currency: string } | null = null;
-  for (const product of products) {
-    const price = getStartingPrice(product);
-    if (price === null) continue;
-    if (lowest === null || price < lowest.amount) {
-      lowest = { amount: price, currency: product.currency };
-    }
-  }
-  return lowest;
-}
-
-export function Pricing() {
+export function Pricing({ startingPrice = null }: { startingPrice?: { amount: number; currency: string } | null }) {
   const t = useTranslations("Pricing");
   const features = t.raw("single.features") as string[];
-  const startingPrice = useOverallStartingPrice();
 
   return (
     <section id="pricing" className="relative overflow-hidden bg-page py-24 sm:py-30">

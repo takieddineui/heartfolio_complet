@@ -5,20 +5,23 @@ import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { Badge } from "@/components/studio/ui/badge";
 import { useProductContent } from "@/lib/products/use-product-content";
-import { getStartingPrice } from "@/lib/products/registry";
+import { formatCents } from "@/lib/studio/pricing-engine";
+import { useProductState } from "@/lib/studio/product-state-context";
 import type { ProductEntry } from "@/lib/products/types";
 
 /**
- * The standalone Studio registry stored a pre-formatted `startingPrice`
- * string ("$12"); the unified Product Registry stores numeric offering
- * prices instead. This derives the identical display string so this
- * header renders exactly as before. Deliberately NOT `formatPrice()`
- * from site-config — that renders "$12 USD", which is the Marketing
- * App's convention and would visibly change this line.
+ * The cheapest of the product's real packs, from Django (the packs the
+ * checkout sells, already loaded by the product state). It read "Starting
+ * at —" in every Studio until 25 Oct 2026: it came from the registry's
+ * offerings, which hold no prices. While the packs load, or if there are
+ * none, the line is left out rather than shown with a dash. Formatted as
+ * the Studio's own pricing summary formats the total.
  */
-function startingPriceLabel(product: ProductEntry): string {
-  const starting = getStartingPrice(product);
-  return starting === null ? "—" : `$${starting}`;
+function useStartingPrice(): string | null {
+  const { packs, locale } = useProductState();
+  if (!packs || packs.length === 0) return null;
+  const cheapest = packs.reduce((low, pack) => (pack.priceCents < low.priceCents ? pack : low));
+  return formatCents(cheapest.priceCents, cheapest.currency, locale);
 }
 
 interface ProductHeaderProps {
@@ -28,6 +31,7 @@ interface ProductHeaderProps {
 export function ProductHeader({ product }: ProductHeaderProps) {
   const content = useProductContent(product);
   const t = useTranslations("Studio.chrome");
+  const startingPrice = useStartingPrice();
 
   // `icon` is a string per types.ts so the registry has zero UI-library
   // imports — resolve it against lucide-react here, at the one place that
@@ -68,9 +72,7 @@ export function ProductHeader({ product }: ProductHeaderProps) {
         <p className="text-[15px] leading-relaxed text-body/80">{content.shortDescription}</p>
       </div>
 
-      <p className="text-sm text-body/60">
-        {t("startingAt", { price: startingPriceLabel(product) })}
-      </p>
+      {startingPrice !== null && <p className="text-sm text-body/60">{t("startingAt", { price: startingPrice })}</p>}
     </div>
   );
 }

@@ -2,7 +2,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { jsonLdScript } from "@/lib/json-ld";
 import { ProductReviews } from "@/components/product/product-reviews";
 import { getCatalogProducts } from "@/lib/products/catalog-server";
-import { getAvailableOccasions, getFeaturedCatalogProducts } from "@/lib/products/catalog";
+import { getAvailableOccasions, getFeaturedCatalogProducts, lowestCatalogStartingPrice } from "@/lib/products/catalog";
 import { SITE_NAME, SITE_URL, SUPPORT_EMAIL } from "@/lib/site-config";
 import { SiteHeader, MobileStickyCta } from "@/components/layout/header";
 import { SiteFooter } from "@/components/layout/footer";
@@ -134,7 +134,7 @@ export default async function HomePage({
         <GiftOccasions occasions={availableOccasions} />
         <TemplateGallery />
         <WhyHeartfolio />
-        <Pricing />
+        <Pricing startingPrice={lowestCatalogStartingPrice(catalogProducts)} />
         <Faq />
         <FinalCta />
       </main>

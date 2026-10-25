@@ -250,6 +250,23 @@ export function getCatalogStartingPrice(product: CatalogProduct): number | null 
 }
 
 /**
+ * The lowest "From $X" across the catalog, with its currency: the home
+ * page's single starting price. From Django's figures (`getCatalogStartingPrice`),
+ * since the registry holds no prices (every product's `offerings` is empty,
+ * which is why this read "Starting at —" until 25 Oct 2026).
+ */
+export function lowestCatalogStartingPrice(products: CatalogProduct[]): { amount: number; currency: string } | null {
+  let lowest: { amount: number; currency: string } | null = null;
+  for (const product of products) {
+    const price = getCatalogStartingPrice(product);
+    if (price !== null && (lowest === null || price < lowest.amount)) {
+      lowest = { amount: price, currency: product.currency };
+    }
+  }
+  return lowest;
+}
+
+/**
  * Merges the `GET /products/` list over the full registry.
  *
  * Ordering, artwork and i18n keys come from the registry (Django's `order`
