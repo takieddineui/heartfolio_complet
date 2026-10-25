@@ -179,11 +179,25 @@ On the VPS host, `crontab -e` (adjust the path):
 15 * * * *    cd /opt/heartfolio && docker compose -f docker-compose.prod.yml --env-file .env.production exec -T api python manage.py expire_freemius_staging
 30 3 * * *    cd /opt/heartfolio && docker compose -f docker-compose.prod.yml --env-file .env.production exec -T api python manage.py expire_provisional_assets
 0 8 * * *     cd /opt/heartfolio && docker compose -f docker-compose.prod.yml --env-file .env.production exec -T api python manage.py send_digest --period=daily
+45 3 * * *    cd /opt/heartfolio && docker compose -f docker-compose.prod.yml --env-file .env.production exec -T api python manage.py cleanup_inactive_drafts --execute
 ```
 
 `expire_provisional_assets` is the only thing that deletes unpaid voice
 notes and videos; run it once with `--dry-run` first. `check_services` and
 `send_digest` alert through Telegram.
+
+`cleanup_inactive_drafts` keeps the privacy policy's promise: unbought drafts
+not saved for 12 months are deleted, with their uploads (from R2 as well as
+the database). Before adding the cron line, run it once by hand without
+`--execute`: that is a dry run listing what would go.
+
+- **It never touches** anything linked to an order (paid or not), a draft with
+  an open or completed Freemius checkout, uploads another kept project uses,
+  or uploads that belong to no project (it only counts those).
+- **Safety caps.** It refuses a window shorter than 12 months. If more than
+  200 drafts qualify at once, it deletes nothing and sends a Telegram alert
+  (`--max-drafts` raises the cap after you have checked the dry run).
+- **R2 failures.** An upload R2 cannot delete keeps its draft for the next run.
 
 ## 5. Freemius: sandbox to live
 

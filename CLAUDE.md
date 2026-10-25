@@ -98,6 +98,13 @@ every customer. The live page's `ar_access` throttle is therefore left at
 1000/min in production. Tighten it only after the live page forwards the
 visitor's address.
 
+**`projects.updated_at` is set by a database trigger** (`set_updated_at_projects`)
+on every UPDATE, whatever Django sends. That is what makes it "last activity"
+for `cleanup_inactive_drafts` (the privacy policy's 12-month deletion of
+unbought drafts and their uploads, 25 Oct 2026). A test that backdates a
+project must disable the trigger for that update, after `SET CONSTRAINTS ALL
+IMMEDIATE` (see `apps/projects/tests_draft_cleanup.py`).
+
 **Two hardcoded `supported_targets` maps must stay in sync**, in
 `apps/products/admin.py` and `seed_catalog.py`. A new product's packs
 cannot be saved or seeded until both know about it. They drifted once
