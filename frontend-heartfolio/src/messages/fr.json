@@ -271,7 +271,8 @@
       "terms": "Conditions générales",
       "privacy": "Politique de confidentialité",
       "refunds": "Politique de remboursement",
-      "contact": "Contact"
+      "contact": "Contact",
+      "cookieSettings": "Paramètres des cookies"
     },
     "digitalNotice": "Heartfolio vend des souvenirs numériques. Chacun est une expérience numérique personnalisée — avec les formats Imprimable et autres disponibles sur certains souvenirs — et il n'y a aucun article physique, rien n'est expédié.",
     "supportLine": "Une question sur une commande, un téléchargement ou une personnalisation ?",
@@ -694,7 +695,7 @@
           "body": [
             "Toujours utilisés, car le site en a besoin : un cookie de session qui garde votre brouillon et votre commande ensemble pendant 30 jours ; un cookie de sécurité qui protège les formulaires ; et votre choix de langue, pendant un an.",
             "Votre préférence clair/sombre et votre choix concernant les cookies sont enregistrés dans le stockage de votre navigateur.",
-            "Uniquement si vous acceptez : les cookies de Google Analytics, qui mesurent les visites. Choisir « Non merci » les laisse désactivés, et le site fonctionne de la même façon. Pour modifier votre choix plus tard, effacez les données de ce site dans votre navigateur."
+            "Uniquement si vous acceptez : les cookies de Google Analytics, qui mesurent les visites. Choisir « Non merci » les laisse désactivés, et le site fonctionne de la même façon. Pour modifier votre choix plus tard, utilisez « Paramètres des cookies » en bas de chaque page."
           ]
         },
         {

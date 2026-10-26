@@ -271,7 +271,8 @@
       "terms": "Terms & Conditions",
       "privacy": "Privacy Policy",
       "refunds": "Refund Policy",
-      "contact": "Contact"
+      "contact": "Contact",
+      "cookieSettings": "Cookie settings"
     },
     "digitalNotice": "Heartfolio sells digital keepsakes. Each one is a personalized digital experience — with Printable and other formats available on some keepsakes — and there is no physical item and nothing is shipped.",
     "supportLine": "Questions about an order, a download or a personalization detail?",
@@ -694,7 +695,7 @@
           "body": [
             "Always used, because the site needs them: a session cookie that keeps your draft and order together, for 30 days; a security cookie that protects forms; and your language choice, for one year.",
             "Your light/dark preference and your cookie choice are saved in your browser's storage.",
-            "Only if you accept: Google Analytics cookies, which measure visits. Choosing \"No thanks\" keeps them off, and the site works the same either way. To change your choice later, clear this site's data in your browser."
+            "Only if you accept: Google Analytics cookies, which measure visits. Choosing \"No thanks\" keeps them off, and the site works the same either way. To change your choice later, use \"Cookie settings\" at the foot of any page."
           ]
         },
         {

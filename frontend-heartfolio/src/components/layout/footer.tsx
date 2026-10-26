@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { Logo } from "@/components/brand/logo";
 import { Link } from "@/i18n/navigation";
+import { reopenConsent } from "@/components/analytics/analytics";
 import { getAllProducts } from "@/lib/products/registry";
 import { useProductContent } from "@/lib/products/use-product-content";
 import { SUPPORT_EMAIL } from "@/lib/site-config";
@@ -148,6 +149,17 @@ export function SiteFooter() {
                 </Link>
               </li>
             ))}
+            <li>
+              {/* Asks the cookie question again, so a visitor can change
+                  their answer without clearing the site's data. */}
+              <button
+                type="button"
+                onClick={reopenConsent}
+                className="text-start text-sm text-parchment/70 transition-colors hover:text-parchment"
+              >
+                {t("legal.cookieSettings")}
+              </button>
+            </li>
           </FooterColumn>
         </div>
 

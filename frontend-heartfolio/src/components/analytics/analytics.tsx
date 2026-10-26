@@ -55,7 +55,66 @@ export function writeConsent(state: Exclude<ConsentState, "undecided">) {
     // annoying but correct — a consent we cannot record is not a consent
     // we can rely on.
   }
+  setGoogleAnalyticsDisabled(state === "denied");
   window.dispatchEvent(new CustomEvent("heartfolio-consent", { detail: state }));
+}
+
+/**
+ * The footer's "Cookie settings" (26 Oct 2026). Forgets the stored answer so
+ * the banner asks again; until then the privacy page told people to clear
+ * the site's data in their browser. Nothing is withdrawn by reopening
+ * alone: GA keeps its state until the visitor answers.
+ */
+export function reopenConsent() {
+  try {
+    window.localStorage.removeItem(CONSENT_KEY);
+  } catch {
+    // Storage unavailable: `readConsent` already reads "undecided".
+  }
+  window.dispatchEvent(new CustomEvent("heartfolio-consent", { detail: "undecided" }));
+}
+
+/**
+ * A "No thanks" after an earlier "Allow" must really withdraw: unmounting
+ * the <Script> tags does not unload gtag, which would keep measuring this
+ * visit, and its cookies would stay. So: Google's own per-property opt-out
+ * flag, a consent update for anything already queued, and the `_ga*`
+ * cookies deleted on every domain GA may have set them on (it picks the
+ * widest, e.g. `.theheartfolio.com`). A later "Allow" lifts the flag.
+ */
+function setGoogleAnalyticsDisabled(disabled: boolean) {
+  const gaId = process.env.NEXT_PUBLIC_GA_ID;
+  if (!gaId) return;
+  const w = window as unknown as Record<string, unknown> & { gtag?: (...args: unknown[]) => void };
+  w[`ga-disable-${gaId}`] = disabled;
+  if (!disabled) return;
+  w.gtag?.("consent", "update", { analytics_storage: "denied" });
+  deleteGoogleAnalyticsCookies();
+}
+
+export function deleteGoogleAnalyticsCookies() {
+  const names = document.cookie
+    .split(";")
+    .map((pair) => (pair.split("=")[0] ?? "").trim())
+    .filter((name) => /^(_ga|_gid|_gat)/.test(name));
+  const domains = cookieDomainAttributes(window.location.hostname);
+  for (const name of names) {
+    for (const domain of domains) {
+      document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/${domain}`;
+    }
+  }
+}
+
+/** "", then "a.b.example.com", "b.example.com", "example.com", with and
+ *  without the leading dot: a cookie is only removed by naming its domain. */
+export function cookieDomainAttributes(hostname: string): string[] {
+  const labels = hostname.split(".");
+  const domains = [""];
+  for (let i = 0; i < labels.length - 1; i += 1) {
+    const domain = labels.slice(i).join(".");
+    domains.push(`;domain=${domain}`, `;domain=.${domain}`);
+  }
+  return domains;
 }
 
 /**
