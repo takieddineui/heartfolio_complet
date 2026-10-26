@@ -29,21 +29,24 @@ export function GET() {
   const body = `# ${SITE_NAME}
 
 > Personalized digital keepsakes and printable gifts. A customer supplies
-> their own dates, places, photos and words; ${SITE_NAME} turns them into
-> artwork delivered as high-resolution files. Nothing is shipped.
+> their own dates, places, photos and words; ${SITE_NAME} turns them into a
+> personal web page, print-ready files, or both. Nothing is shipped.
 
 ## What it is
-- Personalized digital gifts, bought mainly for anniversaries and weddings.
-- Delivered instantly as downloads after payment — no shipping, no waiting.
+- Personalized digital gifts, for anniversaries, weddings, graduations and
+  other occasions.
+- Delivered instantly after payment — no shipping, no waiting.
 - Prices are in USD. There is no subscription; each keepsake is bought once.
 - Available in English, French and Arabic.
 
 ## What a customer receives
-- Print-ready PNG and PDF files at 300 DPI.
-- Print sizes: ${sizes} — each in two versions, one frameless for mounting
+Each keepsake's own page lists which of these it offers:
+- Digital: a personal, interactive web page for the recipient, opened from a
+  link or a QR code. Nothing to install.
+- Printable: print-ready PNG and PDF files at 300 DPI.
+  Print sizes: ${sizes} — each in two versions, one frameless for mounting
   under glass and one with a border for an ordinary picture frame.
-- Phone, tablet and desktop wallpapers.
-- Some packs include an interactive web version of the keepsake.
+- Printable + Digital, where offered, is both together.
 
 ## Products
 ${products
@@ -62,9 +65,10 @@ ${enabledIntents()
 - Refunds: ${SITE_URL}/en/refunds
 
 ## Notes for crawlers
-- The Studio, project, order and AR pages are private to a customer and are
-  excluded in robots.txt. They hold session-scoped or purchased content and
-  are not useful to index.
+- The Studio, project and order pages are private to a customer and are
+  excluded in robots.txt. A purchased keepsake's own pages (the Digital page
+  and its AR view) are marked noindex. They hold session-scoped or purchased
+  content and are not useful to index.
 - Structured data (Organization, WebSite, FAQPage, Product, BreadcrumbList)
   is published on the pages above.
 `;

@@ -57,7 +57,7 @@
     "title": "Un souvenir pour chaque\ninstant qui compte.",
     "subtitle": "Chaque souvenir Heartfolio part de quelque chose que vous seul possédez — une date, un lieu, une chanson, une histoire bien à vous. Choisissez celui qui correspond au moment.",
     "cta": "Explorer tous les souvenirs",
-    "digitalNote": "Chaque souvenir est une expérience numérique personnalisée — avec les versions Imprimable et Fond d'écran disponibles pour les souvenirs qui les proposent.",
+    "digitalNote": "Chaque souvenir est une expérience numérique personnalisée — avec une version Imprimable pour les souvenirs qui la proposent.",
     "waitlistBadge": "Liste d'attente"
   },
   "HowItWorks": {
@@ -78,8 +78,8 @@
         "description": "Choisissez parmi quelques ambiances magnifiques, pas quarante médiocres. Ajoutez les mots que vous seuls comprendriez."
       },
       "four": {
-        "title": "Téléchargez, imprimez, ou en fond d'écran",
-        "description": "Votre création terminée, prête en PNG haute résolution — à vous en quelques secondes, imprimée à votre façon ou gardée dans votre poche."
+        "title": "Téléchargez, imprimez ou partagez le lien",
+        "description": "Votre souvenir terminé, prêt en quelques secondes — des fichiers prêts à imprimer et à encadrer, ou une page rien qu'à lui à partager avec la personne à qui il est destiné."
       }
     }
   },
@@ -191,12 +191,12 @@
     "note": "Les formats varient selon le souvenir — consultez la page de chaque création pour savoir ce qui est inclus. L'impression et l'encadrement ne sont jamais inclus, sauf mention contraire sur la création elle-même.",
     "single": {
       "priceNote": "prix de départ sur l'ensemble de la collection",
-      "description": "Quelle que soit la façon dont vous voulez le garder — Numérique, Imprimable, Fond d'écran et plus selon la création — le tarif est indiqué clairement sur la page de chaque souvenir.",
+      "description": "Quelle que soit la façon dont vous voulez le garder — Numérique, Imprimable, ou les deux selon la création — le tarif est indiqué clairement sur la page de chaque souvenir.",
       "features": [
         "Personnalisé selon votre propre histoire, à chaque fois",
         "Personnalisez et prévisualisez votre souvenir autant de fois que vous le souhaitez avant l'achat",
         "Téléchargez votre souvenir terminé après l'achat",
-        "Numérique, Imprimable, Fond d'écran et plus, selon la création"
+        "Numérique, Imprimable, ou les deux, selon la création"
       ],
       "cta": "Voir les tarifs de chaque souvenir",
       "reassurance": "Téléchargez votre souvenir terminé après l'achat.",

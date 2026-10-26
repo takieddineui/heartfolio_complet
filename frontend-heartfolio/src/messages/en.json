@@ -57,7 +57,7 @@
     "title": "A keepsake for every\nkind of moment.",
     "subtitle": "Every Heartfolio keepsake starts with something only you have — a date, a place, a song, a story of your own. Choose the one that fits the moment.",
     "cta": "Explore all keepsakes",
-    "digitalNote": "Every keepsake is a personalized digital experience — with Printable and Wallpaper available for the keepsakes that offer them.",
+    "digitalNote": "Every keepsake is a personalized digital experience — with a Printable version for the keepsakes that offer one.",
     "waitlistBadge": "Waitlist"
   },
   "HowItWorks": {
@@ -78,8 +78,8 @@
         "description": "Choose from a few beautiful moods, not forty mediocre ones. Add the words only they'd understand."
       },
       "four": {
-        "title": "Download, print, or set as wallpaper",
-        "description": "Your finished keepsake, ready in high-resolution PNG — yours in seconds, printed your way or carried in your pocket."
+        "title": "Download, print, or share the link",
+        "description": "Your finished keepsake, ready in seconds — print-ready files to frame, or a page of its own to share with the one it's for."
       }
     }
   },
@@ -191,12 +191,12 @@
     "note": "Formats vary by keepsake — see each product's own page for what's included. Printing and framing are never included unless a keepsake's offering says otherwise.",
     "single": {
       "priceNote": "starting price across the collection",
-      "description": "However you choose to keep it — Digital, Printable, Wallpaper and more where available — pricing is shown clearly on every keepsake's own page.",
+      "description": "However you choose to keep it — Digital, Printable, or both where available — pricing is shown clearly on every keepsake's own page.",
       "features": [
         "Personalized to your own story, every time",
         "Customize and preview your keepsake as many times as you like before you buy",
         "Download your finished keepsake after purchase",
-        "Digital, Printable, Wallpaper and more, where available"
+        "Digital, Printable, or both, where available"
       ],
       "cta": "See prices for every keepsake",
       "reassurance": "Download your finished keepsake after purchase.",

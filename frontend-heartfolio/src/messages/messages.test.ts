@@ -101,6 +101,29 @@ describe("page titles carry the brand once", () => {
   });
 });
 
+describe("no wallpaper promise outside the pack labels", () => {
+  /**
+   * Wallpapers are not sold (every wallpaper pack is disabled, and the add-on
+   * checkbox is hidden by `SHOW_WALLPAPER_ADDON`), yet the home page, the
+   * pricing card and llms.txt promised them until 26 Oct 2026. Only the
+   * labels a wallpaper pack would need if it were switched back on may
+   * mention one.
+   */
+  const PACK_LABELS = [
+    "Products.offerings.",
+    "ProductPage.offerings.wallpaperAddon",
+    "ProductPage.offeringDetails.wallpaperFiles",
+  ];
+  const WALLPAPER = /wallpaper|fonds? d['’]écran|خلفي/i;
+
+  it.each(Object.entries(LOCALES))("%s", (_locale, messages) => {
+    const offenders = flatten(messages as unknown as Json).filter(
+      ([path, text]) => WALLPAPER.test(text) && !PACK_LABELS.some((p) => path.startsWith(p))
+    );
+    expect(offenders.map(([path]) => path)).toEqual([]);
+  });
+});
+
 describe("locale parity", () => {
   it("gives every locale the same set of keys", () => {
     const keysFor = (m: unknown) => flatten(m as Json).map(([path]) => path).sort();
