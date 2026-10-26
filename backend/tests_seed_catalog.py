@@ -91,7 +91,7 @@ class RealCatalogStateTests(SimpleTestCase):
         problems = [p for entry in CATALOG for p in validate(entry)]
         self.assertEqual(problems, [], f"CATALOG itself is invalid: {problems}")
 
-    def test_exactly_seven_love_story_timeline_packs_five_active_two_disabled(self):
+    def test_exactly_seven_love_story_timeline_packs_three_active_four_disabled(self):
         packs = self._love_story_packs()
         self.assertEqual(len(packs), 7)
 
@@ -99,19 +99,15 @@ class RealCatalogStateTests(SimpleTestCase):
         active = {slug for slug, status in statuses.items() if status == "active"}
         disabled = {slug for slug, status in statuses.items() if status == "disabled"}
 
+        self.assertEqual(active, {"printable", "live", "printable-plus-digital"})
+        # `complete` is retired by the combo model, and the two wallpaper
+        # combos by the owner on 26 Oct 2026 (no Freemius plan, add-on
+        # hidden) — disabled, never deleted (past orders still reference
+        # the rows).
         self.assertEqual(
-            active,
-            {
-                "printable",
-                "printable-plus-wallpaper",
-                "live",
-                "digital-plus-wallpaper",
-                "printable-plus-digital",
-            },
+            disabled,
+            {"wallpaper", "complete", "printable-plus-wallpaper", "digital-plus-wallpaper"},
         )
-        # `complete` is retired by the combo model — disabled, never deleted
-        # (past orders still reference the row).
-        self.assertEqual(disabled, {"wallpaper", "complete"})
 
     def test_prices_match_the_approved_state_exactly(self):
         packs = self._love_story_packs()
@@ -245,17 +241,8 @@ class SellableMeansMappedTests(SimpleTestCase):
     """Production sells through Freemius only (owner, 25 Oct 2026), so a pack
     the catalog offers with no Freemius plan is a pack a customer can choose
     and never pay for. Where We Met was seeded `available` with three active
-    packs and no plan until 26 Oct 2026; it is withdrawn now."""
-
-    #: Active in the owner-approved Love Story Timeline state
-    #: (`RealCatalogStateTests`), unmapped, and unreachable from the checkout
-    #: (the wallpaper add-on is hidden, `SHOW_WALLPAPER_ADDON`). Whether to
-    #: disable them is the owner's call, raised 26 Oct 2026. Anything else
-    #: unmapped fails.
-    KNOWN_UNMAPPED = {
-        "love-story-timeline:printable-plus-wallpaper",
-        "love-story-timeline:digital-plus-wallpaper",
-    }
+    packs and no plan until 26 Oct 2026; it is withdrawn now, and Love Story
+    Timeline's two wallpaper combos are disabled."""
 
     def test_every_active_pack_of_an_available_product_has_a_freemius_plan(self):
         from apps.commerce.freemius_integration import FREEMIUS_PLAN_MAPPING
@@ -269,10 +256,9 @@ class SellableMeansMappedTests(SimpleTestCase):
             if (pack[3] if len(pack) > 3 else "active") == "active"
             and f"{entry['slug']}:{pack[0]}" not in FREEMIUS_PLAN_MAPPING
         ]
-        self.assertEqual(sorted(set(unmapped) - self.KNOWN_UNMAPPED), [])
-        # The exceptions stay real: a stale one (mapped or disabled since)
-        # must be removed from the list, not linger as a blind spot.
-        self.assertEqual(sorted(self.KNOWN_UNMAPPED - set(unmapped)), [])
+        # No exceptions (owner, 26 Oct 2026): Love Story Timeline's two
+        # wallpaper combos, the last unmapped active packs, were disabled.
+        self.assertEqual(unmapped, [])
 
     def test_where_we_met_is_withdrawn_not_deleted(self):
         from seed_catalog import CATALOG

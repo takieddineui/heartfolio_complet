@@ -136,11 +136,15 @@ CATALOG = [
             # Combo packs: included_targets is the real union of their two
             # source packs' own targets, not hand-typed — see the archived
             # migration SQL for the exact jsonb_agg query this mirrors.
+            # RETIRED (owner, 26 Oct 2026), with `digital-plus-wallpaper`
+            # below: no Freemius plan, and the wallpaper add-on that offered
+            # them is hidden. Disabled, never deleted; price and targets are
+            # historical.
             (
                 "printable-plus-wallpaper",
                 2799,
                 [*all_print_target_ids(), *all_wallpaper_target_ids()],
-                "active",
+                "disabled",
             ),
             # Displays as "Digital" to customers (see the Love Story
             # Timeline module's messages.ts) — the DB slug stayed "live" on
@@ -159,7 +163,8 @@ CATALOG = [
                 [*all_print_target_ids(), "__live__"],
                 "active",
             ),
-            ("digital-plus-wallpaper", 2099, ["__live__", *all_wallpaper_target_ids()], "active"),
+            # RETIRED (owner, 26 Oct 2026) — see `printable-plus-wallpaper`.
+            ("digital-plus-wallpaper", 2099, ["__live__", *all_wallpaper_target_ids()], "disabled"),
             # RETIRED — see the combo-model note above. Price and targets are
             # historical, unchanged from when it was the active row: they
             # still describe what existing orders were sold. Nobody can buy it.

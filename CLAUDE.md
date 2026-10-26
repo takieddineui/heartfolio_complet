@@ -96,9 +96,10 @@ per visitor. But the Next server's OWN fetches send no `X-Forwarded-For` unless 
 pass it on: `catalog-server.ts` does not, so DRF sees the web container for
 every customer there. The live page's payload fetch FORWARDS the visitor's
 header since 26 Oct 2026 (`live/[liveId]/page.tsx`, pinned by its test).
-Its `ar_access` throttle is still 1000/min in production: confirm
-per-visitor identities on the production stack first, and size the rate for
-shared addresses (a venue's Wi-Fi full of guests scanning one QR card).
+Its `ar_access` throttle STAYS 1000/min for launch (owner, 26 Oct 2026).
+**Revisit after real traffic:** confirm per-visitor identities on the
+production stack, look at real per-address request rates, and size the rate
+for shared addresses (a venue's Wi-Fi full of guests scanning one QR card).
 
 **`projects.updated_at` is set by a database trigger** (`set_updated_at_projects`)
 on every UPDATE, whatever Django sends. That is what makes it "last activity"
@@ -926,11 +927,11 @@ Two were genuine product bugs: the `layout` default above, and
   and no Freemius plan, so the public API listed it. The real database keeps
   the old state until the owner's next seed run. It has never been opened in
   a browser. `SellableMeansMappedTests` (`tests_seed_catalog.py`) now fails
-  if any active pack of an available product has no Freemius plan, except
-  Love Story Timeline's two wallpaper combos (`printable-plus-wallpaper`,
-  `digital-plus-wallpaper`): active in the approved state, unmapped, and
-  unreachable because the add-on is hidden. Disabling them is the owner's
-  call
+  if any active pack of an available product has no Freemius plan, with no
+  exceptions: Love Story Timeline's two wallpaper combos
+  (`printable-plus-wallpaper`, `digital-plus-wallpaper`), active and
+  unmapped, were disabled by the owner the same day (never deleted). Both
+  changes reach the real database on the owner's next seed run
 - **Love Story Timeline: Arabic in the print, PHASE 1 (18 Oct 2026).** No
   DejaVu Serif face has an Arabic glyph, so Serif Classic (the DEFAULT) printed
   every Arabic slot as empty boxes and Romantic Italic its headings (names,
