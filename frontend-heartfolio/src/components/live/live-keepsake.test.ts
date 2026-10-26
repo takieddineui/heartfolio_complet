@@ -13,6 +13,9 @@ const strip = (source: string) =>
 
 const component = strip(readFileSync("src/components/live/live-keepsake.tsx", "utf8"));
 const page = strip(readFileSync("src/app/[locale]/live/[liveId]/page.tsx", "utf8"));
+/** Where the page hands each product's payload to its component (moved out
+ *  of the page, 26 Oct 2026, so the capture page shares it). */
+const dispatch = strip(readFileSync("src/components/live/live-payload.tsx", "utf8"));
 const css = readFileSync("src/components/live/live-keepsake.module.css", "utf8");
 
 describe("live keepsake", () => {
@@ -67,7 +70,8 @@ describe("live keepsake", () => {
   it("uses the order's locale, not the URL's", () => {
     // A recipient opening an Arabic keepsake from an English link should
     // see the keepsake they were given.
-    expect(page).toContain("locale={payload.locale}");
+    expect(dispatch).toContain("locale={payload.locale}");
+    expect(page).toContain("<LivePayloadView payload={payload}");
   });
 
   it("is noindex and collapses every failure into one response", () => {

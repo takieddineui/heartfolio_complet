@@ -24,3 +24,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Storefront captures: the unpacked backend bundle and recording frames
+# (scripts/captures/record.mjs). The finished captures live in public/captures.
+/.captures-work/

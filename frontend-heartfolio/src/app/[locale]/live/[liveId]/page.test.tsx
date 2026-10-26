@@ -30,6 +30,17 @@ import LivePage from "./page";
 import { LiveKeepsake } from "@/components/live/live-keepsake";
 import { ReasonsLivePage } from "@/components/live-reasons/reasons-live-page";
 import { GraduationLivePage } from "@/components/live-graduation/graduation-live-page";
+import { LivePayloadView } from "@/components/live/live-payload";
+
+type Element = { type: unknown; props: Record<string, unknown> };
+
+/** The page hands the payload to `LivePayloadView` (shared with the dev-only
+ *  capture page); this follows it to the product's own component. */
+async function rendered(page: Promise<unknown>): Promise<Element> {
+  const element = (await page) as Element;
+  expect(element.type).toBe(LivePayloadView);
+  return (LivePayloadView as (props: never) => Element)(element.props as never);
+}
 
 const params = (liveId = "abc") => Promise.resolve({ locale: "en", liveId });
 
@@ -115,7 +126,7 @@ describe("LivePage — Reasons I Love You", () => {
       vi.fn().mockResolvedValue(new Response(JSON.stringify({ productId: "reasons-i-love-you", locale: "ar", values }), { status: 200 }))
     );
 
-    const element = (await LivePage({ params: params("xyz") })) as { type: unknown; props: Record<string, unknown> };
+    const element = await rendered(LivePage({ params: params("xyz") }));
 
     expect(element.type).toBe(ReasonsLivePage);
     expect(element.type).not.toBe(LiveKeepsake);
@@ -135,7 +146,7 @@ describe("LivePage — Reasons I Love You", () => {
       )
     );
 
-    const element = (await LivePage({ params: params() })) as { type: unknown };
+    const element = await rendered(LivePage({ params: params() }));
 
     expect(element.type).toBe(LiveKeepsake);
   });
@@ -149,7 +160,7 @@ describe("LivePage — Graduation Keepsake", () => {
       vi.fn().mockResolvedValue(new Response(JSON.stringify({ productId: "graduation-keepsake", locale: "fr", values }), { status: 200 }))
     );
 
-    const element = (await LivePage({ params: params("grad1") })) as { type: unknown; props: Record<string, unknown> };
+    const element = await rendered(LivePage({ params: params("grad1") }));
 
     expect(element.type).toBe(GraduationLivePage);
     expect(element.type).not.toBe(ReasonsLivePage);

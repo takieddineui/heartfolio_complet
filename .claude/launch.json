@@ -7,6 +7,13 @@
       "runtimeArgs": ["--prefix", "frontend-heartfolio", "run", "dev"],
       "port": 3000,
       "autoPort": true
+    },
+    {
+      "name": "frontend-capture",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "frontend-heartfolio", "run", "dev", "--", "--port", "3005"],
+      "env": { "HEARTFOLIO_CAPTURE": "1" },
+      "port": 3005
     }
   ]
 }

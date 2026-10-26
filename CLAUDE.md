@@ -177,6 +177,26 @@ the call. Not covered: `--parallel` workers (not used here), and psycopg,
 which resolves the database host in C (the database only).
 `HermeticTestRunnerTests` pins it (mutation-checked, 9 of 9).
 
+**The storefront's product captures are recordings of the REAL live pages
+(26 Oct 2026).** `scripts/captures/record.mjs` (its header has the stages
+and what each needs): the Studio's own samples plus licensed photos
+(`backend/apps/delivery/marketing_samples/`, `PHOTOS.md`) go through
+`render_marketing_samples`, which builds the real live payloads, one print
+and the gift QR card (pointing at the product page) on the THROWAWAY
+database with mock storage, in one transaction it always rolls back; the
+dev-only page `/<locale>/capture/<product>` (a 404 unless the dev server
+runs with `HEARTFOLIO_CAPTURE=1`, never in production; `launch.json` has
+`frontend-capture`) renders them through `LivePayloadView`, the live
+page's own dispatch. Recording freezes the page's clock and every web
+animation and advances both 1/30 s per screenshot, so loops are smooth and
+repeatable. Traps found building it: Playwright's `click()` waits for
+"stable" frames that never come under a frozen clock (click the bounding
+box); an animation held paused never resolves `finished`, which the
+Reasons scenes wait on (finish it at its end time); lazy images below the
+fold never load (do not wait for them); and in Git Bash, `docker compose
+exec ... /tmp/...` needs `MSYS_NO_PATHCONV=1`. Regenerate only when a
+product changes (owner's decision); the files are committed.
+
 **`backend/.dockerignore` strips `tests_*.py` and `**/tests.py`**, so
 `manage.py test` inside the built image finds 5 tests instead of 649. The
 compose file mounts `./backend` over `/app` to work around this.
@@ -226,6 +246,7 @@ task.**
 | A live product's limits (`limits.ts` or its backend `data.py`), or upload/media limits | `src/lib/studio/product-modules/reasons-i-love-you/reasons-module.test.ts`, `.../graduation-keepsake/graduation-module.test.ts`, `src/lib/studio/media-values.test.ts` | Frontend limits equal the backend's `data.py` and `base.py` |
 | Settings, environment or `.env.example` files, the test runner | `apps.common.tests.ProductionSettingsLoadingTests`, `apps.common.tests.HermeticTestRunnerTests`, `apps.assets.tests.EnvExampleUploadTypesTests` | Production settings load (throttle rates merged); tests reach no outside host; `.env.example` sets no upload type list |
 | A print renderer's PNG saving | `apps.delivery.tests_png_encoding` | No `optimize=True` on the full-screen save paths |
+| Storefront captures: a product's live page, its Studio sample (`initial-state.ts`), `marketing_samples/`, `scripts/captures/`, `public/captures/` | Frontend: `src/lib/captures/captures.test.ts`, `src/lib/captures/capture-lock.test.ts`, `src/proxy.test.ts`. Backend: `apps.delivery.tests_marketing_samples` | Every visible product captured in en/fr/ar within budget, no stray files; the capture page and its photo route locked; every sample valid for the real live page, every photo present and licensed. A VISIBLE change to a live page means re-recording: `node scripts/captures/record.mjs all` |
 
 Backend — **always** redirect to the throwaway Postgres, never Supabase:
 

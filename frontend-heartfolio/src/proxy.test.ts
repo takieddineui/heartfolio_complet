@@ -39,3 +39,40 @@ describe("unpublished products answer 404", () => {
     }
   );
 });
+
+/**
+ * THE CAPTURE PAGE IS LOCKED (26 Oct 2026). `/<locale>/capture/<product>`
+ * renders sample keepsakes for the storefront's recordings; it must be a real
+ * 404 everywhere except a development server started with
+ * `HEARTFOLIO_CAPTURE=1` (`lib/captures/capture-mode.ts`).
+ */
+describe("the capture page", () => {
+  it.each(["/en/capture/love-story-timeline", "/ar/capture/song-poster", "/fr/capture"])(
+    "%s answers 404 when capture mode is off",
+    (path) => {
+      vi.stubEnv("HEARTFOLIO_CAPTURE", "");
+      expect(rewriteOf(path)).toMatch(new RegExp(`/${path.slice(1, 3)}/__not-found__$`));
+      vi.unstubAllEnvs();
+    }
+  );
+
+  it("answers 404 in a production build even with the flag set", () => {
+    vi.stubEnv("HEARTFOLIO_CAPTURE", "1");
+    vi.stubEnv("NODE_ENV", "production");
+    expect(rewriteOf("/en/capture/love-story-timeline")).toMatch(/\/en\/__not-found__$/);
+    vi.unstubAllEnvs();
+  });
+
+  it("opens on a development server started for captures", () => {
+    vi.stubEnv("HEARTFOLIO_CAPTURE", "1");
+    vi.stubEnv("NODE_ENV", "development");
+    expect(rewriteOf("/en/capture/love-story-timeline") ?? "").not.toContain("__not-found__");
+    vi.unstubAllEnvs();
+  });
+
+  it("does not catch other paths that merely start the same way", () => {
+    vi.stubEnv("HEARTFOLIO_CAPTURE", "");
+    expect(rewriteOf("/en/captured-moments") ?? "").not.toContain("__not-found__");
+    vi.unstubAllEnvs();
+  });
+});

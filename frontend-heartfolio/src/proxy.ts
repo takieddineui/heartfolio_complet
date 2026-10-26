@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import createMiddleware from "next-intl/middleware";
 import { routing } from "./i18n/routing";
 import { getProductById, getProductBySlug } from "./lib/products/registry";
+import { captureModeEnabled } from "./lib/captures/capture-mode";
 
 const intlMiddleware = createMiddleware(routing);
 
@@ -88,6 +89,24 @@ function unpublishedProductPath(pathname: string, locale: SiteLocale) {
   };
 }
 
+/**
+ * The dev-only capture page (`app/[locale]/capture/[product]`, for the
+ * storefront's product captures) is a real 404 unless the server was started
+ * for captures: the same rewrite as an unpublished product, because a
+ * `notFound()` inside the page would already have streamed a 200.
+ */
+const CAPTURE_ROUTE = /^\/[a-z]{2}\/capture(\/|$)/;
+
+function lockedCapturePath(pathname: string) {
+  return CAPTURE_ROUTE.test(pathname) && !captureModeEnabled();
+}
+
+function rewriteToNotFound(request: NextRequest, locale: SiteLocale) {
+  const headers = new Headers(request.headers);
+  headers.set("X-NEXT-INTL-LOCALE", locale);
+  return NextResponse.rewrite(new URL(`/${locale}/__not-found__`, request.url), { request: { headers } });
+}
+
 export default function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
@@ -106,6 +125,7 @@ export default function proxy(request: NextRequest) {
   if (pathnameLocale) {
     const missing = unpublishedProductPath(pathname, pathnameLocale);
     if (missing) return missing(request);
+    if (lockedCapturePath(pathname)) return rewriteToNotFound(request, pathnameLocale);
     return intlMiddleware(request);
   }
 

@@ -1,0 +1,488 @@
+{
+  "generated": "2026-10-26",
+  "fps": 30,
+  "products": {
+    "love-story-timeline": {
+      "en": {
+        "loop": {
+          "src": "/captures/en/love-story-timeline.mp4",
+          "bytes": 516704,
+          "width": 600,
+          "height": 1298,
+          "seconds": 7
+        },
+        "poster": {
+          "avif": {
+            "src": "/captures/en/love-story-timeline.avif",
+            "bytes": 32173
+          },
+          "jpg": {
+            "src": "/captures/en/love-story-timeline.jpg",
+            "bytes": 70286
+          },
+          "width": 600,
+          "height": 1298
+        },
+        "print": {
+          "avif": {
+            "src": "/captures/en/love-story-timeline-print.avif",
+            "bytes": 24397
+          },
+          "jpg": {
+            "src": "/captures/en/love-story-timeline-print.jpg",
+            "bytes": 58599
+          },
+          "width": 900,
+          "height": 1125
+        },
+        "qr": {
+          "avif": {
+            "src": "/captures/en/love-story-timeline-qr.avif",
+            "bytes": 22225
+          },
+          "jpg": {
+            "src": "/captures/en/love-story-timeline-qr.jpg",
+            "bytes": 60345
+          },
+          "width": 600,
+          "height": 780
+        }
+      },
+      "fr": {
+        "loop": {
+          "src": "/captures/fr/love-story-timeline.mp4",
+          "bytes": 513975,
+          "width": 600,
+          "height": 1298,
+          "seconds": 7
+        },
+        "poster": {
+          "avif": {
+            "src": "/captures/fr/love-story-timeline.avif",
+            "bytes": 33412
+          },
+          "jpg": {
+            "src": "/captures/fr/love-story-timeline.jpg",
+            "bytes": 71814
+          },
+          "width": 600,
+          "height": 1298
+        },
+        "print": {
+          "avif": {
+            "src": "/captures/fr/love-story-timeline-print.avif",
+            "bytes": 28097
+          },
+          "jpg": {
+            "src": "/captures/fr/love-story-timeline-print.jpg",
+            "bytes": 64733
+          },
+          "width": 900,
+          "height": 1125
+        },
+        "qr": {
+          "avif": {
+            "src": "/captures/fr/love-story-timeline-qr.avif",
+            "bytes": 22744
+          },
+          "jpg": {
+            "src": "/captures/fr/love-story-timeline-qr.jpg",
+            "bytes": 61783
+          },
+          "width": 600,
+          "height": 780
+        }
+      },
+      "ar": {
+        "loop": {
+          "src": "/captures/ar/love-story-timeline.mp4",
+          "bytes": 504535,
+          "width": 600,
+          "height": 1298,
+          "seconds": 7
+        },
+        "poster": {
+          "avif": {
+            "src": "/captures/ar/love-story-timeline.avif",
+            "bytes": 30526
+          },
+          "jpg": {
+            "src": "/captures/ar/love-story-timeline.jpg",
+            "bytes": 68469
+          },
+          "width": 600,
+          "height": 1298
+        },
+        "print": {
+          "avif": {
+            "src": "/captures/ar/love-story-timeline-print.avif",
+            "bytes": 19112
+          },
+          "jpg": {
+            "src": "/captures/ar/love-story-timeline-print.jpg",
+            "bytes": 47996
+          },
+          "width": 900,
+          "height": 1125
+        },
+        "qr": {
+          "avif": {
+            "src": "/captures/ar/love-story-timeline-qr.avif",
+            "bytes": 20709
+          },
+          "jpg": {
+            "src": "/captures/ar/love-story-timeline-qr.jpg",
+            "bytes": 58519
+          },
+          "width": 600,
+          "height": 780
+        }
+      }
+    },
+    "reasons-i-love-you": {
+      "en": {
+        "loop": {
+          "src": "/captures/en/reasons-i-love-you.mp4",
+          "bytes": 116774,
+          "width": 600,
+          "height": 1298,
+          "seconds": 6
+        },
+        "poster": {
+          "avif": {
+            "src": "/captures/en/reasons-i-love-you.avif",
+            "bytes": 20187
+          },
+          "jpg": {
+            "src": "/captures/en/reasons-i-love-you.jpg",
+            "bytes": 51596
+          },
+          "width": 600,
+          "height": 1298
+        },
+        "print": null,
+        "qr": {
+          "avif": {
+            "src": "/captures/en/reasons-i-love-you-qr.avif",
+            "bytes": 21413
+          },
+          "jpg": {
+            "src": "/captures/en/reasons-i-love-you-qr.jpg",
+            "bytes": 59507
+          },
+          "width": 600,
+          "height": 780
+        }
+      },
+      "fr": {
+        "loop": {
+          "src": "/captures/fr/reasons-i-love-you.mp4",
+          "bytes": 122344,
+          "width": 600,
+          "height": 1298,
+          "seconds": 6
+        },
+        "poster": {
+          "avif": {
+            "src": "/captures/fr/reasons-i-love-you.avif",
+            "bytes": 20868
+          },
+          "jpg": {
+            "src": "/captures/fr/reasons-i-love-you.jpg",
+            "bytes": 52864
+          },
+          "width": 600,
+          "height": 1298
+        },
+        "print": null,
+        "qr": {
+          "avif": {
+            "src": "/captures/fr/reasons-i-love-you-qr.avif",
+            "bytes": 21275
+          },
+          "jpg": {
+            "src": "/captures/fr/reasons-i-love-you-qr.jpg",
+            "bytes": 59261
+          },
+          "width": 600,
+          "height": 780
+        }
+      },
+      "ar": {
+        "loop": {
+          "src": "/captures/ar/reasons-i-love-you.mp4",
+          "bytes": 107175,
+          "width": 600,
+          "height": 1298,
+          "seconds": 6
+        },
+        "poster": {
+          "avif": {
+            "src": "/captures/ar/reasons-i-love-you.avif",
+            "bytes": 16432
+          },
+          "jpg": {
+            "src": "/captures/ar/reasons-i-love-you.jpg",
+            "bytes": 46168
+          },
+          "width": 600,
+          "height": 1298
+        },
+        "print": null,
+        "qr": {
+          "avif": {
+            "src": "/captures/ar/reasons-i-love-you-qr.avif",
+            "bytes": 21194
+          },
+          "jpg": {
+            "src": "/captures/ar/reasons-i-love-you-qr.jpg",
+            "bytes": 59243
+          },
+          "width": 600,
+          "height": 780
+        }
+      }
+    },
+    "graduation-keepsake": {
+      "en": {
+        "loop": {
+          "src": "/captures/en/graduation-keepsake.mp4",
+          "bytes": 151421,
+          "width": 600,
+          "height": 1298,
+          "seconds": 5.5
+        },
+        "poster": {
+          "avif": {
+            "src": "/captures/en/graduation-keepsake.avif",
+            "bytes": 17349
+          },
+          "jpg": {
+            "src": "/captures/en/graduation-keepsake.jpg",
+            "bytes": 44782
+          },
+          "width": 600,
+          "height": 1298
+        },
+        "print": null,
+        "qr": {
+          "avif": {
+            "src": "/captures/en/graduation-keepsake-qr.avif",
+            "bytes": 21365
+          },
+          "jpg": {
+            "src": "/captures/en/graduation-keepsake-qr.jpg",
+            "bytes": 59028
+          },
+          "width": 600,
+          "height": 780
+        }
+      },
+      "fr": {
+        "loop": {
+          "src": "/captures/fr/graduation-keepsake.mp4",
+          "bytes": 153482,
+          "width": 600,
+          "height": 1298,
+          "seconds": 5.5
+        },
+        "poster": {
+          "avif": {
+            "src": "/captures/fr/graduation-keepsake.avif",
+            "bytes": 17173
+          },
+          "jpg": {
+            "src": "/captures/fr/graduation-keepsake.jpg",
+            "bytes": 44327
+          },
+          "width": 600,
+          "height": 1298
+        },
+        "print": null,
+        "qr": {
+          "avif": {
+            "src": "/captures/fr/graduation-keepsake-qr.avif",
+            "bytes": 21679
+          },
+          "jpg": {
+            "src": "/captures/fr/graduation-keepsake-qr.jpg",
+            "bytes": 59888
+          },
+          "width": 600,
+          "height": 780
+        }
+      },
+      "ar": {
+        "loop": {
+          "src": "/captures/ar/graduation-keepsake.mp4",
+          "bytes": 148720,
+          "width": 600,
+          "height": 1298,
+          "seconds": 5.5
+        },
+        "poster": {
+          "avif": {
+            "src": "/captures/ar/graduation-keepsake.avif",
+            "bytes": 16294
+          },
+          "jpg": {
+            "src": "/captures/ar/graduation-keepsake.jpg",
+            "bytes": 42529
+          },
+          "width": 600,
+          "height": 1298
+        },
+        "print": null,
+        "qr": {
+          "avif": {
+            "src": "/captures/ar/graduation-keepsake-qr.avif",
+            "bytes": 21032
+          },
+          "jpg": {
+            "src": "/captures/ar/graduation-keepsake-qr.jpg",
+            "bytes": 59440
+          },
+          "width": 600,
+          "height": 780
+        }
+      }
+    },
+    "song-poster": {
+      "en": {
+        "loop": {
+          "src": "/captures/en/song-poster.mp4",
+          "bytes": 46745,
+          "width": 600,
+          "height": 1298,
+          "seconds": 6
+        },
+        "poster": {
+          "avif": {
+            "src": "/captures/en/song-poster.avif",
+            "bytes": 15244
+          },
+          "jpg": {
+            "src": "/captures/en/song-poster.jpg",
+            "bytes": 39574
+          },
+          "width": 600,
+          "height": 1298
+        },
+        "print": {
+          "avif": {
+            "src": "/captures/en/song-poster-print.avif",
+            "bytes": 15471
+          },
+          "jpg": {
+            "src": "/captures/en/song-poster-print.jpg",
+            "bytes": 49046
+          },
+          "width": 900,
+          "height": 1125
+        },
+        "qr": {
+          "avif": {
+            "src": "/captures/en/song-poster-qr.avif",
+            "bytes": 22598
+          },
+          "jpg": {
+            "src": "/captures/en/song-poster-qr.jpg",
+            "bytes": 61297
+          },
+          "width": 600,
+          "height": 780
+        }
+      },
+      "fr": {
+        "loop": {
+          "src": "/captures/fr/song-poster.mp4",
+          "bytes": 49995,
+          "width": 600,
+          "height": 1298,
+          "seconds": 6
+        },
+        "poster": {
+          "avif": {
+            "src": "/captures/fr/song-poster.avif",
+            "bytes": 14523
+          },
+          "jpg": {
+            "src": "/captures/fr/song-poster.jpg",
+            "bytes": 38043
+          },
+          "width": 600,
+          "height": 1298
+        },
+        "print": {
+          "avif": {
+            "src": "/captures/fr/song-poster-print.avif",
+            "bytes": 14577
+          },
+          "jpg": {
+            "src": "/captures/fr/song-poster-print.jpg",
+            "bytes": 47660
+          },
+          "width": 900,
+          "height": 1125
+        },
+        "qr": {
+          "avif": {
+            "src": "/captures/fr/song-poster-qr.avif",
+            "bytes": 21561
+          },
+          "jpg": {
+            "src": "/captures/fr/song-poster-qr.jpg",
+            "bytes": 59599
+          },
+          "width": 600,
+          "height": 780
+        }
+      },
+      "ar": {
+        "loop": {
+          "src": "/captures/ar/song-poster.mp4",
+          "bytes": 48439,
+          "width": 600,
+          "height": 1298,
+          "seconds": 6
+        },
+        "poster": {
+          "avif": {
+            "src": "/captures/ar/song-poster.avif",
+            "bytes": 12303
+          },
+          "jpg": {
+            "src": "/captures/ar/song-poster.jpg",
+            "bytes": 34003
+          },
+          "width": 600,
+          "height": 1298
+        },
+        "print": {
+          "avif": {
+            "src": "/captures/ar/song-poster-print.avif",
+            "bytes": 13540
+          },
+          "jpg": {
+            "src": "/captures/ar/song-poster-print.jpg",
+            "bytes": 44282
+          },
+          "width": 900,
+          "height": 1125
+        },
+        "qr": {
+          "avif": {
+            "src": "/captures/ar/song-poster-qr.avif",
+            "bytes": 20557
+          },
+          "jpg": {
+            "src": "/captures/ar/song-poster-qr.jpg",
+            "bytes": 58277
+          },
+          "width": 600,
+          "height": 780
+        }
+      }
+    }
+  }
+}

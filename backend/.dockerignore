@@ -7,3 +7,7 @@ __pycache__/
 venv/
 tests_*.py
 **/tests.py
+
+# Marketing sample photos (render_marketing_samples): a development tool that
+# refuses to run without mock storage, which production never has.
+apps/delivery/marketing_samples/photos/

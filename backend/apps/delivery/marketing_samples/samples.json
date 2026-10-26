@@ -1,0 +1,1021 @@
+{
+  "love-story-timeline": {
+    "en": {
+      "version": 1,
+      "values": {
+        "storyType": "couple",
+        "people": [
+          {
+            "name": "Emma"
+          },
+          {
+            "name": "James"
+          }
+        ],
+        "posterTitle": "Our Love Story",
+        "subtitle": "",
+        "dedication": "Every love story is beautiful, but ours is my favorite.",
+        "endingText": "To be continued…",
+        "backgroundMusic": "none",
+        "showDuration": true,
+        "autoSort": true,
+        "events": [
+          {
+            "date": "2019-04-12",
+            "title": "We Met",
+            "description": "A rainy afternoon, a shared umbrella.",
+            "location": "Lisbon",
+            "photo": {
+              "$photo": "lst-met-umbrella.jpg"
+            }
+          },
+          {
+            "date": "2020-06-20",
+            "title": "First Trip Together",
+            "description": "Three days, one tiny car.",
+            "location": "Andalusia",
+            "photo": {
+              "$photo": "lst-trip-road.jpg"
+            }
+          },
+          {
+            "date": "2022-09-03",
+            "title": "He Proposed",
+            "description": "On the beach, at sunset.",
+            "location": "Cascais",
+            "photo": {
+              "$photo": "lst-proposal-beach.jpg"
+            }
+          },
+          {
+            "date": "2024-03-15",
+            "title": "Our First Home",
+            "description": "Three rooms, one wobbly table, all ours.",
+            "location": "Porto",
+            "photo": {
+              "$photo": "lst-home-keys.jpg"
+            }
+          }
+        ]
+      },
+      "themeSelections": {
+        "palette": "classic",
+        "typography": "serif-classic",
+        "layout": "neat-stack",
+        "scale": 100
+      }
+    },
+    "fr": {
+      "version": 1,
+      "values": {
+        "storyType": "couple",
+        "people": [
+          {
+            "name": "Emma"
+          },
+          {
+            "name": "Lucas"
+          }
+        ],
+        "posterTitle": "Notre histoire d'amour",
+        "subtitle": "",
+        "dedication": "Toutes les histoires d'amour sont belles, mais la nôtre est ma préférée.",
+        "endingText": "À suivre…",
+        "backgroundMusic": "none",
+        "showDuration": true,
+        "autoSort": true,
+        "events": [
+          {
+            "date": "2019-04-12",
+            "title": "Notre rencontre",
+            "description": "Un après-midi de pluie, un parapluie partagé.",
+            "location": "Lisbonne",
+            "photo": {
+              "$photo": "lst-met-umbrella.jpg"
+            }
+          },
+          {
+            "date": "2020-06-20",
+            "title": "Premier voyage ensemble",
+            "description": "Trois jours, une toute petite voiture.",
+            "location": "Andalousie",
+            "photo": {
+              "$photo": "lst-trip-road.jpg"
+            }
+          },
+          {
+            "date": "2022-09-03",
+            "title": "Sa demande en mariage",
+            "description": "Sur la plage, au coucher du soleil.",
+            "location": "Cascais",
+            "photo": {
+              "$photo": "lst-proposal-beach.jpg"
+            }
+          },
+          {
+            "date": "2024-03-15",
+            "title": "Notre premier chez-nous",
+            "description": "Trois pièces, une table bancale, rien qu'à nous.",
+            "location": "Porto",
+            "photo": {
+              "$photo": "lst-home-keys.jpg"
+            }
+          }
+        ]
+      },
+      "themeSelections": {
+        "palette": "classic",
+        "typography": "serif-classic",
+        "layout": "neat-stack",
+        "scale": 100
+      }
+    },
+    "ar": {
+      "version": 1,
+      "values": {
+        "storyType": "couple",
+        "people": [
+          {
+            "name": "نور"
+          },
+          {
+            "name": "عمر"
+          }
+        ],
+        "posterTitle": "قصة حبنا",
+        "subtitle": "",
+        "dedication": "كل قصص الحب جميلة، لكن قصتنا هي المفضّلة لديّ.",
+        "endingText": "يتبع…",
+        "backgroundMusic": "none",
+        "showDuration": true,
+        "autoSort": true,
+        "events": [
+          {
+            "date": "2019-04-12",
+            "title": "لقاؤنا الأول",
+            "description": "بعد ظهر ممطر، ومظلة واحدة لنا معًا.",
+            "location": "لشبونة",
+            "photo": {
+              "$photo": "lst-met-umbrella.jpg"
+            }
+          },
+          {
+            "date": "2020-06-20",
+            "title": "أول رحلة معًا",
+            "description": "ثلاثة أيام، وسيارة صغيرة جدًا.",
+            "location": "الأندلس",
+            "photo": {
+              "$photo": "lst-trip-road.jpg"
+            }
+          },
+          {
+            "date": "2022-09-03",
+            "title": "طلب الزواج",
+            "description": "على الشاطئ، عند الغروب.",
+            "location": "كاشكايش",
+            "photo": {
+              "$photo": "lst-proposal-beach.jpg"
+            }
+          },
+          {
+            "date": "2024-03-15",
+            "title": "بيتنا الأول",
+            "description": "ثلاث غرف، وطاولة تتمايل، وكلها لنا.",
+            "location": "بورتو",
+            "photo": {
+              "$photo": "lst-home-keys.jpg"
+            }
+          }
+        ]
+      },
+      "themeSelections": {
+        "palette": "classic",
+        "typography": "serif-classic",
+        "layout": "neat-stack",
+        "scale": 100
+      }
+    }
+  },
+  "reasons-i-love-you": {
+    "en": {
+      "version": 1,
+      "values": {
+        "toName": "Hana",
+        "fromName": "Theo",
+        "title": "",
+        "reasons": [
+          {
+            "text": "The way you laugh at your own jokes, before you even reach the punchline."
+          },
+          {
+            "text": "How you make ordinary Tuesdays feel like something worth remembering.",
+            "memory": "Pancakes for dinner, March 2025.",
+            "photo": {
+              "$photo": "reasons-pancakes.jpg"
+            }
+          },
+          {
+            "text": "You still say good morning like you mean it. Every single day.",
+            "photo": {
+              "$photo": "reasons-coffee.jpg"
+            }
+          },
+          {
+            "text": "The way you sing in the car, loudly and slightly wrong.",
+            "photo": {
+              "$photo": "reasons-drive.jpg"
+            }
+          },
+          {
+            "text": "That you make me want to be kinder, calmer and braver, just by being you.",
+            "photo": {
+              "$photo": "reasons-hands.jpg"
+            }
+          }
+        ],
+        "finaleTeaser": "",
+        "finaleLine": "And the reason above all: you are you. I choose you, every time.",
+        "signature": "",
+        "letterEnabled": true,
+        "letterGreeting": "Hana,",
+        "letterParagraphs": [
+          {
+            "text": "I could have written a hundred of these. I stopped here so you would actually finish reading."
+          },
+          {
+            "text": "Thank you for the ordinary days, the loud car rides and the quiet bravery. I notice all of it."
+          }
+        ],
+        "letterSignoff": "All my love,",
+        "music": true,
+        "showShare": true
+      },
+      "themeSelections": {
+        "gift": "jar"
+      }
+    },
+    "fr": {
+      "version": 1,
+      "values": {
+        "toName": "Hana",
+        "fromName": "Théo",
+        "title": "",
+        "reasons": [
+          {
+            "text": "Ta façon de rire de tes propres blagues, avant même d'arriver à la chute."
+          },
+          {
+            "text": "Ta façon de rendre un mardi ordinaire digne d'être retenu.",
+            "memory": "Des crêpes au dîner, mars 2025.",
+            "photo": {
+              "$photo": "reasons-pancakes.jpg"
+            }
+          },
+          {
+            "text": "Tu dis encore bonjour comme si tu le pensais vraiment. Chaque jour.",
+            "photo": {
+              "$photo": "reasons-coffee.jpg"
+            }
+          },
+          {
+            "text": "Ta façon de chanter en voiture, fort et un peu faux.",
+            "photo": {
+              "$photo": "reasons-drive.jpg"
+            }
+          },
+          {
+            "text": "Tu me donnes envie d'être plus doux, plus calme et plus courageux, simplement en étant toi.",
+            "photo": {
+              "$photo": "reasons-hands.jpg"
+            }
+          }
+        ],
+        "finaleTeaser": "",
+        "finaleLine": "Et la raison avant toutes les autres : tu es toi. Je te choisis, à chaque fois.",
+        "signature": "",
+        "letterEnabled": true,
+        "letterGreeting": "Hana,",
+        "letterParagraphs": [
+          {
+            "text": "J'aurais pu en écrire cent. Je me suis arrêté ici pour que tu lises vraiment jusqu'au bout."
+          },
+          {
+            "text": "Merci pour les jours ordinaires, les trajets bruyants en voiture et le courage discret. Je remarque tout."
+          }
+        ],
+        "letterSignoff": "Avec tout mon amour,",
+        "music": true,
+        "showShare": true
+      },
+      "themeSelections": {
+        "gift": "jar"
+      }
+    },
+    "ar": {
+      "version": 1,
+      "values": {
+        "toName": "ليلى",
+        "fromName": "سامي",
+        "title": "",
+        "reasons": [
+          {
+            "text": "طريقتك في الضحك على نكاتك قبل أن تصلي إلى نهايتها."
+          },
+          {
+            "text": "كيف تجعلين أيام الثلاثاء العادية تستحق أن تُذكر.",
+            "memory": "فطائر على العشاء، مارس 2025.",
+            "photo": {
+              "$photo": "reasons-pancakes.jpg"
+            }
+          },
+          {
+            "text": "ما زلتِ تقولين صباح الخير وكأنكِ تعنينها حقًا. كل يوم.",
+            "photo": {
+              "$photo": "reasons-coffee.jpg"
+            }
+          },
+          {
+            "text": "طريقتك في الغناء في السيارة، بصوت عالٍ ونغمة خاطئة قليلًا.",
+            "photo": {
+              "$photo": "reasons-drive.jpg"
+            }
+          },
+          {
+            "text": "أنكِ تجعلينني أرغب في أن أكون ألطف وأهدأ وأشجع، فقط لأنكِ أنتِ.",
+            "photo": {
+              "$photo": "reasons-hands.jpg"
+            }
+          }
+        ],
+        "finaleTeaser": "",
+        "finaleLine": "والسبب الأهم من كل ذلك: أنكِ أنتِ. أختاركِ في كل مرة.",
+        "signature": "",
+        "letterEnabled": true,
+        "letterGreeting": "ليلى،",
+        "letterParagraphs": [
+          {
+            "text": "كان بإمكاني أن أكتب مئة سبب. توقفت هنا كي تقرئي حتى النهاية."
+          },
+          {
+            "text": "شكرًا على الأيام العادية، ورحلات السيارة الصاخبة، والشجاعة الهادئة. ألاحظ كل ذلك."
+          }
+        ],
+        "letterSignoff": "مع كل حبي،",
+        "music": true,
+        "showShare": true
+      },
+      "themeSelections": {
+        "gift": "jar"
+      }
+    }
+  },
+  "graduation-keepsake": {
+    "en": {
+      "version": 1,
+      "values": {
+        "gradName": "Maya",
+        "gradFullName": "Maya Chen",
+        "gradYear": "2027",
+        "gradDegree": "BA (Hons) Architecture",
+        "gradSchool": "University of Edinburgh",
+        "gradDate": "2027-07-02",
+        "gradPhoto": {
+          "$photo": "grad-caps.jpg"
+        },
+        "pathEnabled": true,
+        "thenYear": "2005",
+        "thenText": "A five-year-old who drew houses on every wall in the flat.",
+        "thenPhoto": {
+          "$photo": "grad-drawing.jpg"
+        },
+        "stops": [
+          {
+            "year": "2010",
+            "caption": "First day of school",
+            "code": "SCH",
+            "photo": {
+              "$photo": "grad-school.jpg"
+            }
+          },
+          {
+            "year": "2014",
+            "caption": "The Lego city phase",
+            "code": "LEG",
+            "photo": {
+              "$photo": "grad-lego.jpg"
+            }
+          },
+          {
+            "year": "2023",
+            "caption": "Studio all-nighter no. 47",
+            "code": "UNI",
+            "photo": {
+              "$photo": "grad-plans.jpg"
+            }
+          }
+        ],
+        "nowYear": "2027",
+        "nowText": "An architect, with a first-class degree to prove it.",
+        "nextText": "A junior designer role at a studio in Copenhagen, starting in September.",
+        "nextPhoto": {
+          "$photo": "grad-copenhagen.jpg"
+        },
+        "achievementsEnabled": true,
+        "achievements": [
+          {
+            "title": "First-class honours",
+            "detail": "Top of the year in design studio",
+            "place": "EDINBURGH"
+          },
+          {
+            "title": "Dean's list",
+            "detail": "Three years running",
+            "place": "ACADEMIA"
+          },
+          {
+            "title": "RIBA award shortlist",
+            "detail": "For the riverside library",
+            "place": "LONDON"
+          },
+          {
+            "title": "Exchange year",
+            "detail": "And surprisingly good Danish",
+            "place": "COPENHAGEN"
+          },
+          {
+            "title": "Society president",
+            "detail": "Forty sketchers, one sketchbook",
+            "place": "STUDIO 4"
+          },
+          {
+            "title": "47 all-nighters",
+            "detail": "Fuelled entirely by toast",
+            "place": "THE LIBRARY"
+          }
+        ],
+        "messagesEnabled": true,
+        "messageGroups": [
+          {
+            "label": "From home",
+            "people": [
+              {
+                "name": "Mum",
+                "color": "coral",
+                "emoji": "🏡",
+                "message": "I still have every drawing you ever stuck on the fridge. Now I get to see your buildings on real streets. I am so, so proud of you."
+              },
+              {
+                "name": "Dad",
+                "color": "sky",
+                "emoji": "☕",
+                "message": "You worked harder than anyone I know, and you stayed kind while you did it. That's the real achievement. Well done, kiddo."
+              },
+              {
+                "name": "Kai",
+                "color": "amber",
+                "emoji": "🌳",
+                "message": "Can you design me a treehouse with a slide. And a zip line. Well done Maya."
+              }
+            ]
+          },
+          {
+            "label": "From friends",
+            "people": [
+              {
+                "name": "Jonah",
+                "color": "mint",
+                "emoji": "✏️",
+                "message": "Four years of sharing a desk, a kettle and about a thousand deadlines. Copenhagen has no idea what is coming. So proud of you!"
+              },
+              {
+                "name": "Priya",
+                "color": "berry",
+                "emoji": "🎉",
+                "message": "You're the only person I know who sketches the queue at the supermarket. Never stop. Love you, superstar."
+              },
+              {
+                "name": "Sam",
+                "color": "violet",
+                "emoji": "🏫",
+                "message": "From drawing on the walls to designing actual walls. Ten-year-old me would be very impressed."
+              }
+            ]
+          }
+        ],
+        "goalsEnabled": true,
+        "goals": [
+          {
+            "text": "Start at the studio in Copenhagen",
+            "code": "CPH"
+          },
+          {
+            "text": "Become a fully qualified architect",
+            "code": "ARB"
+          },
+          {
+            "text": "Learn to cycle in Copenhagen without getting lost",
+            "code": "BKE"
+          },
+          {
+            "text": "Build Kai that treehouse",
+            "code": "TRE"
+          },
+          {
+            "text": "Visit every Alvar Aalto building",
+            "code": "AAL"
+          }
+        ],
+        "letterEnabled": true,
+        "letterGreeting": "Dear Maya,",
+        "letterParagraphs": [
+          {
+            "text": "Today you are wearing a cap and gown, but we still see the little girl with crayon all over her hands, explaining exactly where the front door of her house would go."
+          },
+          {
+            "text": "You did this through late nights, hard days and more toast than any person should eat. We could not be prouder of who you have become."
+          },
+          {
+            "text": "The world is about to get a little more beautiful. Go and build it."
+          }
+        ],
+        "letterSignoff": "With all our love,",
+        "letterSignatures": [
+          {
+            "name": "Mum"
+          },
+          {
+            "name": "Dad"
+          },
+          {
+            "name": "Kai"
+          }
+        ],
+        "endingLine": "Congratulations, Maya!",
+        "endingSub": "Your next chapter starts now.",
+        "flightAirline": "",
+        "flightNumber": "",
+        "flightSeat": "",
+        "flightCabin": "",
+        "flightFromCode": "",
+        "flightFromCity": "",
+        "flightToCode": "",
+        "flightToCity": "",
+        "sound": false,
+        "showShare": true
+      },
+      "themeSelections": {
+        "journey": "airline"
+      }
+    },
+    "fr": {
+      "version": 1,
+      "values": {
+        "gradName": "Maya",
+        "gradFullName": "Maya Chen",
+        "gradYear": "2027",
+        "gradDegree": "Licence d'architecture",
+        "gradSchool": "Université d'Édimbourg",
+        "gradDate": "2027-07-02",
+        "gradPhoto": {
+          "$photo": "grad-caps.jpg"
+        },
+        "pathEnabled": true,
+        "thenYear": "2005",
+        "thenText": "Une enfant de cinq ans qui dessinait des maisons sur tous les murs de l'appartement.",
+        "thenPhoto": {
+          "$photo": "grad-drawing.jpg"
+        },
+        "stops": [
+          {
+            "year": "2010",
+            "caption": "Premier jour d'école",
+            "code": "SCH",
+            "photo": {
+              "$photo": "grad-school.jpg"
+            }
+          },
+          {
+            "year": "2014",
+            "caption": "La période des villes en Lego",
+            "code": "LEG",
+            "photo": {
+              "$photo": "grad-lego.jpg"
+            }
+          },
+          {
+            "year": "2023",
+            "caption": "Nuit blanche à l'atelier n° 47",
+            "code": "UNI",
+            "photo": {
+              "$photo": "grad-plans.jpg"
+            }
+          }
+        ],
+        "nowYear": "2027",
+        "nowText": "Architecte, avec un diplôme mention très bien pour le prouver.",
+        "nextText": "Un poste de jeune designer dans une agence de Copenhague, dès septembre.",
+        "nextPhoto": {
+          "$photo": "grad-copenhagen.jpg"
+        },
+        "achievementsEnabled": true,
+        "achievements": [
+          {
+            "title": "Mention très bien",
+            "detail": "Première de sa promo en atelier",
+            "place": "ÉDIMBOURG"
+          },
+          {
+            "title": "Tableau d'honneur",
+            "detail": "Trois années de suite",
+            "place": "UNIVERSITÉ"
+          },
+          {
+            "title": "Sélectionnée au prix RIBA",
+            "detail": "Pour la bibliothèque au bord du fleuve",
+            "place": "LONDRES"
+          },
+          {
+            "title": "Année d'échange",
+            "detail": "Et un danois étonnamment bon",
+            "place": "COPENHAGUE"
+          },
+          {
+            "title": "Présidente d'association",
+            "detail": "Quarante dessinateurs, un seul carnet",
+            "place": "ATELIER 4"
+          },
+          {
+            "title": "47 nuits blanches",
+            "detail": "Entièrement aux tartines",
+            "place": "LA BIBLIOTHÈQUE"
+          }
+        ],
+        "messagesEnabled": true,
+        "messageGroups": [
+          {
+            "label": "De la maison",
+            "people": [
+              {
+                "name": "Maman",
+                "color": "coral",
+                "emoji": "🏡",
+                "message": "J'ai gardé tous les dessins que tu as collés sur le frigo. Maintenant, je vais voir tes bâtiments dans de vraies rues. Je suis tellement, tellement fière de toi."
+              },
+              {
+                "name": "Papa",
+                "color": "sky",
+                "emoji": "☕",
+                "message": "Tu as travaillé plus dur que n'importe qui, et tu es restée gentille en le faisant. C'est ça, la vraie réussite. Bravo, ma grande."
+              },
+              {
+                "name": "Kai",
+                "color": "amber",
+                "emoji": "🌳",
+                "message": "Tu peux me dessiner une cabane avec un toboggan. Et une tyrolienne. Bravo Maya."
+              }
+            ]
+          },
+          {
+            "label": "Des amis",
+            "people": [
+              {
+                "name": "Jonah",
+                "color": "mint",
+                "emoji": "✏️",
+                "message": "Quatre ans à partager un bureau, une bouilloire et un bon millier de rendus. Copenhague ne sait pas ce qui l'attend. Tellement fier de toi !"
+              },
+              {
+                "name": "Priya",
+                "color": "berry",
+                "emoji": "🎉",
+                "message": "Tu es la seule personne que je connaisse qui dessine la file d'attente au supermarché. N'arrête jamais. Je t'adore, ma star."
+              },
+              {
+                "name": "Sam",
+                "color": "violet",
+                "emoji": "🏫",
+                "message": "Des dessins sur les murs aux vrais murs. Moi à dix ans, j'aurais été très impressionné."
+              }
+            ]
+          }
+        ],
+        "goalsEnabled": true,
+        "goals": [
+          {
+            "text": "Commencer à l'agence de Copenhague",
+            "code": "CPH"
+          },
+          {
+            "text": "Devenir architecte diplômée",
+            "code": "ARB"
+          },
+          {
+            "text": "Apprendre à faire du vélo à Copenhague sans se perdre",
+            "code": "BKE"
+          },
+          {
+            "text": "Construire la cabane de Kai",
+            "code": "TRE"
+          },
+          {
+            "text": "Visiter tous les bâtiments d'Alvar Aalto",
+            "code": "AAL"
+          }
+        ],
+        "letterEnabled": true,
+        "letterGreeting": "Chère Maya,",
+        "letterParagraphs": [
+          {
+            "text": "Aujourd'hui, tu portes la toge et la toque, mais nous voyons encore la petite fille aux mains pleines de crayon, qui expliquait exactement où irait la porte d'entrée de sa maison."
+          },
+          {
+            "text": "Tu y es arrivée à force de nuits tardives, de journées difficiles et de plus de tartines qu'on ne devrait en manger. Nous ne pourrions pas être plus fiers de la personne que tu es devenue."
+          },
+          {
+            "text": "Le monde est sur le point de devenir un peu plus beau. Va le construire."
+          }
+        ],
+        "letterSignoff": "Avec tout notre amour,",
+        "letterSignatures": [
+          {
+            "name": "Maman"
+          },
+          {
+            "name": "Papa"
+          },
+          {
+            "name": "Kai"
+          }
+        ],
+        "endingLine": "Félicitations, Maya !",
+        "endingSub": "Ton prochain chapitre commence maintenant.",
+        "flightAirline": "",
+        "flightNumber": "",
+        "flightSeat": "",
+        "flightCabin": "",
+        "flightFromCode": "",
+        "flightFromCity": "",
+        "flightToCode": "",
+        "flightToCity": "",
+        "sound": false,
+        "showShare": true
+      },
+      "themeSelections": {
+        "journey": "airline"
+      }
+    },
+    "ar": {
+      "version": 1,
+      "values": {
+        "gradName": "سلمى",
+        "gradFullName": "سلمى الخطيب",
+        "gradYear": "2027",
+        "gradDegree": "بكالوريوس الهندسة المعمارية",
+        "gradSchool": "جامعة إدنبرة",
+        "gradDate": "2027-07-02",
+        "gradPhoto": {
+          "$photo": "grad-caps.jpg"
+        },
+        "pathEnabled": true,
+        "thenYear": "2005",
+        "thenText": "طفلة في الخامسة ترسم بيوتًا على كل جدار في الشقة.",
+        "thenPhoto": {
+          "$photo": "grad-drawing.jpg"
+        },
+        "stops": [
+          {
+            "year": "2010",
+            "caption": "أول يوم في المدرسة",
+            "code": "SCH",
+            "photo": {
+              "$photo": "grad-school.jpg"
+            }
+          },
+          {
+            "year": "2014",
+            "caption": "مرحلة مدن الليغو",
+            "code": "LEG",
+            "photo": {
+              "$photo": "grad-lego.jpg"
+            }
+          },
+          {
+            "year": "2023",
+            "caption": "سهرة المرسم رقم 47",
+            "code": "UNI",
+            "photo": {
+              "$photo": "grad-plans.jpg"
+            }
+          }
+        ],
+        "nowYear": "2027",
+        "nowText": "مهندسة معمارية، بمرتبة الشرف الأولى.",
+        "nextText": "وظيفة مصمّمة مبتدئة في مكتب بكوبنهاغن، تبدأ في سبتمبر.",
+        "nextPhoto": {
+          "$photo": "grad-copenhagen.jpg"
+        },
+        "achievementsEnabled": true,
+        "achievements": [
+          {
+            "title": "مرتبة الشرف الأولى",
+            "detail": "الأولى على دفعتها في مرسم التصميم",
+            "place": "إدنبرة"
+          },
+          {
+            "title": "قائمة العميد",
+            "detail": "ثلاث سنوات متتالية",
+            "place": "الجامعة"
+          },
+          {
+            "title": "مرشّحة لجائزة RIBA",
+            "detail": "عن مكتبة ضفة النهر",
+            "place": "لندن"
+          },
+          {
+            "title": "سنة تبادل",
+            "detail": "ودنماركية جيدة على نحو مفاجئ",
+            "place": "كوبنهاغن"
+          },
+          {
+            "title": "رئيسة الجمعية",
+            "detail": "أربعون رسامًا ودفتر رسم واحد",
+            "place": "المرسم 4"
+          },
+          {
+            "title": "47 ليلة سهر",
+            "detail": "على الخبز المحمّص وحده",
+            "place": "المكتبة"
+          }
+        ],
+        "messagesEnabled": true,
+        "messageGroups": [
+          {
+            "label": "من البيت",
+            "people": [
+              {
+                "name": "ماما",
+                "color": "coral",
+                "emoji": "🏡",
+                "message": "ما زلت أحتفظ بكل رسمة علّقتِها على الثلاجة. والآن سأرى مبانيكِ في شوارع حقيقية. أنا فخورة بكِ جدًا جدًا."
+              },
+              {
+                "name": "بابا",
+                "color": "sky",
+                "emoji": "☕",
+                "message": "عملتِ بجدّ أكثر من أي شخص أعرفه، وبقيتِ طيبة وأنتِ تفعلين ذلك. هذا هو الإنجاز الحقيقي. أحسنتِ يا صغيرتي."
+              },
+              {
+                "name": "كريم",
+                "color": "amber",
+                "emoji": "🌳",
+                "message": "هل تصمّمين لي بيتًا على شجرة فيه زحليقة؟ وحبل انزلاق. أحسنتِ يا سلمى."
+              }
+            ]
+          },
+          {
+            "label": "من الأصدقاء",
+            "people": [
+              {
+                "name": "يوسف",
+                "color": "mint",
+                "emoji": "✏️",
+                "message": "أربع سنوات نتقاسم فيها مكتبًا وغلاية ونحو ألف موعد تسليم. كوبنهاغن لا تعرف ما ينتظرها. فخور بكِ جدًا!"
+              },
+              {
+                "name": "ريم",
+                "color": "berry",
+                "emoji": "🎉",
+                "message": "أنتِ الوحيدة التي أعرفها ترسم طابور السوبرماركت. لا تتوقفي أبدًا. أحبكِ يا نجمة."
+              },
+              {
+                "name": "سارة",
+                "color": "violet",
+                "emoji": "🏫",
+                "message": "من الرسم على الجدران إلى تصميم جدران حقيقية. كنت سأنبهر بهذا وأنا في العاشرة."
+              }
+            ]
+          }
+        ],
+        "goalsEnabled": true,
+        "goals": [
+          {
+            "text": "البدء في مكتب كوبنهاغن",
+            "code": "CPH"
+          },
+          {
+            "text": "أن أصبح مهندسة معمارية معتمدة",
+            "code": "ARB"
+          },
+          {
+            "text": "تعلّم ركوب الدراجة في كوبنهاغن دون أن أضيع",
+            "code": "BKE"
+          },
+          {
+            "text": "بناء بيت الشجرة لكريم",
+            "code": "TRE"
+          },
+          {
+            "text": "زيارة كل مباني ألفار آلتو",
+            "code": "AAL"
+          }
+        ],
+        "letterEnabled": true,
+        "letterGreeting": "عزيزتنا سلمى،",
+        "letterParagraphs": [
+          {
+            "text": "اليوم ترتدين ثوب التخرّج وقبعته، لكننا ما زلنا نرى الطفلة الصغيرة ويداها ملطّختان بأقلام التلوين، تشرح بالضبط أين سيكون باب بيتها."
+          },
+          {
+            "text": "وصلتِ إلى هنا عبر ليالٍ طويلة وأيام صعبة، وخبز محمّص أكثر مما ينبغي لأي إنسان. لا يمكن أن نكون أكثر فخرًا بمن أصبحتِ."
+          },
+          {
+            "text": "العالم على وشك أن يصبح أجمل قليلًا. اذهبي وابنيه."
+          }
+        ],
+        "letterSignoff": "مع كل حبنا،",
+        "letterSignatures": [
+          {
+            "name": "ماما"
+          },
+          {
+            "name": "بابا"
+          },
+          {
+            "name": "كريم"
+          }
+        ],
+        "endingLine": "مبروك يا سلمى!",
+        "endingSub": "فصلك التالي يبدأ الآن.",
+        "flightAirline": "",
+        "flightNumber": "",
+        "flightSeat": "",
+        "flightCabin": "",
+        "flightFromCode": "",
+        "flightFromCity": "",
+        "flightToCode": "",
+        "flightToCity": "",
+        "sound": false,
+        "showShare": true
+      },
+      "themeSelections": {
+        "journey": "airline"
+      }
+    }
+  },
+  "song-poster": {
+    "en": {
+      "version": 1,
+      "values": {
+        "track": "Slow Dance in the Kitchen",
+        "artist": "The Late Lanterns",
+        "dedication": "For every night we danced before the dishes were done.",
+        "youtubeUrl": "https://www.youtube.com/watch?v=HeartfolioS",
+        "photo": {
+          "$photo": "song-turntable.jpg"
+        },
+        "youtubeVideoId": "HeartfolioS"
+      },
+      "themeSelections": {
+        "theme": "player",
+        "sleevePalette": "cream",
+        "scale": 100
+      }
+    },
+    "fr": {
+      "version": 1,
+      "values": {
+        "track": "Slow dans la cuisine",
+        "artist": "Les Lanternes",
+        "dedication": "Pour tous les soirs où l'on a dansé avant la vaisselle.",
+        "youtubeUrl": "https://www.youtube.com/watch?v=HeartfolioS",
+        "photo": {
+          "$photo": "song-turntable.jpg"
+        },
+        "youtubeVideoId": "HeartfolioS"
+      },
+      "themeSelections": {
+        "theme": "player",
+        "sleevePalette": "cream",
+        "scale": 100
+      }
+    },
+    "ar": {
+      "version": 1,
+      "values": {
+        "track": "رقصة في المطبخ",
+        "artist": "فرقة الفوانيس",
+        "dedication": "لكل ليلة رقصنا فيها قبل أن ننتهي من الصحون.",
+        "youtubeUrl": "https://www.youtube.com/watch?v=HeartfolioS",
+        "photo": {
+          "$photo": "song-turntable.jpg"
+        },
+        "youtubeVideoId": "HeartfolioS"
+      },
+      "themeSelections": {
+        "theme": "player",
+        "sleevePalette": "cream",
+        "scale": 100
+      }
+    }
+  }
+}
