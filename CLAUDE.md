@@ -246,6 +246,7 @@ task.**
 | A live product's limits (`limits.ts` or its backend `data.py`), or upload/media limits | `src/lib/studio/product-modules/reasons-i-love-you/reasons-module.test.ts`, `.../graduation-keepsake/graduation-module.test.ts`, `src/lib/studio/media-values.test.ts` | Frontend limits equal the backend's `data.py` and `base.py` |
 | Settings, environment or `.env.example` files, the test runner | `apps.common.tests.ProductionSettingsLoadingTests`, `apps.common.tests.HermeticTestRunnerTests`, `apps.assets.tests.EnvExampleUploadTypesTests` | Production settings load (throttle rates merged); tests reach no outside host; `.env.example` sets no upload type list |
 | A print renderer's PNG saving | `apps.delivery.tests_png_encoding` | No `optimize=True` on the full-screen save paths |
+| Dates or counts a print or preview writes (`date_formatting.py`, `formatDate`/`formatCount` in the Love Story Timeline renderer, the live page's dates) | Frontend: `src/lib/studio/product-modules/love-story-timeline/locale-format-parity.test.ts`, `src/components/studio/preview/moment-wallpaper.test.tsx`. Backend: `apps.delivery.test_date_formatting` | Preview and print write the same strings in the order's language (`backend/apps/delivery/locale_format_cases.json`, generated from the browser's `Intl`); a calendar day never shifts by time zone |
 | Storefront captures: a product's live page, its Studio sample (`initial-state.ts`), `marketing_samples/`, `scripts/captures/`, `public/captures/` | Frontend: `src/lib/captures/captures.test.ts`, `src/lib/captures/capture-lock.test.ts`, `src/proxy.test.ts`. Backend: `apps.delivery.tests_marketing_samples` | Every visible product captured in en/fr/ar within budget, no stray files; the capture page and its photo route locked; every sample valid for the real live page, every photo present and licensed. A VISIBLE change to a live page means re-recording: `node scripts/captures/record.mjs all` |
 
 Backend — **always** redirect to the throwaway Postgres, never Supabase:
@@ -396,7 +397,11 @@ Two were genuine product bugs: the `layout` default above, and
   The prototype (`reasons-i-love-you.html`) is the design reference; its
   daisy scattered its petals (`transform-box: fill-box` on the petal group),
   fixed in the port. The fonts are self-hosted in `public/fonts/reasons/` with
-  their licences; Merienda, Limelight and Marcellus reserve their names, so
+  their licences. **The jar's note is Mali, not Gaegu (26 Oct 2026):** Gaegu's
+  files held only ASCII, so every French accent fell back to the interface face
+  and read as a capital ("faÇon"); `reasons-fonts.test.ts` now reads every
+  face's own character map (`test/font-cmap.ts`, TTF and WOFF2) and fails on a
+  missing French letter; Merienda, Limelight and Marcellus reserve their names, so
   they are the original files, not subsets (bigger: Merienda is 226KB). Arabic
   falls through to the site's Kufi (display) and Naskh (text); an Arabic
   signature is revealed whole, never letter by letter (that breaks joining).
@@ -430,7 +435,12 @@ Two were genuine product bugs: the `layout` default above, and
   (`pack-labels.test.ts` builds Song Poster's from the seed). FastSpring's map is not
   extended, as for every new pack. An investigation of
   its Studio, preview and print (15 Oct 2026) found real problems, not yet
-  fixed. **The YouTube blocker is FIXED (15 Oct 2026):** nothing in the Studio
+  fixed. **Its player speaks the page's language and runs left to right (26 Oct
+  2026):** Play/Pause/Seek and the player's errors come from `player-copy.ts`
+  (the order's language on the Digital page, the Studio's in the preview; the
+  hook reports an error code), and the soundwave and time row are `dir="ltr"`
+  on every page, as on the print (on /ar the times were mirrored).
+  **The YouTube blocker is FIXED (15 Oct 2026):** nothing in the Studio
   called `YouTubeValidateView`, so `youtubeVideoId` was never set and no
   customer could reach checkout. The link is now a `youtube` field
   (`components/studio/generic-form/youtube-field-input.tsx`): it checks a

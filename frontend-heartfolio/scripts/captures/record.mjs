@@ -189,8 +189,9 @@ async function step(page, ms) {
   }, ms);
 }
 
-/** Song Poster's play button (its label is not translated today). */
-const PLAY_BUTTON = 'button[aria-label="Play"]';
+/** Song Poster's play button, by its label in each language
+ *  (`player-copy.ts`). */
+const PLAY_LABEL = { en: "Play", fr: "Lecture", ar: "تشغيل" };
 
 const easeInOut = (x) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
 
@@ -267,8 +268,8 @@ const SCENARIOS = {
   "song-poster": {
     frames: 6 * FPS,
     async prepare() {},
-    async at(page, i) {
-      if (i === Math.round(2 * FPS)) await press(page, page.locator(PLAY_BUTTON).first());
+    async at(page, i, ctx) {
+      if (i === Math.round(2 * FPS)) await press(page, page.locator(`button[aria-label="${PLAY_LABEL[ctx.locale]}"]`).first());
     },
   },
 };
@@ -337,7 +338,7 @@ async function stageRecord() {
         const framesDir = join(WORK, "frames", `${product}.${locale}`);
         rmSync(framesDir, { recursive: true, force: true });
         mkdirSync(framesDir, { recursive: true });
-        const ctx = {};
+        const ctx = { locale };
         for (let i = 0; i < scenario.frames; i++) {
           await scenario.at(page, i, ctx);
           await step(page, 1000 / FPS);

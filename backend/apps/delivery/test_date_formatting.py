@@ -13,7 +13,7 @@ and give false confidence.
 
 from datetime import date
 
-from django.test import TestCase
+from django.test import SimpleTestCase, TestCase
 
 from .date_formatting import format_month_day_year
 
@@ -66,3 +66,42 @@ class FormatMonthDayYearTests(TestCase):
         source = inspect.getsource(target)
         self.assertNotIn("%-", source)
         self.assertNotIn("%#", source)
+
+
+class LocaleFormatCasesTests(SimpleTestCase):
+    """The print writes dates and counts in the ORDER's language, exactly as
+    the Studio preview does (26 Oct 2026: Love Story Timeline printed "Apr 12,
+    2019" on French and Arabic orders). `locale_format_cases.json` holds what
+    the browser produces; the frontend's `locale-format-parity.test.ts` checks
+    the browser side against the same file."""
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        import json
+        from pathlib import Path
+
+        cls.cases = json.loads((Path(__file__).parent / "locale_format_cases.json").read_text(encoding="utf-8"))
+
+    def test_short_dates_match_the_browser_in_every_language(self):
+        from apps.delivery.date_formatting import format_short_date
+
+        for case in self.cases["shortDates"]:
+            for locale in ("en", "fr", "ar"):
+                with self.subTest(iso=case["iso"], locale=locale):
+                    self.assertEqual(format_short_date(date.fromisoformat(case["iso"]), locale), case[locale])
+
+    def test_counts_match_the_browser_in_every_language(self):
+        from apps.delivery.date_formatting import format_count
+
+        for case in self.cases["counts"]:
+            for locale in ("en", "fr", "ar"):
+                with self.subTest(n=case["n"], locale=locale):
+                    self.assertEqual(format_count(case["n"], locale), case[locale])
+
+    def test_an_unknown_language_is_english(self):
+        from apps.delivery.date_formatting import format_count, format_short_date
+
+        self.assertEqual(format_short_date(date(2019, 4, 12), "de"), "Apr 12, 2019")
+        self.assertEqual(format_short_date(date(2019, 4, 12), "fr-CA"), "12 avr. 2019")
+        self.assertEqual(format_count(1799, None), "1,799")

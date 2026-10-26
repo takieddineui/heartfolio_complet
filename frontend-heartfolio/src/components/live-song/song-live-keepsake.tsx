@@ -8,6 +8,7 @@ import { useYouTubePlayer } from "@/lib/studio/product-modules/song-poster/use-y
 import { downsample, generateEnvelope, seedForOrder } from "@/lib/studio/product-modules/song-poster/waveform";
 import { RevealGroup, RevealItem } from "@/components/motion/reveal";
 import { EndingSpark } from "@/components/live/ending-spark";
+import { playerCopy } from "@/lib/studio/product-modules/song-poster/player-copy";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 const WAVE_BARS = 64;
@@ -82,6 +83,9 @@ const WAVE_BARS = 64;
  * else.
  */
 export interface SongLiveKeepsakeProps {
+  /** The ORDER's language (as on every live page): the player's screen-reader
+   *  labels and its error follow it. */
+  locale?: string;
   values: {
     track: string;
     artist: string;
@@ -135,7 +139,8 @@ function OpeningMark() {
   );
 }
 
-export function SongLiveKeepsake({ values }: SongLiveKeepsakeProps) {
+export function SongLiveKeepsake({ values, locale }: SongLiveKeepsakeProps) {
+  const copy = playerCopy(locale);
   const [state, controls] = useYouTubePlayer(values.youtubeVideoId);
   const waveRef = useRef<HTMLDivElement | null>(null);
   const [dragging, setDragging] = useState(false);
@@ -182,7 +187,7 @@ export function SongLiveKeepsake({ values }: SongLiveKeepsakeProps) {
               className={styles.playButton}
               onClick={controls.toggle}
               disabled={!state.isReady}
-              aria-label={state.isPlaying ? "Pause" : "Play"}
+              aria-label={state.isPlaying ? copy.pause : copy.play}
             >
               {state.isPlaying ? <Pause size={22} fill="currentColor" /> : <Play size={22} fill="currentColor" />}
             </button>
@@ -190,9 +195,12 @@ export function SongLiveKeepsake({ values }: SongLiveKeepsakeProps) {
             {bars && (
               <div
                 ref={waveRef}
+                // Time runs left to right, on every page and on the print, so
+                // the soundwave fills from the left and the arrow keys match.
+                dir="ltr"
                 className={styles.waveform}
                 role="slider"
-                aria-label="Seek"
+                aria-label={copy.seek}
                 aria-valuemin={0}
                 aria-valuemax={Math.round(state.duration)}
                 aria-valuenow={Math.round(state.currentTime)}
@@ -235,12 +243,15 @@ export function SongLiveKeepsake({ values }: SongLiveKeepsakeProps) {
               </div>
             )}
 
-            <div className={styles.times}>
+            {/* Left to right like the soundwave above it: elapsed time under
+                the start of the fill, the song's length at its end. On /ar it
+                was mirrored (26 Oct 2026). */}
+            <div className={styles.times} dir="ltr">
               <span>{formatTime(state.currentTime)}</span>
               <span>{formatTime(state.duration)}</span>
             </div>
 
-            {state.error && <p className={styles.error}>{state.error}</p>}
+            {state.error && <p className={styles.error}>{copy.errors[state.error]}</p>}
           </RevealItem>
 
           {values.dedication && <RevealItem as="p" className={styles.dedication}>{values.dedication}</RevealItem>}

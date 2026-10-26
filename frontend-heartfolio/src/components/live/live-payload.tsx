@@ -102,7 +102,7 @@ export function LivePayloadView({ payload, liveId }: { payload: LivePayload; liv
   // backend payload is a genuinely different shape, not `LiveKeepsake`'s
   // shape with fields left empty.
   if (isSongPosterPayload(payload)) {
-    return <SongLiveKeepsake values={payload.values} />;
+    return <SongLiveKeepsake values={payload.values} locale={payload.locale} />;
   }
 
   if (isGraduationPayload(payload)) {

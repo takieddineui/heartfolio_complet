@@ -150,3 +150,14 @@ describe("PlayerTheme", () => {
     expect(container.textContent).not.toMatch(/code position|links to your page/i);
   });
 });
+
+describe("PlayerTheme in the Studio's language", () => {
+  it.each([
+    ["fr", "Lecture"],
+    ["ar", "تشغيل"],
+  ])("%s: the play button is announced in that language", async (locale, play) => {
+    render(<PlayerTheme track="T" artist="A" youtubeVideoId="dQw4w9WgXcQ" locale={locale} />);
+    expect(await screen.findByRole("button", { name: play })).toBeEnabled();
+  });
+});
+

@@ -112,3 +112,37 @@ describe("SongLiveKeepsake", () => {
     expect(slider.querySelectorAll("rect").length).toBeGreaterThan(0);
   });
 });
+
+/**
+ * IN THE ORDER'S LANGUAGE, LEFT TO RIGHT (26 Oct 2026). On /fr and /ar the
+ * player's screen-reader labels were English, and on /ar the time labels were
+ * mirrored (the length on the left) while the soundwave filled from the left.
+ */
+describe("SongLiveKeepsake in the order's language", () => {
+  it.each([
+    ["en", "Play", "Pause", "Seek"],
+    ["fr", "Lecture", "Pause", "Position dans la chanson"],
+    ["ar", "تشغيل", "إيقاف مؤقت", "موضع الأغنية"],
+  ])("%s: play, pause and seek are announced in that language", async (locale, play, pause, seek) => {
+    render(<SongLiveKeepsake values={BASE_VALUES} locale={locale} />);
+    const button = await screen.findByRole("button", { name: play });
+    expect(await screen.findByRole("slider", { name: seek })).toBeInTheDocument();
+    button.click();
+    expect(await screen.findByRole("button", { name: pause })).toBeInTheDocument();
+  });
+
+  it("keeps the soundwave and its times left to right, even inside an Arabic page", async () => {
+    const { container } = render(
+      <div dir="rtl">
+        <SongLiveKeepsake values={BASE_VALUES} locale="ar" />
+      </div>
+    );
+    const slider = await screen.findByRole("slider");
+    expect(slider.getAttribute("dir")).toBe("ltr");
+    const times = slider.parentElement!.querySelector('[dir="ltr"]:not([role])');
+    expect(times, "the time row").not.toBeNull();
+    expect(times!.textContent).toMatch(/^0:00/);
+    expect(container.querySelector('[dir="rtl"]')).not.toBeNull();
+  });
+});
+

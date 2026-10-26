@@ -696,6 +696,34 @@ class FormatEventDateTests(TestCase):
 
         self.assertEqual(format_event_date("not-a-date"), "")
 
+    def test_the_date_is_in_the_orders_language(self):
+        """French and Arabic orders printed "Apr 12, 2019" until 26 Oct 2026."""
+        from .layout import format_event_date
+
+        self.assertEqual(format_event_date("2019-04-12", "fr"), "12 avr. 2019")
+        self.assertEqual(format_event_date("2019-04-12", "ar"), "12 أبريل 2019")
+        self.assertEqual(format_event_date("2019-04-12", "en"), "Apr 12, 2019")
+
+    def test_every_print_date_follows_the_orders_language(self):
+        """`render_png` sets the order's language for the whole render, and the
+        dates every layout, wallpaper and the AR card print read it."""
+        from unittest import mock
+
+        from . import png_renderer
+
+        seen = {}
+
+        def fake_render(timeline, *, target_id, customer, locale):
+            seen[locale] = png_renderer._event_date("2019-04-12")
+            return b""
+
+        with mock.patch.object(png_renderer, "_render_png", side_effect=fake_render):
+            for locale in ("en", "fr", "ar"):
+                png_renderer.render_png(None, target_id="print-a4-edged", customer=None, locale=locale)
+        self.assertEqual(seen, {"en": "Apr 12, 2019", "fr": "12 avr. 2019", "ar": "12 أبريل 2019"})
+        # And nothing leaks into the next render.
+        self.assertEqual(png_renderer._event_date("2019-04-12"), "Apr 12, 2019")
+
 
 class MountingVariantRenderingTests(SimpleTestCase):
     """§3 — frameless and edged are two different physical products.
@@ -3445,6 +3473,13 @@ class DurationPhrasingTests(SimpleTestCase):
         from apps.delivery.product_renderers.love_story_timeline.data import duration_phrase
 
         self.assertIn("side by side", duration_phrase("parents", 2122, "en"))
+
+    def test_the_count_is_written_in_the_orders_language(self):
+        from apps.delivery.product_renderers.love_story_timeline.data import duration_phrase
+
+        self.assertEqual(duration_phrase("couple", 1799, "en"), "1,799 days together")
+        self.assertEqual(duration_phrase("couple", 1799, "fr"), "1 799 jours ensemble")
+        self.assertEqual(duration_phrase("couple", 1799, "ar"), "1,799 يومًا معًا")
 
     def test_family_and_gift_have_no_duration_line_at_all(self):
         # Not a fallback to the couple wording — None, so nothing is drawn.

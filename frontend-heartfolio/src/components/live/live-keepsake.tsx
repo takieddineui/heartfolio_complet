@@ -262,7 +262,9 @@ export function LiveKeepsake({
     const date = new Date(value);
     return Number.isNaN(date.valueOf())
       ? value
-      : date.toLocaleDateString(locale, { year: "numeric", month: "long" });
+      : // A calendar day parsed as UTC midnight: formatted in UTC, or a
+        // milestone on the 1st showed the month before west of UTC.
+        date.toLocaleDateString(locale, { year: "numeric", month: "long", timeZone: "UTC" });
   };
 
   return (

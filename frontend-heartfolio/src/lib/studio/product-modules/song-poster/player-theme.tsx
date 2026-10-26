@@ -2,6 +2,7 @@
 
 import { useMemo, useRef } from "react";
 import { useYouTubePlayer } from "./use-youtube-player";
+import { playerCopy } from "./player-copy";
 import { downsample, generateEnvelope, seedForOrder } from "./waveform";
 import styles from "./player-theme.module.css";
 import posterRoot from "./poster-root.module.css";
@@ -12,6 +13,8 @@ const CANVAS_WIDTH = 800;
 const CANVAS_HEIGHT = 1000;
 
 export interface PlayerThemeProps {
+  /** The Studio's language, for the player's labels and its error. */
+  locale?: string;
   track: string;
   artist: string;
   dedication?: string;
@@ -35,7 +38,8 @@ function formatTime(seconds: number): string {
   return `${m}:${String(s).padStart(2, "0")}`;
 }
 
-export function PlayerTheme({ track, artist, dedication, photoUrl, youtubeVideoId, liveCodeSvg }: PlayerThemeProps) {
+export function PlayerTheme({ track, artist, dedication, photoUrl, youtubeVideoId, liveCodeSvg, locale }: PlayerThemeProps) {
+  const copy = playerCopy(locale);
   const [state, controls] = useYouTubePlayer(youtubeVideoId);
   const progressRef = useRef<HTMLDivElement | null>(null);
 
@@ -172,7 +176,7 @@ export function PlayerTheme({ track, artist, dedication, photoUrl, youtubeVideoI
           className={styles.playButton}
           onClick={controls.toggle}
           disabled={!youtubeVideoId || !state.isReady}
-          aria-label={state.isPlaying ? "Pause" : "Play"}
+          aria-label={state.isPlaying ? copy.pause : copy.play}
           aria-pressed={state.isPlaying}
         >
           <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -208,7 +212,7 @@ export function PlayerTheme({ track, artist, dedication, photoUrl, youtubeVideoI
 
       {state.error && (
         <p role="status" style={{ position: "absolute", insetInline: 60, bottom: 8, fontSize: 11, color: "#9b3220" }}>
-          {state.error}
+          {copy.errors[state.error]}
         </p>
       )}
     </div>

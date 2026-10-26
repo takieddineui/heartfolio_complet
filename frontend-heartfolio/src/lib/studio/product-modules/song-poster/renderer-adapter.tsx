@@ -18,7 +18,7 @@ import { getSongPosterTheme } from "./theme-registry";
  * the PRINT/WALLPAPER renderer is where the real card belongs,
  * generated at delivery time from the actual order.
  */
-export function SongPosterRenderer({ values, themeSelections }: ProductRendererProps<SongPosterValues>) {
+export function SongPosterRenderer({ values, themeSelections, locale }: ProductRendererProps<SongPosterValues>) {
   const theme = getSongPosterTheme(themeSelections.theme as string | undefined);
   const Component = theme.component;
   return (
@@ -29,6 +29,7 @@ export function SongPosterRenderer({ values, themeSelections }: ProductRendererP
       photoUrl={values.photo?.url}
       youtubeVideoId={values.youtubeVideoId ?? null}
       sleevePaletteId={themeSelections.sleevePalette as string | undefined}
+      locale={locale}
     />
   );
 }
@@ -43,6 +44,7 @@ export function SongPosterRenderer({ values, themeSelections }: ProductRendererP
 export function SongPosterLivePreview({
   values,
   themeSelections,
+  locale,
 }: {
   values: SongPosterValues;
   themeSelections: ThemeSelections;
@@ -58,6 +60,7 @@ export function SongPosterLivePreview({
       photoUrl={values.photo?.url}
       youtubeVideoId={values.youtubeVideoId ?? null}
       sleevePaletteId={themeSelections.sleevePalette as string | undefined}
+      locale={locale}
     />
   );
 }

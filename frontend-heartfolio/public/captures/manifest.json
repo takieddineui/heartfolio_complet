@@ -71,11 +71,11 @@
         "print": {
           "avif": {
             "src": "/captures/fr/love-story-timeline-print.avif",
-            "bytes": 28097
+            "bytes": 28040
           },
           "jpg": {
             "src": "/captures/fr/love-story-timeline-print.jpg",
-            "bytes": 64733
+            "bytes": 64660
           },
           "width": 900,
           "height": 1125
@@ -116,11 +116,11 @@
         "print": {
           "avif": {
             "src": "/captures/ar/love-story-timeline-print.avif",
-            "bytes": 19112
+            "bytes": 18961
           },
           "jpg": {
             "src": "/captures/ar/love-story-timeline-print.jpg",
-            "bytes": 47996
+            "bytes": 47771
           },
           "width": 900,
           "height": 1125
@@ -143,7 +143,7 @@
       "en": {
         "loop": {
           "src": "/captures/en/reasons-i-love-you.mp4",
-          "bytes": 116774,
+          "bytes": 117174,
           "width": 600,
           "height": 1298,
           "seconds": 6
@@ -151,11 +151,11 @@
         "poster": {
           "avif": {
             "src": "/captures/en/reasons-i-love-you.avif",
-            "bytes": 20187
+            "bytes": 20621
           },
           "jpg": {
             "src": "/captures/en/reasons-i-love-you.jpg",
-            "bytes": 51596
+            "bytes": 53898
           },
           "width": 600,
           "height": 1298
@@ -177,7 +177,7 @@
       "fr": {
         "loop": {
           "src": "/captures/fr/reasons-i-love-you.mp4",
-          "bytes": 122344,
+          "bytes": 121212,
           "width": 600,
           "height": 1298,
           "seconds": 6
@@ -185,11 +185,11 @@
         "poster": {
           "avif": {
             "src": "/captures/fr/reasons-i-love-you.avif",
-            "bytes": 20868
+            "bytes": 21864
           },
           "jpg": {
             "src": "/captures/fr/reasons-i-love-you.jpg",
-            "bytes": 52864
+            "bytes": 55415
           },
           "width": 600,
           "height": 1298
@@ -211,7 +211,7 @@
       "ar": {
         "loop": {
           "src": "/captures/ar/reasons-i-love-you.mp4",
-          "bytes": 107175,
+          "bytes": 104502,
           "width": 600,
           "height": 1298,
           "seconds": 6
@@ -219,11 +219,11 @@
         "poster": {
           "avif": {
             "src": "/captures/ar/reasons-i-love-you.avif",
-            "bytes": 16432
+            "bytes": 16166
           },
           "jpg": {
             "src": "/captures/ar/reasons-i-love-you.jpg",
-            "bytes": 46168
+            "bytes": 44652
           },
           "width": 600,
           "height": 1298
@@ -351,7 +351,7 @@
       "en": {
         "loop": {
           "src": "/captures/en/song-poster.mp4",
-          "bytes": 46745,
+          "bytes": 52690,
           "width": 600,
           "height": 1298,
           "seconds": 6
@@ -396,7 +396,7 @@
       "fr": {
         "loop": {
           "src": "/captures/fr/song-poster.mp4",
-          "bytes": 49995,
+          "bytes": 48659,
           "width": 600,
           "height": 1298,
           "seconds": 6
@@ -441,7 +441,7 @@
       "ar": {
         "loop": {
           "src": "/captures/ar/song-poster.mp4",
-          "bytes": 48439,
+          "bytes": 45206,
           "width": 600,
           "height": 1298,
           "seconds": 6
@@ -449,11 +449,11 @@
         "poster": {
           "avif": {
             "src": "/captures/ar/song-poster.avif",
-            "bytes": 12303
+            "bytes": 12567
           },
           "jpg": {
             "src": "/captures/ar/song-poster.jpg",
-            "bytes": 34003
+            "bytes": 33997
           },
           "width": 600,
           "height": 1298

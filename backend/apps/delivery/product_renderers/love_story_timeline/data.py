@@ -434,14 +434,14 @@ def join_names(names: list[str], locale: str = "en") -> str:
 #: the story rather than assume a couple.
 _DURATION_PHRASES = {
     "couple": {
-        "en": "{days:,} days together",
-        "fr": "{days:,} jours ensemble",
-        "ar": "{days:,} يومًا معًا",
+        "en": "{days} days together",
+        "fr": "{days} jours ensemble",
+        "ar": "{days} يومًا معًا",
     },
     "parents": {
-        "en": "{days:,} days side by side",
-        "fr": "{days:,} jours côte à côte",
-        "ar": "{days:,} يومًا جنبًا إلى جنب",
+        "en": "{days} days side by side",
+        "fr": "{days} jours côte à côte",
+        "ar": "{days} يومًا جنبًا إلى جنب",
     },
 }
 
@@ -459,4 +459,8 @@ def duration_phrase(story_type: str, days: int, locale: str = "en") -> str | Non
     phrases = _DURATION_PHRASES.get(story_type)
     if not phrases:
         return None
-    return phrases.get(locale, phrases["en"]).format(days=days)
+    # The count in the order's language too ("1 799" in French), as the
+    # preview writes it.
+    from apps.delivery.date_formatting import format_count
+
+    return phrases.get(locale, phrases["en"]).format(days=format_count(days, locale))

@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
+import { fontCodePoints } from "../../../test/font-cmap";
 
 /**
  * Reasons I Love You's fonts are real and self-hosted (the same guard
@@ -25,7 +26,6 @@ const firstFamily = (stack: string) => stack.split(",")[0]!.trim().replace(/^"|"
 
 const LICENCES: Record<string, string> = {
   "Young Serif": "LICENSE-youngserif.txt",
-  Gaegu: "LICENSE-gaegu.txt",
   Manrope: "LICENSE-manrope.txt",
   Merienda: "LICENSE-merienda.txt",
   Mali: "LICENSE-mali.txt",
@@ -38,13 +38,30 @@ const LICENCES: Record<string, string> = {
 };
 
 describe("the gifts' fonts", () => {
-  it("are the prototype's eleven families, each registered", () => {
+  it("are the prototype's families less Gaegu, each registered", () => {
     expect([...registered].sort()).toEqual(Object.keys(LICENCES).sort());
   });
 
   it("every gift's display, note, interface and signature face is a registered family", () => {
     expect(stacks.length).toBeGreaterThanOrEqual(13); // 4 gifts x 3 + the signature
     for (const stack of stacks) expect(registered, stack).toContain(firstFamily(stack));
+  });
+
+  /**
+   * EVERY FACE DRAWS FRENCH ITSELF (26 Oct 2026). The jar's note face, Gaegu,
+   * held only ASCII: every accent fell back to the interface face mid-word
+   * and read as a capital ("faÇon", "d'Être"). A face's `unicode-range` says
+   * nothing about what the file contains, so this reads each file's own
+   * character map. U+0178 (Ÿ) is left out: no face here has it, and French
+   * barely uses it.
+   */
+  it("every file draws every French letter and mark itself", () => {
+    const FRENCH = "àâäçéèêëîïôöùûüÿœæÀÂÄÇÉÈÊËÎÏÔÖÙÛÜŒÆ«»’“”";
+    for (const face of faces) {
+      const covered = fontCodePoints(join("public", face.src));
+      const missing = [...FRENCH].filter((letter) => !covered.has(letter.codePointAt(0)!));
+      expect(missing, `${face.family} (${face.src})`).toEqual([]);
+    }
   });
 
   it("fall through to the site's Arabic faces for Arabic letters", () => {

@@ -199,6 +199,7 @@ function ComponentRenderer({ config }: RendererProps) {
                 photoUrl={orderedEvents[wallpaperKind]?.photo?.url}
                 title={orderedEvents[wallpaperKind]?.title ?? ""}
                 date={orderedEvents[wallpaperKind]?.date ?? ""}
+                locale={locale}
                 safeBottom={deviceSize?.safeBottom ?? 0.1}
               />
             ) : (

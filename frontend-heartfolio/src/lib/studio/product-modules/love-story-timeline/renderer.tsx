@@ -37,10 +37,21 @@ function daysBetween(a: string, b: string): number | null {
   return Math.max(0, Math.round((end - start) / (1000 * 60 * 60 * 24)));
 }
 
-function formatDate(iso: string, locale: string): string {
+/** The day count in the Studio's language ("1 799" in French), not the
+ *  browser's: it called `toLocaleString()` with no locale until 26 Oct 2026. */
+export function formatCount(n: number, locale: string): string {
+  return n.toLocaleString(locale);
+}
+
+/** A milestone's date in the Studio's language. The print writes the same
+ *  string for the order's language (`date_formatting.py`), pinned to it by
+ *  `locale-format-parity.test.ts`. */
+export function formatDate(iso: string, locale: string): string {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return "";
-  return d.toLocaleDateString(locale, { month: "short", day: "numeric", year: "numeric" });
+  // A milestone is a calendar day ("2019-04-12", parsed as UTC midnight):
+  // formatted in UTC, or every visitor west of UTC saw the day before.
+  return d.toLocaleDateString(locale, { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" });
 }
 
 export function LoveStoryTimelineRenderer({ values, tokens, themeSelections, locale, t }: ProductRendererProps<TimelineValues>) {
@@ -90,7 +101,7 @@ export function LoveStoryTimelineRenderer({ values, tokens, themeSelections, loc
         */}
         {duration !== null && durationMessageKey && (
           <p className={styles.duration}>
-            {t(durationMessageKey, { days: duration.toLocaleString() })}
+            {t(durationMessageKey, { days: formatCount(duration, locale) })}
           </p>
         )}
       </header>

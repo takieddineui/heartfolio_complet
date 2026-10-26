@@ -18,7 +18,7 @@ from __future__ import annotations
 
 from datetime import date as date_cls
 
-from apps.delivery.date_formatting import format_month_day_year
+from apps.delivery.date_formatting import format_short_date
 
 from .data import NormalizedTimeline, TimelineEvent
 
@@ -48,13 +48,14 @@ def days_together(events: list[TimelineEvent], *, show_duration: bool) -> int | 
 
 
 
-def format_event_date(iso_date: str) -> str:
-    """Mirrors formatDate()'s `{month: "short", day: "numeric", year:
-    "numeric"}` en-US formatting, e.g. "Apr 12, 2019". English/en-US
-    only — see the Phase 3.9 report's "Known limitations".
+def format_event_date(iso_date: str, locale: str = "en") -> str:
+    """The milestone date as the Studio preview's `formatDate()` writes it
+    (`{month: "short", day: "numeric", year: "numeric"}`) in the ORDER's
+    language: "Apr 12, 2019", "12 avr. 2019", "12 أبريل 2019". It was
+    English for every order until 26 Oct 2026.
     """
     try:
         d = date_cls.fromisoformat(iso_date)
     except ValueError:
         return ""
-    return format_month_day_year(d, month_format="%b")
+    return format_short_date(d, locale)

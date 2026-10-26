@@ -37,3 +37,38 @@ def format_month_day_year(d: date_cls, *, month_format: str) -> str:
     reinvented here.
     """
     return d.strftime(f"{month_format} ") + str(d.day) + d.strftime(", %Y")
+
+
+#: The order's language for prints (26 Oct 2026): Love Story Timeline's
+#: milestone dates printed "Apr 12, 2019" on every order, in French and
+#: Arabic too, while the Studio preview showed "12 avr. 2019" / "12 أبريل
+#: 2019". These reproduce the browser's `toLocaleDateString(locale, {month:
+#: "short", day: "numeric", year: "numeric"})` and `toLocaleString(locale)`
+#: (Arabic keeps Latin digits there, as Chrome does); `locale_format_cases.json`
+#: pins both sides to the same strings.
+SHORT_MONTHS = {
+    "en": ("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"),
+    "fr": ("janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."),
+    "ar": ("يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو", "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"),
+}
+
+
+def _language(locale: str | None) -> str:
+    language = (locale or "en").split("-")[0].lower()
+    return language if language in SHORT_MONTHS else "en"
+
+
+def format_short_date(d: date_cls, locale: str | None = "en") -> str:
+    """"Apr 12, 2019" / "12 avr. 2019" / "12 أبريل 2019"."""
+    language = _language(locale)
+    month = SHORT_MONTHS[language][d.month - 1]
+    if language == "en":
+        return f"{month} {d.day}, {d.year}"
+    return f"{d.day} {month} {d.year}"
+
+
+def format_count(n: int, locale: str | None = "en") -> str:
+    """"1,799" / "1 799" (French groups with a narrow no-break space) /
+    "1,799"."""
+    grouped = f"{n:,}"
+    return grouped.replace(",", " ") if _language(locale) == "fr" else grouped

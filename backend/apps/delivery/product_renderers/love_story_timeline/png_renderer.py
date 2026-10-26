@@ -32,6 +32,8 @@ deliberate, documented scope decision, not an oversight.
 
 from __future__ import annotations
 
+from contextvars import ContextVar
+
 import functools
 import io
 import math
@@ -335,13 +337,25 @@ def _paste_photo(
         raise LoveStoryTimelineRenderFailed("Could not render one of the referenced photos.") from exc
 
 
+#: The order's language for the render in progress, so every place that
+#: prints a milestone date (each layout, the wallpapers, the AR card) writes
+#: it as the preview does without threading `locale` through each layout.
+_RENDER_LOCALE: ContextVar[str] = ContextVar("love_story_timeline_render_locale", default="en")
+
+
+def _event_date(iso_date: str) -> str:
+    return format_event_date(iso_date, _RENDER_LOCALE.get())
+
+
 def render_png(
     timeline: NormalizedTimeline, *, target_id: str, customer, locale: str = "en"
 ) -> bytes:
     """See `_render_png`. Releases the fonts this render cached (`_font`)."""
+    token = _RENDER_LOCALE.set(locale)
     try:
         return _render_png(timeline, target_id=target_id, customer=customer, locale=locale)
     finally:
+        _RENDER_LOCALE.reset(token)
         _font.cache_clear()
 
 
@@ -951,7 +965,7 @@ def _draw_neat_stack(
         # then it moves up, never above the slot's own top.
         text_y = slot_middle - int(slot_height * 0.28)
         text_y = max(slot_top, min(text_y, slot_top + slot_height - block_height))
-        draw.text((text_col_x, text_y), format_event_date(event.date), font=small_font, fill=palette["text"])
+        draw.text((text_col_x, text_y), _event_date(event.date), font=small_font, fill=palette["text"])
         text_y += int(small_font.size * geometry.date_line_height)
         # Wrapped, never cut: a 40-character title ran off the right edge of
         # the poster at text scale 130. One line advances exactly as before.
@@ -1199,7 +1213,7 @@ def _draw_cascade(
 
         block = _cascade_block_height(draw, event, small_font, body_font, text_w, description_lines)
         text_y = middle - block // 2
-        date = format_event_date(event.date)
+        date = _event_date(event.date)
         date_box = draw.textbbox((text_x, text_y), date, font=small_font)
         date_middle = (date_box[1] + date_box[3]) // 2
         draw.ellipse(
@@ -1396,7 +1410,7 @@ def _draw_alternating(
         text_y = middle - block // 2
         lines = dict(x=text_col_x, max_width=side_w, right_aligned=inward)
         text_y = _draw_wrapped(
-            draw, format_event_date(event.date), small_font, y=text_y, max_lines=_NO_LINE_LIMIT,
+            draw, _event_date(event.date), small_font, y=text_y, max_lines=_NO_LINE_LIMIT,
             fill=palette["text"], line_spacing=int(small_font.size * geometry.date_line_height), **lines,
         )
         # Wrapped, never cut: a 40-character title used to be one line that
@@ -1425,7 +1439,7 @@ def _draw_alternating(
 def _alternating_block_height(draw, event, small_font, body_font, width, description_lines) -> int:
     """The height `_draw_alternating` advances through for one milestone."""
     geometry = geometry_for("alternating-tilt")
-    height = max(1, len(_wrap_text(draw, format_event_date(event.date), small_font, width))) * int(small_font.size * geometry.date_line_height)
+    height = max(1, len(_wrap_text(draw, _event_date(event.date), small_font, width))) * int(small_font.size * geometry.date_line_height)
     height += max(1, len(_wrap_text(draw, event.title, body_font, width))) * _line_pitch(body_font, int(body_font.size * geometry.text_line_height), event.title)
     if geometry.shows_description and event.description:
         lines = min(description_lines, max(1, len(_wrap_text(draw, event.description, small_font, width))))
@@ -1592,7 +1606,7 @@ def _draw_dotted(
 
         # The date chip: its text starts on the spine, its background (the
         # page's own) starts `chip_pad` before it and ends `chip_pad` after.
-        date = format_event_date(event.date)
+        date = _event_date(event.date)
         advance = draw.textlength(date, font=small_font)
         draw.rectangle(
             [spine_x - chip_pad, top, spine_x + advance + chip_pad, top + row_height], fill=palette["bg"],
@@ -1697,7 +1711,7 @@ def _horizontal_plan(draw, events, geometry, *, font_file, small_size, col_w, ba
             blocks, widest = [], 0
             for event in events:
                 label = _wrap_text(draw, event.title, font, max(1, int(col_w))) or [""]
-                date = _wrap_text(draw, format_event_date(event.date), font, max(1, int(col_w))) or [""]
+                date = _wrap_text(draw, _event_date(event.date), font, max(1, int(col_w))) or [""]
                 widest = max(widest, _widest(draw, label + date, font))
                 blocks.append({
                     "label_gap": label_gap, "date_gap": date_gap, "line_h": line_h,
@@ -1729,7 +1743,7 @@ def _horizontal_plan(draw, events, geometry, *, font_file, small_size, col_w, ba
         blocks, too_wide = [], False
         for event in events:
             caption = _wrap_text(draw, event.title, font, max(1, photo - 2 * side)) or [""]
-            date = _wrap_text(draw, format_event_date(event.date), font, max(1, int(col_w))) or [""]
+            date = _wrap_text(draw, _event_date(event.date), font, max(1, int(col_w))) or [""]
             too_wide = too_wide or _widest(draw, caption, font) > photo - 2 * side or _widest(draw, date, font) > col_w
             extent = _polaroid_extent(geometry, font, card_w, len(caption), len(date), caption_text=event.title)
             blocks.append({**extent, "caption": caption, "date": date})
@@ -1800,7 +1814,7 @@ def _draw_horizontal(
                 fill=palette["text"], line_spacing=block["line_h"], centered=True,
             )
             _draw_wrapped(
-                draw, format_event_date(event.date), font, x=col_x, y=label_y + block["date_gap"],
+                draw, _event_date(event.date), font, x=col_x, y=label_y + block["date_gap"],
                 max_width=int(col_w), max_lines=_NO_LINE_LIMIT,
                 fill=palette["muted"], line_spacing=block["line_h"], centered=True,
             )
@@ -1827,7 +1841,7 @@ def _draw_horizontal(
                 },
             )
         _draw_wrapped(
-            draw, format_event_date(event.date), font, x=col_x,
+            draw, _event_date(event.date), font, x=col_x,
             y=card_top + block["card_h"] + block["date_gap"], max_width=int(col_w), max_lines=_NO_LINE_LIMIT,
             fill=palette["muted"], line_spacing=int(font.size * geometry.date_line_height), centered=True,
         )
@@ -1945,7 +1959,7 @@ def _render_moment_wallpaper(timeline, *, device, index: int, customer, locale: 
         caption_y = band_bottom - int(title_font.size * 2.6) - (date_offset - title_pitch)
         _draw_centered(draw, event.title, title_font, centre_x=device.width // 2, y=caption_y, fill="#ffffff")
         _draw_centered(
-            draw, format_event_date(event.date), date_font,
+            draw, _event_date(event.date), date_font,
             centre_x=device.width // 2, y=caption_y + date_offset,
             fill="#eceae6",
         )
@@ -2230,7 +2244,7 @@ def _render_ar_card(timeline, *, customer, locale: str) -> bytes:
             text_x = margin + photo_size + gap
         else:
             text_x = width - margin - photo_size - gap - int(width * 0.26)
-        draw.text((text_x, slot_top + int(10 * scale)), format_event_date(event.date),
+        draw.text((text_x, slot_top + int(10 * scale)), _event_date(event.date),
                   font=date_font, fill=palette["accent"])
         draw.text((text_x, slot_top + int(10 * scale) + int(date_font.size * 1.5)), event.title,
                   font=small_font, fill=palette["text"])

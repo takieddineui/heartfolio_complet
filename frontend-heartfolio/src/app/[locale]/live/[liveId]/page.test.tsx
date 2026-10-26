@@ -28,6 +28,7 @@ vi.mock("@/components/live-graduation/graduation-live-page", () => ({ Graduation
 
 import LivePage from "./page";
 import { LiveKeepsake } from "@/components/live/live-keepsake";
+import { SongLiveKeepsake } from "@/components/live-song/song-live-keepsake";
 import { ReasonsLivePage } from "@/components/live-reasons/reasons-live-page";
 import { GraduationLivePage } from "@/components/live-graduation/graduation-live-page";
 import { LivePayloadView } from "@/components/live/live-payload";
@@ -167,3 +168,19 @@ describe("LivePage — Graduation Keepsake", () => {
     expect(element.props).toMatchObject({ liveId: "grad1", locale: "fr", initial: values });
   });
 });
+
+describe("LivePage — Song Poster", () => {
+  it("hands its payload to its own page, with the ORDER's locale (its player's words follow it)", async () => {
+    const values = { track: "T", artist: "A", youtubeVideoId: null };
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(new Response(JSON.stringify({ productId: "song-poster", locale: "ar", values }), { status: 200 }))
+    );
+
+    const element = await rendered(LivePage({ params: params("song1") }));
+
+    expect(element.type).toBe(SongLiveKeepsake);
+    expect(element.props).toMatchObject({ values, locale: "ar" });
+  });
+});
+

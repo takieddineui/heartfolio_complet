@@ -173,7 +173,7 @@ def render_html(timeline: NormalizedTimeline, *, customer, locale: str = "en") -
         events_html_parts.append(
             _EVENT_TEMPLATE.substitute(
                 delay=round(0.6 + index * 0.15, 2),
-                date=_escape(format_event_date(event.date)),
+                date=_escape(format_event_date(event.date, locale)),
                 title=_escape(event.title),
                 description_html=f'<p class="event-desc">{_escape(event.description)}</p>' if event.description else "",
                 photo_html=photo_html,

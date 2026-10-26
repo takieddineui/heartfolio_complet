@@ -67,6 +67,12 @@ describe("live keepsake", () => {
     expect(component).toContain("media.backgroundMusic &&");
   });
 
+  it("formats a milestone's day in UTC, so no time zone shows the month before", () => {
+    // "2019-04-01" is UTC midnight; formatted in a visitor's own zone west of
+    // UTC it read "March 2019" (fixed 26 Oct 2026).
+    expect(component).toContain('month: "long", timeZone: "UTC"');
+  });
+
   it("uses the order's locale, not the URL's", () => {
     // A recipient opening an Arabic keepsake from an English link should
     // see the keepsake they were given.

@@ -36,12 +36,16 @@ export const YOUTUBE_PRIVACY_HOST = "https://www.youtube-nocookie.com";
  * documented, standard way every real-world IFrame API integration
  * drives a progress bar; it is the actual mechanism, not a workaround.
  */
+export type YouTubePlayerError = "unplayable" | "loadFailed";
+
 export interface YouTubePlayerState {
   isReady: boolean;
   isPlaying: boolean;
   currentTime: number;
   duration: number;
-  error: string | null;
+  /** What went wrong, as a code each screen words in its own language
+   *  (`player-copy.ts`). */
+  error: YouTubePlayerError | null;
 }
 
 export interface YouTubePlayerControls {
@@ -157,13 +161,13 @@ export function useYouTubePlayer(videoId: string | null): [YouTubePlayerState, Y
               // `YouTubeValidateView` check, so a playback-time error is
               // the rarer case of the video having changed status since
               // — not something a customer can act on by reading a code.
-              setState((prev) => ({ ...prev, error: "This video stopped being playable." }));
+              setState((prev) => ({ ...prev, error: "unplayable" }));
             },
           },
         });
       })
       .catch(() => {
-        if (!cancelled) setState((prev) => ({ ...prev, error: "Could not load the player." }));
+        if (!cancelled) setState((prev) => ({ ...prev, error: "loadFailed" }));
       });
 
     return () => {

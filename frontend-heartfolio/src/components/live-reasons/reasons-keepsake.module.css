@@ -19,8 +19,6 @@
 */
 
 @font-face { font-family: "Young Serif"; src: url("/fonts/reasons/young-serif-normal-400-latin.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
-@font-face { font-family: "Gaegu"; src: url("/fonts/reasons/gaegu-normal-400-latin.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
-@font-face { font-family: "Gaegu"; src: url("/fonts/reasons/gaegu-normal-700-latin.woff2") format("woff2"); font-weight: 700; font-style: normal; font-display: swap; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
 @font-face { font-family: "Manrope"; src: url("/fonts/reasons/manrope-normal-400-800-latin.woff2") format("woff2"); font-weight: 400 800; font-style: normal; font-display: swap; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
 @font-face { font-family: "Merienda"; src: url("/fonts/reasons/merienda-variable.ttf") format("truetype"); font-weight: 300 900; font-style: normal; font-display: swap; }
 @font-face { font-family: "Mali"; src: url("/fonts/reasons/mali-normal-400-latin.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
@@ -37,7 +35,7 @@
 @font-face { font-family: "Homemade Apple"; src: url("/fonts/reasons/homemade-apple-normal-400-latin.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
 
 /* ── Each gift's colours and faces ─────────────────────────────────── */
-.frame[data-gift="jar"] { --bg: #f6e7d3; --ink: #4a3424; --soft: #7d6250; --accent: #d9813b; --paper: #fff9ef; --display: "Young Serif", "Heartfolio Serif", Georgia, serif; --note: "Gaegu", "Heartfolio Sans", cursive; --ui: "Manrope", "Heartfolio Sans", system-ui, sans-serif; color-scheme: light; background: linear-gradient(180deg, #f6e7d3 0 62%, #c99a6b 62% 64%, #b6845a 64%); }
+.frame[data-gift="jar"] { --bg: #f6e7d3; --ink: #4a3424; --soft: #7d6250; --accent: #d9813b; --paper: #fff9ef; --display: "Young Serif", "Heartfolio Serif", Georgia, serif; --note: "Mali", "Heartfolio Sans", sans-serif; --ui: "Manrope", "Heartfolio Sans", system-ui, sans-serif; color-scheme: light; background: linear-gradient(180deg, #f6e7d3 0 62%, #c99a6b 62% 64%, #b6845a 64%); }
 .frame[data-gift="daisy"] { --bg: #cfe8d5; --ink: #2d4a36; --soft: #4f6d58; --accent: #f2b705; --paper: #fffef5; --display: "Merienda", "Heartfolio Serif", cursive; --note: "Mali", "Heartfolio Sans", sans-serif; --ui: "Mali", "Heartfolio Sans", system-ui, sans-serif; color-scheme: light; background: radial-gradient(60% 40% at 50% 30%, #e6f4e9, transparent 70%), linear-gradient(180deg, #cfe8d5, #a9d3b5); }
 .frame[data-gift="deck"] { --bg: #163d2c; --ink: #f3ecd8; --soft: rgba(243, 236, 216, 0.72); --accent: #c8102e; --paper: #fffdf6; --display: "Limelight", "Heartfolio Serif", Georgia, serif; --note: "Spectral", "Heartfolio Sans", Georgia, serif; --ui: "Spectral", "Heartfolio Sans", Georgia, serif; color-scheme: dark; background: radial-gradient(70% 50% at 50% 40%, #1f5a40, #0d2a1e 80%); }
 .frame[data-gift="cookies"] { --bg: #f3dcc0; --ink: #5a2e1c; --soft: #86563c; --accent: #b8322a; --paper: #fffdf8; --display: "Marcellus", "Heartfolio Serif", Georgia, serif; --note: "Zilla Slab", "Heartfolio Sans", Georgia, serif; --ui: "Sora", "Heartfolio Sans", system-ui, sans-serif; color-scheme: light; background: radial-gradient(55% 35% at 50% 48%, #fff4e4, transparent 70%), linear-gradient(180deg, #f3dcc0, #e5c299); }
@@ -148,7 +146,11 @@
 .photoBox { display: block; margin: 10px 0 6px; aspect-ratio: 4 / 3; border-radius: 10px; overflow: hidden; background: color-mix(in srgb, #3a2a20 7%, transparent); }
 .photo { display: block; width: 100%; height: 100%; object-fit: contain; }
 .frame[data-gift="jar"] .card { background: var(--fc, #fff3c9); border-radius: 3px; background-image: repeating-linear-gradient(0deg, transparent 0 29px, rgba(74, 52, 36, 0.12) 29px 30px); transform-origin: 50% 100%; }
-.frame[data-gift="jar"] .text { font-weight: 700; font-size: clamp(1.6rem, 7vw, 2rem); line-height: 1.15; }
+/* Mali, not Gaegu (26 Oct 2026): Gaegu's files held only ASCII, so every
+   French accent fell back to the interface face and read as a capital
+   ("faÇon"). Mali covers French and runs wider, hence 600 (its heaviest)
+   and about 10% smaller, for the same line breaks. */
+.frame[data-gift="jar"] .text { font-weight: 600; font-size: clamp(1.45rem, 6.3vw, 1.8rem); line-height: 1.15; }
 .frame[data-gift="daisy"] .card { border-radius: 50% 50% 46% 46% / 30% 30% 24% 24%; padding: 46px 30px 34px; background: #fffef5; box-shadow: 0 24px 50px rgba(45, 74, 54, 0.3), inset 0 -10px 30px rgba(242, 183, 5, 0.12); }
 .frame[data-gift="daisy"] .number { font-family: "Merienda", "Heartfolio Serif", cursive; font-size: 1.05rem; letter-spacing: 0; text-transform: none; color: #d99800; opacity: 1; }
 .frame[data-gift="deck"] .card { width: min(80%, 300px); aspect-ratio: 5 / 7; border-radius: 14px; padding: 30px 20px; display: flex; flex-direction: column; justify-content: center; border: 1px solid #ddd; }

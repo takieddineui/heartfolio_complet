@@ -17,6 +17,7 @@ import {
   Phone,
   Settings,
 } from "lucide-react";
+import { formatDate } from "@/lib/studio/product-modules/love-story-timeline/renderer";
 
 /**
  * ---------------------------------------------------------------------
@@ -259,18 +260,23 @@ export function MomentWallpaper({
   photoUrl,
   title,
   date,
+  locale,
   safeBottom,
 }: {
   photoUrl: string | undefined;
   title: string;
-  /** ISO date (`YYYY-MM-DD`); formatted internally to match the backend. */
+  /** ISO date (`YYYY-MM-DD`); formatted as the milestone dates are, which
+   *  is what the delivered wallpaper prints (`format_event_date`). */
   date: string;
+  /** The Studio's language: the wallpaper prints the date in the order's
+   *  (it was English-only on both sides until 26 Oct 2026). */
+  locale: string;
   /** `WallpaperDevice.safeBottom` — the same value already passed to
    *  `DeviceMockup`'s furniture, so the caption band and the OS chrome
    *  agree on where the bottom safe zone actually is. */
   safeBottom: number;
 }) {
-  const formatted = formatMomentDate(date);
+  const formatted = formatDate(date, locale);
 
   return (
     <div className={styles.moment}>
@@ -399,18 +405,6 @@ function joinStoryNames(people: { name: string }[] | undefined): string {
   return names.join(" & ");
 }
 
-/**
- * `en-US`, `{month: "short", day: "numeric", year: "numeric"}` — the exact
- * formatter `format_event_date` mirrors on the Python side, kept here as
- * its own function for the same reason that one is: a preview that
- * localises this date would show a date format the delivered file does
- * not contain.
- */
-function formatMomentDate(iso: string): string {
-  const parsed = new Date(`${iso}T00:00:00`);
-  if (Number.isNaN(parsed.getTime())) return "";
-  return parsed.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-}
 
 /**
  * §18d — an EXAMPLE of the live-page QR card, not a real one.
