@@ -5,6 +5,7 @@ Model/database-layer tests for `Order`, `Payment`, `Entitlement`.
 import base64
 import hashlib
 import hmac
+import re
 import json
 import threading
 import time
@@ -78,6 +79,14 @@ from .services import (
     get_freemius_staging_for_customer,
     stage_freemius_checkout,
 )
+
+
+def _without_links(content: str) -> str:
+    """The email with every URL removed. The magic link carries a random
+    signed token that now and then contains "QR" (about 1% of runs, found
+    18 Oct 2026), so "no QR anywhere" is checked on the words, not the
+    links. Kept per module, as each test module is run on its own."""
+    return re.sub(r"https?://[^\s\"'<>]+", "", content)
 
 
 def make_customer(**overrides) -> Customer:
@@ -2820,8 +2829,8 @@ class OrderEmailTests(SimpleTestCase):
         self.assertTrue(sent["ok"])
         self.assertNotIn("attachments", payload)
         self.assertNotIn("<img", payload["html"])
-        self.assertNotIn("QR", payload["html"])
-        self.assertNotIn("QR", payload["text"])
+        self.assertNotIn("QR", _without_links(payload["html"]))
+        self.assertNotIn("QR", _without_links(payload["text"]))
         # Not rendered, not even attempted — and the order link is still there.
         sent["card_mock"].assert_not_called()
         sent["buyer_mock"].assert_not_called()
@@ -2845,8 +2854,8 @@ class OrderEmailTests(SimpleTestCase):
                 self.assertNotIn("<img", payload["html"])
                 self.assertNotIn("attached", payload["html"])
                 self.assertNotIn("attached", payload["text"])
-                self.assertNotIn("QR", payload["html"])
-                self.assertNotIn("QR", payload["text"])
+                self.assertNotIn("QR", _without_links(payload["html"]))
+                self.assertNotIn("QR", _without_links(payload["text"]))
                 self.assertIn("Open your order", payload["html"])
 
 

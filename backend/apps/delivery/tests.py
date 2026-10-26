@@ -53,6 +53,14 @@ def make_customer(**overrides) -> Customer:
     return Customer.objects.create(**defaults)
 
 
+def _without_links(content: str) -> str:
+    """The email with every URL removed. The magic link carries a random
+    signed token that now and then contains "QR" (about 1% of runs, found
+    18 Oct 2026), so "no QR anywhere" is checked on the words, not the
+    links. Kept per module, as each test module is run on its own."""
+    return re.sub(r"https?://[^\s\"'<>]+", "", content)
+
+
 def make_asset(**overrides) -> Asset:
     """Bypasses `upload_asset()`'s decode/re-encode pipeline (which needs
     real, ffmpeg-decodable bytes for audio/video) entirely: these tests are
@@ -2015,6 +2023,6 @@ class ReceiptEmailGiftQrTests(TestCase):
         self.assertNotIn("<img", payload["html"])
         self.assertNotIn("attached", payload["html"])
         self.assertNotIn("attached", payload["text"])
-        self.assertNotIn("QR", payload["html"])
-        self.assertNotIn("QR", payload["text"])
+        self.assertNotIn("QR", _without_links(payload["html"]))
+        self.assertNotIn("QR", _without_links(payload["text"]))
         self.assertIn("Open your order", payload["html"])

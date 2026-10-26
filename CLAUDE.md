@@ -899,15 +899,12 @@ Two were genuine product bugs: the `layout` default above, and
   the photo-cache finding are in `PRINT-RENDERER-GUIDE.md` section 8. Set
   `ASSET_BYTES_CACHE_MAX_MB=128` in the VPS environment (code default 64; at
   8 photos totalling 73MB the cache overflowed and photos were read 97 times).
-- **Flaky test, not yet fixed (found 18 Oct 2026):**
-  `OrderEmailTests.test_a_card_that_cannot_render_removes_the_qr_section_instead_of_promising_it`
-  asserts that "QR" never appears in the email HTML. But the HTML carries the
-  random signed magic-link token, which now and then contains "QR"
-  (`…dgQRp3I`), about 1% a subtest. The fix is to check the QR section's own
-  markup, not the two letters. It passed 5 of 5 on rerun. Its sibling
-  `ReceiptEmailGiftQrTests.test_a_revoked_experience_removes_the_qr_section_from_the_email`
-  has the same flaw (`assertNotIn("QR", payload["html"])`): it failed once in
-  the 18 Oct full run and passed 5 of 5 on rerun.
+- **Flaky QR email tests FIXED (26 Oct 2026).** Three tests asserted that
+  "QR" never appears in the receipt, but the magic link's random signed token
+  now and then contains "QR" (`…dgQRp3I`, about 1% a subtest). They now check
+  the email with its links removed (`_without_links` in
+  `apps/commerce/tests.py` and `apps/delivery/tests.py`), so a word "QR" in
+  the copy still fails them.
 - Deploy and test backend zips 24, 26, 32 — these were queued behind the
   Railway deploy window, which no longer exists; they now wait on the VPS
   deploy (or can be tried on local Docker)
