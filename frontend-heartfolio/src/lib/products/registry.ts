@@ -84,45 +84,33 @@ export const PRODUCT_REGISTRY: ProductEntry[] = [
     ogImage: null, // TODO: /og/song-poster.png
     icon: "AudioWaveform",
     featured: true,
-    // REVERTED to "coming_soon" — was "available" (see the comment this
-    // replaced: "Phase 2 integration: flipped from waitlist... a real
-    // Product Module exists and the Django catalog now sells it"). Django's
-    // renderer/catalog/Studio module are untouched by this revert; only
-    // this flag changed, so flipping it back to "available" restores
-    // exactly what was here before, nothing more to redo.
-    status: "coming_soon",
     /**
-     * VISIBLE AGAIN since 15 Oct 2026 so the owner can open its real Studio
-     * route and test it. THIS IS NOT "READY TO SELL": Song Poster has NO
-     * Freemius plan in `FREEMIUS_PLAN_MAPPING`, so a customer who reaches
-     * checkout uploads their media, then is refused with
-     * `FreemiusPlanNotConfigured`. Either map plans for its packs or set this
-     * back to `true` before the VPS goes live.
+     * ON SALE (19 Oct 2026): Freemius plans 73260 / 73263 / 73264 are mapped
+     * for `printable`, `live` and `printable-plus-digital`, and the real seed
+     * has run. Django's own status wins whenever the catalog fetch succeeds
+     * (`toCatalogProduct` in `catalog.ts`); this value is what the site shows
+     * when it does not, so it must say the same thing. It said
+     * "coming_soon" until 26 Oct 2026, left over from the 1 Oct revert, so a
+     * failed catalog fetch sent "Create yours" to `/create` instead of the
+     * Studio.
      *
-     * History: hidden on 1 Oct 2026 alongside the `status` revert above,
-     * because `status` alone is no kill switch here: `toCatalogProduct` in
-     * `catalog.ts` lets Django's status win outright the moment the catalog
-     * fetch succeeds. `hidden` is the one switch in this file Django cannot
-     * undo (`isVisible()` below): no card, no product page, no sitemap
-     * entry, no Studio route.
+     * `hidden` is the kill switch Django cannot undo (`isVisible()` below):
+     * no card, no product page, no sitemap entry, no Studio route. Set it to
+     * `true` to withdraw the product; `status` alone is not enough.
      */
+    status: "available",
     hidden: false,
     order: 2,
     tags: ["music", "anniversary", "gift"],
     faqCount: 3,
     /**
-     * INTENTIONALLY EMPTY — Django owns this product's commercial data,
-     * as of this flip. Same reasoning as Love Story Timeline's and Where
-     * We Met's own identical comment: offerings, prices and delivery
-     * packs come from `GET /products/<slug>/` at request time
-     * (`lib/products/catalog.ts`), never hardcoded here. The four
-     * offerings this array used to hold (`digital` at $12, `wallpaper`
-     * at $8, `printable` at $18, `complete_pack` at $30) were placeholder
-     * numbers from before a real renderer or catalog existed — leaving
-     * them in place would mean the marketing site advertising a price
-     * and pack shape that no longer match what Django actually sells
-     * (printable/wallpaper/printable-plus-wallpaper/complete, priced
-     * separately, no live/digital pack yet).
+     * INTENTIONALLY EMPTY — Django owns this product's commercial data.
+     * Same reasoning as Love Story Timeline's and Where We Met's own
+     * identical comment: offerings, prices and delivery packs come from
+     * `GET /products/<slug>/` at request time (`lib/products/catalog.ts`),
+     * never hardcoded here. The placeholder offerings this array once held
+     * ($12 digital, $8 wallpaper, $18 printable, $30 complete) predate the
+     * real catalog and matched nothing Django sells.
      */
     offerings: [],
   },

@@ -1029,6 +1029,12 @@
     "summary": "{average} out of 5 · {count} reviews",
     "ratingAria": "Rated {n} out of 5"
   },
+  "Loading": {
+    "page": "Loading",
+    "site": "Loading Heartfolio",
+    "collection": "Loading the collection",
+    "keepsake": "Loading this keepsake"
+  },
   "NotFound": {
     "metaTitle": "Page not found",
     "title": "This page doesn't exist.",

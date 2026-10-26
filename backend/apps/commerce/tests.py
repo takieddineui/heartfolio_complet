@@ -2609,7 +2609,7 @@ class OrderEmailTests(SimpleTestCase):
 
         expectations = {
             "en": ("Love Story Timeline", 'lang="en" dir="ltr"'),
-            "fr": ("Chronologie d'histoire d'amour", 'lang="fr" dir="ltr"'),
+            "fr": ("Frise d'histoire d'amour", 'lang="fr" dir="ltr"'),
             "ar": ("الخط الزمني لقصة الحب", 'lang="ar" dir="rtl"'),
         }
         for locale, (product, html_attrs) in expectations.items():

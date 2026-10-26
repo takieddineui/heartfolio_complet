@@ -284,13 +284,13 @@
       "shortDescription": "La chanson qui a accompagné tout le trajet du retour.",
       "fullDescription": "Une chanson qui a compté, dotée de sa propre onde sonore et mise en page comme une partition pour ceux qui ne la lisent pas.",
       "meta": {
-        "title": "Affiche de chanson personnalisée",
+        "title": "Affiche musicale personnalisée",
         "description": "La chanson qui compte, devenue une œuvre en onde sonore — un souvenir numérique personnalisé à partir de {price}, livré instantanément.",
-        "imageAlt": "Une affiche de chanson Heartfolio personnalisée avec une œuvre en onde sonore, le titre d'une chanson et son artiste",
+        "imageAlt": "Une affiche musicale Heartfolio personnalisée avec une œuvre en onde sonore, le titre d'une chanson et son artiste",
         "descriptionNoPrice": "La chanson qui compte, devenue une œuvre en onde sonore — un souvenir numérique personnalisé, livré instantanément."
       },
       "storyTitle": "Une chanson, vue plutôt qu'écoutée.",
-      "story": "Chaque chanson mérite une forme. L'Affiche de chanson donne la sienne à la vôtre — une onde sonore conçue pour votre commande — et l'accompagne du titre, de l'artiste et du moment auquel elle appartient. On y voit d'abord une œuvre, ensuite un souvenir : c'est exactement le bon ordre.",
+      "story": "Chaque chanson mérite une forme. L'Affiche musicale donne la sienne à la vôtre — une onde sonore conçue pour votre commande — et l'accompagne du titre, de l'artiste et du moment auquel elle appartient. On y voit d'abord une œuvre, ensuite un souvenir : c'est exactement le bon ordre.",
       "audience": {
         "title": "Pour qui",
         "body": "Pour toute personne qui associe une chanson à quelqu'un : la première danse d'un couple, la berceuse qu'un parent fredonne encore, le morceau qu'un ami lance toujours sur le chemin du retour. Il vous suffit du lien YouTube de la chanson, d'une photo et, si vous le souhaitez, de quelques mots de dédicace. Choisissez l'un des huit styles, et le design est fait pour vous."
@@ -343,7 +343,7 @@
       }
     },
     "loveStoryTimeline": {
-      "name": "Chronologie d'histoire d'amour",
+      "name": "Frise d'histoire d'amour",
       "shortDescription": "Vos jalons, racontés comme une seule histoire continue.",
       "fullDescription": "De trois à cinq moments — dates, photos et les mots que vous seuls employez — disposés en une seule frise souvenir.",
       "meta": {
@@ -1028,6 +1028,12 @@
     "title": "Ce qu'on nous a dit",
     "summary": "{average} sur 5 · {count} avis",
     "ratingAria": "Noté {n} sur 5"
+  },
+  "Loading": {
+    "page": "Chargement",
+    "site": "Chargement de Heartfolio",
+    "collection": "Chargement de la collection",
+    "keepsake": "Chargement de ce souvenir"
   },
   "NotFound": {
     "metaTitle": "Page introuvable",

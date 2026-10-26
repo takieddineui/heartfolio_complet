@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { SkeletonBlock, SkeletonProductGrid, SkeletonRegion, SkeletonText } from "@/components/ui/skeleton";
 
 /**
@@ -19,9 +20,10 @@ import { SkeletonBlock, SkeletonProductGrid, SkeletonRegion, SkeletonText } from
  * is noted here instead of done quietly.
  */
 export default function Loading() {
+  const t = useTranslations("Loading");
   return (
     <main className="bg-page">
-      <SkeletonRegion label="Loading Heartfolio">
+      <SkeletonRegion label={t("site")}>
         {/* Hero — dark, full-bleed, two-column on desktop. */}
         <section className="bg-ink-navy py-24 sm:py-32">
           <div className="mx-auto grid max-w-7xl gap-12 px-5 sm:px-8 lg:grid-cols-2 lg:items-center">

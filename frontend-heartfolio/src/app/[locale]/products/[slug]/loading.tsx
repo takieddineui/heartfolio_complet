@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { SkeletonBlock, SkeletonRegion, SkeletonText } from "@/components/ui/skeleton";
 
 /**
@@ -6,9 +7,10 @@ import { SkeletonBlock, SkeletonRegion, SkeletonText } from "@/components/ui/ske
  * space is what stops the whole page jumping when it arrives.
  */
 export default function Loading() {
+  const t = useTranslations("Loading");
   return (
     <main className="bg-page">
-      <SkeletonRegion label="Loading this keepsake">
+      <SkeletonRegion label={t("keepsake")}>
         <section className="py-16 sm:py-20">
           <div className="mx-auto max-w-7xl px-5 sm:px-8">
             <SkeletonText width="w-48" />

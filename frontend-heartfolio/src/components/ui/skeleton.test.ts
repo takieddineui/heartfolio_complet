@@ -63,6 +63,19 @@ describe("loading states", () => {
     expect(primitives).toContain("sr-only");
   });
 
+  it("announces itself in the page's language", () => {
+    // Every label was English on /fr and /ar until 26 Oct 2026. A label is
+    // a translation (`label={t(...)}`), never a string literal.
+    const literal: string[] = [];
+    for (const file of routeFiles("src/app", "loading.tsx")) {
+      const source = readFileSync(file, "utf8");
+      if (/<SkeletonRegion\s+label="/.test(source) || !source.includes('useTranslations("Loading")')) {
+        literal.push(file);
+      }
+    }
+    expect(literal).toEqual([]);
+  });
+
   it("does not reimplement reduced-motion handling", () => {
     // globals.css already neutralises animation under
     // prefers-reduced-motion; a second implementation here would be one

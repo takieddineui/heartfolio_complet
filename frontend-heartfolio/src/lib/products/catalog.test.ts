@@ -148,13 +148,23 @@ describe("withdrawn products (§1, §14)", () => {
   });
 
   it("excludes them from every product listing", () => {
-    // song-poster hidden again — see WITHDRAWN's own comment above for
-    // why. Reasons I Love You joined the visible list on 14 Oct 2026, once
-    // its Freemius plan and catalog row existed, and Graduation Keepsake on
-    // 15 Oct 2026, once its plan (72194) was mapped.
+    // Reasons I Love You joined the visible list on 14 Oct 2026, once its
+    // Freemius plan and catalog row existed, Graduation Keepsake on 15 Oct
+    // 2026 (plan 72194), and Song Poster on 15 Oct 2026 (plans mapped 19 Oct).
     const visible = getAllProducts().map((p) => p.slug);
     expect(visible).toEqual(["song-poster", "love-story-timeline", "reasons-i-love-you", "graduation-keepsake"]);
     for (const slug of WITHDRAWN) expect(visible).not.toContain(slug);
+  });
+
+  it("marks every visible product available, so a failed catalog fetch still opens its Studio", () => {
+    // The registry's `status` is the fallback when Django's catalog cannot
+    // be reached. Song Poster's said "coming_soon" until 26 Oct 2026, weeks
+    // after it went on sale: with the catalog down, "Create yours" sent its
+    // customers to the `/create` picker instead of the Studio.
+    const notAvailable = getAllProducts()
+      .filter((p) => p.status !== "available")
+      .map((p) => `${p.slug}: ${p.status}`);
+    expect(notAvailable).toEqual([]);
   });
 
   it("refuses to resolve their public slug, so their page 404s", () => {

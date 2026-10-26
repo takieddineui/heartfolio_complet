@@ -18,7 +18,7 @@ def copy_locale(locale: str | None) -> str:
 
 
 PRODUCT_NAMES = {
-    "loveStoryTimeline": {"en": "Love Story Timeline", "fr": "Chronologie d'histoire d'amour", "ar": "الخط الزمني لقصة الحب"},
+    "loveStoryTimeline": {"en": "Love Story Timeline", "fr": "Frise d'histoire d'amour", "ar": "الخط الزمني لقصة الحب"},
     "songPoster": {"en": "Song Poster", "fr": "Affiche musicale", "ar": "ملصق الأغنية"},
     "reasonsILoveYou": {"en": "Reasons I Love You", "fr": "Les raisons pour lesquelles je t'aime", "ar": "أسباب حبي لك"},
     "graduationKeepsake": {"en": "Graduation Keepsake", "fr": "Souvenir de diplôme", "ar": "هدية التخرّج"},

@@ -1,10 +1,12 @@
+import { useTranslations } from "next-intl";
 import { SkeletonBlock, SkeletonProductGrid, SkeletonRegion, SkeletonText } from "@/components/ui/skeleton";
 
 /** Collection page. Mirrors the heading block and the three-column grid. */
 export default function Loading() {
+  const t = useTranslations("Loading");
   return (
     <main className="bg-page">
-      <SkeletonRegion label="Loading the collection">
+      <SkeletonRegion label={t("collection")}>
         <section className="py-20 sm:py-28">
           <div className="mx-auto max-w-7xl px-5 sm:px-8">
             <div className="max-w-2xl space-y-4">

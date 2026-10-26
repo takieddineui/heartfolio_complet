@@ -101,6 +101,25 @@ describe("page titles carry the brand once", () => {
   });
 });
 
+describe("one name per product", () => {
+  /**
+   * French called Song Poster "Affiche musicale" on its card and "Affiche de
+   * chanson" in its page title, and Love Story Timeline "Chronologie…" on its
+   * card and receipt but "Frise…" everywhere else (fixed 26 Oct 2026). The
+   * page title must use the product's own name. Arabic is left out: a name
+   * like ملصق الأغنية takes its indefinite form (ملصق أغنية مخصّص) once
+   * "personalized" follows, so the words legitimately differ.
+   */
+  it.each([["en", en], ["fr", fr]] as const)("%s: each product's page title uses its name", (_locale, messages) => {
+    const products = messages.Products as unknown as Record<string, { name?: string; meta?: { title?: string } }>;
+    const mismatched = Object.entries(products)
+      .filter(([, p]) => p.name && p.meta?.title)
+      .filter(([, p]) => !p.meta!.title!.toLowerCase().includes(p.name!.toLowerCase()))
+      .map(([key, p]) => `${key}: "${p.name}" / "${p.meta!.title}"`);
+    expect(mismatched).toEqual([]);
+  });
+});
+
 describe("no wallpaper promise outside the pack labels", () => {
   /**
    * Wallpapers are not sold (every wallpaper pack is disabled, and the add-on
