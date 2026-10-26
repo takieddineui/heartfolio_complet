@@ -1030,6 +1030,12 @@
     "summary": "{average} sur 5 · {count} avis",
     "ratingAria": "Noté {n} sur 5"
   },
+  "Captures": {
+    "phoneAlt": "Un exemple de {name}, tel qu'il s'ouvre sur un téléphone",
+    "printAlt": "Un exemple de tirage {name}, encadré",
+    "pause": "Mettre l'aperçu en pause",
+    "play": "Lire l'aperçu"
+  },
   "Loading": {
     "page": "Chargement",
     "site": "Chargement de Heartfolio",

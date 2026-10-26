@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { routing } from "@/i18n/routing";
-import { OG_CONTENT_TYPE, OG_SIZE, ogTextLocale, renderOgImage } from "@/lib/og";
+import { OG_CONTENT_TYPE, OG_SIZE, captureStillDataUrl, ogTextLocale, renderOgImage } from "@/lib/og";
 import { getCatalogStartingPrice } from "@/lib/products/catalog";
 import { getCatalogProductDetail } from "@/lib/products/catalog-server";
 import { getAllProducts, getProductBySlug } from "@/lib/products/registry";
@@ -37,7 +37,12 @@ export default async function Image({
   const { product: catalogProduct } = await getCatalogProductDetail(product);
   const starting = getCatalogStartingPrice(catalogProduct);
 
+  // The product's real live page, in the URL's language (the card's text
+  // falls back to English on /ar; the capture need not).
+  const still = await captureStillDataUrl(product.id, locale);
+
   return renderOgImage({
+    stills: still ? [still] : [],
     locale: textLocale,
     eyebrow: tPage("eyebrow"),
     title: t("name"),

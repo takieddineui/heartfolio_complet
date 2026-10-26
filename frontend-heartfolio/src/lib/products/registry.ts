@@ -70,7 +70,7 @@ export const PRODUCT_REGISTRY: ProductEntry[] = [
     i18nKey: "songPoster",
     category: "music",
     currency: PRICE_CURRENCY,
-    ogImage: null, // TODO: /og/song-poster.png
+    ogImage: null,
     icon: "AudioWaveform",
     featured: true,
     /**
@@ -113,7 +113,7 @@ export const PRODUCT_REGISTRY: ProductEntry[] = [
     i18nKey: "whereWeMet",
     category: "map",
     currency: PRICE_CURRENCY,
-    ogImage: null, // TODO: /og/where-we-met.png
+    ogImage: null,
     icon: "MapPin",
     featured: true,
     // Phase 2 integration: flipped from "waitlist" — a real Product Module
@@ -165,7 +165,7 @@ export const PRODUCT_REGISTRY: ProductEntry[] = [
     i18nKey: "loveStoryTimeline",
     category: "timeline",
     currency: PRICE_CURRENCY,
-    ogImage: "/og/love-story-timeline.png",
+    ogImage: null,
     icon: "GalleryHorizontal",
     featured: true,
     badgeKey: "new",
@@ -203,7 +203,7 @@ export const PRODUCT_REGISTRY: ProductEntry[] = [
     i18nKey: "reasonsILoveYou",
     category: "other",
     currency: PRICE_CURRENCY,
-    ogImage: null, // TODO: /og/reasons-i-love-you.png
+    ogImage: null,
     icon: "Heart",
     featured: true,
     status: "available",
@@ -232,7 +232,7 @@ export const PRODUCT_REGISTRY: ProductEntry[] = [
     i18nKey: "graduationKeepsake",
     category: "other",
     currency: PRICE_CURRENCY,
-    ogImage: null, // TODO: /og/graduation-keepsake.png
+    ogImage: null,
     icon: "GraduationCap",
     featured: false,
     status: "available",
@@ -485,33 +485,13 @@ export function getStudioDestination(
 }
 
 /* ---------------------------------------------------------------------
- * ASSET TODOs (brief §7, §8, §32, §33)
+ * PRODUCT IMAGERY
  * ---------------------------------------------------------------------
- * Every product currently renders bespoke generated SVG artwork — good,
- * deliberate, and far better than stock. What does NOT yet exist, and is
- * needed before this reads as a premium collection:
- *
- * 1. Per-product OG PHOTOGRAPHY, 1200×630. Not blocking: each product page
- *    now generates its own share card (name, line, starting price, brand
- *    colours) via the `opengraph-image` routes, so nothing shares a broken
- *    or generic image. Set `ogImage` to override with real art when it
- *    exists:
- *      /og/star-map.png              — framed star map, warm dark interior
- *      /og/song-poster.png           — song poster, framed print + phone
- *      /og/where-we-met.png          — map print, editorial styling
- *      /og/love-story-timeline.png   — horizontal timeline, framed
- *
- * 2. Offering preview media (`media` is null on all offerings):
- *      Printable  — physical framed print on a wall, warm minimal interior,
- *                   editorial photography, no people, no props clutter.
- *      Wallpaper  — single smartphone on a plain surface, screen showing the
- *                   artwork, soft daylight.
- *      Complete   — the digital, print and phone versions in one quiet
- *                   composition.
- *
- * 3. A landing hero composition showing several products at once, with one
- *    dominant piece — not four equal thumbnails (§6).
- *
- * Until these exist the UI falls back gracefully to generated artwork; it
- * never renders a broken image or a stock photo.
+ * REAL CAPTURES, NOT DRAWINGS (26 Oct 2026). Cards, product pages, the
+ * formats section, share images, the merchant feed and the Product JSON-LD
+ * show each product's real live page and print with fictional sample content
+ * (`lib/captures`, made by `scripts/captures/record.mjs`). The generated
+ * share cards carry those captures, so `ogImage` (a static override) is null
+ * everywhere; the old branded `/og/love-story-timeline.png` is gone. Only
+ * the home hero still draws `KeepsakeVisual` (replaced in the home redesign).
  * ------------------------------------------------------------------- */

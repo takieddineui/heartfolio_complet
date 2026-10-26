@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { ArrowRight, Check, ChevronRight, Clock, Download } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,8 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { KeepsakeVisual } from "@/components/product/keepsake-visual";
+import { CaptureLoop, PhoneFrame } from "@/components/captures/capture-media";
+import { getProductCaptures } from "@/lib/captures/manifest";
 import { OfferingVisual } from "@/components/product/offering-visual";
 import { PRINT_SIZES } from "@/lib/studio/print-sizes";
 import type { ApiPrintSize } from "@/lib/api/products";
@@ -78,6 +79,9 @@ export function ProductView({
       ? printSizes.map((size) => ({ id: size.key }))
       : PRINT_SIZES.map((size) => ({ id: size.id }));
   const content = useProductContent(product);
+  const locale = useLocale();
+  const tCaptures = useTranslations("Captures");
+  const captures = getProductCaptures(product.id, locale);
 
   // The three primary editions (+ real wallpaper add-on deltas), not a
   // straight per-pack mapping — see `getProductPageOfferings`'s own doc
@@ -245,8 +249,15 @@ export function ProductView({
             </Reveal>
 
             <Reveal delay={0.1}>
-              <div className="aspect-[4/5] overflow-hidden rounded-[var(--radius-xl)] shadow-[var(--shadow-float)]">
-                <KeepsakeVisual productId={product.id} detailed />
+              {/* The product's real live page, playing while it is on screen
+                  (with a pause button), on a phone. Same 4:5 panel as
+                  before, so the loading skeleton still matches. */}
+              <div className="relative flex aspect-[4/5] items-center justify-center overflow-hidden rounded-[var(--radius-xl)] bg-gradient-to-b from-subtle/40 to-subtle/10 shadow-[var(--shadow-whisper)]">
+                {captures && (
+                  <PhoneFrame className="w-[46%]">
+                    <CaptureLoop captures={captures} alt={tCaptures("phoneAlt", { name: content.name })} mode="inView" priority />
+                  </PhoneFrame>
+                )}
               </div>
             </Reveal>
           </div>
@@ -365,7 +376,7 @@ export function ProductView({
                   }`}
                 >
                   <div className="min-h-[280px]">
-                    <OfferingVisual type={offering.type} productId={product.id} />
+                    <OfferingVisual type={offering.type} captures={captures} name={content.name} />
                   </div>
                   <div className="flex flex-col justify-center p-8 sm:p-12">
                     <h3 className="font-serif text-2xl text-heading">

@@ -3,6 +3,7 @@ import "server-only";
 import type { ApiDeliveryPack } from "@/lib/api/products";
 import type { CatalogProduct } from "@/lib/products/catalog";
 import { SITE_NAME, SITE_URL } from "@/lib/site-config";
+import { getProductCaptures } from "@/lib/captures/manifest";
 
 /**
  * ---------------------------------------------------------------------
@@ -56,20 +57,16 @@ import { SITE_NAME, SITE_URL } from "@/lib/site-config";
  * change to the numbers here — the prices in this feed are Django's and are
  * correct.
  *
- * ⚠️ KNOWN BLOCKER — `image_link`, STILL UNRESOLVED.
- * Merchant Center requires an image per item and rejects images carrying
- * promotional text, logos or watermarks. `ogImage` is no longer `null` for
- * Love Story Timeline — a real static file exists now — but it is a render
- * of the SAME branded Open Graph card `next/og` already generates for
- * social sharing: "HEARTFOLIO COLLECTION," the wordmark, marketing copy.
- * That is exactly what the policy excludes. Pointing `ogImage` at it only
- * removed the `null` fallback to a computed route; it did not solve the
- * actual requirement, which is real, unbranded product photography that
- * does not exist yet and cannot be generated here. The feed is therefore
- * structurally valid and will still fail Merchant Center review until that
- * photography exists. Surfaced rather than hidden, same reasoning as
- * before: a feed that looks fixed and still gets disapproved a week later
- * is worse than a comment that says plainly it is not fixed.
+ * `image_link` IS THE PRODUCT ITSELF (26 Oct 2026): each product's capture
+ * still (`lib/captures`), its real live page with a fictional sample, in the
+ * feed's language, with no promotional text, logo or watermark added. It used
+ * to be the branded share card ("HEARTFOLIO COLLECTION", marketing copy),
+ * which Merchant Center's image policy rejects. One residual risk, stated:
+ * the live pages' own "Made with Heartfolio" line, small and part of the
+ * product, is visible in Song Poster's still; whether review treats that as
+ * branding is Google's call. The share card stays the fallback only for a
+ * product with no capture, which `captures.test.ts` rules out for every
+ * visible one.
  */
 
 export interface MerchantFeedItem {
@@ -149,9 +146,8 @@ export function buildMerchantFeedItems(
 
     const text = copy(product);
     const link = `${SITE_URL}/${locale}/products/${product.slug}`;
-    const imageLink = product.ogImage
-      ? `${SITE_URL}${product.ogImage}`
-      : `${link}/opengraph-image`;
+    const still = getProductCaptures(product.id, locale)?.poster?.jpg.src;
+    const imageLink = still ? `${SITE_URL}${still}` : `${link}/opengraph-image`;
 
     for (const pack of product.deliveryPacks) {
       if (pack.status !== "active") continue;

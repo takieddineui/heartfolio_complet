@@ -109,6 +109,17 @@ describe("buildMerchantFeedItems", () => {
     }
   });
 
+  it("shows the product itself, in the feed's language, not the branded share card", () => {
+    // Merchant Center rejects images with promotional text or logos; the
+    // share card is exactly that. The capture still is the real live page
+    // (26 Oct 2026).
+    for (const locale of ["en", "fr", "ar"]) {
+      for (const item of buildMerchantFeedItems(live(), locale, copy)) {
+        expect(item.imageLink).toBe(`https://www.theheartfolio.com/captures/${locale}/love-story-timeline.jpg`);
+      }
+    }
+  });
+
   it("omits a product Django has taken off sale", () => {
     expect(buildMerchantFeedItems(live({ status: "disabled" }), "en", copy)).toEqual([]);
   });

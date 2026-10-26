@@ -1,11 +1,13 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import { motion } from "framer-motion";
 import { ArrowUpRight, Clock } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { Reveal } from "@/components/motion/reveal";
-import { KeepsakeVisual } from "@/components/product/keepsake-visual";
+import { CaptureLoop, PhoneFrame } from "@/components/captures/capture-media";
+import { getProductCaptures } from "@/lib/captures/manifest";
 import { formatPrice } from "@/lib/site-config";
 import { getCatalogStartingPrice, type CatalogProduct } from "@/lib/products/catalog";
 import { useProductContent } from "@/lib/products/use-product-content";
@@ -54,19 +56,44 @@ function ProductCollectionCard({ product, index }: { product: CatalogProduct; in
   // Django's starting price for live products; the static marketing figure
   // only for waitlist products, which have no backend row to defer to.
   const starting = getCatalogStartingPrice(product);
+  const locale = useLocale();
+  const tCaptures = useTranslations("Captures");
+  const captures = getProductCaptures(product.id, locale);
+  // The card's loop plays while it is hovered or keyboard-focused, never by
+  // itself: a grid of moving phones would compete with each other.
+  const [active, setActive] = useState(false);
 
   return (
     <Reveal delay={(index % 3) * 0.08}>
       {/* The card links to the product *page* — presentation before
           creation. The Studio is never entered from a card. */}
-      <Link href={`/products/${product.slug}`} className="group block h-full">
+      <Link
+        href={`/products/${product.slug}`}
+        className="group block h-full"
+        onMouseEnter={() => setActive(true)}
+        onMouseLeave={() => setActive(false)}
+        onFocus={() => setActive(true)}
+        onBlur={() => setActive(false)}
+      >
         <motion.article
           whileHover={{ y: -6, rotate: index % 2 === 0 ? -0.6 : 0.6 }}
           transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
           className="flex h-full flex-col"
         >
-          <div className="relative aspect-[4/5] overflow-hidden rounded-[var(--radius-xl)] shadow-[var(--shadow-whisper)] transition-shadow duration-300 group-hover:shadow-[var(--shadow-lift)]">
-            <KeepsakeVisual productId={product.id} />
+          <div className="relative aspect-[4/5] overflow-hidden rounded-[var(--radius-xl)] bg-gradient-to-b from-subtle/35 to-subtle/10 shadow-[var(--shadow-whisper)] transition-shadow duration-300 group-hover:shadow-[var(--shadow-lift)]">
+            {/* The product's real live page with sample content, on a phone
+                (lib/captures). It replaced drawn stand-ins and, for Reasons
+                and Graduation, an empty dark box. */}
+            {captures && (
+              <div className="absolute inset-0 flex items-center justify-center">
+                {/* 47% of a 4:5 card leaves the phone (about 1:2.16) a calm
+                    margin above and below; the still's own size sets its
+                    height. */}
+                <PhoneFrame className="w-[47%]">
+                  <CaptureLoop captures={captures} alt={tCaptures("phoneAlt", { name: content.name })} mode="hover" active={active} />
+                </PhoneFrame>
+              </div>
+            )}
             {/*
               Pass B §5: badges were solid-fill stamped pills — "Waitlist",
               "Coming soon", "New" — indistinguishable from software feature

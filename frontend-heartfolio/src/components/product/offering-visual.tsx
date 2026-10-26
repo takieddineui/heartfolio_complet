@@ -1,101 +1,60 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+import { CaptureStill, PhoneFrame } from "@/components/captures/capture-media";
+import type { ProductCaptures } from "@/lib/captures/manifest";
 import type { OfferingType } from "@/lib/products/types";
-import { KeepsakeVisual } from "./keepsake-visual";
 
 /**
- * A quiet presentation frame for each offering — a framed print on a
- * wall, a phone, a screen — drawn in fine linework rather than filled
- * with stock photography (§7). The product's own artwork sits inside it,
- * so the artwork stays the star.
+ * The picture beside each format on a product page, made of the product's
+ * REAL captures (`lib/captures`, 26 Oct 2026), not drawn stand-ins:
  *
- * TODO(HEARTFOLIO-PREDEPLOY):
- * Replace these temporary line-drawn mockup frames with final offering
- * visuals before deployment, per product and per offering type where
- * appropriate: Digital, Printable, Wallpaper, AR, VR, Complete Pack.
- * Remember Digital means the native digital/web experience of the
- * product, not simply "PNG/PDF" — its presentation should reflect that,
- * not just reuse the same screen-on-a-plain-surface frame used here as a
- * placeholder. Do not invent offerings a product doesn't have; the set
- * of offerings shown will ultimately come from the Django Products API.
- * Specific documented placeholders below:
- *   printable     — "Framed Heartfolio print on a warm minimal interior
- *                    wall, editorial photography, natural light, no people."
- *   wallpaper     — "Single smartphone on a plain neutral surface,
- *                    artwork on screen, soft daylight."
- *   complete_pack — "Digital, printed and phone versions in one calm
- *                    composition, overhead, warm neutral surface."
- *   ar / vr       — short demonstration clip, tasteful, no headset stock photo;
- *                   do not overemphasize these merely because they are
- *                   technologically interesting (Pass B §7).
- * Swap the inner wrapper for <Image> when those exist; the aspect ratios hold.
+ * - Digital: the live page on a phone (its last frame).
+ * - Printable: the real print (Classic 8x10, with edges) in a frame.
+ * - Printable + Digital: the two together.
+ *
+ * The wallpaper and Complete pictures are gone with the formats themselves:
+ * neither is sold (every wallpaper pack and `complete` are disabled), so a
+ * product page never lists them.
  */
 export function OfferingVisual({
   type,
-  productId,
+  captures,
+  name,
 }: {
   type: OfferingType;
-  productId: string;
+  captures: ProductCaptures | null;
+  /** The product's name, for the pictures' descriptions. */
+  name: string;
 }) {
-  if (type === "wallpaper") {
-    return (
-      <div className="flex h-full w-full items-center justify-center bg-subtle/25 p-6">
-        <div className="relative h-full max-h-[220px] w-[110px] overflow-hidden rounded-[22px] border border-heading/15 shadow-[var(--shadow-lift)]">
-          <div className="absolute left-1/2 top-1.5 z-10 h-1 w-8 -translate-x-1/2 rounded-full bg-heading/20" />
-          <KeepsakeVisual productId={productId} />
-        </div>
+  const t = useTranslations("Captures");
+  if (!captures?.poster) return <div className="h-full w-full bg-subtle/25" />;
+
+  const phone = (width: string) => (
+    <PhoneFrame className={width}>
+      <CaptureStill still={captures.poster!} alt={t("phoneAlt", { name })} />
+    </PhoneFrame>
+  );
+  const print = (width: string) =>
+    captures.print ? (
+      <div className={`border-[6px] border-heading/15 bg-card p-1.5 shadow-[var(--shadow-lift)] ${width}`}>
+        <CaptureStill still={captures.print} alt={t("printAlt", { name })} />
       </div>
-    );
-  }
+    ) : null;
 
   if (type === "printable") {
-    return (
-      <div className="flex h-full w-full items-center justify-center bg-subtle/25 p-6">
-        <div className="relative aspect-[3/4] h-full max-h-[220px] border-[6px] border-heading/15 bg-card p-1.5 shadow-[var(--shadow-lift)]">
-          <div className="h-full w-full overflow-hidden">
-            <KeepsakeVisual productId={productId} />
-          </div>
-        </div>
-      </div>
-    );
+    return <div className="flex h-full w-full items-center justify-center bg-subtle/25 p-8">{print("w-[46%] max-w-[230px]")}</div>;
   }
 
-  if (type === "complete_pack") {
-    return (
-      <div className="relative flex h-full w-full items-center justify-center gap-3 bg-subtle/25 p-6">
-        <div className="aspect-[3/4] h-3/5 overflow-hidden border-[5px] border-heading/15 bg-card shadow-[var(--shadow-lift)]">
-          <KeepsakeVisual productId={productId} />
-        </div>
-        <div className="aspect-[3/4] h-4/5 overflow-hidden rounded-[var(--radius-sm)] shadow-[var(--shadow-lift)]">
-          <KeepsakeVisual productId={productId} />
-        </div>
-        <div className="h-3/5 w-[52px] overflow-hidden rounded-[14px] border border-heading/15 shadow-[var(--shadow-lift)]">
-          <KeepsakeVisual productId={productId} />
-        </div>
-      </div>
-    );
-  }
-
-  // A framed print beside a screen — the two base units together.
   if (type === "printable_plus_digital") {
     return (
-      <div className="relative flex h-full w-full items-center justify-center gap-4 bg-subtle/25 p-6">
-        <div className="aspect-[3/4] h-3/5 overflow-hidden border-[5px] border-heading/15 bg-card shadow-[var(--shadow-lift)]">
-          <KeepsakeVisual productId={productId} />
-        </div>
-        <div className="aspect-[4/5] h-4/5 overflow-hidden rounded-[var(--radius-md)] shadow-[var(--shadow-lift)]">
-          <KeepsakeVisual productId={productId} />
-        </div>
+      <div className="flex h-full w-full items-center justify-center gap-5 bg-subtle/25 p-8">
+        {print("w-[40%] max-w-[200px]")}
+        {phone("w-[26%] max-w-[130px]")}
       </div>
     );
   }
 
-  // digital / ar / vr — the artwork on a plain screen surface.
-  return (
-    <div className="flex h-full w-full items-center justify-center bg-subtle/25 p-6">
-      <div className="aspect-[4/5] h-full max-h-[220px] overflow-hidden rounded-[var(--radius-md)] shadow-[var(--shadow-lift)]">
-        <KeepsakeVisual productId={productId} />
-      </div>
-    </div>
-  );
+  // Digital (and AR/VR, should they return): the live page on a phone.
+  return <div className="flex h-full w-full items-center justify-center bg-subtle/25 p-8">{phone("w-[30%] max-w-[150px]")}</div>;
 }

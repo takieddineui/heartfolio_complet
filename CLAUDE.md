@@ -196,6 +196,17 @@ Reasons scenes wait on (finish it at its end time); lazy images below the
 fold never load (do not wait for them); and in Git Bash, `docker compose
 exec ... /tmp/...` needs `MSYS_NO_PATHCONV=1`. Regenerate only when a
 product changes (owner's decision); the files are committed.
+**Where they are used (26 Oct 2026):** collection cards (loop on hover or
+focus), the product page's hero (loop while on screen, with a pause button)
+and formats section (phone still, framed print, both), the three share cards
+(`og.tsx`), the merchant feed's `image_link` and the Product JSON-LD `image`
+(`lib/captures/manifest.ts`). `components/captures/capture-media.tsx` creates
+no `<video>` until it should play and never before the window's load event,
+nor at all under reduced motion or data saver; videos are muted and
+`playsInline`. Only the home hero still draws `KeepsakeVisual`. The proxy
+must let `/<locale>/products/opengraph-image` through: its unpublished-product
+rule took it for a product slug and made the collection's share card a 404
+from 25 to 26 Oct 2026.
 
 **`backend/.dockerignore` strips `tests_*.py` and `**/tests.py`**, so
 `manage.py test` inside the built image finds 5 tests instead of 649. The
@@ -247,7 +258,7 @@ task.**
 | Settings, environment or `.env.example` files, the test runner | `apps.common.tests.ProductionSettingsLoadingTests`, `apps.common.tests.HermeticTestRunnerTests`, `apps.assets.tests.EnvExampleUploadTypesTests` | Production settings load (throttle rates merged); tests reach no outside host; `.env.example` sets no upload type list |
 | A print renderer's PNG saving | `apps.delivery.tests_png_encoding` | No `optimize=True` on the full-screen save paths |
 | Dates or counts a print or preview writes (`date_formatting.py`, `formatDate`/`formatCount` in the Love Story Timeline renderer, the live page's dates) | Frontend: `src/lib/studio/product-modules/love-story-timeline/locale-format-parity.test.ts`, `src/components/studio/preview/moment-wallpaper.test.tsx`. Backend: `apps.delivery.test_date_formatting` | Preview and print write the same strings in the order's language (`backend/apps/delivery/locale_format_cases.json`, generated from the browser's `Intl`); a calendar day never shifts by time zone |
-| Storefront captures: a product's live page, its Studio sample (`initial-state.ts`), `marketing_samples/`, `scripts/captures/`, `public/captures/` | Frontend: `src/lib/captures/captures.test.ts`, `src/lib/captures/capture-lock.test.ts`, `src/proxy.test.ts`. Backend: `apps.delivery.tests_marketing_samples` | Every visible product captured in en/fr/ar within budget, no stray files; the capture page and its photo route locked; every sample valid for the real live page, every photo present and licensed. A VISIBLE change to a live page means re-recording: `node scripts/captures/record.mjs all` |
+| Storefront captures: a product's live page, its Studio sample (`initial-state.ts`), `marketing_samples/`, `scripts/captures/`, `public/captures/`, or a page showing them | Frontend: `src/lib/captures/captures.test.ts`, `src/lib/captures/capture-lock.test.ts`, `src/components/captures/capture-media.test.tsx`, `src/proxy.test.ts`. Backend: `apps.delivery.tests_marketing_samples` | Every visible product captured in en/fr/ar within budget, no stray files; the capture page and its photo route locked; every sample valid for the real live page, every photo present and licensed. A VISIBLE change to a live page means re-recording: `node scripts/captures/record.mjs all` |
 
 Backend — **always** redirect to the throwaway Postgres, never Supabase:
 

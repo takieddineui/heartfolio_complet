@@ -61,21 +61,67 @@ async function loadFonts(locale: string) {
   ];
 }
 
+/**
+ * A product's capture still (`public/captures`, the real live page with a
+ * fictional sample) as a data URL for the card. JPEG: Satori does not decode
+ * AVIF. Null for a product without captures.
+ */
+export async function captureStillDataUrl(productId: string, locale: string): Promise<string | null> {
+  const language = locale === "fr" || locale === "ar" ? locale : "en";
+  try {
+    const bytes = await readFile(join(process.cwd(), "public", "captures", language, `${productId}.jpg`));
+    return `data:image/jpeg;base64,${bytes.toString("base64")}`;
+  } catch {
+    return null;
+  }
+}
+
+/** Phones beside the text: one large for a product, a row for several. */
+function OgPhones({ stills }: { stills: string[] }) {
+  const height = stills.length === 1 ? 486 : 220;
+  const width = Math.round(height * (600 / 1298));
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+      {stills.map((src, i) => (
+        <div
+          key={i}
+          style={{
+            display: "flex",
+            padding: 7,
+            borderRadius: stills.length === 1 ? 34 : 24,
+            background: "#0d1322",
+            boxShadow: "0 24px 60px rgba(0,0,0,0.45)",
+            marginTop: stills.length > 1 && i % 2 === 1 ? 40 : 0,
+          }}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element -- Satori renders plain <img> only */}
+          <img src={src} width={width} height={height} style={{ borderRadius: stills.length === 1 ? 27 : 18 }} alt="" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export async function renderOgImage({
   locale,
   eyebrow,
   title,
   subtitle,
   footnote,
+  stills = [],
 }: {
   locale: string;
   eyebrow: string;
   title: string;
   subtitle?: string;
   footnote?: string;
+  /** Capture stills (`captureStillDataUrl`) shown beside the text: the real
+   *  product, not a drawing (26 Oct 2026). */
+  stills?: string[];
 }) {
   const fonts = await loadFonts(locale);
   const isRtl = locale === "ar";
+  const textWidth = stills.length === 0 ? undefined : stills.length === 1 ? 700 : 560;
 
   return new ImageResponse(
     (
@@ -84,9 +130,10 @@ export async function renderOgImage({
           width: "100%",
           height: "100%",
           display: "flex",
-          flexDirection: "column",
+          flexDirection: "row",
+          alignItems: "center",
           justifyContent: "space-between",
-          padding: "72px 80px",
+          padding: "56px 72px",
           background:
             "radial-gradient(120% 90% at 15% 100%, rgba(201,162,75,0.16), transparent 60%), linear-gradient(160deg, #141b2e 0%, #1d2540 60%, #141b2e 100%)",
           color: "#f7f1e6",
@@ -95,6 +142,7 @@ export async function renderOgImage({
           textAlign: isRtl ? "right" : "left",
         }}
       >
+        <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", height: "100%", width: textWidth ?? "100%" }}>
         <div style={{ display: "flex", flexDirection: "column" }}>
           <div
             style={{
@@ -112,7 +160,7 @@ export async function renderOgImage({
           <div
             style={{
               fontFamily: "Display",
-              fontSize: title.length > 34 ? 64 : 78,
+              fontSize: stills.length > 1 ? 50 : title.length > 34 ? 60 : 72,
               lineHeight: 1.1,
               color: "#f7f1e6",
             }}
@@ -120,7 +168,7 @@ export async function renderOgImage({
             {title}
           </div>
           {subtitle ? (
-            <div style={{ fontSize: 30, lineHeight: 1.4, color: "rgba(247,241,230,0.72)", maxWidth: 900 }}>
+            <div style={{ display: "block", fontSize: stills.length > 1 ? 24 : 30, lineHeight: 1.4, color: "rgba(247,241,230,0.72)", maxWidth: 900, lineClamp: 3 }}>
               {subtitle}
             </div>
           ) : null}
@@ -141,6 +189,8 @@ export async function renderOgImage({
           <div style={{ display: "flex", fontFamily: "Display", color: "#f7f1e6" }}>Heartfolio</div>
           <div style={{ display: "flex" }}>{footnote ?? ""}</div>
         </div>
+        </div>
+        {stills.length > 0 ? <OgPhones stills={stills} /> : null}
       </div>
     ),
     { ...OG_SIZE, fonts }

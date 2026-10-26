@@ -1030,6 +1030,12 @@
     "summary": "{average} out of 5 · {count} reviews",
     "ratingAria": "Rated {n} out of 5"
   },
+  "Captures": {
+    "phoneAlt": "A sample {name}, as it opens on a phone",
+    "printAlt": "A sample {name} print, framed",
+    "pause": "Pause the preview",
+    "play": "Play the preview"
+  },
   "Loading": {
     "page": "Loading",
     "site": "Loading Heartfolio",

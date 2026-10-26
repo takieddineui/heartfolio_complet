@@ -32,7 +32,7 @@ describe("unpublished products answer 404", () => {
     expect(localeSentWith(path)).toBe(path.slice(1, 3));
   });
 
-  it.each(["/en/products/song-poster", "/ar/products/love-story-timeline", "/fr/studio/graduation-keepsake", "/en/studio/reasons-i-love-you", "/en/products", "/fr/privacy"])(
+  it.each(["/en/products/song-poster", "/ar/products/love-story-timeline", "/fr/studio/graduation-keepsake", "/en/studio/reasons-i-love-you", "/en/products", "/fr/privacy", "/en/products/opengraph-image", "/ar/products/twitter-image"])(
     "%s is left alone",
     (path) => {
       expect(rewriteOf(path) ?? "").not.toContain("__not-found__");

@@ -80,6 +80,10 @@ function unpublishedProductPath(pathname: string, locale: SiteLocale) {
   const match = PRODUCT_ROUTE.exec(pathname);
   if (!match) return null;
   const slug = decodeURIComponent(match[2]!);
+  // `/<locale>/products/opengraph-image` is the COLLECTION's own share image,
+  // not a product: treating it as an unpublished slug made it a 404 (26 Oct
+  // 2026, found when the cards gained real captures).
+  if (match[1] === "products" && (slug === "opengraph-image" || slug === "twitter-image")) return null;
   const published = match[1] === "studio" ? getProductBySlug(slug) ?? getProductById(slug) : getProductBySlug(slug);
   if (published) return null;
   return (request: NextRequest) => {

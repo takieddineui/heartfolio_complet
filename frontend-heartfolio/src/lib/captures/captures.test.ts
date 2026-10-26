@@ -140,3 +140,45 @@ describe("product captures", () => {
     expect(onDisk.filter((src) => !listed.has(src))).toEqual([]);
   });
 });
+
+describe("captureImageUrls (Product JSON-LD)", () => {
+  it("gives the phone still, then the print for a printable product, in the page's language", async () => {
+    const { captureImageUrls } = await import("./manifest");
+    expect(captureImageUrls("song-poster", "fr", "https://x.test")).toEqual([
+      "https://x.test/captures/fr/song-poster.jpg",
+      "https://x.test/captures/fr/song-poster-print.jpg",
+    ]);
+    expect(captureImageUrls("reasons-i-love-you", "ar", "https://x.test")).toEqual([
+      "https://x.test/captures/ar/reasons-i-love-you.jpg",
+    ]);
+    expect(captureImageUrls("heart-map", "en", "https://x.test")).toEqual([]);
+  });
+});
+
+describe("where the captures are used", () => {
+  const source = (path: string) => readFileSync(path, "utf8");
+
+  it("cards, the product hero and the formats pictures show captures, not drawn stand-ins", () => {
+    for (const path of ["src/components/product/product-collection.tsx", "src/components/product/product-view.tsx", "src/components/product/offering-visual.tsx"]) {
+      expect(source(path), path).not.toContain("KeepsakeVisual");
+    }
+    expect(source("src/components/product/product-collection.tsx")).toContain('mode="hover"');
+    expect(source("src/components/product/product-view.tsx")).toContain('mode="inView"');
+  });
+
+  it("the formats pictures no longer draw the unsold wallpaper and Complete formats", () => {
+    const visual = source("src/components/product/offering-visual.tsx");
+    expect(visual).not.toMatch(/type === "(wallpaper|complete_pack)"/);
+  });
+
+  it("every share card carries the product captures", () => {
+    for (const path of ["src/app/[locale]/opengraph-image.tsx", "src/app/[locale]/products/opengraph-image.tsx", "src/app/[locale]/products/[slug]/opengraph-image.tsx"]) {
+      expect(source(path), path).toContain("captureStillDataUrl");
+      expect(source(path), path).toMatch(/stills/);
+    }
+  });
+
+  it("the Product JSON-LD names its images", () => {
+    expect(source("src/app/[locale]/products/[slug]/page.tsx")).toContain("image: captureImageUrls(product.id, locale, SITE_URL)");
+  });
+});
