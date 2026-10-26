@@ -180,19 +180,24 @@ CATALOG = [
         "slug": "heart-map",
         "name_i18n_key": "whereWeMet",
         "category": "map",
-        "status": "available",
+        # WITHDRAWN (26 Oct 2026): hidden on the storefront (`hidden: true`
+        # in the frontend registry) and no Freemius plan, yet it was seeded
+        # `available` with three ACTIVE packs, so the public API listed it
+        # and `create_order` accepted it. Disabled, never deleted, like
+        # every retired pack (`Order.delivery_pack` is RESTRICT, and
+        # delivery does not check status, so a past order still downloads).
+        # Selling it again means: Freemius plans first, then `available`,
+        # `active` packs and `hidden: false` together.
+        "status": "disabled",
         "starting_price_cents": 800,
         "order": 3,
         "tags": ["map", "anniversary", "wedding"],
         # No `live` pack and no `landscape-png`: this product's renderer
-        # produces four PNG sizes and has no digital/HTML renderer. Not
-        # part of the pack/pricing rework — unchanged from its original
-        # four-field shape, so it still uses a 3-tuple; the loop below
-        # defaults a 3-tuple's status to "active".
+        # produces four PNG sizes and has no digital/HTML renderer.
         "packs": [
-            ("printable", 1800, ["print-png"]),
-            ("wallpaper", 800, ["story-png", "portrait-png"]),
-            ("complete", 2400, ["story-png", "square-png", "portrait-png", "print-png"]),
+            ("printable", 1800, ["print-png"], "disabled"),
+            ("wallpaper", 800, ["story-png", "portrait-png"], "disabled"),
+            ("complete", 2400, ["story-png", "square-png", "portrait-png", "print-png"], "disabled"),
         ],
     },
     {
@@ -369,8 +374,8 @@ def validate(entry):
     for pack in entry["packs"]:
         # Packs are 3-tuples (slug, price_cents, targets) or 4-tuples with
         # an explicit trailing status — see the CATALOG comment above for
-        # why love-story-timeline needs the 4-tuple form and heart-map
-        # doesn't. A 3-tuple defaults to "active", unchanged from before.
+        # why love-story-timeline needs the 4-tuple form. A 3-tuple
+        # defaults to "active".
         pack_slug, price_cents, targets = pack[0], pack[1], pack[2]
         status = pack[3] if len(pack) > 3 else "active"
         if status not in ("active", "disabled"):

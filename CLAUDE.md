@@ -921,8 +921,17 @@ Two were genuine product bugs: the `layout` default above, and
   (checked 25 Oct 2026; an older note here said none did). Only
   `tender-piano` has a licence certificate beside it (Pixabay); the owner is to
   file certificates for `evening-glow`, `quiet-strings` and `still-waters`
-- Where We Met (`heart-map`) is `status: available` and fully registered on
-  both sides, but has never been opened in a browser
+- Where We Met (`heart-map`) is WITHDRAWN: hidden on the storefront, and
+  since 26 Oct 2026 `disabled` in `seed_catalog.py` with its three packs
+  disabled (never deleted). It had been seeded `available` with active packs
+  and no Freemius plan, so the public API listed it. The real database keeps
+  the old state until the owner's next seed run. It has never been opened in
+  a browser. `SellableMeansMappedTests` (`tests_seed_catalog.py`) now fails
+  if any active pack of an available product has no Freemius plan, except
+  Love Story Timeline's two wallpaper combos (`printable-plus-wallpaper`,
+  `digital-plus-wallpaper`): active in the approved state, unmapped, and
+  unreachable because the add-on is hidden. Disabling them is the owner's
+  call
 - **Love Story Timeline: Arabic in the print, PHASE 1 (18 Oct 2026).** No
   DejaVu Serif face has an Arabic glyph, so Serif Classic (the DEFAULT) printed
   every Arabic slot as empty boxes and Romantic Italic its headings (names,

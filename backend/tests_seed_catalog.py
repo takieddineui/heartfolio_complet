@@ -239,3 +239,45 @@ class SongPosterCatalogStateTests(SimpleTestCase):
         lst = next(e for e in CATALOG if e["slug"] == "love-story-timeline")
         lst_combo = next(pack for pack in lst["packs"] if pack[0] == "printable-plus-digital")
         self.assertEqual(self._packs()["printable-plus-digital"][1], lst_combo[1])
+
+
+class SellableMeansMappedTests(SimpleTestCase):
+    """Production sells through Freemius only (owner, 25 Oct 2026), so a pack
+    the catalog offers with no Freemius plan is a pack a customer can choose
+    and never pay for. Where We Met was seeded `available` with three active
+    packs and no plan until 26 Oct 2026; it is withdrawn now."""
+
+    #: Active in the owner-approved Love Story Timeline state
+    #: (`RealCatalogStateTests`), unmapped, and unreachable from the checkout
+    #: (the wallpaper add-on is hidden, `SHOW_WALLPAPER_ADDON`). Whether to
+    #: disable them is the owner's call, raised 26 Oct 2026. Anything else
+    #: unmapped fails.
+    KNOWN_UNMAPPED = {
+        "love-story-timeline:printable-plus-wallpaper",
+        "love-story-timeline:digital-plus-wallpaper",
+    }
+
+    def test_every_active_pack_of_an_available_product_has_a_freemius_plan(self):
+        from apps.commerce.freemius_integration import FREEMIUS_PLAN_MAPPING
+        from seed_catalog import CATALOG
+
+        unmapped = [
+            f"{entry['slug']}:{pack[0]}"
+            for entry in CATALOG
+            if entry["status"] == "available"
+            for pack in entry["packs"]
+            if (pack[3] if len(pack) > 3 else "active") == "active"
+            and f"{entry['slug']}:{pack[0]}" not in FREEMIUS_PLAN_MAPPING
+        ]
+        self.assertEqual(sorted(set(unmapped) - self.KNOWN_UNMAPPED), [])
+        # The exceptions stay real: a stale one (mapped or disabled since)
+        # must be removed from the list, not linger as a blind spot.
+        self.assertEqual(sorted(self.KNOWN_UNMAPPED - set(unmapped)), [])
+
+    def test_where_we_met_is_withdrawn_not_deleted(self):
+        from seed_catalog import CATALOG
+
+        entry = next(e for e in CATALOG if e["slug"] == "heart-map")
+        self.assertEqual(entry["status"], "disabled")
+        self.assertEqual({pack[3] for pack in entry["packs"]}, {"disabled"})
+        self.assertEqual({pack[0] for pack in entry["packs"]}, {"printable", "wallpaper", "complete"})
