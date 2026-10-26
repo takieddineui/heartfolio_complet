@@ -230,13 +230,15 @@ REST_FRAMEWORK = {
         # 2026. The feedback form is unauthenticated and posts from the
         # browser, so this limit applies per visitor.
         #
-        # `ar_access` is deliberately NOT tightened: the live page fetches its
-        # payload from the Next SERVER (BACKEND_API_ORIGIN), which sends no
-        # X-Forwarded-For, so DRF sees every recipient as the web container
-        # and a per-client rate would be one bucket shared by all of them
-        # (measured on the production stack, 25 Oct 2026). Browser calls
-        # carry the visitor's address (Caddy sets X-Forwarded-For and drops a
-        # client-supplied one; Next's rewrite passes it on).
+        # `ar_access` is not tightened YET. The live page fetches its payload
+        # from the Next SERVER (BACKEND_API_ORIGIN), which sent no
+        # X-Forwarded-For, so DRF saw every recipient as the web container
+        # (measured on the production stack, 25 Oct 2026). Since 26 Oct 2026
+        # the page forwards the visitor's X-Forwarded-For (Caddy's; it drops
+        # a client-supplied one), as browser calls already carried it. Before
+        # tightening: confirm per-visitor identities on the production stack,
+        # and size the rate for shared addresses (guests at one venue's
+        # Wi-Fi scanning the same QR card arrive as one IP).
         "feedback_create": env("THROTTLE_RATE_FEEDBACK_CREATE", default="10/min"),
     },
 }

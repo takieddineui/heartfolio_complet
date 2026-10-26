@@ -131,7 +131,7 @@ image: changing it needs `up -d --build web`, not a restart.
 | `GUNICORN_WORKERS` | `2` | About one per GB of free memory. Each sync worker serves one request at a time |
 | `GUNICORN_TIMEOUT` | `120` | Matches the web proxy's timeout, which is baked into the image. Raise both together or neither |
 | `GUNICORN_MAX_REQUESTS` / `_JITTER` | `200` / `50` | Recycles workers so render caches cannot grow without bound |
-| `THROTTLE_RATE_*` | production defaults | Listed, commented out, at the end of the example file. Browser requests are limited per visitor (Caddy's X-Forwarded-For, which a client cannot forge). The live page's first load is fetched by the Next server, so it shares one identity: that is why `THROTTLE_RATE_AR_ACCESS` stays at 1000/min |
+| `THROTTLE_RATE_*` | production defaults | Listed, commented out, at the end of the example file. Browser requests are limited per visitor (Caddy's X-Forwarded-For, which a client cannot forge). The live page's first load is fetched by the Next server, which forwards the visitor's X-Forwarded-For since 26 Oct 2026 (before that, every recipient shared one identity). `THROTTLE_RATE_AR_ACCESS` stays at 1000/min until per-visitor identities are confirmed on this stack; size any tighter rate for many guests on one venue's Wi-Fi |
 
 Development-only variables that must stay unset here:
 `HEARTFOLIO_BACKEND_PATH`, `HEARTFOLIO_INTEGRATION_BASE`.

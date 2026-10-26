@@ -92,11 +92,13 @@ endpoint, not at startup.
 stack (25 Oct 2026): browser requests, direct or through the `/api/backend`
 rewrite, reach Django with the visitor's address in `X-Forwarded-For` (Caddy
 sets it and drops a client-supplied one; Next passes it on), so DRF throttles
-per visitor. But the Next server's OWN fetches (`catalog-server.ts`, the live
-page's payload) send no `X-Forwarded-For`: DRF sees the web container for
-every customer. The live page's `ar_access` throttle is therefore left at
-1000/min in production. Tighten it only after the live page forwards the
-visitor's address.
+per visitor. But the Next server's OWN fetches send no `X-Forwarded-For` unless they
+pass it on: `catalog-server.ts` does not, so DRF sees the web container for
+every customer there. The live page's payload fetch FORWARDS the visitor's
+header since 26 Oct 2026 (`live/[liveId]/page.tsx`, pinned by its test).
+Its `ar_access` throttle is still 1000/min in production: confirm
+per-visitor identities on the production stack first, and size the rate for
+shared addresses (a venue's Wi-Fi full of guests scanning one QR card).
 
 **`projects.updated_at` is set by a database trigger** (`set_updated_at_projects`)
 on every UPDATE, whatever Django sends. That is what makes it "last activity"

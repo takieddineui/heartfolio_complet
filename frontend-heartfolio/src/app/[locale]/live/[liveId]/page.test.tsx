@@ -17,6 +17,9 @@ vi.mock("next/navigation", () => ({
   },
 }));
 vi.mock("next-intl/server", () => ({ setRequestLocale: () => {} }));
+// The incoming request's headers, as Caddy hands them to Next.
+const requestHeaders = vi.hoisted(() => ({ current: new Headers() }));
+vi.mock("next/headers", () => ({ headers: async () => requestHeaders.current }));
 // The page's own components are irrelevant to the fetch path under test.
 vi.mock("@/components/live/live-keepsake", () => ({ LiveKeepsake: () => null }));
 vi.mock("@/components/live-song/song-live-keepsake", () => ({ SongLiveKeepsake: () => null }));
@@ -33,6 +36,32 @@ const params = (liveId = "abc") => Promise.resolve({ locale: "en", liveId });
 afterEach(() => {
   vi.unstubAllEnvs();
   vi.restoreAllMocks();
+  requestHeaders.current = new Headers();
+});
+
+describe("LivePage — the visitor's address", () => {
+  /** Django throttles the live endpoint per `X-Forwarded-For`. Without it,
+   *  every recipient was the web container: one shared bucket (26 Oct 2026). */
+  it("passes the visitor's X-Forwarded-For on to Django", async () => {
+    requestHeaders.current = new Headers({ "x-forwarded-for": "203.0.113.7" });
+    const fetchMock = vi.fn().mockResolvedValue(new Response("{}", { status: 404 }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(LivePage({ params: params() })).rejects.toBeInstanceOf(NotFoundSignal);
+
+    const sent = new Headers(fetchMock.mock.calls[0]?.[1]?.headers);
+    expect(sent.get("x-forwarded-for")).toBe("203.0.113.7");
+  });
+
+  it("sends none when the request had none, rather than inventing one", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response("{}", { status: 404 }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(LivePage({ params: params() })).rejects.toBeInstanceOf(NotFoundSignal);
+
+    const sent = new Headers(fetchMock.mock.calls[0]?.[1]?.headers);
+    expect(sent.has("x-forwarded-for")).toBe(false);
+  });
 });
 
 describe("LivePage — backend origin", () => {

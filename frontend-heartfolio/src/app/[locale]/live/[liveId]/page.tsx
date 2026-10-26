@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { LiveKeepsake } from "@/components/live/live-keepsake";
@@ -131,14 +132,28 @@ function isReasonsPayload(payload: LivePayload): payload is ReasonsLivePayload {
  * backend origin directly. There is no cookie to forward — the live
  * endpoint is `AllowAny` and deliberately session-less (§21f), since the
  * person opening it is the gift recipient, who has no Heartfolio account.
+ *
+ * THE VISITOR'S ADDRESS IS FORWARDED (26 Oct 2026). Django throttles this
+ * endpoint (`ar_access`) by `X-Forwarded-For`. Without it, every recipient
+ * reached Django as the web container, one shared bucket, which is why
+ * production left `ar_access` at 1000/min. In production the header is
+ * Caddy's (it drops any value a client sends), so passing it on gives
+ * Django the same identity the browser's own calls already carry.
  */
 const REQUEST_TIMEOUT_MS = 8000;
 
-async function fetchLivePayload(origin: string, liveId: string): Promise<LivePayload> {
+async function fetchLivePayload(
+  origin: string,
+  liveId: string,
+  forwardedFor: string | null
+): Promise<LivePayload> {
   const response = await fetch(
     `${origin}/api/v1/live/${encodeURIComponent(liveId)}/`,
     {
-      headers: { Accept: "application/json" },
+      headers: {
+        Accept: "application/json",
+        ...(forwardedFor ? { "X-Forwarded-For": forwardedFor } : {}),
+      },
       // Never cache a keepsake: the values can be corrected after purchase.
       cache: "no-store",
       signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
@@ -162,9 +177,11 @@ export default async function LivePage({ params }: { params: Params }) {
   // id, so throwing it reveals nothing about any of them.
   const origin = getBackendOrigin();
 
+  const forwardedFor = (await headers()).get("x-forwarded-for");
+
   let payload: LivePayload;
   try {
-    payload = await fetchLivePayload(origin, liveId);
+    payload = await fetchLivePayload(origin, liveId, forwardedFor);
   } catch {
     // One outcome for every failure, matching Django's single 404 —
     // distinguishing them here would leak the same information one layer
