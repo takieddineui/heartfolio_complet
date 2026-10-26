@@ -15,20 +15,13 @@ import { PRICE_CURRENCY } from "../site-config";
  * have caught the gap — confirming `getAllProducts()` includes the new
  * slug before calling it done).
  *
- * TODO(HEARTFOLIO-PREDEPLOY):
- * This entire file is temporary/static product data. Before deployment,
- * product, offering and price data should come from the Django Products
- * API instead of this hardcoded array:
- *
- *   Django Products API → product → offerings → price → frontend
- *
- * Do not connect this now. When that API exists, `getAllProducts()` and
- * `getProductBySlug()` are the two functions to swap for real fetches —
- * every other function in this file (getFeaturedProducts,
- * getProductsByOccasion, getAvailableOfferings, getStartingPrice,
- * getCreateEntry, getStudioDestination) is written against the returned
- * shape, not against this array directly, so the swap should not require
- * touching call sites elsewhere in the app.
+ * WHAT DJANGO OWNS (updated 26 Oct 2026; this used to be a TODO saying
+ * the Products API did not exist yet): offerings, packs, prices and live
+ * status come from `GET /products/` and `GET /products/<slug>/` at request
+ * time, merged over these entries by `lib/products/catalog.ts`
+ * (`mergeProductList`, `toCatalogProduct`). This file keeps what is
+ * presentation: order, artwork, icons, i18n keys, tags, `hidden`, and a
+ * fallback `status` for when the catalog cannot be reached.
  *
  * ⚠️ NO PRICES LIVE HERE (§5, §13).
  * Pack prices exist in one place only: `DeliveryPack.price_cents` in the
@@ -40,14 +33,10 @@ import { PRICE_CURRENCY } from "../site-config";
  * which get them from Django.
  *
  * Prices are quoted in USD only — no local-currency conversion anywhere
- * on the site (§15). Whatever is set in the database must also match the
- * Paddle catalogue, which is what actually charges the customer.
- *
- * TODO(HEARTFOLIO-PREDEPLOY):
- * Before deployment, run a Paddle / Merchant-of-Record readiness audit
- * and replace these provisional prices with the final commercial catalogue.
- * Do not implement Paddle, checkout, or payment code as part of that —
- * this file only holds the price *data* the storefront displays.
+ * on the site (§15). Each sellable pack's price must also match its
+ * Freemius plan, which is what charges the customer; production sells
+ * through Freemius only, and `FreemiusPlanMappingTests` (backend) pins
+ * every plan to its pack's price.
  *
  * IMPORTANT — PRODUCT NAMING (confirmed, do not change):
  * Star Map and Moon Phase are separate products. Do not merge them or
@@ -469,17 +458,9 @@ export function getCreateEntry(product?: ProductEntry): { href: string } {
 
 /**
  * Where the Continue button *inside* `/create` sends someone, driven by
- * `status`. Studio is out of scope for this phase (§4/§24) —
- * `/studio/:slug` is the agreed future route and does not exist yet.
- *
- * TODO(HEARTFOLIO-PREDEPLOY):
- * Before deployment, revisit the integration between product selection
- * (`/create`) and Studio itself — customization, live preview, payment,
- * generation and download all live in Studio, which is a separate project
- * phase and is not implemented or modified here. This function should
- * only need its `"studio"` branch's destination confirmed/updated once
- * Studio's real route and hand-off contract are finalized; the rest of
- * the marketing/selection flow should not need to change.
+ * `status`: an available product opens its Studio (`/studio/:slug`, where
+ * customization, preview, checkout and delivery live); anything else is
+ * "unavailable".
  */
 export function getStudioDestination(
   product: ProductEntry

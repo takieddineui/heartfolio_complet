@@ -32,16 +32,15 @@ export const WEB_MARK = `Made with Heartfolio · ${SITE_DOMAIN}`;
  * backend's receipt email sets the same address as its reply-to
  * (`RESEND_REPLY_TO_EMAIL`), since it tells customers to reply.
  *
- * TODO(HEARTFOLIO-PREDEPLOY):
- * Future purchase recovery/re-delivery flow has not been finalized.
- * Current approved concept: purchased files are intended to be delivered
- * by email; there is no account system, and input/source assets stored in
- * R2 may eventually be deleted after roughly 15 days, so the digital/web
- * experience is not necessarily permanently available after that. Do not
- * add authentication, account functionality, or claims of permanent
- * access / lifetime redownloads anywhere in the app. A recovery mechanism
- * (support-ticket based or otherwise) will be decided later — this
- * address is where that will land in the meantime.
+ * RECOVERY (updated 26 Oct 2026; this was a TODO that predated it): there
+ * are no accounts. A customer who loses their order link writes here, and
+ * the ops resend screen (`/api/v1/ops/resend/`) sends a fresh 30-day link.
+ * A paid order stays deliverable indefinitely: photos never expire and
+ * the artwork renders on demand. Only unpaid uploads are deleted: voice
+ * and video files a week after upload, and unbought drafts with their
+ * uploads after 12 months of inactivity (the privacy page's promise). Do
+ * not add accounts or "redownload forever" wording without a decision to
+ * support it.
  */
 export const SUPPORT_EMAIL = "support@theheartfolio.com";
 
