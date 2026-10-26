@@ -684,7 +684,7 @@
             "Resend : l'envoi de nos e-mails.",
             "Telegram : des notifications internes sur les commandes et l'assistance. Elles comprennent une référence de commande et, pour certaines alertes, l'adresse e-mail du client.",
             "Mapbox : la recherche de lieux dans le Studio. Ce que vous tapez dans un champ de lieu est envoyé à Mapbox pour suggérer des lieux.",
-            "YouTube (Google) : pour l'Affiche musicale, nous vérifions votre lien auprès de YouTube, et la page Numérique joue la chanson dans le lecteur de YouTube. Ce lecteur est soumis à la politique de confidentialité de Google et peut déposer ses propres cookies lorsqu'il se charge.",
+            "YouTube (Google) : pour l'Affiche musicale, nous vérifions votre lien auprès de YouTube, et la page Numérique joue la chanson dans le lecteur de YouTube, en mode de confidentialité renforcée (youtube-nocookie.com). Selon YouTube, ce mode n'enregistre aucune information sur le visiteur tant que la chanson n'est pas lue ; dès qu'elle l'est, la politique de confidentialité de Google s'applique et le lecteur peut déposer ses propres cookies.",
             "Google Analytics : uniquement si vous acceptez la mesure d'audience dans le bandeau cookies.",
             "Notre hébergeur, {hosting} : il fait fonctionner les serveurs du site.",
             "Certains de ces prestataires traitent des données en dehors de votre pays, notamment aux États-Unis, avec leurs propres garanties."

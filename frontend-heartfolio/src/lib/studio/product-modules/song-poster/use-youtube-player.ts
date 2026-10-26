@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { loadYouTubeIframeApi } from "./youtube-iframe-api";
 
+export const YOUTUBE_PRIVACY_HOST = "https://www.youtube-nocookie.com";
+
 /**
  * A hidden YouTube player, driven by a real transport UI instead of
  * YouTube's own chrome.
@@ -114,6 +116,11 @@ export function useYouTubePlayer(videoId: string | null): [YouTubePlayerState, Y
 
         playerRef.current = new YT_.Player(mountEl, {
           videoId,
+          // YouTube's privacy-enhanced mode (26 Oct 2026): the player's
+          // iframe comes from youtube-nocookie.com, where YouTube says it
+          // stores nothing about the visitor until the song is played. The
+          // privacy page says so; keep the two together.
+          host: YOUTUBE_PRIVACY_HOST,
           width: 1,
           height: 1,
           playerVars: {

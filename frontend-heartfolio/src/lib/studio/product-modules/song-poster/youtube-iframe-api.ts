@@ -43,6 +43,9 @@ declare global {
     }
     interface PlayerOptions {
       videoId: string;
+      /** Where the player's iframe loads from; youtube-nocookie.com for the
+       *  privacy-enhanced mode. */
+      host?: string;
       width?: number | string;
       height?: number | string;
       playerVars?: Record<string, number | string>;

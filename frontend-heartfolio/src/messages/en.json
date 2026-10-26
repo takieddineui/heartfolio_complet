@@ -684,7 +684,7 @@
             "Resend: sends our emails.",
             "Telegram: internal notifications to us about orders and support. These include an order reference and, for some alerts, the customer's email address.",
             "Mapbox: place search in the Studio. What you type into a location field is sent to Mapbox to suggest places.",
-            "YouTube (Google): for Song Poster we check your link with YouTube, and the Digital page plays the song in YouTube's player. That player is subject to Google's privacy policy and may set its own cookies when it loads.",
+            "YouTube (Google): for Song Poster we check your link with YouTube, and the Digital page plays the song in YouTube's player, in its privacy-enhanced mode (youtube-nocookie.com). YouTube says that mode stores no information about a visitor until the song is played; once it plays, Google's privacy policy applies and the player may set its own cookies.",
             "Google Analytics: only if you accept analytics in the cookie banner.",
             "Our hosting provider, {hosting}: runs the servers the site is served from.",
             "Some of these providers process data outside your country, including in the United States, under their own safeguards."

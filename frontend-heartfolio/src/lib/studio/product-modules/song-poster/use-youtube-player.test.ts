@@ -28,6 +28,7 @@ class FakePlayer {
   constructor(
     public element: HTMLElement,
     public options: {
+      host?: string;
       events?: {
         onReady?: (e: YT.PlayerEvent) => void;
         onStateChange?: (e: YT.PlayerEvent) => void;
@@ -105,6 +106,15 @@ describe("useYouTubePlayer", () => {
     expect(player.element.style.height).toBe("1px");
     expect(player.element.style.display).not.toBe("none");
     expect(document.body.contains(player.element)).toBe(true);
+  });
+
+  it("loads the player from youtube-nocookie.com, the privacy-enhanced mode", async () => {
+    // The privacy page promises it (26 Oct 2026). Without `host`, the IFrame
+    // API builds the iframe on www.youtube.com.
+    renderHook(() => useYouTubePlayer("dQw4w9WgXcQ"));
+
+    await waitFor(() => expect(FakePlayer.instances).toHaveLength(1));
+    expect(FakePlayer.instances[0]!.options.host).toBe("https://www.youtube-nocookie.com");
   });
 
   it("reports isReady and duration once the player fires onReady", async () => {
