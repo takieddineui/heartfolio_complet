@@ -9,6 +9,9 @@
  *   node scripts/captures/record.mjs record         record the loops (needs the capture server)
  *   node scripts/captures/record.mjs stills         prints and QR cards -> public/captures
  *   node scripts/captures/record.mjs sheet          contact sheet -> .captures-work/contact-sheet.jpg
+ *   node scripts/captures/record.mjs studio --base http://localhost:3006
+ *                                                   the Studio for the home page (not in `all`:
+ *                                                   THROWAWAY backend only, see stageStudio)
  *   options: --base http://localhost:3005  --product <slug>  --locale <en|fr|ar>
  *
  * REGENERATE ONLY WHEN A PRODUCT CHANGES (owner's decision); the results are
@@ -297,13 +300,13 @@ async function waitForImages(page) {
   await Promise.race([loaded, new Promise((r) => setTimeout(r, 20_000))]);
 }
 
-function encode(framesDir, outFile, crf = 30) {
+function encode(framesDir, outFile, crf = 30, width = VIDEO_WIDTH) {
   const frames = readdirSync(framesDir).filter((f) => f.endsWith(".jpg")).sort();
   const stream = Buffer.concat(frames.map((f) => readFileSync(join(framesDir, f))));
   run("docker", [
     ...COMPOSE, "exec", "-T", "api", "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
     "-f", "image2pipe", "-framerate", String(FPS), "-c:v", "mjpeg", "-i", "-",
-    "-vf", `scale=${VIDEO_WIDTH}:-2:flags=lanczos,format=yuv420p`,
+    "-vf", `scale=${width}:-2:flags=lanczos,format=yuv420p`,
     "-c:v", "libx264", "-profile:v", "high", "-preset", "slow", "-crf", String(crf),
     "-movflags", "+faststart", "-an", "/tmp/heartfolio-capture.mp4",
   ], { input: stream });
@@ -360,6 +363,105 @@ async function stageRecord() {
   }
 }
 
+/* ----------------------------------------------------------------- studio */
+
+/**
+ * "How it works" on the home page: the REAL Studio (Love Story Timeline),
+ * step 1 a loop of retyping the first name while the preview follows, step 2
+ * a still of the Studio's phone preview ("Live experience").
+ *
+ * The Studio creates a guest session and a draft when it opens, so it must
+ * never run against Supabase: the server is `frontend-capture-throwaway`
+ * (`.claude/launch.json`, port 3006), whose backend is a one-off `api` on the
+ * THROWAWAY database (CLAUDE.md's recipe, port 8001):
+ *   node scripts/captures/record.mjs studio --base http://localhost:3006
+ */
+const STUDIO_NAME = { en: "Olivia", fr: "Camille", ar: "سلمى" };
+const STUDIO_PHOTOS = ["lst-met-umbrella.jpg", "lst-trip-road.jpg", "lst-proposal-beach.jpg"];
+const STUDIO_VIEWPORT = { width: 1280, height: 800 };
+const STUDIO_WIDTH = 1200;
+
+async function stageStudio() {
+  const { chromium } = await import("playwright-core");
+  const browser = await chromium.launch({ channel: "chrome" });
+  const photos = STUDIO_PHOTOS.map((file) => join(REPO, "backend", "apps", "delivery", "marketing_samples", "photos", file));
+  try {
+    for (const locale of locales) {
+      const context = await browser.newContext({ viewport: STUDIO_VIEWPORT, deviceScaleFactor: 1, locale });
+      await context.addInitScript(pageSetup, { seed: 20261027 });
+      const page = await context.newPage();
+      await page.clock.install({ time: FIXED_NOW });
+      const response = await page.goto(`${BASE}/${locale}/studio/love-story-timeline`, { waitUntil: "load", timeout: 180_000 });
+      if (!response || response.status() !== 200) throw new Error(`studio ${locale}: ${response?.status()}`);
+      // The Studio's real time runs while it loads and takes the photos.
+      const inputs = page.locator('input[type="file"][accept^="image"]');
+      await inputs.first().waitFor({ state: "attached", timeout: 120_000 });
+      const count = Math.min(await inputs.count(), photos.length);
+      for (let i = 0; i < count; i++) await inputs.nth(i).setInputFiles(photos[i]);
+      await page.waitForTimeout(3000);
+      await waitForImages(page);
+
+      // Then time stops, and each frame advances it by exactly 1/30 s.
+      const now = await page.evaluate(() => Date.now());
+      await page.clock.pauseAt(now + 50);
+      const name = page.locator('input[type="text"], input:not([type])').first();
+      const framesDir = join(WORK, "frames", `studio-edit.${locale}`);
+      rmSync(framesDir, { recursive: true, force: true });
+      mkdirSync(framesDir, { recursive: true });
+      const typed = [...STUDIO_NAME[locale]];
+      const TOTAL = Math.round(5.5 * FPS);
+      for (let i = 0; i < TOTAL; i++) {
+        if (i === 20) {
+          await press(page, name);
+          await page.keyboard.press("Control+A");
+          await page.keyboard.press("Backspace");
+        }
+        const letter = i >= 30 ? (i - 30) / 4 : -1;
+        if (Number.isInteger(letter) && letter >= 0 && letter < typed.length) await page.keyboard.type(typed[letter]);
+        await step(page, 1000 / FPS);
+        writeFileSync(join(framesDir, `f${String(i).padStart(4, "0")}.jpg`), await page.screenshot({ type: "jpeg", quality: 92 }));
+      }
+      const dir = join(OUT, locale);
+      mkdirSync(dir, { recursive: true });
+      encode(framesDir, join(dir, "studio-edit.mp4"), 30, STUDIO_WIDTH);
+      const last = readdirSync(framesDir).filter((f) => f.endsWith(".jpg")).sort().pop();
+      await writeStill(join(framesDir, last), join(dir, "studio-edit"), STUDIO_WIDTH);
+
+      // Step 2: the Studio's own phone preview of the live page.
+      const tabs = page.locator('[role="tablist"] button, button[role="tab"]');
+      await press(page, tabs.nth(2));
+      // Past the opening (about 7 s), on the first milestone.
+      for (let i = 0; i < 9 * FPS; i++) await step(page, 1000 / FPS);
+      await waitForImages(page);
+      for (let i = 0; i < FPS; i++) await step(page, 1000 / FPS);
+      const shot = join(WORK, `studio-preview.${locale}.png`);
+      await page.screenshot({ path: shot, clip: await previewPaneBox(page) });
+      await writeStill(shot, join(dir, "studio-preview"), 900);
+      await context.close();
+      console.log(`studio ${locale}`);
+    }
+  } finally {
+    await browser.close();
+  }
+  await writeManifest();
+}
+
+/** The Studio's preview column: the element holding the preview tabs. */
+async function previewPaneBox(page) {
+  return page.evaluate(() => {
+    const tab = document.querySelector('button[role="tab"]') ?? document.querySelector('[role="tablist"] button');
+    let pane = tab;
+    while (pane && pane.parentElement && pane.getBoundingClientRect().height < window.innerHeight * 0.8) pane = pane.parentElement;
+    const box = (pane ?? document.body).getBoundingClientRect();
+    return {
+      x: Math.max(0, box.x),
+      y: Math.max(0, box.y),
+      width: Math.min(box.width, window.innerWidth - Math.max(0, box.x)),
+      height: Math.min(box.height, window.innerHeight - Math.max(0, box.y)),
+    };
+  });
+}
+
 /* ----------------------------------------------------------------- stills */
 
 async function stageStills() {
@@ -409,6 +511,16 @@ async function writeManifest() {
         qr: await stillEntry(`${base}-qr`),
       };
     }
+  }
+  manifest.studio = {};
+  for (const locale of LOCALES) {
+    const base = join(OUT, locale, "studio-edit");
+    const poster = await stillEntry(base);
+    const loop = fileEntry(`${base}.mp4`);
+    manifest.studio[locale] = {
+      edit: loop && poster ? { loop: { ...loop, width: poster.width, height: poster.height, seconds: 5.5 }, poster } : null,
+      preview: await stillEntry(join(OUT, locale, "studio-preview")),
+    };
   }
   writeFileSync(join(OUT, "manifest.json"), JSON.stringify(manifest, null, 2) + "\n");
   console.log("manifest written");
@@ -463,7 +575,7 @@ async function stageSheet() {
 
 /* ------------------------------------------------------------------- main */
 
-const STAGES = { samples: stageSamples, bundle: stageBundle, record: stageRecord, stills: stageStills, sheet: stageSheet };
+const STAGES = { samples: stageSamples, bundle: stageBundle, record: stageRecord, studio: stageStudio, stills: stageStills, sheet: stageSheet };
 const order = stage === "all" ? ["samples", "bundle", "record", "stills", "sheet"] : [stage];
 for (const name of order) {
   if (!STAGES[name]) throw new Error(`unknown stage ${name}`);

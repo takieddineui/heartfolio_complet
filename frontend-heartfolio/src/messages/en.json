@@ -1,8 +1,8 @@
 {
   "Meta": {
     "title": "Heartfolio — Personalized Digital Keepsakes",
-    "description": "Heartfolio turns meaningful moments into beautiful personalized keepsakes — personalized love-story timelines, delivered as high-resolution digital files you can print, frame or carry with you.",
-    "ogAlt": "A personalized Heartfolio love-story timeline keepsake",
+    "description": "Personalized digital keepsakes for love, graduations and the songs that matter, opened from a link or a QR card. Print-ready files for the ones made to frame.",
+    "ogAlt": "Four Heartfolio keepsakes, each open on a phone.",
     "slogan": "Turn meaningful moments into beautiful personalized keepsakes.",
     "skipToContent": "Skip to content"
   },
@@ -23,12 +23,12 @@
   "Hero": {
     "eyebrow": "Heartfolio",
     "headline": "Some moments deserve\nmore than a photo.",
-    "subhead": "Heartfolio turns a date, a place, a song or a story into a personalized digital keepsake — designed by us, and ready to be experienced however suits the moment.",
+    "subhead": "You bring the names, dates, photos and words. We turn them into a keepsake they open from a link or a QR card — with print-ready files for the ones made to frame.",
     "cta": "Explore the collection",
     "ctaSecondary": "See how it works",
-    "trust": "Digital keepsakes. Delivered instantly. Yours to keep.",
-    "scrollHint": "Scroll to feel the rest",
-    "definition": "Personalized digital keepsakes and printable gifts, made for anniversaries, weddings and the moments worth remembering."
+    "trust": "Delivered instantly. No app to install.",
+    "definition": "Personalized digital keepsakes for love, graduations and the songs that matter.",
+    "showcaseLabel": "Heartfolio keepsakes, as they open on a phone"
   },
   "OccasionTeaser": {
     "title": "What are you celebrating?",
@@ -55,10 +55,10 @@
   "FeaturedKeepsakes": {
     "eyebrow": "The Collection",
     "title": "A keepsake for every\nkind of moment.",
-    "subtitle": "Every Heartfolio keepsake starts with something only you have — a date, a place, a song, a story of your own. Choose the one that fits the moment.",
+    "subtitle": "Each one starts with something only you have — a date, a song, a story, the reasons why.",
     "cta": "Explore all keepsakes",
-    "digitalNote": "Every keepsake is a personalized digital experience — with a Printable version for the keepsakes that offer one.",
-    "waitlistBadge": "Waitlist"
+    "waitlistBadge": "Waitlist",
+    "paidOnce": "Paid once. No subscription."
   },
   "HowItWorks": {
     "eyebrow": "The Craft",
@@ -66,20 +66,16 @@
     "subtitle": "No layers. No templates to fight with. Just your story, and a little craft on our end.",
     "steps": {
       "one": {
-        "title": "Tell us the moment",
-        "description": "A date, a place, a name — whatever the memory needs. One question at a time, nothing else on the screen."
+        "title": "Make it",
+        "description": "Choose a keepsake and add what only you know: names, dates, photos, the words. One step at a time."
       },
       "two": {
-        "title": "Watch it come to life",
-        "description": "Your keepsake takes shape in front of you, rendered slowly, like a photograph developing."
+        "title": "See it before you buy",
+        "description": "Preview exactly what they'll receive, as often as you like. Nothing is final until you check out."
       },
       "three": {
-        "title": "Make it yours",
-        "description": "Choose from a few beautiful moods, not forty mediocre ones. Add the words only they'd understand."
-      },
-      "four": {
-        "title": "Download, print, or share the link",
-        "description": "Your finished keepsake, ready in seconds — print-ready files to frame, or a page of its own to share with the one it's for."
+        "title": "Send it",
+        "description": "Pay once and it's ready instantly: a private link and a QR card to send, print or show. Printable keepsakes also come with print-ready files."
       }
     }
   },
@@ -116,94 +112,6 @@
       }
     }
   },
-  "TemplateGallery": {
-    "eyebrow": "Moods, Not Menus",
-    "title": "Fewer choices.\nMore beautiful ones.",
-    "subtitle": "Unlike an open canvas, we hand you a few perfect moods — curated, not customizable into chaos.",
-    "items": {
-      "midnight": {
-        "name": "Midnight",
-        "description": "Deep navy tones, fine gold linework — for the moments that happened after dark."
-      },
-      "warmIvory": {
-        "name": "Warm Ivory",
-        "description": "Soft parchment tones and quiet serif type — gentle enough for a nursery or a memorial."
-      },
-      "vintageChart": {
-        "name": "Vintage Chart",
-        "description": "Antique chart-style linework — for people who like their sentiment a little scientific."
-      },
-      "goldenHour": {
-        "name": "Golden Hour",
-        "description": "Terracotta and candlelight tones — warm, romantic, unmistakably a celebration."
-      }
-    },
-    "note": "Every mood is designed to look beautiful framed — not just on a screen."
-  },
-  "WhyHeartfolio": {
-    "eyebrow": "Why Heartfolio",
-    "title": "We're not a design tool.\nWe're a craftsman.",
-    "subtitle": "You don't need to be good with software. You just need to remember the moment — we'll handle the rest, the way a florist or a jeweler would.",
-    "pillars": {
-      "design": {
-        "title": "Studio-quality design, not a template",
-        "description": "Every mood is art-directed by hand — not a form you fill in, a piece someone actually designed."
-      },
-      "instant": {
-        "title": "Yours in seconds",
-        "description": "Delivered the moment you buy — your keepsake's native experience, plus Printable and other formats where available."
-      },
-      "print": {
-        "title": "Print it your way",
-        "description": "A poster, a canvas, a card — or just your phone's lock screen. However you want to keep it, it's ready."
-      }
-    },
-    "comparison": {
-      "title": "The difference is what we leave out.",
-      "us": {
-        "label": "Heartfolio",
-        "points": [
-          "A few beautiful moods",
-          "Guided, one moment at a time",
-          "High-resolution files, instantly",
-          "Delivered the moment you buy"
-        ]
-      },
-      "them": {
-        "label": "A design tool",
-        "points": [
-          "Infinite fonts and layers",
-          "A blank canvas",
-          "Hours to make it look right",
-          "Made to be finished by Friday"
-        ]
-      }
-    },
-    "statement": {
-      "text": "We would rather make four things properly than forty things quickly.",
-      "attribution": "The Heartfolio studio"
-    }
-  },
-  "Pricing": {
-    "eyebrow": "Pricing",
-    "title": "Simple, transparent pricing.",
-    "subtitle": "Each keepsake has its own available formats and pricing — see exactly what's included before you begin.",
-    "note": "Formats vary by keepsake — see each product's own page for what's included. Printing and framing are never included unless a keepsake's offering says otherwise.",
-    "single": {
-      "priceNote": "starting price across the collection",
-      "description": "However you choose to keep it — Digital, Printable, or both where available — pricing is shown clearly on every keepsake's own page.",
-      "features": [
-        "Personalized to your own story, every time",
-        "Customize and preview your keepsake as many times as you like before you buy",
-        "Download your finished keepsake after purchase",
-        "Digital, Printable, or both, where available"
-      ],
-      "cta": "See prices for every keepsake",
-      "reassurance": "Download your finished keepsake after purchase.",
-      "badge": "Every keepsake, personalized"
-    },
-    "from": "From {price}"
-  },
   "Faq": {
     "eyebrow": "Before You Begin",
     "title": "Questions people\nactually ask us.",
@@ -212,7 +120,7 @@
     "items": {
       "whatIs": {
         "question": "What is Heartfolio?",
-        "answer": "Heartfolio makes personalized digital gifts — keepsakes built from your own dates, places and words, then delivered as high-resolution files you download the moment you've paid. Most people buy them as anniversary or wedding gifts for a partner, and print them to frame. Nothing is shipped and nothing keeps you waiting."
+        "answer": "Heartfolio makes personalized digital gifts. You add the names, dates, photos and words; we turn them into a keepsake the recipient opens from a link or a QR card. Love Story Timeline and Song Poster also come as print-ready files."
       },
       "preview": {
         "question": "Will it actually look like the preview?",
@@ -220,11 +128,11 @@
       },
       "printing": {
         "question": "Can I get this printed and framed?",
-        "answer": "Yes — your download includes print-ready PNG and PDF files at 300 DPI, ready for any local or online print shop. Most shops prefer the PDF. Ask for museum or archival paper if you'd like it to last."
+        "answer": "Yes — printable keepsakes come with print-ready PNG and PDF files at 300 DPI, ready for any local or online print shop. Most shops prefer the PDF. Ask for museum or archival paper if you'd like it to last."
       },
       "sizing": {
         "question": "What size can I print this at?",
-        "answer": "Every printable version comes in three sizes: A4, which also prints as A3; Classic 8″ × 10″, which scales to 16″ × 20″; and Poster 12″ × 18″, which scales to 24″ × 36″. Each is its own file built for that shape, so nothing gets cropped to fit."
+        "answer": "Every printable keepsake comes in three sizes: A4, which also prints as A3; Classic 8″ × 10″, which scales to 16″ × 20″; and Poster 12″ × 18″, which scales to 24″ × 36″. Each is its own file built for that shape, so nothing gets cropped to fit."
       },
       "mistake": {
         "question": "Can I fix a mistake after ordering?",
@@ -234,25 +142,21 @@
         "question": "How long can I access my files?",
         "answer": "Your files stay available — the photos you uploaded are kept, and your keepsake is regenerated whenever you need it. The link in your receipt email works on any device for 30 days. If it ever stops working, just reply to that email and we will send you a fresh one."
       },
-      "incomplete": {
-        "question": "What if I don't know the exact time or location?",
-        "answer": "That's alright. An approximate time still produces something beautiful and accurate, and we'll gently guide you if something's missing."
+      "receive": {
+        "question": "How does the person receive it?",
+        "answer": "You get a private link and a QR card the moment you pay. Send the link, print the card or show it on your screen — it opens in any phone browser, with nothing to install."
       },
-      "appropriate": {
-        "question": "Is this appropriate as a gift for a wedding, a birth, or a loss?",
-        "answer": "It's made for exactly those moments. Each occasion has its own tone — a memorial print is treated with the same care whether it's your first order or your fiftieth."
+      "choose": {
+        "question": "Which keepsake should I choose?",
+        "answer": "Love Story Timeline tells your story in a few dated moments with photos. Reasons I Love You is a gift of reasons, opened one at a time. Song Poster gives the song that matters a poster and a page that plays it. Graduation Keepsake tells a graduate's journey, with messages from the people who cheered them on."
       }
-    },
-    "memorialNote": {
-      "title": "For memorial and sympathy orders",
-      "text": "If any detail is missing or uncertain, we'll reach out gently, once, and never rush you for an answer. There is no upsell on this page, and there never will be."
     }
   },
   "FinalCta": {
     "title": "Some things\ndeserve to be kept.",
-    "subtitle": "Start with a date, a place, or a name. We'll help you find the rest.",
+    "subtitle": "Start with a name, a date or a song. We'll help with the rest.",
     "cta": "Create a keepsake",
-    "trust": "Delivered instantly. Yours to keep."
+    "trust": "Delivered instantly. No app needed."
   },
   "Footer": {
     "tagline": "Meaningful moments, turned into keepsakes worth keeping.",
@@ -539,12 +443,12 @@
   "Collection": {
     "meta": {
       "title": "The Collection: Personalized Digital Keepsakes",
-      "description": "Browse the Heartfolio collection — personalized love-story timeline keepsakes. Digital artwork from {price}, delivered instantly as high-resolution printable files.",
-      "descriptionNoPrice": "Browse the Heartfolio collection — personalized love-story timeline keepsakes. Digital artwork, delivered instantly as high-resolution printable files."
+      "description": "Browse Heartfolio's personalized keepsakes for love, graduations and the songs that matter. Each opens from a link or a QR card. From {price}, ready the moment you pay.",
+      "descriptionNoPrice": "Browse Heartfolio's personalized keepsakes for love, graduations and the songs that matter. Each opens from a link or a QR card, ready the moment you pay."
     },
     "eyebrow": "The Collection",
     "title": "Personalized keepsakes, made one moment at a time.",
-    "subtitle": "Each keepsake takes something only you have — a night sky, a street corner, a song, a sequence of dates — and turns it into artwork designed to be kept.",
+    "subtitle": "Each one starts with something only you have — a date, a song, a story, the reasons why. Choose the one that fits the moment.",
     "digitalNote": "Every keepsake is a digital-first experience, with Printable and other formats available where offered. Nothing is shipped; printing and framing are yours to arrange.",
     "from": "From {price}",
     "explore": "Explore",
@@ -582,8 +486,8 @@
           "description": "A few art-directed palettes, not forty mediocre templates."
         },
         {
-          "title": "Download it",
-          "description": "High-resolution files, ready in seconds, yours to redownload."
+          "title": "Send it",
+          "description": "Ready the moment you pay: a private link and a QR card to share, plus print-ready files for printable keepsakes."
         }
       ]
     },
@@ -1034,7 +938,10 @@
     "phoneAlt": "A sample {name}, as it opens on a phone",
     "printAlt": "A sample {name} print, framed",
     "pause": "Pause the preview",
-    "play": "Play the preview"
+    "play": "Play the preview",
+    "qrAlt": "A sample gift QR card",
+    "studioEditAlt": "The Heartfolio Studio: a name is typed and the preview follows",
+    "studioPreviewAlt": "The Studio's preview of the keepsake, as it opens on a phone"
   },
   "Loading": {
     "page": "Loading",
@@ -1052,5 +959,27 @@
     "studio": "{product} · Studio",
     "order": "Your order",
     "live": "A gift for you"
+  },
+  "OpenMoment": {
+    "title": "The moment they open it.",
+    "subtitle": "They scan the card or tap the link. No app, no account — it opens on their phone and unfolds one moment at a time."
+  },
+  "ByOccasion": {
+    "title": "Find the right one",
+    "subtitle": "For a love story, a graduation, or a song that was always theirs.",
+    "items": {
+      "love": {
+        "label": "Love",
+        "description": "Anniversaries, weddings, Valentine's, or just because."
+      },
+      "graduation": {
+        "label": "Graduation",
+        "description": "For the graduate, from everyone who cheered them on."
+      },
+      "song": {
+        "label": "A song that matters",
+        "description": "The first dance, the drive home, the song that was always theirs."
+      }
+    }
   }
 }

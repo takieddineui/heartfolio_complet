@@ -2,17 +2,15 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { jsonLdScript } from "@/lib/json-ld";
 import { ProductReviews } from "@/components/product/product-reviews";
 import { getCatalogProducts } from "@/lib/products/catalog-server";
-import { getAvailableOccasions, getFeaturedCatalogProducts, lowestCatalogStartingPrice } from "@/lib/products/catalog";
+import { getFeaturedCatalogProducts } from "@/lib/products/catalog";
 import { SITE_NAME, SITE_URL, SUPPORT_EMAIL } from "@/lib/site-config";
 import { SiteHeader, MobileStickyCta } from "@/components/layout/header";
 import { SiteFooter } from "@/components/layout/footer";
 import { Hero } from "@/components/sections/hero";
 import { FeaturedKeepsakes } from "@/components/sections/featured-keepsakes";
 import { HowItWorks } from "@/components/sections/how-it-works";
-import { GiftOccasions } from "@/components/sections/gift-occasions";
-import { TemplateGallery } from "@/components/sections/template-gallery";
-import { WhyHeartfolio } from "@/components/sections/why-heartfolio";
-import { Pricing } from "@/components/sections/pricing";
+import { OpenMoment } from "@/components/sections/open-moment";
+import { ByOccasion } from "@/components/sections/by-occasion";
 import { Faq } from "@/components/sections/faq";
 // Server-safe on purpose — see faq-keys.ts. Importing this from faq.tsx
 // (a "use client" file) instead of here is what caused
@@ -52,10 +50,6 @@ export default async function HomePage({
   // their static marketing figures; the two launch products get Django's.
   const { products: catalogProducts, taxonomy } = await getCatalogProducts();
   const featuredProducts = getFeaturedCatalogProducts(catalogProducts);
-  // §11: the Gift Occasions cards must reflect what is actually on sale, not
-  // a static list of five. Computed here, where the catalog was already
-  // fetched, rather than by a second fetch inside the section.
-  const availableOccasions = getAvailableOccasions(catalogProducts, taxonomy.occasions);
 
   /**
    * Organization + WebSite (§29, §30). Written so an AI or a crawler
@@ -128,13 +122,16 @@ export default async function HomePage({
       />
       <SiteHeader />
       <main id="main-content" className="pb-20 md:pb-0">
-        <Hero />
+        {/* The approved order (27 Oct 2026): what it is, the collection, how
+            it is made, the recipient's side, ways in by occasion, then the
+            questions. Moods, "Why Heartfolio" and Pricing are gone: they
+            described palettes, a lock-screen wallpaper and a price section
+            the cards already carry. */}
+        <Hero products={featuredProducts} />
         <FeaturedKeepsakes products={featuredProducts} />
         <HowItWorks />
-        <GiftOccasions occasions={availableOccasions} />
-        <TemplateGallery />
-        <WhyHeartfolio />
-        <Pricing startingPrice={lowestCatalogStartingPrice(catalogProducts)} />
+        <OpenMoment />
+        <ByOccasion products={featuredProducts} />
         <Faq />
         <FinalCta />
       </main>

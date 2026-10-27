@@ -21,17 +21,11 @@
  */
 export const FAQ_KEYS = [
   "whatIs",
+  "receive",
+  "choose",
   "preview",
   "printing",
   "sizing",
   "mistake",
-  // §12 — what happens after the magic link's 30 days. There are no
-  // accounts by decision, so "I lost the email" had no answer anywhere on
-  // the site even though the order stays deliverable indefinitely (photos
-  // never expire; artwork is rendered on demand) and staff can re-send the
-  // link from the ops screen. Placed here rather than at the end so it
-  // sits with the other post-purchase answers.
   "access",
-  "incomplete",
-  "appropriate",
 ] as const;

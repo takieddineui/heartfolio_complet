@@ -31,6 +31,10 @@ const BUDGET = {
   printJpg: 160 * 1024,
   qrAvif: 60 * 1024,
   qrJpg: 120 * 1024,
+  // The home page's "How it works": a landscape Studio loop and two stills.
+  studioLoop: 200 * 1024,
+  studioAvif: 60 * 1024,
+  studioJpg: 120 * 1024,
 };
 
 interface FileEntry {
@@ -49,8 +53,13 @@ interface LocaleEntry {
   print: StillEntry | null;
   qr: StillEntry | null;
 }
+interface StudioEntry {
+  edit: { loop: FileEntry & { width: number; height: number; seconds: number }; poster: StillEntry } | null;
+  preview: StillEntry | null;
+}
 interface Manifest {
   products: Record<string, Record<string, LocaleEntry>>;
+  studio: Record<string, StudioEntry>;
 }
 
 const manifest = JSON.parse(readFileSync(join(CAPTURES, "manifest.json"), "utf8")) as Manifest;
@@ -119,6 +128,17 @@ describe("product captures", () => {
     });
   });
 
+  it.each(CAPTURE_LOCALES)("%s: the Studio, editing (a loop) and previewing (a still), for the home page", (locale) => {
+    const entry = manifest.studio?.[locale];
+    expect(entry, `studio/${locale} is in the manifest`).toBeTruthy();
+    expectFile(entry!.edit?.loop, BUDGET.studioLoop, "Studio loop");
+    expect(entry!.edit!.loop.src.endsWith(".mp4")).toBe(true);
+    expectFile(entry!.edit?.poster.avif, BUDGET.studioAvif, "Studio still (AVIF)");
+    expectFile(entry!.edit?.poster.jpg, BUDGET.studioJpg, "Studio still (JPEG)");
+    expectFile(entry!.preview?.avif, BUDGET.studioAvif, "Studio preview (AVIF)");
+    expectFile(entry!.preview?.jpg, BUDGET.studioJpg, "Studio preview (JPEG)");
+  });
+
   it("holds no file the manifest does not list", () => {
     const listed = new Set<string>(["/captures/manifest.json"]);
     for (const byLocale of Object.values(manifest.products)) {
@@ -126,6 +146,11 @@ describe("product captures", () => {
         for (const item of [entry.loop, entry.poster?.avif, entry.poster?.jpg, entry.print?.avif, entry.print?.jpg, entry.qr?.avif, entry.qr?.jpg]) {
           if (item) listed.add(item.src);
         }
+      }
+    }
+    for (const entry of Object.values(manifest.studio ?? {})) {
+      for (const item of [entry.edit?.loop, entry.edit?.poster.avif, entry.edit?.poster.jpg, entry.preview?.avif, entry.preview?.jpg]) {
+        if (item) listed.add(item.src);
       }
     }
     const onDisk: string[] = [];
@@ -164,6 +189,19 @@ describe("where the captures are used", () => {
     }
     expect(source("src/components/product/product-collection.tsx")).toContain('mode="hover"');
     expect(source("src/components/product/product-view.tsx")).toContain('mode="inView"');
+  });
+
+  it("the home page shows the real products and the real Studio, and none of the retired sections", () => {
+    expect(source("src/components/sections/hero.tsx")).toContain("<CaptureShowcase");
+    expect(source("src/components/sections/how-it-works.tsx")).toContain("getStudioCaptures");
+    expect(source("src/components/sections/open-moment.tsx")).toContain('mode="inView"');
+    expect(source("src/components/sections/by-occasion.tsx")).toContain("getProductCaptures");
+    const home = source("src/app/[locale]/page.tsx");
+    for (const retired of ["TemplateGallery", "WhyHeartfolio", "Pricing", "GiftOccasions", "KeepsakeVisual"]) {
+      expect(home, retired).not.toContain(`<${retired}`);
+    }
+    expect(home).not.toMatch(/sections\/(template-gallery|why-heartfolio|pricing|gift-occasions)/);
+    expect(existsSync("src/components/product/keepsake-visual.tsx")).toBe(false);
   });
 
   it("the formats pictures no longer draw the unsold wallpaper and Complete formats", () => {

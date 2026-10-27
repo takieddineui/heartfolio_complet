@@ -37,7 +37,10 @@ export function ProductCollection({
   return (
     <div
       className={
-        gridClassName ?? "grid gap-10 sm:grid-cols-2 sm:gap-x-8 sm:gap-y-14 lg:grid-cols-3"
+        // Two columns from tablet up: the four products sit two by two, so no
+        // product is left alone on a row (a third column stranded the
+        // fourth). Capped so a desktop card stays card-sized.
+        gridClassName ?? "mx-auto grid max-w-5xl gap-10 sm:grid-cols-2 sm:gap-x-10 sm:gap-y-16"
       }
     >
       {products.map((product, i) => (

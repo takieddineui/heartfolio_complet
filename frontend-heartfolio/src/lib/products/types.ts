@@ -101,8 +101,8 @@ export interface ProductOffering {
 export interface ProductEntry {
   /**
    * The stable, permanent identity of this product. Written to
-   * `waitlist_entries.product_id` in Supabase and read by
-   * `keepsake-visual.tsx`'s artwork switch — it must never change, even
+   * `waitlist_entries.product_id` in Supabase and keys the product's
+   * captures (`public/captures/manifest.json`) — it must never change, even
    * when the public name or URL does. `where-we-met`'s `id` is still
    * `"heart-map"` for exactly this reason: changing it would orphan every
    * existing waitlist row silently (no error, just unmatched data).

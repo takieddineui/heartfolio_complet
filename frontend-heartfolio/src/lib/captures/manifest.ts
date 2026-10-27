@@ -31,9 +31,20 @@ export interface ProductCaptures {
   qr: CaptureStillEntry | null;
 }
 
-type Manifest = { products: Record<string, Record<string, ProductCaptures>> };
+/** The Studio itself, for the home page's "How it works": a name being typed
+ *  while the preview follows (a loop), and its phone preview (a still). */
+export interface StudioCaptures {
+  edit: Pick<ProductCaptures, "loop" | "poster"> | null;
+  preview: CaptureStillEntry | null;
+}
+
+type Manifest = {
+  products: Record<string, Record<string, ProductCaptures>>;
+  studio: Record<string, StudioCaptures>;
+};
 
 const CAPTURES = (manifest as unknown as Manifest).products;
+const STUDIO = (manifest as unknown as Manifest).studio;
 
 /** The captures' language: the page's own, English for anything else. */
 export function captureLocale(locale: string): "en" | "fr" | "ar" {
@@ -44,6 +55,11 @@ export function captureLocale(locale: string): "en" | "fr" | "ar" {
  *  (only withdrawn ones, which never render). */
 export function getProductCaptures(productId: string, locale: string): ProductCaptures | null {
   return CAPTURES[productId]?.[captureLocale(locale)] ?? null;
+}
+
+/** The Studio's captures in a language. */
+export function getStudioCaptures(locale: string): StudioCaptures | null {
+  return STUDIO?.[captureLocale(locale)] ?? null;
 }
 
 /** Absolute URLs of a product's stills, phone then print, for structured

@@ -10,6 +10,8 @@ import { EndingSpark } from "./ending-spark";
 import { liveThemeStyle } from "./live-theme";
 import { liveMotionStyle } from "./live-motion";
 import { MilestoneSpark } from "./milestone-spark";
+import { formatDuration, milestoneDuration } from "./live-duration";
+import { liveCopy } from "./live-copy";
 import { RevealGroup, RevealItem } from "@/components/motion/reveal";
 
 /**
@@ -235,27 +237,13 @@ export function LiveKeepsake({
     return () => observer.disconnect();
   }, [milestones.length, motionAllowed]);
 
+  const copy = liveCopy(locale);
+
   /** §10 — years, months and days. See the note above on why not minutes. */
   const duration = useMemo(() => {
-    const dates = milestones.map((m) => m.date).filter(Boolean).sort() as string[];
-    if (dates.length < 2) return null;
-    const from = new Date(dates[0]!);
-    const to = new Date(dates[dates.length - 1]!);
-    if (Number.isNaN(from.valueOf()) || Number.isNaN(to.valueOf())) return null;
-
-    let years = to.getFullYear() - from.getFullYear();
-    let months = to.getMonth() - from.getMonth();
-    let days = to.getDate() - from.getDate();
-    if (days < 0) {
-      months -= 1;
-      days += new Date(to.getFullYear(), to.getMonth(), 0).getDate();
-    }
-    if (months < 0) {
-      years -= 1;
-      months += 12;
-    }
-    return { years, months, days };
-  }, [milestones]);
+    const between = milestoneDuration(milestones.map((m) => m.date));
+    return between ? formatDuration(between, locale) : "";
+  }, [milestones, locale]);
 
   const formatDate = (value?: string) => {
     if (!value) return "";
@@ -279,6 +267,7 @@ export function LiveKeepsake({
           title={String(values.posterTitle ?? "")}
           photoUrl={milestones[0]?.photo?.url}
           onDone={handleOpeningDone}
+          skipLabel={copy.skip}
         />
       )}
 
@@ -297,10 +286,8 @@ export function LiveKeepsake({
         <h1 className={styles.title}>{String(values.posterTitle ?? "")}</h1>
         {Boolean(values.subtitle) && <p className={styles.subtitle}>{String(values.subtitle)}</p>}
         {duration && (
-          <p className={styles.duration}>
-            {duration.years > 0 && `${duration.years}y `}
-            {duration.months > 0 && `${duration.months}m `}
-            {duration.days > 0 && `${duration.days}d`}
+          <p className={styles.duration} lang={locale}>
+            {duration}
           </p>
         )}
         <span className={styles.scrollHint} aria-hidden="true" />
@@ -333,7 +320,7 @@ export function LiveKeepsake({
                   type="button"
                   className={styles.photoButton}
                   onClick={() => setLightbox(index)}
-                  aria-label={milestone.title ?? "Open photo"}
+                  aria-label={milestone.title ?? copy.openPhoto}
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={milestone.photo.url} alt="" className={styles.photo} />
@@ -443,9 +430,10 @@ export function LiveKeepsake({
           type="button"
           className={styles.musicToggle}
           aria-pressed={musicOn}
+          aria-label={copy.music}
           onClick={() => setMusicOn((on) => !on)}
         >
-          {musicOn ? "♪ on" : "♪ off"}
+          {musicOn ? copy.musicOn : copy.musicOff}
         </button>
       )}
 
@@ -459,7 +447,7 @@ export function LiveKeepsake({
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={milestones[lightbox]!.photo!.url} alt={milestones[lightbox]!.title ?? ""} />
-          <button type="button" className={styles.lightboxClose} onClick={() => setLightbox(null)}>
+          <button type="button" className={styles.lightboxClose} aria-label={copy.close} onClick={() => setLightbox(null)}>
             ×
           </button>
         </div>

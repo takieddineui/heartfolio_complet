@@ -67,6 +67,8 @@ export interface OpeningSequenceProps {
   title: string;
   photoUrl?: string;
   onDone: () => void;
+  /** The skip button's word, in the order's language (`live-copy.ts`). */
+  skipLabel?: string;
   /** The real sequence length in production — overridable ONLY so
    *  tests don't need a genuine 4.6-second real-time wait per case.
    *  Framer Motion's exit transitions run on real animation frames, not
@@ -76,7 +78,7 @@ export interface OpeningSequenceProps {
   durationMs?: number;
 }
 
-export function OpeningSequence({ names, title, photoUrl, onDone, durationMs = 4600 }: OpeningSequenceProps) {
+export function OpeningSequence({ names, title, photoUrl, onDone, skipLabel = "Skip", durationMs = 4600 }: OpeningSequenceProps) {
   const reduceMotion = useReducedMotion();
   const [visible, setVisible] = useState(true);
 
@@ -174,7 +176,7 @@ export function OpeningSequence({ names, title, photoUrl, onDone, durationMs = 4
             animate={{ opacity: 0.7 }}
             transition={{ duration: 0.5, delay: 0.6 }}
           >
-            Skip
+            {skipLabel}
           </motion.button>
         </motion.div>
       )}

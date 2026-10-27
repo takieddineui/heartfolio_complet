@@ -14,7 +14,6 @@ vi.mock("@/i18n/navigation", () => ({
   ),
 }));
 // Decorative artwork only; it has no copy.
-vi.mock("@/components/product/keepsake-visual", () => ({ KeepsakeVisual: () => null }));
 vi.mock("@/components/product/offering-visual", () => ({ OfferingVisual: () => null }));
 
 import { ProductView } from "@/components/product/product-view";

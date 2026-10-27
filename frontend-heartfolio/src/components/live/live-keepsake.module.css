@@ -54,6 +54,8 @@
 .title { font-family: var(--live-heading-font); font-style: var(--live-heading-style); font-size: clamp(2.2rem, 8vw, 4rem); font-weight: 400; margin: 0; line-height: 1.1; }
 .subtitle { color: var(--muted); font-style: italic; margin: 0; }
 .duration { letter-spacing: 0.14em; font-size: 0.85rem; color: var(--accent); margin-top: 8px; }
+/* Spaced letters cannot join: Arabic words would fall apart. */
+.duration:lang(ar) { letter-spacing: normal; }
 
 /* A quiet cue that there is more below. Animation only — respects the
    global reduced-motion rule. */

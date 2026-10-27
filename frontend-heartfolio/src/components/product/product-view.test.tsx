@@ -13,7 +13,6 @@ vi.mock("@/i18n/navigation", () => ({
   ),
 }));
 // Decorative artwork only; irrelevant to the copy under test.
-vi.mock("@/components/product/keepsake-visual", () => ({ KeepsakeVisual: () => null }));
 vi.mock("@/components/product/offering-visual", () => ({ OfferingVisual: () => null }));
 
 import type { ApiDeliveryPack, ApiProductDetail } from "@/lib/api/products";

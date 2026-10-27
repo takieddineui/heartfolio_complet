@@ -17,6 +17,7 @@ const page = strip(readFileSync("src/app/[locale]/live/[liveId]/page.tsx", "utf8
  *  of the page, 26 Oct 2026, so the capture page shares it). */
 const dispatch = strip(readFileSync("src/components/live/live-payload.tsx", "utf8"));
 const css = readFileSync("src/components/live/live-keepsake.module.css", "utf8");
+const duration = strip(readFileSync("src/components/live/live-duration.ts", "utf8"));
 
 describe("live keepsake", () => {
   it("never autoplays music", () => {
@@ -38,9 +39,11 @@ describe("live keepsake", () => {
   it("counts in years, months and days rather than minutes", () => {
     // §10 is explicit: exact minutes should not be the default merely
     // because it is possible. "4 years, 2 months" is meaningful.
-    expect(component).toContain("years");
-    expect(component).toContain("months");
-    expect(component).not.toMatch(/minutes|getMinutes/);
+    // The arithmetic and wording live in `live-duration.ts` (26 Oct 2026).
+    expect(component).toContain("milestoneDuration");
+    expect(duration).toContain('"year"');
+    expect(duration).toContain('"month"');
+    expect(component + duration).not.toMatch(/minutes|getMinutes|"minute"/);
   });
 
   it("activates milestones as the reader progresses", () => {

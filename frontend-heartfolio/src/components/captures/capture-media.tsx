@@ -53,7 +53,7 @@ function subscribeToLoad(onChange: () => void) {
 }
 
 /** True once the window's load event has fired; false on the server. */
-function usePageLoaded(): boolean {
+export function usePageLoaded(): boolean {
   return useSyncExternalStore(subscribeToLoad, () => document.readyState === "complete", () => false);
 }
 
@@ -110,7 +110,7 @@ export function CaptureLoop({
   active = false,
   priority = false,
 }: {
-  captures: ProductCaptures;
+  captures: Pick<ProductCaptures, "loop" | "poster">;
   alt: string;
   mode: "hover" | "inView";
   active?: boolean;

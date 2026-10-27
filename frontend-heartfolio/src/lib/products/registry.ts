@@ -234,7 +234,9 @@ export const PRODUCT_REGISTRY: ProductEntry[] = [
     currency: PRICE_CURRENCY,
     ogImage: null,
     icon: "GraduationCap",
-    featured: false,
+    // Featured since the home redesign (27 Oct 2026): it had been missing
+    // from the home page entirely.
+    featured: true,
     status: "available",
     /**
      * VISIBLE since 15 Oct 2026: Freemius plan 72194 is mapped
@@ -492,6 +494,7 @@ export function getStudioDestination(
  * show each product's real live page and print with fictional sample content
  * (`lib/captures`, made by `scripts/captures/record.mjs`). The generated
  * share cards carry those captures, so `ogImage` (a static override) is null
- * everywhere; the old branded `/og/love-story-timeline.png` is gone. Only
- * the home hero still draws `KeepsakeVisual` (replaced in the home redesign).
+ * everywhere; the old branded `/og/love-story-timeline.png` is gone. The
+ * home page (27 Oct 2026) uses them too, and the drawn `KeepsakeVisual` is
+ * gone.
  * ------------------------------------------------------------------- */

@@ -4,16 +4,49 @@
     {
       "name": "frontend-dev",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["--prefix", "frontend-heartfolio", "run", "dev"],
+      "runtimeArgs": [
+        "--prefix",
+        "frontend-heartfolio",
+        "run",
+        "dev"
+      ],
       "port": 3000,
       "autoPort": true
     },
     {
       "name": "frontend-capture",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["--prefix", "frontend-heartfolio", "run", "dev", "--", "--port", "3005"],
-      "env": { "HEARTFOLIO_CAPTURE": "1" },
+      "runtimeArgs": [
+        "--prefix",
+        "frontend-heartfolio",
+        "run",
+        "dev",
+        "--",
+        "--port",
+        "3005"
+      ],
+      "env": {
+        "HEARTFOLIO_CAPTURE": "1"
+      },
       "port": 3005
+    },
+    {
+      "name": "frontend-capture-throwaway",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "--prefix",
+        "frontend-heartfolio",
+        "run",
+        "dev",
+        "--",
+        "--port",
+        "3006"
+      ],
+      "env": {
+        "HEARTFOLIO_CAPTURE": "1",
+        "BACKEND_API_ORIGIN": "http://localhost:8001"
+      },
+      "port": 3006
     }
   ]
 }

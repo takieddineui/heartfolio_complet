@@ -100,12 +100,6 @@ export function Faq() {
           )}
         </Reveal>
 
-        <Reveal delay={0.15} className="mt-14 rounded-[var(--radius-lg)] bg-page p-8">
-          <h3 className="font-serif text-lg text-heading">{t("memorialNote.title")}</h3>
-          <p className="mt-2 text-[15px] leading-relaxed text-body/75">
-            {t("memorialNote.text")}
-          </p>
-        </Reveal>
 
         {/*
           §7c — the general feedback invitation, placed here rather than as
@@ -116,7 +110,7 @@ export function Faq() {
           moment to offer it than interrupting somebody who is trying to
           buy something.
         */}
-        <Reveal delay={0.2} className="mt-8 text-center">
+        <Reveal delay={0.15} className="mt-14 text-center">
           <p className="text-[15px] text-body/70">
             {tFeedback("faqPrompt")}{" "}
             <Link href="/feedback" className="text-champagne-gold underline underline-offset-4">

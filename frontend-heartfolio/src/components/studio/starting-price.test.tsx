@@ -10,7 +10,8 @@ import { afterEach, describe, expect, it, vi } from "vitest";
  * price from the registry's offerings, which hold no prices, so the header
  * read "Starting at —" and the other two silently showed none. They now use
  * Django's prices: the packs the checkout sells (Studio), and the catalog's
- * starting prices (home page, share cards).
+ * starting prices (share cards). The home page's pricing section was removed
+ * in the redesign (27 Oct 2026); each collection card shows its own price.
  */
 const state = vi.hoisted(() => ({ packs: null as null | { priceCents: number; currency: string }[] }));
 
@@ -34,7 +35,6 @@ vi.mock("framer-motion", async () => {
   } }) };
 });
 
-import { Pricing } from "@/components/sections/pricing";
 import { ProductHeader } from "@/components/studio/product-header";
 import { lowestCatalogStartingPrice, type CatalogProduct } from "@/lib/products/catalog";
 import { getProductBySlug } from "@/lib/products/registry";
@@ -70,20 +70,12 @@ describe("the Studio header's starting price", () => {
   });
 });
 
-describe("the home page's starting price", () => {
+describe("the catalog's lowest starting price", () => {
   const catalog = (cents: (number | null)[]) =>
     cents.map((startingPriceCents) => ({ isLive: true, startingPriceCents, currency: "USD", offerings: [] }) as unknown as CatalogProduct);
 
   it("is the lowest of the catalog's starting prices", () => {
     expect(lowestCatalogStartingPrice(catalog([2299, 1599, null]))).toEqual({ amount: 15.99, currency: "USD" });
     expect(lowestCatalogStartingPrice(catalog([null]))).toBeNull();
-  });
-
-  it("is shown when the page passes it, and claims nothing when it does not", () => {
-    wrap(<Pricing startingPrice={{ amount: 15.99, currency: "USD" }} />);
-    expect(screen.getByText("From $15.99 USD")).toBeTruthy();
-    cleanup();
-    wrap(<Pricing />);
-    expect(screen.queryByText(/^From /)).toBeNull();
   });
 });

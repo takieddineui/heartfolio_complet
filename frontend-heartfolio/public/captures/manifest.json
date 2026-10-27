@@ -1,12 +1,12 @@
 {
-  "generated": "2026-10-26",
+  "generated": "2026-10-27",
   "fps": 30,
   "products": {
     "love-story-timeline": {
       "en": {
         "loop": {
           "src": "/captures/en/love-story-timeline.mp4",
-          "bytes": 516704,
+          "bytes": 523458,
           "width": 600,
           "height": 1298,
           "seconds": 7
@@ -51,7 +51,7 @@
       "fr": {
         "loop": {
           "src": "/captures/fr/love-story-timeline.mp4",
-          "bytes": 513975,
+          "bytes": 538829,
           "width": 600,
           "height": 1298,
           "seconds": 7
@@ -96,7 +96,7 @@
       "ar": {
         "loop": {
           "src": "/captures/ar/love-story-timeline.mp4",
-          "bytes": 504535,
+          "bytes": 489764,
           "width": 600,
           "height": 1298,
           "seconds": 7
@@ -482,6 +482,113 @@
           "width": 600,
           "height": 780
         }
+      }
+    }
+  },
+  "studio": {
+    "en": {
+      "edit": {
+        "loop": {
+          "src": "/captures/en/studio-edit.mp4",
+          "bytes": 50220,
+          "width": 1200,
+          "height": 750,
+          "seconds": 5.5
+        },
+        "poster": {
+          "avif": {
+            "src": "/captures/en/studio-edit.avif",
+            "bytes": 20829
+          },
+          "jpg": {
+            "src": "/captures/en/studio-edit.jpg",
+            "bytes": 50257
+          },
+          "width": 1200,
+          "height": 750
+        }
+      },
+      "preview": {
+        "avif": {
+          "src": "/captures/en/studio-preview.avif",
+          "bytes": 6323
+        },
+        "jpg": {
+          "src": "/captures/en/studio-preview.jpg",
+          "bytes": 16615
+        },
+        "width": 820,
+        "height": 720
+      }
+    },
+    "fr": {
+      "edit": {
+        "loop": {
+          "src": "/captures/fr/studio-edit.mp4",
+          "bytes": 52746,
+          "width": 1200,
+          "height": 750,
+          "seconds": 5.5
+        },
+        "poster": {
+          "avif": {
+            "src": "/captures/fr/studio-edit.avif",
+            "bytes": 23562
+          },
+          "jpg": {
+            "src": "/captures/fr/studio-edit.jpg",
+            "bytes": 54634
+          },
+          "width": 1200,
+          "height": 750
+        }
+      },
+      "preview": {
+        "avif": {
+          "src": "/captures/fr/studio-preview.avif",
+          "bytes": 7449
+        },
+        "jpg": {
+          "src": "/captures/fr/studio-preview.jpg",
+          "bytes": 18365
+        },
+        "width": 820,
+        "height": 720
+      }
+    },
+    "ar": {
+      "edit": {
+        "loop": {
+          "src": "/captures/ar/studio-edit.mp4",
+          "bytes": 42705,
+          "width": 1200,
+          "height": 750,
+          "seconds": 5.5
+        },
+        "poster": {
+          "avif": {
+            "src": "/captures/ar/studio-edit.avif",
+            "bytes": 16594
+          },
+          "jpg": {
+            "src": "/captures/ar/studio-edit.jpg",
+            "bytes": 42955
+          },
+          "width": 1200,
+          "height": 750
+        }
+      },
+      "preview": {
+        "avif": {
+          "src": "/captures/ar/studio-preview.avif",
+          "bytes": 4080
+        },
+        "jpg": {
+          "src": "/captures/ar/studio-preview.jpg",
+          "bytes": 13046
+        },
+        "width": 820,
+        "height": 720
       }
     }
   }
