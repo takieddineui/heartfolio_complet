@@ -419,6 +419,25 @@ Two were genuine product bugs: the `layout` default above, and
 
 ## Still open
 
+- **CONTENT SECTION (`/guides`): plan APPROVED, NOT BUILT (owner, 27 Oct
+  2026). It starts after the SEO fixes and launch.** English and French first
+  (of 42 paid Love Story Timeline orders, 25 were French, 17 English, none
+  Arabic); Arabic only with a native reviewer. Author: "The Heartfolio team".
+  First batch, each written natively per language, not translated:
+  anniversary/Valentine's ideas that aren't objects (Love Story Timeline,
+  Reasons, Song Poster), reasons I love you with examples (Reasons), how to
+  build a relationship timeline (Love Story Timeline), last-minute gifts that
+  still feel personal (all, instant delivery), graduation gifts from everyone
+  (Graduation). Search volumes are unverified hypotheses: check them in
+  Keyword Planner/Search Console first. Timing: the love guides live by early
+  December for Valentine's, graduation by March. Setup: `/[locale]/guides/[slug]`
+  with slugs in each language's own words, mapped so hreflang links only the
+  translations that exist; one content file per guide and language (title,
+  description, published/updated dates, author, linked products); static
+  params so an unknown guide is a real 404; a `/guides` index; Article +
+  BreadcrumbList JSON-LD with a captures image; sitemap entries with real
+  `lastmod`; each guide shows its products' captures and links to the product
+  page (never the Studio); product pages link back; a footer link.
 - **Reasons I Love You (`reasons-i-love-you`) is LIVE on the storefront (14 Oct
   2026), the first LIVE-ONLY product: no print, no renderer output, one `live`
   pack at $15.99 granting `__live__`.** How a print-less product fits (registry
