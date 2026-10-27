@@ -11,6 +11,7 @@ import { FeaturedKeepsakes } from "@/components/sections/featured-keepsakes";
 import { HowItWorks } from "@/components/sections/how-it-works";
 import { OpenMoment } from "@/components/sections/open-moment";
 import { ByOccasion } from "@/components/sections/by-occasion";
+import { NeedIdeas } from "@/components/sections/need-ideas";
 import { Faq } from "@/components/sections/faq";
 // Server-safe on purpose — see faq-keys.ts. Importing this from faq.tsx
 // (a "use client" file) instead of here is what caused
@@ -132,6 +133,9 @@ export default async function HomePage({
         <HowItWorks />
         <OpenMoment />
         <ByOccasion products={featuredProducts} />
+        {/* The published guides, modestly, for someone still deciding
+            (nothing in a language without guides). */}
+        <NeedIdeas locale={locale} />
         <Faq />
         <FinalCta />
       </main>

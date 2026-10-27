@@ -1,6 +1,6 @@
 import type { GuideTranslation } from "@/lib/guides/types";
 
-/** DRAFT for the owner's review (27 Oct 2026). French follows approval. */
+/** Published 27 Oct 2026, with the French (owner's approval). */
 export const en: GuideTranslation = {
   slug: "reasons-i-love-you-how-to-write-them",
   title: "Reasons I love you: how to write them, with examples",
@@ -9,7 +9,7 @@ export const en: GuideTranslation = {
     "How to write reasons you love someone that really land: what makes a good one, a simple way to write ten, and dozens of examples to start from.",
   published: "2026-10-27",
   updated: "2026-10-27",
-  status: "draft",
+  status: "published",
   intro:
     "A list of reasons you love someone is one of the oldest love notes there is, and one of the easiest to get wrong. Most first attempts read like a greeting card: you're kind, you're funny, you're beautiful. All true, and none of it sounds like you. This guide is about writing the other kind, the reasons they will read twice: what makes one land, a simple way to write ten, and plenty of examples to start from.",
   blocks: [

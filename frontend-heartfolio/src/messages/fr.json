@@ -9,16 +9,15 @@
   "Nav": {
     "occasion": "Par occasion",
     "product": "Par création",
-    "story": "Notre histoire",
     "search": "Rechercher",
     "cart": "Panier",
     "cta": "Créer un souvenir",
     "menu": "Menu",
     "close": "Fermer",
     "secondary": {
-      "story": "Notre histoire",
       "faq": "FAQ"
-    }
+    },
+    "guides": "Idées cadeaux"
   },
   "Hero": {
     "eyebrow": "Heartfolio",
@@ -1009,6 +1008,12 @@
     "draft": "Brouillon : visible uniquement en développement",
     "read": "Lire le guide",
     "seeProduct": "Voir « {name} »",
-    "related": "Idées et guides"
+    "related": "Idées et guides",
+    "moreIdeas": "D'autres idées"
+  },
+  "NeedIdeas": {
+    "title": "Besoin d'idées ?",
+    "subtitle": "De courts guides pour choisir, écrire et créer un cadeau qui vous ressemble.",
+    "all": "Toutes les idées cadeaux"
   }
 }

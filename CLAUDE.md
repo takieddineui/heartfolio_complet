@@ -442,6 +442,12 @@ Two were genuine product bugs: the `layout` default above, and
 - **No accounts.** Recovery is `/api/v1/ops/resend/`, which re-sends a
   fresh 30-day link. Photos never expire and artwork renders on demand, so
   a paid order stays deliverable indefinitely.
+- **French copy never uses the point médian (owner, 27 Oct 2026):** no
+  "seul·e", "sûr·e", "présenté·e" or similar, anywhere (guides, messages,
+  emails, PDFs). Rephrase so no agreement depends on the reader's or the
+  writer's gender ("parce que je ne voulais pas rester sans toi", "personne
+  d'autre que vous ne pouvait l'écrire"); a word agreeing with a noun ("une
+  seule phrase") is fine.
 - **Pre-launch decisions (owner, 25 Oct 2026):**
   - Production takes payments through **Freemius only**. Paddle and FastSpring
     stay in the code but are off, and production settings must not require
@@ -459,6 +465,14 @@ Two were genuine product bugs: the `layout` default above, and
 
 ---
 
+## After launch (decided, not for before)
+
+- **An About page with the real story behind Heartfolio** (owner, 27 Oct
+  2026). The header's "Our Story" link pointed at the home page's removed
+  "Why Heartfolio" section and was taken out rather than repointed; the
+  About page is where that story belongs.
+- The `/guides` content plan continues (see "Still open").
+
 ## Still open
 
 - **THE AR PAGE NEVER LOADS: FIX BEFORE AR IS EVER SOLD (found 27 Oct 2026,
@@ -470,8 +484,13 @@ Two were genuine product bugs: the `layout` default above, and
   customer is affected. Fix as the live page does: `getBackendOrigin()`
   outside the `try`, then a server `fetch` (forwarding `X-Forwarded-For`),
   and a test that a valid id renders the scene.
-- **CONTENT SECTION (`/guides`): LIVE 27 Oct 2026. The first guide is
-  PUBLISHED in English and French** ("Anniversary and Valentine's gift ideas
+- **CONTENT SECTION (`/guides`): LIVE 27 Oct 2026. Two guides PUBLISHED in
+  English and French** (anniversary ideas; reasons I love you, with its own
+  French examples); the relationship timeline guide is an English DRAFT. The
+  guides are surfaced, in languages with published guides only and updating
+  by themselves: the header's "Gift ideas", the home page's "Need ideas?"
+  (before the FAQ, a different keepsake still per card, `guideCovers`) and
+  "More ideas" at the end of each guide. First guide ("Anniversary and Valentine's gift ideas
   that aren't things" / « Idées cadeau anniversaire de couple originales »,
   checked on a production build: pages, index, hreflang en<->fr, sitemap,
   footer, share cards). Guides embed products' real capture loops with the
@@ -483,7 +502,7 @@ Two were genuine product bugs: the `layout` default above, and
   Heartfolio team". First batch, each written natively per language, not
   translated: anniversary/Valentine's ideas that aren't objects (PUBLISHED,
   `src/content/guides/anniversary-ideas/`), reasons I love you with
-  examples, how to build a relationship timeline, last-minute gifts that still
+  examples (PUBLISHED), how to build a relationship timeline (English DRAFT), last-minute gifts that still
   feel personal, graduation gifts from everyone (Graduation Keepsake is in
   `GUIDE_COVERAGE_PENDING` until then). Search volumes are unverified
   hypotheses: check them in Keyword Planner/Search Console first. Timing: the

@@ -5,7 +5,7 @@ import sitemap from "@/app/sitemap";
 import { routing } from "@/i18n/routing";
 import { getAllProducts } from "@/lib/products/registry";
 import { SITE_URL } from "@/lib/site-config";
-import { GUIDES, GUIDE_VIDEO_BUDGET, findGuide, guideAlternates, guideIndexLocales, guidesIn } from "./registry";
+import { GUIDES, GUIDE_VIDEO_BUDGET, featuredGuides, findGuide, guideCovers, guideAlternates, guideIndexLocales, guidesIn, moreGuides } from "./registry";
 import { getProductCaptures } from "@/lib/captures/manifest";
 import { typeset } from "./typeset";
 import { GUIDE_INDEX_LOCALES } from "./published-locales";
@@ -184,5 +184,52 @@ describe("French typography", () => {
     const NARROW = "\u202F";
     expect(typeset("Bonjour : « oui » ; non ? si !", "fr")).toBe(`Bonjour${NBSP}: «${NBSP}oui${NBSP}»${NARROW}; non${NARROW}? si${NARROW}!`);
     expect(typeset("Hello: yes? no!", "en")).toBe("Hello: yes? no!");
+  });
+});
+
+/**
+ * WHERE THE GUIDES ARE SURFACED (27 Oct 2026): the header's "Gift ideas"
+ * link, the home page's "Need ideas?" and a guide's "More ideas". Published
+ * guides only, appearing in a language as soon as it has one.
+ */
+describe("guides surfaced on other pages", () => {
+  it("only published guides, at most three on the home page, never the guide being read", () => {
+    vi.stubEnv("NODE_ENV", "development"); // drafts would be visible here
+    for (const locale of routing.locales) {
+      const published = guidesIn(locale, { includeDrafts: false }).map((g) => g.guide.id);
+      const featured = featuredGuides(locale).map((g) => g.guide.id);
+      expect(featured.length).toBeLessThanOrEqual(3);
+      for (const id of featured) expect(published).toContain(id);
+      for (const id of published) {
+        const others = moreGuides(id, locale).map((g) => g.guide.id);
+        expect(others).not.toContain(id);
+        expect(others.sort()).toEqual(published.filter((p) => p !== id).sort());
+      }
+    }
+  });
+
+  it("nothing at all in a language without a published guide", () => {
+    for (const locale of routing.locales.filter((l) => !guideIndexLocales().includes(l as GuideLocale))) {
+      expect(featuredGuides(locale), locale).toEqual([]);
+    }
+  });
+
+  it("each surface hides itself when there is nothing to show", () => {
+    const header = readFileSync("src/components/layout/header.tsx", "utf8");
+    expect(header).toMatch(/GUIDE_INDEX_LOCALES\.includes\(locale\) \? \[\{ label: t\("guides"\), href: "\/guides" \}\] : \[\]/);
+    expect(readFileSync("src/components/sections/need-ideas.tsx", "utf8")).toContain("if (guides.length === 0) return null;");
+    expect(readFileSync("src/app/[locale]/guides/[slug]/page.tsx", "utf8")).toContain("{more.length > 0 && (");
+    const home = readFileSync("src/app/[locale]/(home)/page.tsx", "utf8");
+    expect(home.indexOf("<NeedIdeas locale={locale} />")).toBeGreaterThan(0);
+    expect(home.indexOf("<NeedIdeas")).toBeLessThan(home.indexOf("<Faq />"));
+  });
+});
+
+describe("guide covers on the home page", () => {
+  it("a different keepsake for each guide where the guides allow it, always one the guide is about", () => {
+    const covers = guideCovers(GUIDES.map((guide) => ({ guide })));
+    for (const guide of GUIDES) expect(guide.products).toContain(covers.get(guide.id));
+    const distinctPossible = new Set(GUIDES.flatMap((g) => g.products)).size >= GUIDES.length;
+    if (distinctPossible) expect(new Set(covers.values()).size).toBe(GUIDES.length);
   });
 });

@@ -2,6 +2,7 @@ import { routing } from "@/i18n/routing";
 import { SITE_URL } from "@/lib/site-config";
 import { anniversaryIdeasGuide } from "@/content/guides/anniversary-ideas";
 import { reasonsGuide } from "@/content/guides/reasons-i-love-you";
+import { relationshipTimelineGuide } from "@/content/guides/relationship-timeline";
 import type { Guide, GuideLocale, GuideTranslation } from "./types";
 
 /**
@@ -9,7 +10,7 @@ import type { Guide, GuideLocale, GuideTranslation } from "./types";
  * `src/content/guides/<id>/` with an `index.ts` (the `Guide`) and one file
  * per language, then a line here. `guides.test.ts` checks the rest.
  */
-export const GUIDES: Guide[] = [anniversaryIdeasGuide, reasonsGuide];
+export const GUIDES: Guide[] = [anniversaryIdeasGuide, reasonsGuide, relationshipTimelineGuide];
 
 /**
  * A guide's capture loops together, per translation (`guides.test.ts`).
@@ -84,4 +85,37 @@ export function guideIndexAlternates(locale: string) {
   const languages: Record<string, string> = Object.fromEntries(guideIndexLocales().map((lang) => [lang, `${SITE_URL}/${lang}/guides`]));
   if (languages.en) languages["x-default"] = languages.en;
   return { canonical: `${SITE_URL}/${locale}/guides`, languages };
+}
+
+/**
+ * Where the guides are surfaced (27 Oct 2026): the header's "Gift ideas"
+ * link, the home page's "Need ideas?" section and a guide's "More ideas"
+ * block. PUBLISHED guides only, so each appears in a language as soon as it
+ * has one and nowhere else (Arabic has none today).
+ */
+export function featuredGuides(locale: string, max = 3) {
+  return guidesIn(locale, { includeDrafts: false }).slice(0, max);
+}
+
+/** The other published guides in a guide's language. */
+export function moreGuides(guideId: string, locale: string) {
+  return guidesIn(locale, { includeDrafts: false }).filter(({ guide }) => guide.id !== guideId);
+}
+
+/**
+ * Which keepsake's still stands for each guide on a page that lists several
+ * (the home page's "Need ideas?"): a DIFFERENT one per guide where possible,
+ * so two cards never show the same jar. Guides about one product choose
+ * first; the others take their first product not already shown.
+ */
+export function guideCovers(entries: { guide: Guide }[]): Map<string, string> {
+  const covers = new Map<string, string>();
+  const used = new Set<string>();
+  const byChoice = [...entries].sort((a, b) => a.guide.products.length - b.guide.products.length);
+  for (const { guide } of byChoice) {
+    const cover = guide.products.find((p) => !used.has(p)) ?? guide.products[0]!;
+    covers.set(guide.id, cover);
+    used.add(cover);
+  }
+  return covers;
 }

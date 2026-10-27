@@ -6,7 +6,7 @@ import { SiteHeader } from "@/components/layout/header";
 import { SiteFooter } from "@/components/layout/footer";
 import { GuideArticle, formatGuideDate } from "@/components/guides/guide-article";
 import { typeset } from "@/lib/guides/typeset";
-import { findGuide, guideAlternates } from "@/lib/guides/registry";
+import { findGuide, guideAlternates, moreGuides } from "@/lib/guides/registry";
 import type { GuideLocale } from "@/lib/guides/types";
 import { captureImageUrls } from "@/lib/captures/manifest";
 import { jsonLdScript } from "@/lib/json-ld";
@@ -58,6 +58,8 @@ export default async function GuidePage({ params }: { params: Params }) {
 
   const t = await getTranslations({ locale, namespace: "Guides" });
   const url = `${SITE_URL}/${locale}/guides/${translation.slug}`;
+  // The other PUBLISHED guides in this language; none, no block.
+  const more = moreGuides(guide.id, locale);
   const author = t("author");
 
   const articleLd = {
@@ -112,6 +114,23 @@ export default async function GuidePage({ params }: { params: Params }) {
           <div className="mt-10">
             <GuideArticle translation={translation} locale={locale} />
           </div>
+          {more.length > 0 && (
+            <nav aria-labelledby="more-ideas" className="mt-16 border-t border-subtle pt-10">
+              <h2 id="more-ideas" className="font-serif text-2xl text-heading">
+                {typeset(t("moreIdeas"), locale)}
+              </h2>
+              <ul className="mt-5 space-y-4">
+                {more.map(({ guide: other, translation: otherTranslation }) => (
+                  <li key={other.id}>
+                    <Link href={`/guides/${otherTranslation.slug}`} className="group block">
+                      <span className="font-serif text-lg text-heading group-hover:text-champagne-gold">{typeset(otherTranslation.title, locale)}</span>
+                      <span className="mt-1 block text-[15px] leading-relaxed text-body/70">{typeset(otherTranslation.description, locale)}</span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          )}
         </article>
       </main>
       <SiteFooter />

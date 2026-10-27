@@ -2,13 +2,14 @@
 
 import { useState } from "react";
 import { Logo } from "@/components/brand/logo";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { LocaleSwitcher } from "@/components/layout/locale-switcher";
+import { GUIDE_INDEX_LOCALES } from "@/lib/guides/published-locales";
 
 export function SiteHeader() {
   const t = useTranslations("Nav");
@@ -16,10 +17,13 @@ export function SiteHeader() {
 
   // "Shop by Product" now goes to the real collection route rather than
   // an anchor on the homepage — the collection is a page, not a section.
+  const locale = useLocale();
   const primaryLinks = [
     { label: t("product"), href: "/products" },
     { label: t("occasion"), href: "/#occasions" },
-    { label: t("story"), href: "/#why" },
+    // The guides, only in a language that has published ones (the light
+    // locale list: this is a client component, see the footer).
+    ...(GUIDE_INDEX_LOCALES.includes(locale) ? [{ label: t("guides"), href: "/guides" }] : []),
   ];
 
   return (

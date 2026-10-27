@@ -9,16 +9,15 @@
   "Nav": {
     "occasion": "Shop by Occasion",
     "product": "Shop by Product",
-    "story": "Our Story",
     "search": "Search",
     "cart": "Cart",
     "cta": "Create a keepsake",
     "menu": "Menu",
     "close": "Close",
     "secondary": {
-      "story": "Our Story",
       "faq": "FAQ"
-    }
+    },
+    "guides": "Gift ideas"
   },
   "Hero": {
     "eyebrow": "Heartfolio",
@@ -1009,6 +1008,12 @@
     "draft": "Draft: shown on a development server only",
     "read": "Read the guide",
     "seeProduct": "See {name}",
-    "related": "Ideas and guides"
+    "related": "Ideas and guides",
+    "moreIdeas": "More ideas"
+  },
+  "NeedIdeas": {
+    "title": "Need ideas?",
+    "subtitle": "Short guides to choosing, writing and making a gift that is yours.",
+    "all": "All gift ideas"
   }
 }
