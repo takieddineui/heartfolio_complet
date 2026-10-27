@@ -351,7 +351,7 @@
       "en": {
         "loop": {
           "src": "/captures/en/song-poster.mp4",
-          "bytes": 52690,
+          "bytes": 48364,
           "width": 600,
           "height": 1298,
           "seconds": 6
@@ -359,11 +359,11 @@
         "poster": {
           "avif": {
             "src": "/captures/en/song-poster.avif",
-            "bytes": 15244
+            "bytes": 15238
           },
           "jpg": {
             "src": "/captures/en/song-poster.jpg",
-            "bytes": 39574
+            "bytes": 39527
           },
           "width": 600,
           "height": 1298
@@ -396,7 +396,7 @@
       "fr": {
         "loop": {
           "src": "/captures/fr/song-poster.mp4",
-          "bytes": 48659,
+          "bytes": 49959,
           "width": 600,
           "height": 1298,
           "seconds": 6
@@ -404,11 +404,11 @@
         "poster": {
           "avif": {
             "src": "/captures/fr/song-poster.avif",
-            "bytes": 14523
+            "bytes": 14548
           },
           "jpg": {
             "src": "/captures/fr/song-poster.jpg",
-            "bytes": 38043
+            "bytes": 38021
           },
           "width": 600,
           "height": 1298
@@ -441,7 +441,7 @@
       "ar": {
         "loop": {
           "src": "/captures/ar/song-poster.mp4",
-          "bytes": 45206,
+          "bytes": 48353,
           "width": 600,
           "height": 1298,
           "seconds": 6
@@ -449,11 +449,11 @@
         "poster": {
           "avif": {
             "src": "/captures/ar/song-poster.avif",
-            "bytes": 12567
+            "bytes": 12255
           },
           "jpg": {
             "src": "/captures/ar/song-poster.jpg",
-            "bytes": 33997
+            "bytes": 33926
           },
           "width": 600,
           "height": 1298

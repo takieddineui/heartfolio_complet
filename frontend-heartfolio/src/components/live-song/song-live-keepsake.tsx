@@ -166,7 +166,12 @@ export function SongLiveKeepsake({ values, locale }: SongLiveKeepsakeProps) {
       <div className={styles.stage}>
         <OpeningMark />
 
-        <RevealGroup>
+        {/* A centred column of its own: the group, not `.stage`, is the flex
+            container its items sit in. As a plain block it took its widest
+            child's width and left the disc (and a short dedication) at its
+            start edge: 28-37px left of centre on a phone, right on /ar
+            (found in the storefront captures, 27 Oct 2026). */}
+        <RevealGroup className={styles.content}>
           {values.photo?.url && (
             <RevealItem className={styles.photo}>
               {/* eslint-disable-next-line @next/next/no-img-element --

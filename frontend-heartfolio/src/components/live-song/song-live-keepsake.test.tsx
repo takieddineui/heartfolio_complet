@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react";
+import { readFileSync } from "node:fs";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { SongLiveKeepsake } from "./song-live-keepsake";
 
@@ -146,3 +147,30 @@ describe("SongLiveKeepsake in the order's language", () => {
   });
 });
 
+
+/**
+ * THE DISC IS CENTRED (27 Oct 2026). Its items sat in a plain block wrapper
+ * (the reveal group), not in `.stage`'s centred flex column, so the
+ * fixed-width disc and a short dedication sat at the wrapper's start edge:
+ * 28-37px left of centre on 375-430px phones, as far right on /ar. jsdom has
+ * no layout, so this pins the rules that centre them; the measurement (every
+ * element's centre at 375/390/430 in en/fr/ar) was made in a browser.
+ */
+describe("SongLiveKeepsake layout", () => {
+  const css = readFileSync("src/components/live-song/song-live-keepsake.module.css", "utf8");
+  const rule = (selector: string) => css.match(new RegExp(`\n${selector.replace(".", "\.")} \{([^}]*)\}`))?.[1] ?? "";
+
+  it("puts every item in a centred column of its own", () => {
+    const content = rule(".content");
+    expect(content).toMatch(/display:\s*flex/);
+    expect(content).toMatch(/flex-direction:\s*column/);
+    expect(content).toMatch(/align-items:\s*center/);
+    expect(content).toMatch(/width:\s*100%/);
+    const source = readFileSync("src/components/live-song/song-live-keepsake.tsx", "utf8");
+    expect(source).toMatch(/<RevealGroup className=\{styles\.content\}>/);
+  });
+
+  it("centres the disc without a physical side", () => {
+    expect(rule(".photo")).not.toMatch(/margin-(left|right)|float/);
+  });
+});
