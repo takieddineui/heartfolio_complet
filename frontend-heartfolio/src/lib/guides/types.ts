@@ -12,6 +12,8 @@ export type GuideLocale = "en" | "fr" | "ar";
  *  a product mention is a real link to its page, checked by the guards. */
 export type GuideBlock =
   | { type: "h2"; text: string }
+  /** A subheading inside a section (e.g. groups of examples). */
+  | { type: "h3"; text: string }
   | { type: "p"; text: string }
   | { type: "list"; items: string[] }
   /** A keepsake the section is about: its name, why it fits here (`note`)

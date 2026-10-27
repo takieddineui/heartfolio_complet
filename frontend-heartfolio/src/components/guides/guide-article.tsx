@@ -25,6 +25,12 @@ export async function GuideArticle({ translation, locale }: { translation: Guide
             {typeset(block.text, locale)}
           </h2>
         );
+      case "h3":
+        return (
+          <h3 key={index} className="mt-9 font-serif text-xl leading-snug text-heading">
+            {typeset(block.text, locale)}
+          </h3>
+        );
       case "p":
         return (
           <p key={index} className="mt-5 text-[17px] leading-relaxed text-body/85">
