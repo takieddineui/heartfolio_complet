@@ -1,6 +1,6 @@
 import type { GuideTranslation } from "@/lib/guides/types";
 
-/** DRAFT for the owner's review (27 Oct 2026). French follows approval. */
+/** Published 27 Oct 2026, with the French (owner's approval). */
 export const en: GuideTranslation = {
   slug: "how-to-make-a-relationship-timeline",
   title: "How to build your relationship timeline, step by step",
@@ -9,7 +9,7 @@ export const en: GuideTranslation = {
     "How to build the timeline of your relationship: finding the dates, choosing the moments that matter, writing each one, and giving it as a gift.",
   published: "2026-10-27",
   updated: "2026-10-27",
-  status: "draft",
+  status: "published",
   intro:
     "A relationship timeline is your story told in order: how you met, the moments that changed things, and where you are now. It makes a moving anniversary gift, and building it is a gift in itself, because it sends you back through photos and messages you had half forgotten. It takes an evening. Here is how to do it, step by step.",
   blocks: [

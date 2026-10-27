@@ -1,8 +1,8 @@
 import type { GuideTranslation } from "@/lib/guides/types";
 
-/** Written in French, not translated (27 Oct 2026). DRAFT for the owner's
- *  review; published together with the English. No gendered agreements and
- *  no point médian (CLAUDE.md). */
+/** Written in French, not translated. Published 27 Oct 2026 with the
+ *  English (owner's approval). No gendered agreements and no point médian
+ *  (CLAUDE.md). */
 export const fr: GuideTranslation = {
   slug: "frise-chronologique-de-couple",
   title: "Comment faire la frise chronologique de votre couple, étape par étape",
@@ -11,7 +11,7 @@ export const fr: GuideTranslation = {
     "Comment créer la frise chronologique de votre histoire : retrouver les dates, choisir les moments qui comptent, écrire chacun et l'offrir en cadeau.",
   published: "2026-10-27",
   updated: "2026-10-27",
-  status: "draft",
+  status: "published",
   intro:
     "La frise chronologique d'un couple, c'est votre histoire racontée dans l'ordre : la rencontre, les moments qui ont tout changé, et là où vous en êtes aujourd'hui. C'est un très beau cadeau d'anniversaire, et la fabriquer est déjà un cadeau en soi : elle vous fait replonger dans des photos et des messages à moitié oubliés. Comptez une soirée. Voici comment faire, étape par étape.",
   blocks: [

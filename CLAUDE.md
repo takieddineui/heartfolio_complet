@@ -484,9 +484,9 @@ Two were genuine product bugs: the `layout` default above, and
   customer is affected. Fix as the live page does: `getBackendOrigin()`
   outside the `try`, then a server `fetch` (forwarding `X-Forwarded-For`),
   and a test that a valid id renders the scene.
-- **CONTENT SECTION (`/guides`): LIVE 27 Oct 2026. Two guides PUBLISHED in
+- **CONTENT SECTION (`/guides`): LIVE 27 Oct 2026. Three guides PUBLISHED in
   English and French** (anniversary ideas; reasons I love you, with its own
-  French examples); the relationship timeline guide is an English DRAFT. The
+  French examples; the relationship timeline). The
   guides are surfaced, in languages with published guides only and updating
   by themselves: the header's "Gift ideas", the home page's "Need ideas?"
   (before the FAQ, a different keepsake still per card, `guideCovers`) and
@@ -502,7 +502,7 @@ Two were genuine product bugs: the `layout` default above, and
   Heartfolio team". First batch, each written natively per language, not
   translated: anniversary/Valentine's ideas that aren't objects (PUBLISHED,
   `src/content/guides/anniversary-ideas/`), reasons I love you with
-  examples (PUBLISHED), how to build a relationship timeline (English DRAFT), last-minute gifts that still
+  examples (PUBLISHED), how to build a relationship timeline (PUBLISHED), last-minute gifts that still
   feel personal, graduation gifts from everyone (Graduation Keepsake is in
   `GUIDE_COVERAGE_PENDING` until then). Search volumes are unverified
   hypotheses: check them in Keyword Planner/Search Console first. Timing: the
