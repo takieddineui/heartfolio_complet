@@ -166,6 +166,10 @@ describe("SongLiveKeepsake layout", () => {
     expect(content).toMatch(/flex-direction:\s*column/);
     expect(content).toMatch(/align-items:\s*center/);
     expect(content).toMatch(/width:\s*100%/);
+    // The stage's spacing, between disc, title, player and dedication (owner,
+    // 27 Oct 2026): it never applied while the items sat in a plain block.
+    expect(content).toMatch(/gap:\s*28px/);
+    expect(rule(".stage")).toMatch(/gap:\s*28px/);
     const source = readFileSync("src/components/live-song/song-live-keepsake.tsx", "utf8");
     expect(source).toMatch(/<RevealGroup className=\{styles\.content\}>/);
   });

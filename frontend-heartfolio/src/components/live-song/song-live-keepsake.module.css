@@ -50,6 +50,9 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  /* The stage's own 28px, which never reached these items while they sat in
+     a plain block (the title touched the disc, the player the artist). */
+  gap: 28px;
 }
 
 .photo {
