@@ -1,0 +1,152 @@
+[
+ {
+  "product": "graduation-keepsake",
+  "scenario": "scenario-01",
+  "locale": "en",
+  "file": "graduation-keepsake/scenario-01/en/mobile-state-01-start.png",
+  "viewport": "390x844",
+  "state": "mobile-state-01-start",
+  "page_dims": "390x844",
+  "fullPage": false
+ },
+ {
+  "product": "graduation-keepsake",
+  "scenario": "scenario-01",
+  "locale": "en",
+  "file": "graduation-keepsake/scenario-01/en/mobile-state-02-journey.png",
+  "viewport": "390x844",
+  "state": "mobile-state-02-journey",
+  "page_dims": "390x844",
+  "fullPage": false
+ },
+ {
+  "product": "graduation-keepsake",
+  "scenario": "scenario-01",
+  "locale": "en",
+  "file": "graduation-keepsake/scenario-01/en/mobile-state-03-ending.png",
+  "viewport": "390x844",
+  "state": "mobile-state-03-ending",
+  "page_dims": "390x844",
+  "fullPage": false
+ },
+ {
+  "product": "graduation-keepsake",
+  "scenario": "scenario-01",
+  "locale": "en",
+  "file": "graduation-keepsake/scenario-01/en/mobile-full-page.png",
+  "viewport": "390x844",
+  "state": "mobile-full-page",
+  "page_dims": "390x844",
+  "fullPage": true
+ },
+ {
+  "product": "graduation-keepsake",
+  "scenario": "scenario-01",
+  "locale": "en",
+  "file": "graduation-keepsake/scenario-01/en/desktop-full-page.png",
+  "viewport": "1440x900",
+  "state": "desktop-full-page",
+  "page_dims": "1440x900",
+  "fullPage": true
+ },
+ {
+  "product": "graduation-keepsake",
+  "scenario": "scenario-01",
+  "locale": "fr",
+  "file": "graduation-keepsake/scenario-01/fr/mobile-state-01-start.png",
+  "viewport": "390x844",
+  "state": "mobile-state-01-start",
+  "page_dims": "390x844",
+  "fullPage": false
+ },
+ {
+  "product": "graduation-keepsake",
+  "scenario": "scenario-01",
+  "locale": "fr",
+  "file": "graduation-keepsake/scenario-01/fr/mobile-state-02-journey.png",
+  "viewport": "390x844",
+  "state": "mobile-state-02-journey",
+  "page_dims": "390x844",
+  "fullPage": false
+ },
+ {
+  "product": "graduation-keepsake",
+  "scenario": "scenario-01",
+  "locale": "fr",
+  "file": "graduation-keepsake/scenario-01/fr/mobile-state-03-ending.png",
+  "viewport": "390x844",
+  "state": "mobile-state-03-ending",
+  "page_dims": "390x844",
+  "fullPage": false
+ },
+ {
+  "product": "graduation-keepsake",
+  "scenario": "scenario-01",
+  "locale": "fr",
+  "file": "graduation-keepsake/scenario-01/fr/mobile-full-page.png",
+  "viewport": "390x844",
+  "state": "mobile-full-page",
+  "page_dims": "390x844",
+  "fullPage": true
+ },
+ {
+  "product": "graduation-keepsake",
+  "scenario": "scenario-01",
+  "locale": "fr",
+  "file": "graduation-keepsake/scenario-01/fr/desktop-full-page.png",
+  "viewport": "1440x900",
+  "state": "desktop-full-page",
+  "page_dims": "1440x900",
+  "fullPage": true
+ },
+ {
+  "product": "graduation-keepsake",
+  "scenario": "scenario-01",
+  "locale": "ar",
+  "file": "graduation-keepsake/scenario-01/ar/mobile-state-01-start.png",
+  "viewport": "390x844",
+  "state": "mobile-state-01-start",
+  "page_dims": "390x844",
+  "fullPage": false
+ },
+ {
+  "product": "graduation-keepsake",
+  "scenario": "scenario-01",
+  "locale": "ar",
+  "file": "graduation-keepsake/scenario-01/ar/mobile-state-02-journey.png",
+  "viewport": "390x844",
+  "state": "mobile-state-02-journey",
+  "page_dims": "390x844",
+  "fullPage": false
+ },
+ {
+  "product": "graduation-keepsake",
+  "scenario": "scenario-01",
+  "locale": "ar",
+  "file": "graduation-keepsake/scenario-01/ar/mobile-state-03-ending.png",
+  "viewport": "390x844",
+  "state": "mobile-state-03-ending",
+  "page_dims": "390x844",
+  "fullPage": false
+ },
+ {
+  "product": "graduation-keepsake",
+  "scenario": "scenario-01",
+  "locale": "ar",
+  "file": "graduation-keepsake/scenario-01/ar/mobile-full-page.png",
+  "viewport": "390x844",
+  "state": "mobile-full-page",
+  "page_dims": "390x844",
+  "fullPage": true
+ },
+ {
+  "product": "graduation-keepsake",
+  "scenario": "scenario-01",
+  "locale": "ar",
+  "file": "graduation-keepsake/scenario-01/ar/desktop-full-page.png",
+  "viewport": "1440x900",
+  "state": "desktop-full-page",
+  "page_dims": "1440x900",
+  "fullPage": true
+ }
+]
