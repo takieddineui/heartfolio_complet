@@ -1,0 +1,1058 @@
+[
+ [
+  "series-a-posters",
+  "en",
+  "series-a-posters/en/flats/love-story-timeline-neat-stack.png",
+  "Flat · LST · Neat Stack"
+ ],
+ [
+  "series-a-posters",
+  "en",
+  "series-a-posters/en/framed/love-story-timeline-neat-stack.png",
+  "Framed · LST · Neat Stack"
+ ],
+ [
+  "series-a-posters",
+  "en",
+  "series-a-posters/en/flats/love-story-timeline-alternating-tilt.png",
+  "Flat · LST · Alternating Tilt"
+ ],
+ [
+  "series-a-posters",
+  "en",
+  "series-a-posters/en/framed/love-story-timeline-alternating-tilt.png",
+  "Framed · LST · Alternating Tilt"
+ ],
+ [
+  "series-a-posters",
+  "en",
+  "series-a-posters/en/flats/love-story-timeline-overlapping-cascade.png",
+  "Flat · LST · Overlapping Cascade"
+ ],
+ [
+  "series-a-posters",
+  "en",
+  "series-a-posters/en/framed/love-story-timeline-overlapping-cascade.png",
+  "Framed · LST · Overlapping Cascade"
+ ],
+ [
+  "series-a-posters",
+  "en",
+  "series-a-posters/en/flats/love-story-timeline-dotted-branching.png",
+  "Flat · LST · Dotted Branching"
+ ],
+ [
+  "series-a-posters",
+  "en",
+  "series-a-posters/en/framed/love-story-timeline-dotted-branching.png",
+  "Framed · LST · Dotted Branching"
+ ],
+ [
+  "series-a-posters",
+  "en",
+  "series-a-posters/en/flats/love-story-timeline-horizontal-polaroid.png",
+  "Flat · LST · Horizontal Polaroids"
+ ],
+ [
+  "series-a-posters",
+  "en",
+  "series-a-posters/en/framed/love-story-timeline-horizontal-polaroid.png",
+  "Framed · LST · Horizontal Polaroids"
+ ],
+ [
+  "series-a-posters",
+  "en",
+  "series-a-posters/en/flats/love-story-timeline-horizontal-circles.png",
+  "Flat · LST · Horizontal Circles"
+ ],
+ [
+  "series-a-posters",
+  "en",
+  "series-a-posters/en/framed/love-story-timeline-horizontal-circles.png",
+  "Framed · LST · Horizontal Circles"
+ ],
+ [
+  "series-a-posters",
+  "en",
+  "series-a-posters/en/flats/song-poster-player.png",
+  "Flat · Song · Player"
+ ],
+ [
+  "series-a-posters",
+  "en",
+  "series-a-posters/en/framed/song-poster-player.png",
+  "Framed · Song · Player"
+ ],
+ [
+  "series-a-posters",
+  "en",
+  "series-a-posters/en/flats/song-poster-ledger.png",
+  "Flat · Song · Ledger"
+ ],
+ [
+  "series-a-posters",
+  "en",
+  "series-a-posters/en/framed/song-poster-ledger.png",
+  "Framed · Song · Ledger"
+ ],
+ [
+  "series-a-posters",
+  "en",
+  "series-a-posters/en/flats/song-poster-ephemeris.png",
+  "Flat · Song · Ephemeris"
+ ],
+ [
+  "series-a-posters",
+  "en",
+  "series-a-posters/en/framed/song-poster-ephemeris.png",
+  "Framed · Song · Ephemeris"
+ ],
+ [
+  "series-a-posters",
+  "en",
+  "series-a-posters/en/flats/song-poster-contactsheet.png",
+  "Flat · Song · Contact Sheet"
+ ],
+ [
+  "series-a-posters",
+  "en",
+  "series-a-posters/en/framed/song-poster-contactsheet.png",
+  "Framed · Song · Contact Sheet"
+ ],
+ [
+  "series-a-posters",
+  "en",
+  "series-a-posters/en/flats/song-poster-label.png",
+  "Flat · Song · Label"
+ ],
+ [
+  "series-a-posters",
+  "en",
+  "series-a-posters/en/framed/song-poster-label.png",
+  "Framed · Song · Label"
+ ],
+ [
+  "series-a-posters",
+  "en",
+  "series-a-posters/en/flats/song-poster-award.png",
+  "Flat · Song · Award"
+ ],
+ [
+  "series-a-posters",
+  "en",
+  "series-a-posters/en/framed/song-poster-award.png",
+  "Framed · Song · Award"
+ ],
+ [
+  "series-a-posters",
+  "en",
+  "series-a-posters/en/flats/song-poster-sleeve.png",
+  "Flat · Song · Sleeve"
+ ],
+ [
+  "series-a-posters",
+  "en",
+  "series-a-posters/en/framed/song-poster-sleeve.png",
+  "Framed · Song · Sleeve"
+ ],
+ [
+  "series-a-posters",
+  "en",
+  "series-a-posters/en/flats/song-poster-mosaic.png",
+  "Flat · Song · Mosaic"
+ ],
+ [
+  "series-a-posters",
+  "en",
+  "series-a-posters/en/framed/song-poster-mosaic.png",
+  "Framed · Song · Mosaic"
+ ],
+ [
+  "series-a-posters",
+  "en",
+  "series-a-posters/en/posts/a1-lst-hero.png",
+  "A1 · LST hero"
+ ],
+ [
+  "series-a-posters",
+  "en",
+  "series-a-posters/en/posts/a2-lst-cascade.png",
+  "A2 · LST Overlapping Cascade"
+ ],
+ [
+  "series-a-posters",
+  "en",
+  "series-a-posters/en/posts/a3-lst-dotted.png",
+  "A3 · LST Dotted Branching"
+ ],
+ [
+  "series-a-posters",
+  "en",
+  "series-a-posters/en/posts/a4-song-hero.png",
+  "A4 · Song hero"
+ ],
+ [
+  "series-a-posters",
+  "en",
+  "series-a-posters/en/posts/a5-song-mosaic.png",
+  "A5 · Song Mosaic"
+ ],
+ [
+  "series-a-posters",
+  "en",
+  "series-a-posters/en/posts/a6-song-ledger.png",
+  "A6 · Song Ledger"
+ ],
+ [
+  "series-a-posters",
+  "en",
+  "series-a-posters/en/posts/a7-printready.png",
+  "A7 · Print-ready claim"
+ ],
+ [
+  "series-a-posters",
+  "en",
+  "series-a-posters/en/posts/a8-dedication-quote.png",
+  "A8 · Example dedication"
+ ],
+ [
+  "series-a-posters",
+  "en",
+  "series-a-posters/en/carousel-six-styles/slide-1-cover.png",
+  "Carousel A · cover + Neat Stack"
+ ],
+ [
+  "series-a-posters",
+  "en",
+  "series-a-posters/en/carousel-six-styles/slide-2-alternating-tilt.png",
+  "Carousel A · Alternating Tilt"
+ ],
+ [
+  "series-a-posters",
+  "en",
+  "series-a-posters/en/carousel-six-styles/slide-3-overlapping-cascade.png",
+  "Carousel A · Overlapping Cascade"
+ ],
+ [
+  "series-a-posters",
+  "en",
+  "series-a-posters/en/carousel-six-styles/slide-4-dotted-branching.png",
+  "Carousel A · Dotted Branching"
+ ],
+ [
+  "series-a-posters",
+  "en",
+  "series-a-posters/en/carousel-six-styles/slide-5-horizontal-polaroid.png",
+  "Carousel A · Horizontal Polaroids"
+ ],
+ [
+  "series-a-posters",
+  "en",
+  "series-a-posters/en/carousel-six-styles/slide-6-horizontal-circles.png",
+  "Carousel A · Horizontal Circles"
+ ],
+ [
+  "series-b-live",
+  "en",
+  "series-b-live/en/posts/b1-scan.png",
+  "B1 · Scan or tap"
+ ],
+ [
+  "series-b-live",
+  "en",
+  "series-b-live/en/posts/b2-lst-live.png",
+  "B2 · LST live"
+ ],
+ [
+  "series-b-live",
+  "en",
+  "series-b-live/en/posts/b3-reasons-live.png",
+  "B3 · Reasons live + example"
+ ],
+ [
+  "series-b-live",
+  "en",
+  "series-b-live/en/posts/b4-grad-live.png",
+  "B4 · Graduation live"
+ ],
+ [
+  "series-b-live",
+  "en",
+  "series-b-live/en/posts/b5-song-live.png",
+  "B5 · Song live"
+ ],
+ [
+  "series-b-live",
+  "en",
+  "series-b-live/en/posts/b6-noapp.png",
+  "B6 · No app claim"
+ ],
+ [
+  "series-b-live",
+  "en",
+  "series-b-live/en/carousel-how-it-works/slide-1-cover.png",
+  "How it works · cover"
+ ],
+ [
+  "series-b-live",
+  "en",
+  "series-b-live/en/carousel-how-it-works/slide-2-step1.png",
+  "How it works · step 1"
+ ],
+ [
+  "series-b-live",
+  "en",
+  "series-b-live/en/carousel-how-it-works/slide-3-step2.png",
+  "How it works · step 2"
+ ],
+ [
+  "series-b-live",
+  "en",
+  "series-b-live/en/carousel-how-it-works/slide-4-step3.png",
+  "How it works · step 3"
+ ],
+ [
+  "series-b-live",
+  "en",
+  "series-b-live/en/carousel-how-it-works/slide-5-step4.png",
+  "How it works · step 4"
+ ],
+ [
+  "series-b-live",
+  "en",
+  "series-b-live/en/carousel-reasons-examples/slide-1-cover.png",
+  "Reasons examples · cover"
+ ],
+ [
+  "series-b-live",
+  "en",
+  "series-b-live/en/carousel-reasons-examples/slide-2-group.png",
+  "Reasons examples · Small, everyday things"
+ ],
+ [
+  "series-b-live",
+  "en",
+  "series-b-live/en/carousel-reasons-examples/slide-3-group.png",
+  "Reasons examples · How they are with other people"
+ ],
+ [
+  "series-b-live",
+  "en",
+  "series-b-live/en/carousel-reasons-examples/slide-4-group.png",
+  "Reasons examples · Moments you won't forget"
+ ],
+ [
+  "series-b-live",
+  "en",
+  "series-b-live/en/carousel-reasons-examples/slide-5-finale.png",
+  "Reasons examples · finale"
+ ],
+ [
+  "series-b-live",
+  "en",
+  "series-b-live/en/carousel-reasons-examples/slide-6-cta.png",
+  "Reasons examples · CTA"
+ ],
+ [
+  "series-a-posters",
+  "fr",
+  "series-a-posters/fr/flats/love-story-timeline-neat-stack.png",
+  "Flat · LST · Neat Stack"
+ ],
+ [
+  "series-a-posters",
+  "fr",
+  "series-a-posters/fr/framed/love-story-timeline-neat-stack.png",
+  "Framed · LST · Neat Stack"
+ ],
+ [
+  "series-a-posters",
+  "fr",
+  "series-a-posters/fr/flats/love-story-timeline-alternating-tilt.png",
+  "Flat · LST · Alternating Tilt"
+ ],
+ [
+  "series-a-posters",
+  "fr",
+  "series-a-posters/fr/framed/love-story-timeline-alternating-tilt.png",
+  "Framed · LST · Alternating Tilt"
+ ],
+ [
+  "series-a-posters",
+  "fr",
+  "series-a-posters/fr/flats/love-story-timeline-overlapping-cascade.png",
+  "Flat · LST · Overlapping Cascade"
+ ],
+ [
+  "series-a-posters",
+  "fr",
+  "series-a-posters/fr/framed/love-story-timeline-overlapping-cascade.png",
+  "Framed · LST · Overlapping Cascade"
+ ],
+ [
+  "series-a-posters",
+  "fr",
+  "series-a-posters/fr/flats/love-story-timeline-dotted-branching.png",
+  "Flat · LST · Dotted Branching"
+ ],
+ [
+  "series-a-posters",
+  "fr",
+  "series-a-posters/fr/framed/love-story-timeline-dotted-branching.png",
+  "Framed · LST · Dotted Branching"
+ ],
+ [
+  "series-a-posters",
+  "fr",
+  "series-a-posters/fr/flats/love-story-timeline-horizontal-polaroid.png",
+  "Flat · LST · Horizontal Polaroids"
+ ],
+ [
+  "series-a-posters",
+  "fr",
+  "series-a-posters/fr/framed/love-story-timeline-horizontal-polaroid.png",
+  "Framed · LST · Horizontal Polaroids"
+ ],
+ [
+  "series-a-posters",
+  "fr",
+  "series-a-posters/fr/flats/love-story-timeline-horizontal-circles.png",
+  "Flat · LST · Horizontal Circles"
+ ],
+ [
+  "series-a-posters",
+  "fr",
+  "series-a-posters/fr/framed/love-story-timeline-horizontal-circles.png",
+  "Framed · LST · Horizontal Circles"
+ ],
+ [
+  "series-a-posters",
+  "fr",
+  "series-a-posters/fr/flats/song-poster-player.png",
+  "Flat · Song · Player"
+ ],
+ [
+  "series-a-posters",
+  "fr",
+  "series-a-posters/fr/framed/song-poster-player.png",
+  "Framed · Song · Player"
+ ],
+ [
+  "series-a-posters",
+  "fr",
+  "series-a-posters/fr/flats/song-poster-ledger.png",
+  "Flat · Song · Ledger"
+ ],
+ [
+  "series-a-posters",
+  "fr",
+  "series-a-posters/fr/framed/song-poster-ledger.png",
+  "Framed · Song · Ledger"
+ ],
+ [
+  "series-a-posters",
+  "fr",
+  "series-a-posters/fr/flats/song-poster-ephemeris.png",
+  "Flat · Song · Ephemeris"
+ ],
+ [
+  "series-a-posters",
+  "fr",
+  "series-a-posters/fr/framed/song-poster-ephemeris.png",
+  "Framed · Song · Ephemeris"
+ ],
+ [
+  "series-a-posters",
+  "fr",
+  "series-a-posters/fr/flats/song-poster-contactsheet.png",
+  "Flat · Song · Contact Sheet"
+ ],
+ [
+  "series-a-posters",
+  "fr",
+  "series-a-posters/fr/framed/song-poster-contactsheet.png",
+  "Framed · Song · Contact Sheet"
+ ],
+ [
+  "series-a-posters",
+  "fr",
+  "series-a-posters/fr/flats/song-poster-label.png",
+  "Flat · Song · Label"
+ ],
+ [
+  "series-a-posters",
+  "fr",
+  "series-a-posters/fr/framed/song-poster-label.png",
+  "Framed · Song · Label"
+ ],
+ [
+  "series-a-posters",
+  "fr",
+  "series-a-posters/fr/flats/song-poster-award.png",
+  "Flat · Song · Award"
+ ],
+ [
+  "series-a-posters",
+  "fr",
+  "series-a-posters/fr/framed/song-poster-award.png",
+  "Framed · Song · Award"
+ ],
+ [
+  "series-a-posters",
+  "fr",
+  "series-a-posters/fr/flats/song-poster-sleeve.png",
+  "Flat · Song · Sleeve"
+ ],
+ [
+  "series-a-posters",
+  "fr",
+  "series-a-posters/fr/framed/song-poster-sleeve.png",
+  "Framed · Song · Sleeve"
+ ],
+ [
+  "series-a-posters",
+  "fr",
+  "series-a-posters/fr/flats/song-poster-mosaic.png",
+  "Flat · Song · Mosaic"
+ ],
+ [
+  "series-a-posters",
+  "fr",
+  "series-a-posters/fr/framed/song-poster-mosaic.png",
+  "Framed · Song · Mosaic"
+ ],
+ [
+  "series-a-posters",
+  "fr",
+  "series-a-posters/fr/posts/a1-lst-hero.png",
+  "A1 · LST hero"
+ ],
+ [
+  "series-a-posters",
+  "fr",
+  "series-a-posters/fr/posts/a2-lst-cascade.png",
+  "A2 · LST Overlapping Cascade"
+ ],
+ [
+  "series-a-posters",
+  "fr",
+  "series-a-posters/fr/posts/a3-lst-dotted.png",
+  "A3 · LST Dotted Branching"
+ ],
+ [
+  "series-a-posters",
+  "fr",
+  "series-a-posters/fr/posts/a4-song-hero.png",
+  "A4 · Song hero"
+ ],
+ [
+  "series-a-posters",
+  "fr",
+  "series-a-posters/fr/posts/a5-song-mosaic.png",
+  "A5 · Song Mosaic"
+ ],
+ [
+  "series-a-posters",
+  "fr",
+  "series-a-posters/fr/posts/a6-song-ledger.png",
+  "A6 · Song Ledger"
+ ],
+ [
+  "series-a-posters",
+  "fr",
+  "series-a-posters/fr/posts/a7-printready.png",
+  "A7 · Print-ready claim"
+ ],
+ [
+  "series-a-posters",
+  "fr",
+  "series-a-posters/fr/posts/a8-dedication-quote.png",
+  "A8 · Example dedication"
+ ],
+ [
+  "series-a-posters",
+  "fr",
+  "series-a-posters/fr/carousel-six-styles/slide-1-cover.png",
+  "Carousel A · cover + Neat Stack"
+ ],
+ [
+  "series-a-posters",
+  "fr",
+  "series-a-posters/fr/carousel-six-styles/slide-2-alternating-tilt.png",
+  "Carousel A · Alternating Tilt"
+ ],
+ [
+  "series-a-posters",
+  "fr",
+  "series-a-posters/fr/carousel-six-styles/slide-3-overlapping-cascade.png",
+  "Carousel A · Overlapping Cascade"
+ ],
+ [
+  "series-a-posters",
+  "fr",
+  "series-a-posters/fr/carousel-six-styles/slide-4-dotted-branching.png",
+  "Carousel A · Dotted Branching"
+ ],
+ [
+  "series-a-posters",
+  "fr",
+  "series-a-posters/fr/carousel-six-styles/slide-5-horizontal-polaroid.png",
+  "Carousel A · Horizontal Polaroids"
+ ],
+ [
+  "series-a-posters",
+  "fr",
+  "series-a-posters/fr/carousel-six-styles/slide-6-horizontal-circles.png",
+  "Carousel A · Horizontal Circles"
+ ],
+ [
+  "series-b-live",
+  "fr",
+  "series-b-live/fr/posts/b1-scan.png",
+  "B1 · Scan or tap"
+ ],
+ [
+  "series-b-live",
+  "fr",
+  "series-b-live/fr/posts/b2-lst-live.png",
+  "B2 · LST live"
+ ],
+ [
+  "series-b-live",
+  "fr",
+  "series-b-live/fr/posts/b3-reasons-live.png",
+  "B3 · Reasons live + example"
+ ],
+ [
+  "series-b-live",
+  "fr",
+  "series-b-live/fr/posts/b4-grad-live.png",
+  "B4 · Graduation live"
+ ],
+ [
+  "series-b-live",
+  "fr",
+  "series-b-live/fr/posts/b5-song-live.png",
+  "B5 · Song live"
+ ],
+ [
+  "series-b-live",
+  "fr",
+  "series-b-live/fr/posts/b6-noapp.png",
+  "B6 · No app claim"
+ ],
+ [
+  "series-b-live",
+  "fr",
+  "series-b-live/fr/carousel-how-it-works/slide-1-cover.png",
+  "How it works · cover"
+ ],
+ [
+  "series-b-live",
+  "fr",
+  "series-b-live/fr/carousel-how-it-works/slide-2-step1.png",
+  "How it works · step 1"
+ ],
+ [
+  "series-b-live",
+  "fr",
+  "series-b-live/fr/carousel-how-it-works/slide-3-step2.png",
+  "How it works · step 2"
+ ],
+ [
+  "series-b-live",
+  "fr",
+  "series-b-live/fr/carousel-how-it-works/slide-4-step3.png",
+  "How it works · step 3"
+ ],
+ [
+  "series-b-live",
+  "fr",
+  "series-b-live/fr/carousel-how-it-works/slide-5-step4.png",
+  "How it works · step 4"
+ ],
+ [
+  "series-b-live",
+  "fr",
+  "series-b-live/fr/carousel-reasons-examples/slide-1-cover.png",
+  "Reasons examples · cover"
+ ],
+ [
+  "series-b-live",
+  "fr",
+  "series-b-live/fr/carousel-reasons-examples/slide-2-group.png",
+  "Reasons examples · Les petits riens du quotidien"
+ ],
+ [
+  "series-b-live",
+  "fr",
+  "series-b-live/fr/carousel-reasons-examples/slide-3-group.png",
+  "Reasons examples · Sa façon d'être avec les autres"
+ ],
+ [
+  "series-b-live",
+  "fr",
+  "series-b-live/fr/carousel-reasons-examples/slide-4-group.png",
+  "Reasons examples · Des moments inoubliables"
+ ],
+ [
+  "series-b-live",
+  "fr",
+  "series-b-live/fr/carousel-reasons-examples/slide-5-finale.png",
+  "Reasons examples · finale"
+ ],
+ [
+  "series-b-live",
+  "fr",
+  "series-b-live/fr/carousel-reasons-examples/slide-6-cta.png",
+  "Reasons examples · CTA"
+ ],
+ [
+  "series-a-posters",
+  "ar",
+  "series-a-posters/ar/flats/love-story-timeline-neat-stack.png",
+  "Flat · LST · Neat Stack"
+ ],
+ [
+  "series-a-posters",
+  "ar",
+  "series-a-posters/ar/framed/love-story-timeline-neat-stack.png",
+  "Framed · LST · Neat Stack"
+ ],
+ [
+  "series-a-posters",
+  "ar",
+  "series-a-posters/ar/flats/love-story-timeline-alternating-tilt.png",
+  "Flat · LST · Alternating Tilt"
+ ],
+ [
+  "series-a-posters",
+  "ar",
+  "series-a-posters/ar/framed/love-story-timeline-alternating-tilt.png",
+  "Framed · LST · Alternating Tilt"
+ ],
+ [
+  "series-a-posters",
+  "ar",
+  "series-a-posters/ar/flats/love-story-timeline-overlapping-cascade.png",
+  "Flat · LST · Overlapping Cascade"
+ ],
+ [
+  "series-a-posters",
+  "ar",
+  "series-a-posters/ar/framed/love-story-timeline-overlapping-cascade.png",
+  "Framed · LST · Overlapping Cascade"
+ ],
+ [
+  "series-a-posters",
+  "ar",
+  "series-a-posters/ar/flats/love-story-timeline-dotted-branching.png",
+  "Flat · LST · Dotted Branching"
+ ],
+ [
+  "series-a-posters",
+  "ar",
+  "series-a-posters/ar/framed/love-story-timeline-dotted-branching.png",
+  "Framed · LST · Dotted Branching"
+ ],
+ [
+  "series-a-posters",
+  "ar",
+  "series-a-posters/ar/flats/love-story-timeline-horizontal-polaroid.png",
+  "Flat · LST · Horizontal Polaroids"
+ ],
+ [
+  "series-a-posters",
+  "ar",
+  "series-a-posters/ar/framed/love-story-timeline-horizontal-polaroid.png",
+  "Framed · LST · Horizontal Polaroids"
+ ],
+ [
+  "series-a-posters",
+  "ar",
+  "series-a-posters/ar/flats/love-story-timeline-horizontal-circles.png",
+  "Flat · LST · Horizontal Circles"
+ ],
+ [
+  "series-a-posters",
+  "ar",
+  "series-a-posters/ar/framed/love-story-timeline-horizontal-circles.png",
+  "Framed · LST · Horizontal Circles"
+ ],
+ [
+  "series-a-posters",
+  "ar",
+  "series-a-posters/ar/flats/song-poster-player.png",
+  "Flat · Song · Player"
+ ],
+ [
+  "series-a-posters",
+  "ar",
+  "series-a-posters/ar/framed/song-poster-player.png",
+  "Framed · Song · Player"
+ ],
+ [
+  "series-a-posters",
+  "ar",
+  "series-a-posters/ar/flats/song-poster-ledger.png",
+  "Flat · Song · Ledger"
+ ],
+ [
+  "series-a-posters",
+  "ar",
+  "series-a-posters/ar/framed/song-poster-ledger.png",
+  "Framed · Song · Ledger"
+ ],
+ [
+  "series-a-posters",
+  "ar",
+  "series-a-posters/ar/flats/song-poster-ephemeris.png",
+  "Flat · Song · Ephemeris"
+ ],
+ [
+  "series-a-posters",
+  "ar",
+  "series-a-posters/ar/framed/song-poster-ephemeris.png",
+  "Framed · Song · Ephemeris"
+ ],
+ [
+  "series-a-posters",
+  "ar",
+  "series-a-posters/ar/flats/song-poster-contactsheet.png",
+  "Flat · Song · Contact Sheet"
+ ],
+ [
+  "series-a-posters",
+  "ar",
+  "series-a-posters/ar/framed/song-poster-contactsheet.png",
+  "Framed · Song · Contact Sheet"
+ ],
+ [
+  "series-a-posters",
+  "ar",
+  "series-a-posters/ar/flats/song-poster-label.png",
+  "Flat · Song · Label"
+ ],
+ [
+  "series-a-posters",
+  "ar",
+  "series-a-posters/ar/framed/song-poster-label.png",
+  "Framed · Song · Label"
+ ],
+ [
+  "series-a-posters",
+  "ar",
+  "series-a-posters/ar/flats/song-poster-award.png",
+  "Flat · Song · Award"
+ ],
+ [
+  "series-a-posters",
+  "ar",
+  "series-a-posters/ar/framed/song-poster-award.png",
+  "Framed · Song · Award"
+ ],
+ [
+  "series-a-posters",
+  "ar",
+  "series-a-posters/ar/flats/song-poster-sleeve.png",
+  "Flat · Song · Sleeve"
+ ],
+ [
+  "series-a-posters",
+  "ar",
+  "series-a-posters/ar/framed/song-poster-sleeve.png",
+  "Framed · Song · Sleeve"
+ ],
+ [
+  "series-a-posters",
+  "ar",
+  "series-a-posters/ar/flats/song-poster-mosaic.png",
+  "Flat · Song · Mosaic"
+ ],
+ [
+  "series-a-posters",
+  "ar",
+  "series-a-posters/ar/framed/song-poster-mosaic.png",
+  "Framed · Song · Mosaic"
+ ],
+ [
+  "series-a-posters",
+  "ar",
+  "series-a-posters/ar/posts/a1-lst-hero.png",
+  "A1 · LST hero"
+ ],
+ [
+  "series-a-posters",
+  "ar",
+  "series-a-posters/ar/posts/a2-lst-cascade.png",
+  "A2 · LST Overlapping Cascade"
+ ],
+ [
+  "series-a-posters",
+  "ar",
+  "series-a-posters/ar/posts/a3-lst-dotted.png",
+  "A3 · LST Dotted Branching"
+ ],
+ [
+  "series-a-posters",
+  "ar",
+  "series-a-posters/ar/posts/a4-song-hero.png",
+  "A4 · Song hero"
+ ],
+ [
+  "series-a-posters",
+  "ar",
+  "series-a-posters/ar/posts/a5-song-mosaic.png",
+  "A5 · Song Mosaic"
+ ],
+ [
+  "series-a-posters",
+  "ar",
+  "series-a-posters/ar/posts/a6-song-ledger.png",
+  "A6 · Song Ledger"
+ ],
+ [
+  "series-a-posters",
+  "ar",
+  "series-a-posters/ar/posts/a7-printready.png",
+  "A7 · Print-ready claim"
+ ],
+ [
+  "series-a-posters",
+  "ar",
+  "series-a-posters/ar/posts/a8-dedication-quote.png",
+  "A8 · Example dedication"
+ ],
+ [
+  "series-a-posters",
+  "ar",
+  "series-a-posters/ar/carousel-six-styles/slide-1-cover.png",
+  "Carousel A · cover + Neat Stack"
+ ],
+ [
+  "series-a-posters",
+  "ar",
+  "series-a-posters/ar/carousel-six-styles/slide-2-alternating-tilt.png",
+  "Carousel A · Alternating Tilt"
+ ],
+ [
+  "series-a-posters",
+  "ar",
+  "series-a-posters/ar/carousel-six-styles/slide-3-overlapping-cascade.png",
+  "Carousel A · Overlapping Cascade"
+ ],
+ [
+  "series-a-posters",
+  "ar",
+  "series-a-posters/ar/carousel-six-styles/slide-4-dotted-branching.png",
+  "Carousel A · Dotted Branching"
+ ],
+ [
+  "series-a-posters",
+  "ar",
+  "series-a-posters/ar/carousel-six-styles/slide-5-horizontal-polaroid.png",
+  "Carousel A · Horizontal Polaroids"
+ ],
+ [
+  "series-a-posters",
+  "ar",
+  "series-a-posters/ar/carousel-six-styles/slide-6-horizontal-circles.png",
+  "Carousel A · Horizontal Circles"
+ ],
+ [
+  "series-b-live",
+  "ar",
+  "series-b-live/ar/posts/b1-scan.png",
+  "B1 · Scan or tap"
+ ],
+ [
+  "series-b-live",
+  "ar",
+  "series-b-live/ar/posts/b2-lst-live.png",
+  "B2 · LST live"
+ ],
+ [
+  "series-b-live",
+  "ar",
+  "series-b-live/ar/posts/b3-reasons-live.png",
+  "B3 · Reasons live + example"
+ ],
+ [
+  "series-b-live",
+  "ar",
+  "series-b-live/ar/posts/b4-grad-live.png",
+  "B4 · Graduation live"
+ ],
+ [
+  "series-b-live",
+  "ar",
+  "series-b-live/ar/posts/b5-song-live.png",
+  "B5 · Song live"
+ ],
+ [
+  "series-b-live",
+  "ar",
+  "series-b-live/ar/posts/b6-noapp.png",
+  "B6 · No app claim"
+ ],
+ [
+  "series-b-live",
+  "ar",
+  "series-b-live/ar/carousel-how-it-works/slide-1-cover.png",
+  "How it works · cover"
+ ],
+ [
+  "series-b-live",
+  "ar",
+  "series-b-live/ar/carousel-how-it-works/slide-2-step1.png",
+  "How it works · step 1"
+ ],
+ [
+  "series-b-live",
+  "ar",
+  "series-b-live/ar/carousel-how-it-works/slide-3-step2.png",
+  "How it works · step 2"
+ ],
+ [
+  "series-b-live",
+  "ar",
+  "series-b-live/ar/carousel-how-it-works/slide-4-step3.png",
+  "How it works · step 3"
+ ],
+ [
+  "series-b-live",
+  "ar",
+  "series-b-live/ar/carousel-how-it-works/slide-5-step4.png",
+  "How it works · step 4"
+ ],
+ [
+  "series-b-live",
+  "ar",
+  "series-b-live/ar/carousel-reasons-examples/slide-1-cover.png",
+  "Reasons examples · cover"
+ ],
+ [
+  "series-b-live",
+  "ar",
+  "series-b-live/ar/carousel-reasons-examples/slide-2-group.png",
+  "Reasons examples · أشياء صغيرة من كلّ يوم"
+ ],
+ [
+  "series-b-live",
+  "ar",
+  "series-b-live/ar/carousel-reasons-examples/slide-3-group.png",
+  "Reasons examples · طريقتها مع الآخرين"
+ ],
+ [
+  "series-b-live",
+  "ar",
+  "series-b-live/ar/carousel-reasons-examples/slide-4-finale.png",
+  "Reasons examples · finale"
+ ],
+ [
+  "series-b-live",
+  "ar",
+  "series-b-live/ar/carousel-reasons-examples/slide-5-cta.png",
+  "Reasons examples · CTA"
+ ]
+]
