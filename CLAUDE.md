@@ -503,8 +503,8 @@ Two were genuine product bugs: the `layout` default above, and
   translated: anniversary/Valentine's ideas that aren't objects (PUBLISHED,
   `src/content/guides/anniversary-ideas/`), reasons I love you with
   examples (PUBLISHED), how to build a relationship timeline (PUBLISHED), last-minute gifts that still
-  feel personal, graduation gifts from everyone (Graduation Keepsake is in
-  `GUIDE_COVERAGE_PENDING` until then). Search volumes are unverified
+  feel personal (English DRAFT; it also covers Graduation Keepsake, so
+  `GUIDE_COVERAGE_PENDING` is empty), graduation gifts from everyone. Search volumes are unverified
   hypotheses: check them in Keyword Planner/Search Console first. Timing: the
   love guides live by early December for Valentine's, graduation by March.
   **How it works:** a guide is `src/content/guides/<id>/` (an `index.ts` with

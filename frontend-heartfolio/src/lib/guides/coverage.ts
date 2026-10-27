@@ -6,5 +6,6 @@
  * guide exists; the test fails on a stale one.
  */
 export const GUIDE_COVERAGE_PENDING: Record<string, string> = {
-  "graduation-keepsake": "Its guide (graduation gifts from everyone) is in the approved plan, due by March (CLAUDE.md, /guides).",
+  // Empty since the last-minute guide covers Graduation Keepsake (27 Oct
+  // 2026); its own graduation guide is still planned for March.
 };

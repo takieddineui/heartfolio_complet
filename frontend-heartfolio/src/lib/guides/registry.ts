@@ -3,6 +3,7 @@ import { SITE_URL } from "@/lib/site-config";
 import { anniversaryIdeasGuide } from "@/content/guides/anniversary-ideas";
 import { reasonsGuide } from "@/content/guides/reasons-i-love-you";
 import { relationshipTimelineGuide } from "@/content/guides/relationship-timeline";
+import { lastMinuteGuide } from "@/content/guides/last-minute-gifts";
 import type { Guide, GuideLocale, GuideTranslation } from "./types";
 
 /**
@@ -10,7 +11,7 @@ import type { Guide, GuideLocale, GuideTranslation } from "./types";
  * `src/content/guides/<id>/` with an `index.ts` (the `Guide`) and one file
  * per language, then a line here. `guides.test.ts` checks the rest.
  */
-export const GUIDES: Guide[] = [anniversaryIdeasGuide, reasonsGuide, relationshipTimelineGuide];
+export const GUIDES: Guide[] = [anniversaryIdeasGuide, reasonsGuide, relationshipTimelineGuide, lastMinuteGuide];
 
 /**
  * A guide's capture loops together, per translation (`guides.test.ts`).
