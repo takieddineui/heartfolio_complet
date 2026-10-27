@@ -1,6 +1,6 @@
 import type { GuideTranslation } from "@/lib/guides/types";
 
-/** DRAFT for the owner's review (27 Oct 2026). French follows approval.
+/** Published 27 Oct 2026, with the French (owner's approval).
  *  Instant delivery is described as it is (the link and QR card arrive the
  *  moment they pay), with no claim about how long the making takes. */
 export const en: GuideTranslation = {
@@ -11,7 +11,7 @@ export const en: GuideTranslation = {
     "Last-minute gift ideas that still feel personal: what you can do tonight, what arrives the moment you pay, and how to give it well on the day.",
   published: "2026-10-27",
   updated: "2026-10-27",
-  status: "draft",
+  status: "published",
   intro:
     "The day is tomorrow, or it is today. Last-minute gifts have a bad name because the usual answer is something generic from the nearest shop. But a gift can be late and still be personal: what makes it feel personal is what is in it, not how long ago you bought it. Here are ideas that need an evening rather than a week, what you can give when nothing can be delivered in time, and how to give it well on the day.",
   blocks: [

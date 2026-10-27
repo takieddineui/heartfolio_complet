@@ -471,7 +471,8 @@ Two were genuine product bugs: the `layout` default above, and
   2026). The header's "Our Story" link pointed at the home page's removed
   "Why Heartfolio" section and was taken out rather than repointed; the
   About page is where that story belongs.
-- The `/guides` content plan continues (see "Still open").
+- The `/guides` content plan continues: the graduation guide, drafted in
+  February 2027 (see "Still open").
 
 ## Still open
 
@@ -484,9 +485,16 @@ Two were genuine product bugs: the `layout` default above, and
   customer is affected. Fix as the live page does: `getBackendOrigin()`
   outside the `try`, then a server `fetch` (forwarding `X-Forwarded-For`),
   and a test that a valid id renders the scene.
-- **CONTENT SECTION (`/guides`): LIVE 27 Oct 2026. Three guides PUBLISHED in
-  English and French** (anniversary ideas; reasons I love you, with its own
-  French examples; the relationship timeline). The
+- **CONTENT SECTION (`/guides`): LIVE 27 Oct 2026. THE FIRST BATCH IS DONE
+  except the graduation guide: four guides PUBLISHED in English and French**
+  (anniversary ideas; reasons I love you, with its own French examples; the
+  relationship timeline; last-minute gifts). **NEXT: draft the graduation
+  guide ("graduation gifts from everyone", Graduation Keepsake) in FEBRUARY
+  2027 (owner, 27 Oct 2026), so it is indexed before spring graduation
+  searches**; English first for review, then French. Guides play one capture
+  loop at a time (`exclusive="guide"`, `components/captures/exclusive-playback.ts`).
+  The home page's "Need ideas?" shows at most three (today the anniversary,
+  reasons and timeline guides); all four are on `/guides`. The
   guides are surfaced, in languages with published guides only and updating
   by themselves: the header's "Gift ideas", the home page's "Need ideas?"
   (before the FAQ, a different keepsake still per card, `guideCovers`) and
@@ -503,10 +511,12 @@ Two were genuine product bugs: the `layout` default above, and
   translated: anniversary/Valentine's ideas that aren't objects (PUBLISHED,
   `src/content/guides/anniversary-ideas/`), reasons I love you with
   examples (PUBLISHED), how to build a relationship timeline (PUBLISHED), last-minute gifts that still
-  feel personal (English DRAFT; it also covers Graduation Keepsake, so
-  `GUIDE_COVERAGE_PENDING` is empty), graduation gifts from everyone. Search volumes are unverified
+  feel personal (PUBLISHED; it also covers Graduation Keepsake, so
+  `GUIDE_COVERAGE_PENDING` is empty), graduation gifts from everyone (to
+  draft in February 2027). Search volumes are unverified
   hypotheses: check them in Keyword Planner/Search Console first. Timing: the
-  love guides live by early December for Valentine's, graduation by March.
+  love guides are live, well before Valentine's; the graduation guide is
+  drafted in February 2027, indexed before spring graduation searches.
   **How it works:** a guide is `src/content/guides/<id>/` (an `index.ts` with
   its products, one file per language with its own slug, dates and typed
   blocks; no Markdown parser), listed in `lib/guides/registry.ts`. A `draft`

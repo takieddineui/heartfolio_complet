@@ -1,7 +1,7 @@
 import type { GuideTranslation } from "@/lib/guides/types";
 
-/** Written in French, not translated (27 Oct 2026). DRAFT for the owner's
- *  review; published together with the English. The same honest claims:
+/** Written in French, not translated. Published 27 Oct 2026 with the
+ *  English (owner's approval). The same honest claims:
  *  the link and QR card arrive the moment they pay, nothing about how long
  *  the making takes. No gendered agreements, no point médian (CLAUDE.md). */
 export const fr: GuideTranslation = {
@@ -12,7 +12,7 @@ export const fr: GuideTranslation = {
     "Des idées de cadeaux de dernière minute qui restent personnels : ce que vous pouvez faire ce soir, ce qui arrive dès le paiement, et comment l'offrir le jour J.",
   published: "2026-10-27",
   updated: "2026-10-27",
-  status: "draft",
+  status: "published",
   intro:
     "C'est demain, ou c'est aujourd'hui. Les cadeaux de dernière minute ont mauvaise réputation, parce qu'on finit souvent par attraper quelque chose d'impersonnel dans le magasin le plus proche. Pourtant, un cadeau peut arriver tard et rester personnel : ce qui le rend personnel, c'est ce qu'il contient, pas la date à laquelle on l'a acheté. Voici des idées qui demandent une soirée plutôt qu'une semaine, ce qu'on peut offrir quand plus rien ne peut être livré à temps, et comment bien l'offrir le jour J.",
   blocks: [
