@@ -147,6 +147,25 @@ and imports production settings, so `DJANGO_ALLOWED_HOSTS` and
 nothing uses their values. `/app` is root-owned by `WORKDIR`, so
 `staticfiles` is created and chowned before `USER heartfolio`.
 
+**Regenerate `package-lock.json` ONLY with the image's own npm, never the
+host's (27 Oct 2026).** The `web` image broke: `npm ci` refused the lockfile
+("Missing: @swc/helpers@0.5.23 from lock file"), because the lock had been
+written by the host's npm (11.19 on Node 26), which leaves out an optional
+peer (next-intl's nested `@swc/core` wants `@swc/helpers >=0.5.17`) that the
+image's npm (10.8 on `node:20-slim`) required. Two npms, one lockfile.
+Production builds from the same Dockerfile, so it blocked the deploy too. The
+image is `node:24-slim` in every stage (Node 24.22.1, npm 11.19.1 when
+moved; it was `node:20-slim`, below what @supabase/* and jsdom declare);
+`engines` (`^24.15.0 || >=26.0.0`, jsdom's own range, since the host runs the
+tests on 26) and `.nvmrc` say the same. To add, remove or re-resolve a dependency, run npm INSIDE that
+image on a copy of the two files and take the lock back, e.g. from
+`frontend-heartfolio/`:
+`MSYS_NO_PATHCONV=1 docker run --rm -v "$(pwd -W)":/src:ro node:24-slim sh -c 'mkdir /w && cp /src/package.json /src/package-lock.json /w && cd /w && npm install --package-lock-only --ignore-scripts --no-audit --no-fund >&2 && cat package-lock.json' > package-lock.json.new`
+then diff and move it into place (for a new package, edit `package.json`
+first or pass it to `npm install`). Check with `npm ci` in the same image:
+it must succeed with no `EBADENGINE`. When the Node image changes, bump all
+three stages, `engines` and `.nvmrc` together and regenerate the lock.
+
 **Migrations and seeding are deliberately manual.** No deploy runs them.
 
 **Tests never reach the outside world: `config/test_runner.py`, the
@@ -264,6 +283,7 @@ task.**
 | `seed_catalog.py`, packs or prices | Frontend: `src/lib/studio/product-modules/pack-labels.test.ts`, `src/messages/rendered-copy.test.tsx`. Backend: `tests_seed_catalog`, `apps.products` (incl. `CatalogTargetMapParityTests`, the admin's target map), `apps.commerce.tests.FreemiusPlanMappingTests`, `apps.commerce.tests.FastSpringProductPathMappingTests` | Labels for every seeded pack; seed and admin target maps agree; every sellable pack has its plan at its price |
 | A live product's limits (`limits.ts` or its backend `data.py`), or upload/media limits | `src/lib/studio/product-modules/reasons-i-love-you/reasons-module.test.ts`, `.../graduation-keepsake/graduation-module.test.ts`, `src/lib/studio/media-values.test.ts` | Frontend limits equal the backend's `data.py` and `base.py` |
 | Settings, environment or `.env.example` files, the test runner | `apps.common.tests.ProductionSettingsLoadingTests`, `apps.common.tests.HermeticTestRunnerTests`, `apps.assets.tests.EnvExampleUploadTypesTests` | Production settings load (throttle rates merged); tests reach no outside host; `.env.example` sets no upload type list |
+| The Node version or dependencies: `Dockerfile` `FROM` lines, `.nvmrc`, `engines`, `package.json` dependencies, `package-lock.json` | `src/lib/node-version.test.ts`, then `npm ci` in the image (see "Regenerate `package-lock.json`" above) | Every Dockerfile stage on one even (LTS) Node line, named by `.nvmrc` and `engines`; the lockfile regenerated after `engines` changed |
 | A print renderer's PNG saving | `apps.delivery.tests_png_encoding` | No `optimize=True` on the full-screen save paths |
 | Dates or counts a print or preview writes (`date_formatting.py`, `formatDate`/`formatCount` in the Love Story Timeline renderer, the live page's dates) | Frontend: `src/lib/studio/product-modules/love-story-timeline/locale-format-parity.test.ts`, `src/components/studio/preview/moment-wallpaper.test.tsx`. Backend: `apps.delivery.test_date_formatting` | Preview and print write the same strings in the order's language (`backend/apps/delivery/locale_format_cases.json`, generated from the browser's `Intl`); a calendar day never shifts by time zone |
 | Storefront captures: a product's live page, its Studio sample (`initial-state.ts`), `marketing_samples/`, `scripts/captures/`, `public/captures/`, the Studio (it is captured for the home page), or a page showing them | Frontend: `src/lib/captures/captures.test.ts`, `src/lib/captures/capture-lock.test.ts`, `src/components/captures/capture-media.test.tsx`, `src/components/captures/capture-showcase.test.tsx`, `src/proxy.test.ts`. Backend: `apps.delivery.tests_marketing_samples` | Every visible product captured in en/fr/ar within budget, no stray files; the capture page and its photo route locked; every sample valid for the real live page, every photo present and licensed. A VISIBLE change to a live page means re-recording: `node scripts/captures/record.mjs all`; to the Studio, `record.mjs studio --base http://localhost:3006` (throwaway backend only) |

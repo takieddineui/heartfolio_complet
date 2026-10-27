@@ -3,13 +3,20 @@
 # Uses Next's `standalone` output, which traces exactly the node_modules the
 # app actually imports and copies only those. Without it the runtime image
 # carries the full dependency tree including every build-only package.
-FROM node:20-slim AS deps
+#
+# NODE 24 (LTS), the same in every stage (27 Oct 2026). It was node:20-slim,
+# below what the dependencies declare (@supabase/* at runtime want >=22,
+# jsdom ^24.15 or >=26), and `npm ci` failed outright once package-lock.json
+# had been written by a newer npm on the host. The lockfile must be
+# regenerated with THIS image's npm (CLAUDE.md, "Regenerate the lockfile"),
+# and `engines` in package.json and `.nvmrc` name the same version.
+FROM node:24-slim AS deps
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
 
 
-FROM node:20-slim AS builder
+FROM node:24-slim AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
@@ -71,7 +78,7 @@ ENV DOCKER_BUILD=1
 RUN npm run build
 
 
-FROM node:20-slim AS runner
+FROM node:24-slim AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 

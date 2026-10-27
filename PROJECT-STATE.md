@@ -764,9 +764,10 @@ own "PAYMENT_PROVIDER=mock is not permitted" check first, and never
 reaches the R2-configuration check it's actually named for.
 
 **Build environment.** The `web` Docker image is built on
-`node:20-slim`, but `npm install` reports some dependencies wanting Node
-`^22.14.0` or `>=24`. Not breaking anything today, but will need
-addressing. Separately: repeated, intermittent network failures from
+`node:24-slim` in every stage (27 Oct 2026; it was `node:20-slim`, below
+what the dependencies declare, and `npm ci` failed once the lockfile was
+written by the host's newer npm). Regenerate `package-lock.json` only with
+the image's own npm (CLAUDE.md). Separately: repeated, intermittent network failures from
 inside Docker were seen during local sessions — PyPI, Supabase DNS
 resolution, R2 reads, and proxy socket hang-ups — none reproducible on
 demand; a direct R2 endpoint check succeeded cleanly immediately
