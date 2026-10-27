@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { getAllProducts } from "@/lib/products/registry";
 import { CAPTURE_LOCALES } from "./capture-mode";
-import { printableProductsFromSeed } from "../../../test/seed-printable";
+import { printableProductsFromSeed } from "../../../test/seed-catalog";
 
 /**
  * THE STOREFRONT'S PRODUCT CAPTURES (26 Oct 2026): real recordings of each

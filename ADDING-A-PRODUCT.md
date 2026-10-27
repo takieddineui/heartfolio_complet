@@ -1,193 +1,251 @@
-# Adding a Product — Checklist
+# Adding, changing or withdrawing a product: checklists
 
-Written after Song Poster shipped a complete renderer, a complete Studio
-module, and a real, priced Django catalog — and still didn't show up on
-the site. Nothing was broken; a required step was just never done, and
-nothing forced anyone to notice.
+Rewritten 27 Oct 2026 to cover everything a product now touches: the
+storefront captures, the SEO limits, combos and Freemius plans, the guides,
+and the live pages' languages. **Follow it whenever a product is added,
+changed or withdrawn.** Where a step can be checked automatically, the test
+that checks it is named; `frontend-heartfolio/src/lib/products/product-checklist.test.ts`
+names every visible and withdrawn product against the checkable steps in
+one place.
 
 ## The one fact this whole checklist exists to make unmissable
 
-**Django's catalog and the frontend's product registry are two
-independent sources of truth. Populating one does not populate the
-other, and there is no automated link between them — that gap is
-deliberate architecture, not an oversight to fix.**
+**Django's catalog and the frontend's product registry are two independent
+sources of truth.** Populating one does not populate the other, and that gap
+is deliberate: a hidden product must behave as if it does not exist on the
+storefront while Django keeps every past order working (Where We Met,
+`heart-map`, is the live example). The same split is what makes a forgotten
+step invisible: `seed_catalog.py` printing real prices tells you Django is
+ready, and nothing about the storefront. Song Poster once shipped a complete
+renderer, Studio module and priced catalog, and still did not appear on the
+site.
 
-`lib/products/registry.ts` says so directly, and it is worth repeating
-here: a hidden product must behave as if it does not exist, even while
-Django still lists it as sellable — that split is exactly what lets an
-already-placed order stay downloadable after a product is withdrawn
-from sale (`heart-map` is the live example: Django still sells it,
-`/orders/<id>` still works, the storefront still refuses to show it).
+Two more rules apply throughout:
+- **Real-database writes are the owner's.** The seed (`seed_catalog.py`) and
+  any checkout against Supabase are run by the owner; tests and recordings use
+  the throwaway database (CLAUDE.md).
+- **Run the guard rows** (CLAUDE.md, "Running the tests") for every kind of
+  file the step touched, not only the tests beside it.
 
-The SAME mechanism that makes withdrawal safe is what makes forgetting
-to flip a NEW product invisible: `seed_catalog.py` succeeding and
-printing real prices tells you Django is ready. It tells you nothing
-about whether the storefront is.
+---
 
-## The full sequence
+## 1. Adding a product
 
-### Backend
+### A. Backend: catalog, rendering, payment
 
-1. Build the renderer module: `apps/delivery/product_renderers/<slug>/`
-   (data validation, PNG composition, tests). The Studio preview (CSS) and
-   this print renderer (Pillow) are two separate implementations of one
-   design. Read `PRINT-RENDERER-GUIDE.md` first: it covers how to read the
-   preview's real values, the bugs Love Story Timeline hit (missing fields,
-   wrong size estimates, card overflow, cut text), and the checklist for
-   calling a print "done".
-2. Register it in `apps/delivery/registry.py`.
-3. Add the catalog entry to `seed_catalog.py` — both the product +
-   packs in `CATALOG`, and the product's target set in
-   `supported_targets()`.
-4. Run it for real: `docker compose exec api python seed_catalog.py`
-   (add `--update-prices` only when you actually mean to overwrite
-   prices already in the database). Read the printed summary — it
-   will say `created` or `updated` for the product and every pack, and
-   the final `totals:` line will say whether the database now matches
-   this file exactly.
-   **This step alone does not make the product visible anywhere.**
+1. **Rendering.** A product with a print: build
+   `apps/delivery/product_renderers/<slug>/` (data validation, PNG
+   composition, tests). The Studio preview (CSS) and the print (Pillow) are
+   two implementations of one design: read `PRINT-RENDERER-GUIDE.md` first.
+   A **live-only** product (no print; Reasons I Love You, Graduation
+   Keepsake) still needs `data.py` and a renderer class implementing only
+   `validate_project_data` (its `render()` raises): the registry is where
+   order creation finds the pre-payment check. Register either in
+   `apps/delivery/registry.py`.
+2. **Packs in `seed_catalog.py`.** The product and its packs in `CATALOG`,
+   and its targets in `supported_targets()` AND in
+   `apps/products/admin.py`'s `_supported_targets` (they must agree:
+   `CatalogTargetMapParityTests`). The pack model is **combos, not a
+   bundle**: each base unit (Printable, Digital = slug `live`) is a pack, and
+   each combination you choose to sell (`printable-plus-digital`) is its own
+   pack with its own price. A live-only product has one pack, `live`, targets
+   `["__live__"]`.
+3. **Freemius: every ACTIVE pack needs a plan.** The owner creates one NEW
+   plan per active pack in the Freemius dashboard (one-off, one price point,
+   equal to the pack's `price_cents`), under the ONE existing Freemius product
+   (never a second product: its webhooks would fail the signature check).
+   Map each as `"<product>:<pack>": {"plan_id": "<id>"}` in
+   `FREEMIUS_PLAN_MAPPING` (`apps/commerce/freemius_integration.py`) and pin
+   it in `FreemiusPlanMappingTests`. Never rename or retarget a plan that has
+   licences: create a new one (plan 70518 is Complete forever). Checked:
+   `SellableMeansMappedTests` (backend) and `product-checklist.test.ts`.
+4. **The live page, if it sells the Digital version.** A payload builder in
+   `_LIVE_PAYLOAD_BUILDERS` (`apps/delivery/live_views.py`; a product missing
+   from it gets the generic 404). Generate photo URLs fresh in the builder;
+   they expire, so a page that loads photos lazily must be able to ask again.
+5. **Media.** Audio or video anywhere other than Love Story Timeline's
+   `events[]`: register a collector in `_MEDIA_COLLECTORS`
+   (`apps/commerce/media_promotion.py`) with a test that a paid order keeps
+   it, or `expire_provisional_assets` deletes it a week after purchase.
+   Photos never expire. Count the uploads against production's
+   `asset_upload` 30 a minute and pin the worst case in a test.
+6. **What the customer receives.** The gift QR card's caption
+   (`_qr_caption_for_order`, `apps/delivery/bonuses.py`: names only, never an
+   English sentence), the product's name in the receipt email and the bonus
+   PDFs in en/fr/ar (`apps/commerce/email_copy.py`,
+   `apps/delivery/bonus_copy.py`; `email-product-names.test.ts`).
+7. **The owner runs the real seed** (`docker compose exec api python
+   seed_catalog.py`) and reads its summary. This alone makes nothing visible.
 
-### Frontend — Studio (the creation tool)
+### B. The Studio
 
-5. Build the Studio product module:
-   `lib/studio/product-modules/<slug>/` (schema, initial state,
-   validation, pricing, exports, renderer adapter, themes, messages).
-6. Register it in `lib/studio/product-modules/registry.ts`.
+8. Build `lib/studio/product-modules/<slug>/` (schema, initial state,
+   validation, exports, renderer adapter, themes, messages) and register it
+   in `lib/studio/product-modules/registry.ts` (checked:
+   `product-checklist.test.ts`). A live-only product is
+   `renderer: { kind: "live" }`, `delivery: { mode: "hosted" }`, with a
+   `livePreview`; a long scrolling experience scrolls inside its own frame,
+   sized in container units (see Graduation Keepsake's CSS).
+9. **Labels in en/fr/ar:** every seeded pack's name and description
+   (`pack-labels.test.ts` reads the slugs from the seed), the print and
+   wallpaper export labels (`lib/studio/export-labels.ts`,
+   `export-labels.test.ts`), the Appearance options.
+10. **Limits** named once in `limits.ts` and the backend `data.py`, pinned
+    equal by a test (`reasons-module.test.ts` is the pattern).
+11. **The Studio's sample in en/fr/ar** (`initial-state.ts`): it is also what
+    the storefront captures record, so use culturally fitting fictional
+    names, never real people.
 
-### Frontend — the storefront (the step that was actually missed)
+### C. The storefront
 
-7. **Edit the product's own entry in `lib/products/registry.ts`:**
-   - Remove `hidden: true` (or don't set it at all).
-   - Set `status: "available"`.
-   - Once Django genuinely owns the commercial data for this product
-     (a real renderer + a real catalog, both true at this point), set
-     `offerings: []` and let `lib/products/catalog.ts` join in real
-     price/pack data from Django at request time — the same pattern
-     `love-story-timeline` and `heart-map` already use, and the same
-     comment already sitting on both of their entries explains why: a
-     hardcoded offerings list here can advertise a price or a pack
-     shape the backend can no longer deliver.
-8. Add the `Products.<i18nKey>` translation block — name, descriptions,
-   `meta`, FAQ — to **every** locale's messages file (`en`, `fr`,
-   `ar`), not just `en`. `registry.ts`'s own top comment already states
-   this; it is restated here because it is easy to do for one locale
-   and forget the other two.
-9. Optional, not blocking: a real `ogImage` (1200×630) to replace the
-   auto-generated share-card fallback. `registry.ts`'s own bottom
-   section lists exactly which path each product still needs.
+12. **Registry entry** (`lib/products/registry.ts`): `id` (permanent: it keys
+    the captures and waitlist rows), `slug`, `i18nKey`, `status: "available"`,
+    no `hidden`, `offerings: []` (Django owns prices), `ogImage: null` (the
+    card is generated), `featured` if it belongs on the home page, and
+    `tags`: its occasions (they drive the occasion filters and related
+    products) and **`printable` exactly when it sells an active Printable
+    pack** (the printable-gifts page lists by it; `gift-intents.test.ts` and
+    `product-checklist.test.ts` compare it with the seed).
+13. **Copy in en/fr/ar** (`messages/*.json`, `Products.<i18nKey>`): name,
+    short and full descriptions, `meta.title`, `meta.description` and
+    `meta.descriptionNoPrice`, the FAQ, offering names. **SEO limits:** the
+    rendered title (with " — Heartfolio") at most 60 characters, so
+    `meta.title` at most 47; each description at most 160 with a price filled
+    in, and never a price written into the copy (`seo-lengths.test.ts`,
+    `messages.test.ts`). English and French are shown to the owner before
+    translating; Arabic is translated, then reviewed when a native reviewer
+    is available.
+14. **The live page in the order's language.** Add the product's branch to
+    `components/live/live-payload.tsx` (the dispatch the live page and the
+    capture page share; checked: `product-checklist.test.ts`). Every word
+    the page writes comes from a copy module chosen by the order's locale
+    (`live-copy.ts`, `player-copy.ts` are the pattern), never an English
+    literal. Dates and counts use `Intl` in the order's language, dates as
+    calendar days in UTC (`locale-format-parity.test.ts`; the "3y 4m 22d"
+    and west-of-UTC bugs). Right to left: mirror the layout on /ar unless the
+    thing is directional by nature (Song Poster's soundwave and times stay
+    left to right).
+15. **Fonts that cover French and Arabic.** Every face the product uses must
+    hold every French letter (Gaegu held only ASCII: "faÇon") and either
+    Arabic or a fallback to the site's Kufi/Naskh; self-hosted, with its
+    licence beside it. Pin it with a character-map test
+    (`test/font-cmap.ts`, `reasons-fonts.test.ts` is the pattern) and run
+    the fonts guard row.
+16. **Captures in all three languages** (`scripts/captures/record.mjs`; how,
+    in CLAUDE.md). Add the product to `PRODUCTS` (and `PRINTABLE` if it sells
+    a print), write its `SCENARIOS` entry (what the loop shows), add licensed
+    photos to `backend/apps/delivery/marketing_samples/` with their source in
+    `PHOTOS.md`, then run the stages (`samples`, `bundle`, `record`,
+    `stills`) against the throwaway database. `captures.test.ts` fails for a
+    visible product without them, or over budget; look at the contact sheet
+    before using them.
+17. **Share image and Product structured data come from the captures** (the
+    product page's `opengraph-image`, with its alt text per language; the
+    Product JSON-LD's images, offers and the `/refunds` return link): nothing
+    to write, but check them in the crawl (step 23).
+18. **Sitemap and hreflang** follow `getAllProducts()` by themselves; add the
+    product page's content date to `CONTENT_UPDATED` in `app/sitemap.ts`
+    (`seo-status.test.ts` fails without it).
+19. **Home page:** `featured` puts it in the hero's phone and the collection;
+    add it to the right card in "By occasion"
+    (`components/sections/by-occasion.tsx`, `OCCASIONS`); the gift pages
+    (`/gifts/<slug>`) pick it up by tag; the footer, `llms.txt` and the
+    merchant feed follow the catalog.
+20. **Guides.** Decide which existing guides should link to it: add it to
+    the guide's `products` and a `product` block in EVERY translation (and
+    move the guide's `updated` date). If none fits, put it in
+    `GUIDE_COVERAGE_PENDING` (`lib/guides/coverage.ts`) with the reason, and
+    ask the owner whether it needs its own guide.
+    `product-checklist.test.ts` fails for a product in neither; the product
+    page's "Ideas and guides" section then appears by itself.
 
-### Selling it through Freemius (the checkout in use)
+### D. Verify
 
-A product with no Freemius plan cannot be bought: `stage_freemius_checkout`
-raises `FreemiusPlanNotConfigured`. Song Poster is in this state today (its
-packs are in `seed_catalog.py` and the FastSpring map only), so it is not a
-pattern to copy here; Love Story Timeline's own plans are.
+21. **Tests:** the new tests; `product-checklist.test.ts`; the guard rows for
+    copy, fonts, captures, live pages, seed/packs, page metadata and, for a
+    print, preview/print parity; then the full frontend suite (a product is
+    shared infrastructure) and the backend labels named above.
+22. **Browser:** the product page, its Studio and its live page at 1280 and
+    375 px in en/fr/ar: no sideways scroll, right to left correct, nothing in
+    English on /fr or /ar.
+23. **Crawl the production image** (titles, descriptions, canonical,
+    hreflang, share image, structured data), as done for the SEO work.
+24. **Owner:** the real seed run, then one sandbox checkout end to end.
 
-- **Owner:** create a NEW plan in the Freemius dashboard for every pack you
-  sell, one price point each, equal to the pack's `price_cents`. Never rename
-  or retarget a plan that already has licenses (plan 70518 is Complete
-  forever; see CLAUDE.md).
-- **Code:** add `"<product-slug>:<pack-slug>": {"plan_id": "<id>"}` to
-  `FREEMIUS_PLAN_MAPPING` (`apps/commerce/freemius_integration.py`) with a
-  mapping test, as the existing rows have.
-- **Owner:** run one sandbox checkout end to end.
+---
 
-### A live-only product (no print, no file)
+## 2. Changing a product
 
-Reasons I Love You is the first: the customer buys the hosted page and
-nothing else. Most of the steps above still apply, with these differences:
+- **A price:** the seed (`--update-prices` when meant) AND a NEW Freemius
+  plan at the new price, remapped; never edit a plan that has licences.
+  Check `meta.description` still fits 160 with the new price.
+- **A pack or combo:** step 2, step 3 (a plan per new active pack), step 9
+  (its labels), and the checkout's unit toggle appears by itself for a combo.
+- **Copy:** step 13's limits; move `CONTENT_UPDATED` for the product page,
+  and a guide's `updated` if its text changes.
+- **Anything a customer sees on the live page or in the Studio sample:**
+  re-record the captures (step 16); a visible change without it ships stale
+  marketing.
+- **A print layout:** `PRINT-RENDERER-GUIDE.md` and the parity guard row.
 
-- **No print renderer, but still a registry entry.** Step 1 shrinks to
-  `data.py` (validation) and a renderer class that only implements
-  `validate_project_data` (its `render()` raises). The registry is the one
-  place order creation finds a product's pre-payment check; without an entry
-  a malformed project is sold and then fails on its live page. See
-  `product_renderers/reasons_i_love_you/renderer.py`.
-- **One pack, slug `live`, targets `["__live__"]`.** Delivery answers
-  `__live__` with the hosted page before any renderer is consulted, and the
-  `live` slug is already the Digital pack everywhere (delivery type, checkout
-  grouping, Digital-only order screens, gift QR card, receipt email). Add
-  `{"__live__"}` to BOTH target maps (`seed_catalog.py`'s `supported_targets`
-  and `apps/products/admin.py`'s `_supported_targets`).
-- **The live page needs a builder on both sides.** Add the product's payload
-  builder to `_LIVE_PAYLOAD_BUILDERS` in `apps/delivery/live_views.py` (a
-  product missing from it gets the generic 404, by design) and a branch in
-  `app/[locale]/live/[liveId]/page.tsx`. Generate photo URLs fresh in the
-  builder (`get_asset_for_customer` + `generate_asset_access_url`); they
-  expire after `R2_PRESIGNED_URL_EXPIRY_SECONDS`, so a page that loads photos
-  lazily must also be able to ask again (`reasons-live-page.tsx`).
-- **The gift QR card's caption.** `_qr_caption_for_order` in
-  `apps/delivery/bonuses.py` names the recipient's card per product (Love
-  Story Timeline: the couple; Song Poster: the song; Reasons I Love You:
-  "Theo & Hana"). The names only, never an English sentence: nothing on that
-  card is translated. A product with no branch gets the generic caption.
-- **Audio or video?** Register a collector in `_MEDIA_COLLECTORS`
-  (`apps/commerce/media_promotion.py`), with a test that a paid order keeps
-  its media. Without one, only `events[].video/audio` is read, and anything
-  else is deleted by `expire_provisional_assets` a week after purchase. Photos
-  never expire and need nothing.
-- **The Studio module is `renderer: { kind: "live" }` and
-  `delivery: { mode: "hosted", hosted: { description: "<key>" } }`**, with a
-  `livePreview` component. `kind: "live"` mounts only that preview, full pane,
-  in a box that clips and cannot scroll; there are no Artwork/Framed tabs.
-  Keep the experience's own overlays positioned against its own frame, never
-  the window, or they cover the whole Studio.
-- **A long, scrolling experience** (Graduation Keepsake, not a single screen
-  like Reasons): the page scrolls inside the frame's OWN scroller, every
-  overlay is `position: absolute` against the frame, and sizes use container
-  units (`container-type: size` on the frame, then `cqw`/`cqh`), because
-  `vw`/`svh` measure the window, which in the Studio is not the pane. Write
-  nothing to `<html>` or `<body>` (no journey attribute, no scroll lock, no
-  theme colour). See `components/live-graduation/graduation-keepsake.module.css`.
-- **Count the uploads.** Production allows `asset_upload` 30 a minute, and
-  the Studio uploads every file at checkout at once. Cap a product's
-  worst case below that with room for a retry (Graduation Keepsake: 25, by
-  capping voice messages and drawings at 5 each per keepsake), and pin the
-  sum in a test.
-- **Fields that belong to one choice** (a journey, a gift): hide them with
-  `visibleWhen` on the theme, or a whole section with the section's own
-  `visibleWhen`; the form engine then skips them. Rules in the module's
-  `validate(values, themeSelections)` and in `data.py` must skip them too, or
-  a value left over from trying another choice blocks payment invisibly.
+---
 
-### Verify it actually happened — don't trust step 4 alone
+## 3. Withdrawing or deleting a product
 
-10. Confirm the product is genuinely visible, not just genuinely
-    seeded. The fastest real check:
-    ```ts
-    import { getAllProducts } from "@/lib/products/registry";
-    console.log(getAllProducts().map((p) => p.slug));
-    ```
-    or run the existing test suite — `lib/products/catalog.test.ts`'s
-    own "withdrawn products" tests assert the full visible list by
-    name, so a newly-added product that was meant to be visible but
-    isn't will fail a real, already-existing test, not fail silently.
-    (This is exactly how the Song Poster gap was found after the fact
-    — checking the site and noticing only one product rendered. The
-    point of this step is to do that check as part of launching, not
-    as debugging afterward.)
+### Never delete these
 
-## If a product should stay hidden a while longer
+- **Past orders and everything they point at:** the `Product` and
+  `DeliveryPack` rows (`Order`, `Entitlement` and `DeliveryPack` reference
+  `Product` with `on_delete=RESTRICT`: the database refuses anyway), the
+  orders, entitlements and uploaded photos (photos never expire).
+- **What re-creates their files:** the backend renderer and its fonts. Files
+  are rendered on demand, so a past order downloads only while its renderer
+  exists.
+- **Live pages customers already received:** `/live/<id>` must keep working,
+  so keep the product's `_LIVE_PAYLOAD_BUILDERS` entry, its branch in
+  `live-payload.tsx`, the live component, its fonts and its copy.
+- **Freemius plans with licences, and their mapping:** remove a product's
+  mapping only if it never had an order (the owner checks; Complete's 70518
+  stays mapped although the pack is disabled).
 
-That's what `hidden: true` is *for*. Steps 1–6 can happen well before
-steps 7–9; building the product and deciding to sell it are two
-different moments, and the registry is what lets those be separate
-deliberately rather than by accident.
+### Withdrawing (orders already placed keep working)
 
-## If a product needs to stop being sold, or be removed entirely
+1. **Registry:** `hidden: true` (and `featured: false`). The proxy then
+   answers 404 for its product page and Studio, and every list built from
+   `getAllProducts()` drops it: collection, home, footer, gift pages,
+   sitemap, `llms.txt`, merchant feed.
+2. **Seed:** set the product's `status` to `"disabled"` and EVERY pack's to
+   `"disabled"`, never delete them; the owner runs the seed. Checked:
+   `product-checklist.test.ts` (a withdrawn product has no active pack) and
+   `SellableMeansMappedTests`.
+3. **Freemius:** keep the mapping if it has any order (see above).
+4. **Captures:** remove it from `record.mjs` (`PRODUCTS`, `PRINTABLE`,
+   `SCENARIOS`), delete its files from `public/captures/<locale>/`, and
+   rewrite the manifest (`record.mjs stills`). `captures.test.ts` fails on a
+   stray file; `product-checklist.test.ts` on a withdrawn product still
+   recorded.
+5. **Guides:** remove it from every guide's `products` and its `product`
+   blocks in every translation, rewrite the sections that relied on it, move
+   their `updated`; drop it from `GUIDE_COVERAGE_PENDING`. Checked:
+   `guides.test.ts` (no hidden product in a guide).
+6. **Pages that name it by hand:** "By occasion" (`OCCASIONS`), the home
+   sections that use one product's capture (`how-it-works.tsx`'s
+   `QR_PRODUCT`, `open-moment.tsx`'s `PRODUCT`; both Love Story Timeline
+   today), its `CONTENT_UPDATED` entry in the sitemap, and any copy that
+   mentions it (the home FAQ's "Which keepsake should I choose?", the
+   "What is Heartfolio?" answer).
+7. **Check:** the sitemap, the merchant feed, the printable gifts page, the
+   home page and the collection no longer show it, on the production image;
+   and that a past order's page and live page still open.
 
-Two different operations, worth not confusing:
+### Deleting entirely (never sold at all)
 
-- **Withdrawn, but orders already placed must stay downloadable**
-  (the `heart-map` pattern): set the product's `status` to `"disabled"`
-  in `seed_catalog.py` (or disable its individual packs), set
-  `hidden: true` in `registry.ts`, run `seed_catalog.py` again. Nothing
-  is deleted. Fully reversible.
-- **Genuinely deleted, never sold at all** (the Star Map pattern): only
-  safe when NO backend `Product`/`DeliveryPack` row was ever created
-  for it — `DeliveryPack`, `Order`, and `Entitlement` all point at
-  `Product` with `on_delete=RESTRICT`, so the database itself refuses
-  to delete a product that any real order has ever touched. If a
-  product has real orders against it, "delete" is not an option at
-  all — use the withdrawal pattern above instead, permanently if
-  necessary.
+Only when NO backend `Product`/`DeliveryPack` row was ever created for it
+(the Star Map pattern): remove the registry entry, the Studio module, the
+renderer, its messages and its captures. If a product has ever had an order,
+deleting is not an option: withdraw it, permanently if need be.
+
+### Keeping a product hidden a while longer
+
+That is what `hidden: true` is for: section A and B can happen well before
+C. Building a product and deciding to sell it are two moments.

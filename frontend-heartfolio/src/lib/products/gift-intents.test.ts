@@ -4,7 +4,7 @@ import fr from "@/messages/fr.json";
 import ar from "@/messages/ar.json";
 import { GIFT_INTENTS, enabledIntents, findIntent, productsForIntent } from "./gift-intents";
 import { getAllProducts } from "./registry";
-import { printableProductsFromSeed } from "../../../test/seed-printable";
+import { printableProductsFromSeed } from "../../../test/seed-catalog";
 
 /**
  * ---------------------------------------------------------------------

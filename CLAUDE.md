@@ -9,6 +9,13 @@ architecture. They were written as a snapshot and have drifted before;
 several corrections are noted below. **Confirm against the code before
 relying on any of them.**
 
+**Adding, changing or withdrawing a product? Follow `ADDING-A-PRODUCT.md`
+step by step** (rewritten 27 Oct 2026: catalog and Freemius plans, Studio
+labels, copy within the SEO limits, live-page languages, fonts, captures,
+guides, and what must never be deleted on withdrawal).
+`src/lib/products/product-checklist.test.ts` checks the steps that can be
+checked, for every visible and withdrawn product.
+
 ---
 
 ## Layout: two repos, side by side
@@ -317,6 +324,8 @@ task.**
 | Settings, environment or `.env.example` files, the test runner | `apps.common.tests.ProductionSettingsLoadingTests`, `apps.common.tests.HermeticTestRunnerTests`, `apps.assets.tests.EnvExampleUploadTypesTests` | Production settings load (throttle rates merged); tests reach no outside host; `.env.example` sets no upload type list |
 | The Node version or dependencies: `Dockerfile` `FROM` lines, `.nvmrc`, `engines`, `package.json` dependencies, `package-lock.json` | `src/lib/node-version.test.ts`, then `npm ci` in the image (see "Regenerate `package-lock.json`" above) | Every Dockerfile stage on one even (LTS) Node line, named by `.nvmrc` and `engines`; the lockfile regenerated after `engines` changed |
 | Page metadata (titles, descriptions, canonicals, robots, share cards, JSON-LD), `proxy.ts`, `robots.ts`, `sitemap.ts`, a loading skeleton, a new public page | `src/lib/seo-lengths.test.ts`, `src/lib/seo-status.test.ts`, `src/proxy.test.ts`, `src/lib/products/gift-intents.test.ts` | Every sitemap page's rendered title <= 60 and description <= 160 in en/fr/ar; no loading boundary at `[locale]`; private pages noindex with their own canonical; robots.txt blocks only `/api/` and `/orders`; share alt text per language; sitemap x-default and real dates; return policy link-only; unknown addresses 404 |
+| A product added, changed or withdrawn (registry, seed, Freemius map, captures, guides) | `src/lib/products/product-checklist.test.ts`, plus the rows for each kind of file touched (`ADDING-A-PRODUCT.md`, step 21) | Every visible product: Studio module, copy in en/fr/ar, active packs each with a Freemius plan, `printable` tag = seed, captures in every language, live-page dispatch, sitemap, a guide or a stated reason; every withdrawn product: no active pack, in no sitemap, guide or recording |
+| Guides (`src/content/guides/`, `lib/guides/`, `app/[locale]/guides/`) | `src/lib/guides/guides.test.ts`, `src/lib/products/product-checklist.test.ts`, `src/lib/seo-status.test.ts` | Lengths, slugs and dates per translation; every product shown and visible; no price in the text; drafts never in production; hreflang only between published translations; sitemap dated by `updated`; real 404s; footer language list = published guides |
 | A print renderer's PNG saving | `apps.delivery.tests_png_encoding` | No `optimize=True` on the full-screen save paths |
 | Dates or counts a print or preview writes (`date_formatting.py`, `formatDate`/`formatCount` in the Love Story Timeline renderer, the live page's dates) | Frontend: `src/lib/studio/product-modules/love-story-timeline/locale-format-parity.test.ts`, `src/components/studio/preview/moment-wallpaper.test.tsx`. Backend: `apps.delivery.test_date_formatting` | Preview and print write the same strings in the order's language (`backend/apps/delivery/locale_format_cases.json`, generated from the browser's `Intl`); a calendar day never shifts by time zone |
 | Storefront captures: a product's live page, its Studio sample (`initial-state.ts`), `marketing_samples/`, `scripts/captures/`, `public/captures/`, the Studio (it is captured for the home page), or a page showing them | Frontend: `src/lib/captures/captures.test.ts`, `src/lib/captures/capture-lock.test.ts`, `src/components/captures/capture-media.test.tsx`, `src/components/captures/capture-showcase.test.tsx`, `src/proxy.test.ts`. Backend: `apps.delivery.tests_marketing_samples` | Every visible product captured in en/fr/ar within budget, no stray files; the capture page and its photo route locked; every sample valid for the real live page, every photo present and licensed. A VISIBLE change to a live page means re-recording: `node scripts/captures/record.mjs all`; to the Studio, `record.mjs studio --base http://localhost:3006` (throwaway backend only) |
@@ -461,25 +470,33 @@ Two were genuine product bugs: the `layout` default above, and
   customer is affected. Fix as the live page does: `getBackendOrigin()`
   outside the `try`, then a server `fetch` (forwarding `X-Forwarded-For`),
   and a test that a valid id renders the scene.
-- **CONTENT SECTION (`/guides`): plan APPROVED, NOT BUILT (owner, 27 Oct
-  2026). It starts after the SEO fixes and launch.** English and French first
-  (of 42 paid Love Story Timeline orders, 25 were French, 17 English, none
-  Arabic); Arabic only with a native reviewer. Author: "The Heartfolio team".
-  First batch, each written natively per language, not translated:
-  anniversary/Valentine's ideas that aren't objects (Love Story Timeline,
-  Reasons, Song Poster), reasons I love you with examples (Reasons), how to
-  build a relationship timeline (Love Story Timeline), last-minute gifts that
-  still feel personal (all, instant delivery), graduation gifts from everyone
-  (Graduation). Search volumes are unverified hypotheses: check them in
-  Keyword Planner/Search Console first. Timing: the love guides live by early
-  December for Valentine's, graduation by March. Setup: `/[locale]/guides/[slug]`
-  with slugs in each language's own words, mapped so hreflang links only the
-  translations that exist; one content file per guide and language (title,
-  description, published/updated dates, author, linked products); static
-  params so an unknown guide is a real 404; a `/guides` index; Article +
-  BreadcrumbList JSON-LD with a captures image; sitemap entries with real
-  `lastmod`; each guide shows its products' captures and links to the product
-  page (never the Studio); product pages link back; a footer link.
+- **CONTENT SECTION (`/guides`): SET UP 27 Oct 2026; the first guide is a
+  DRAFT awaiting the owner's review.** Plan (owner, 27 Oct 2026): English and
+  French first (of 42 paid Love Story Timeline orders, 25 were French, 17
+  English, none Arabic); Arabic only with a native reviewer. Author: "The
+  Heartfolio team". First batch, each written natively per language, not
+  translated: anniversary/Valentine's ideas that aren't objects (DRAFTED in
+  English: `src/content/guides/anniversary-ideas/`), reasons I love you with
+  examples, how to build a relationship timeline, last-minute gifts that still
+  feel personal, graduation gifts from everyone (Graduation Keepsake is in
+  `GUIDE_COVERAGE_PENDING` until then). Search volumes are unverified
+  hypotheses: check them in Keyword Planner/Search Console first. Timing: the
+  love guides live by early December for Valentine's, graduation by March.
+  **How it works:** a guide is `src/content/guides/<id>/` (an `index.ts` with
+  its products, one file per language with its own slug, dates and typed
+  blocks; no Markdown parser), listed in `lib/guides/registry.ts`. A `draft`
+  is shown ONLY on a development server (`next dev`), for review: never in a
+  production build, the sitemap, the index or a link. **To publish:** set
+  `status: "published"`, then add the language to `GUIDE_INDEX_LOCALES`
+  (`lib/guides/published-locales.ts`, a separate list because the footer is a
+  client component; `guides.test.ts` fails if they disagree). Pages:
+  `/[locale]/guides` (a 404 in a language with no guide) and
+  `/[locale]/guides/[slug]` (a real 404 for an unknown or other-language
+  slug), Article + BreadcrumbList JSON-LD, a share card per guide, hreflang
+  only between published translations (x-default English), sitemap dated by
+  each translation's `updated`, product cards linking to product pages (never
+  the Studio), "Ideas and guides" on the product pages, a footer link in
+  languages with guides.
 - **Reasons I Love You (`reasons-i-love-you`) is LIVE on the storefront (14 Oct
   2026), the first LIVE-ONLY product: no print, no renderer output, one `live`
   pack at $15.99 granting `__live__`.** How a print-less product fits (registry
