@@ -76,3 +76,38 @@ describe("the capture page", () => {
     vi.unstubAllEnvs();
   });
 });
+
+/**
+ * REAL 404s FOR GIFT INTENTS AND PRIVATE IDS (27 Oct 2026). An unknown
+ * `/gifts/<slug>` was a 200 "this page doesn't exist", indexable; so were
+ * `/live`, `/ar`, `/orders` and `/project` with an id that is not a UUID.
+ */
+describe("addresses no page can answer are 404", () => {
+  const ID = "6f1c2a9e-3b4d-4e5f-8a7b-9c0d1e2f3a4b";
+  it.each([
+    "/en/gifts/not-a-gift",
+    "/fr/gifts/printable",
+    "/ar/gifts/anniversary-gifts",
+    "/en/live/not-a-uuid",
+    "/fr/ar/123",
+    "/en/orders/abc/token",
+    "/ar/project/drafts",
+    `/en/live/${ID}x`,
+  ])("%s is rewritten to the not-found page, in its language", (path) => {
+    expect(rewriteOf(path)).toMatch(new RegExp(`/${path.slice(1, 3)}/__not-found__$`));
+    expect(localeSentWith(path)).toBe(path.slice(1, 3));
+  });
+
+  it.each([
+    "/en/gifts/printable-gifts",
+    "/ar/gifts/printable-gifts/opengraph-image",
+    `/en/live/${ID}`,
+    `/fr/live/${ID}/opengraph-image`,
+    `/ar/ar/${ID.toUpperCase()}`,
+    `/en/orders/${ID}`,
+    `/fr/orders/${ID}/v1:some-signed-token`,
+    `/en/project/${ID}`,
+  ])("%s is left alone", (path) => {
+    expect(rewriteOf(path) ?? "").not.toContain("__not-found__");
+  });
+});

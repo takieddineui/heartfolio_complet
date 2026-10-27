@@ -84,7 +84,8 @@ describe("live keepsake", () => {
   });
 
   it("is noindex and collapses every failure into one response", () => {
-    expect(page).toContain("index: false");
+    // `noindexMetadata` (`lib/seo.ts`, pinned in `seo-status.test.ts`).
+    expect(page).toMatch(/noindexMetadata\(locale, path, \{ follow: false \}\)/);
     expect(page).toContain("notFound()");
   });
 

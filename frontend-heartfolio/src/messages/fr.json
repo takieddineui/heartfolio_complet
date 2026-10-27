@@ -1,7 +1,7 @@
 {
   "Meta": {
     "title": "Heartfolio — Souvenirs numériques personnalisés",
-    "description": "Des souvenirs numériques personnalisés pour l'amour, les diplômes et les chansons qui comptent, à ouvrir depuis un lien ou une carte QR. Des fichiers prêts à imprimer pour ceux qui sont faits pour être encadrés.",
+    "description": "Des souvenirs numériques personnalisés pour l'amour, les diplômes et les chansons qui comptent, ouverts via un lien ou une carte QR. Certains s'impriment aussi.",
     "ogAlt": "Quatre souvenirs Heartfolio, chacun ouvert sur un téléphone.",
     "slogan": "Transformez vos moments importants en souvenirs personnalisés.",
     "skipToContent": "Aller au contenu"
@@ -288,10 +288,10 @@
       "shortDescription": "Jusqu'à dix raisons, à ouvrir une par une.",
       "fullDescription": "Écrivez jusqu'à dix raisons et choisissez comment les offrir : un bocal de petits mots, une marguerite, un jeu de cœurs ou une assiette de biscuits de fortune. Elles s'ouvrent une à une, puis viennent votre dernier mot et, si vous le souhaitez, une lettre.",
       "meta": {
-        "title": "Les raisons pour lesquelles je t'aime, un cadeau numérique personnalisé",
-        "description": "Jusqu'à dix raisons de l'aimer, offertes dans un bocal de petits mots, une marguerite, un jeu de cœurs ou des biscuits de fortune, à ouvrir une par une. À partir de {price}, livré instantanément.",
+        "title": "Les raisons pour lesquelles je t'aime",
+        "description": "Jusqu'à dix raisons de l'aimer, dans un bocal de petits mots, une marguerite, un jeu de cœurs ou des biscuits de fortune. Dès {price}, livré aussitôt.",
         "imageAlt": "Un cadeau Heartfolio « Les raisons pour lesquelles je t'aime » : un bocal de petits mots pliés, chacun une raison",
-        "descriptionNoPrice": "Jusqu'à dix raisons de l'aimer, offertes dans un bocal de petits mots, une marguerite, un jeu de cœurs ou des biscuits de fortune, à ouvrir une par une. Livré instantanément."
+        "descriptionNoPrice": "Jusqu'à dix raisons de l'aimer, dans un bocal de petits mots, une marguerite, un jeu de cœurs ou des biscuits de fortune, à ouvrir une par une."
       },
       "storyTitle": "Certaines choses se disent mieux une à la fois.",
       "story": "Vous écrivez les raisons (sa façon de rire, les chansons qu'il ou elle chante de travers, ce geste fait sans qu'on le demande) et choisissez comment les offrir. Chaque geste en ouvre une. Après la dernière apparaît un ultime message et votre signature s'écrit d'elle-même, suivie d'une lettre si vous voulez en dire plus.",
@@ -371,10 +371,10 @@
       "shortDescription": "Son parcours jusqu'ici, raconté comme un voyage.",
       "fullDescription": "Réunissez les années, les réussites et les messages de ceux qui l'ont accompagné, puis choisissez comment l'histoire se raconte : un vol, une mission spatiale, un jeu d'arcade, une galerie ou une ascension.",
       "meta": {
-        "title": "Souvenir de diplôme, un cadeau numérique personnalisé",
-        "description": "Le parcours d'un diplômé (photos à travers les années, réussites, messages et notes vocales de la famille et des amis) raconté comme un vol, une mission, un jeu, une galerie ou une ascension. À partir de {price}, livré immédiatement.",
+        "title": "Souvenir de diplôme, un cadeau personnalisé",
+        "description": "Un parcours de diplômé : photos, réussites et messages de ses proches, raconté comme un vol, une mission, un jeu, une galerie ou une ascension. Dès {price}.",
         "imageAlt": "Un Souvenir de diplôme Heartfolio : une carte d'embarquement pour la suite",
-        "descriptionNoPrice": "Le parcours d'un diplômé (photos à travers les années, réussites, messages et notes vocales de la famille et des amis) raconté comme un vol, une mission, un jeu, une galerie ou une ascension. Livré immédiatement."
+        "descriptionNoPrice": "Un parcours de diplômé : photos, réussites et messages de ses proches, raconté comme un vol, une mission, un jeu, une galerie ou une ascension."
       },
       "storyTitle": "Tout ce qui l'a mené jusqu'ici, au même endroit.",
       "story": "Vous réunissez les photos, du premier jour d'école à la toge, les réussites à fêter et les messages de ceux qui étaient là (écrits, dessinés ou enregistrés). Puis vous choisissez le voyage : déchirer une carte d'embarquement, lancer un compte à rebours, appuyer sur Start, couper un ruban ou commencer une ascension, et l'histoire se déroule au fil du parcours.",
@@ -442,9 +442,9 @@
   },
   "Collection": {
     "meta": {
-      "title": "La collection : souvenirs numériques personnalisés",
-      "description": "Découvrez les souvenirs personnalisés de Heartfolio pour l'amour, les diplômes et les chansons qui comptent. Chacun s'ouvre depuis un lien ou une carte QR. À partir de {price}, prêt dès le paiement.",
-      "descriptionNoPrice": "Découvrez les souvenirs personnalisés de Heartfolio pour l'amour, les diplômes et les chansons qui comptent. Chacun s'ouvre depuis un lien ou une carte QR, prêt dès le paiement."
+      "title": "La collection : souvenirs personnalisés",
+      "description": "Des souvenirs personnalisés pour l'amour, les diplômes et les chansons qui comptent, ouverts depuis un lien ou une carte QR. Dès {price}, prêts aussitôt.",
+      "descriptionNoPrice": "Des souvenirs personnalisés pour l'amour, les diplômes et les chansons qui comptent, ouverts depuis un lien ou une carte QR, prêts dès le paiement."
     },
     "eyebrow": "La collection",
     "title": "Des souvenirs personnalisés, un moment à la fois.",
@@ -892,10 +892,12 @@
     "printableGifts": {
       "meta": {
         "title": "Cadeaux à imprimer et à encadrer",
-        "description": "Des souvenirs personnalisés livrés en fichiers haute résolution que vous imprimez vous-même — en trois formats, avec ou sans marges, prêts dès le paiement."
+        "description": "Des souvenirs personnalisés faits pour être encadrés : fichiers prêts à imprimer en trois formats, avec ou sans marges. Prêts dès le paiement.",
+        "imageAlt": "Deux souvenirs Heartfolio, chacun ouvert sur un téléphone."
       },
       "title": "Des cadeaux que vous imprimez, et que vous gardez.",
-      "intro": "Tout ici arrive sous forme de fichier, pas de colis. Vous recevez trois formats d'impression, chacun en deux versions — l'une pour un montage sous verre, l'autre avec marges pour un cadre ordinaire — en 300 DPI, prêtes pour n'importe quel imprimeur. Rien n'est expédié, rien n'arrive en retard, et vous pourrez le réimprimer dans dix ans."
+      "intro": "Ces souvenirs sont faits pour être accrochés au mur. Vous recevez trois formats d'impression, chacun en deux versions — l'une pour un montage sous verre, l'autre avec marges pour un cadre ordinaire — prêtes pour n'importe quel imprimeur ou votre propre imprimante. Rien n'est expédié, et vous pouvez le réimprimer quand vous le souhaitez.",
+      "navLabel": "Cadeaux à imprimer"
     },
     "anniversaryGifts": {
       "meta": {
@@ -935,7 +937,7 @@
     "ratingAria": "Noté {n} sur 5"
   },
   "Captures": {
-    "phoneAlt": "Un exemple de {name}, tel qu'il s'ouvre sur un téléphone",
+    "phoneAlt": "Aperçu de {name} sur un téléphone",
     "printAlt": "Un exemple de tirage {name}, encadré",
     "pause": "Mettre l'aperçu en pause",
     "play": "Lire l'aperçu",
@@ -980,6 +982,14 @@
         "label": "Une chanson qui compte",
         "description": "La première danse, le trajet du retour, la chanson qui a toujours été la leur."
       }
+    }
+  },
+  "ShareCards": {
+    "gift": {
+      "description": "Quelqu'un l'a créé pour toi. Ouvre-le quand tu veux."
+    },
+    "order": {
+      "description": "Votre commande Heartfolio : les téléchargements, le lien cadeau et la carte QR."
     }
   }
 }

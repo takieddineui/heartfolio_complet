@@ -289,7 +289,7 @@
       "fullDescription": "Write up to ten reasons and choose how they are given: a jar of notes, a daisy, a deck of hearts or a plate of fortune cookies. They open them one by one, then find your last word and, if you like, a letter.",
       "meta": {
         "title": "Reasons I Love You, a personalized digital gift",
-        "description": "Up to ten reasons you love them, given as a jar of notes, a daisy, a deck of hearts or fortune cookies, and opened one at a time. From {price}, delivered instantly.",
+        "description": "Up to ten reasons you love them, given as a jar of notes, a daisy, a deck of hearts or fortune cookies. From {price}, delivered instantly.",
         "imageAlt": "A Heartfolio Reasons I Love You gift: a jar of folded notes, each one a reason",
         "descriptionNoPrice": "Up to ten reasons you love them, given as a jar of notes, a daisy, a deck of hearts or fortune cookies, and opened one at a time. Delivered instantly."
       },
@@ -371,10 +371,10 @@
       "shortDescription": "Their story so far, told as a journey.",
       "fullDescription": "Gather the years, the achievements and the messages from the people who got them there, then choose how the story is told: a flight, a space mission, an arcade game, a gallery or a mountain climb.",
       "meta": {
-        "title": "Graduation Keepsake, a personalized digital gift",
-        "description": "A graduate's story so far (photos through the years, achievements, messages and voice notes from family and friends) told as a flight, a mission, a game, a gallery or a climb. From {price}, delivered instantly.",
+        "title": "Graduation Keepsake, a personalized gift",
+        "description": "A graduate's story so far, with photos, achievements and messages from loved ones, told as a flight, a mission, a game, a gallery or a climb. From {price}.",
         "imageAlt": "A Heartfolio Graduation Keepsake: a boarding pass for the next chapter",
-        "descriptionNoPrice": "A graduate's story so far (photos through the years, achievements, messages and voice notes from family and friends) told as a flight, a mission, a game, a gallery or a climb. Delivered instantly."
+        "descriptionNoPrice": "A graduate's story so far, with photos, achievements and messages from loved ones, told as a flight, a mission, a game, a gallery or a climb."
       },
       "storyTitle": "Everything that got them here, in one place.",
       "story": "You gather the photos from the first day of school to the cap and gown, the achievements worth celebrating, and the messages from the people who were there (written, drawn or recorded). Then you choose the journey: they tear a boarding pass, count down a launch, press start, cut a ribbon or begin a climb, and the story unfolds as they go.",
@@ -443,8 +443,8 @@
   "Collection": {
     "meta": {
       "title": "The Collection: Personalized Digital Keepsakes",
-      "description": "Browse Heartfolio's personalized keepsakes for love, graduations and the songs that matter. Each opens from a link or a QR card. From {price}, ready the moment you pay.",
-      "descriptionNoPrice": "Browse Heartfolio's personalized keepsakes for love, graduations and the songs that matter. Each opens from a link or a QR card, ready the moment you pay."
+      "description": "Personalized keepsakes for love, graduations and the songs that matter, opened from a link or a QR card. From {price}, ready the moment you pay.",
+      "descriptionNoPrice": "Personalized keepsakes for love, graduations and the songs that matter, opened from a link or a QR card and ready the moment you pay."
     },
     "eyebrow": "The Collection",
     "title": "Personalized keepsakes, made one moment at a time.",
@@ -892,10 +892,12 @@
     "printableGifts": {
       "meta": {
         "title": "Printable gifts you can frame",
-        "description": "Personalized keepsakes delivered as high-resolution files you print yourself — in three sizes, framed or frameless, ready the moment you've paid."
+        "description": "Personalized keepsakes made to frame: print-ready files in three sizes, with or without a border, for any print shop. Ready the moment you pay.",
+        "imageAlt": "Two Heartfolio keepsakes, each open on a phone."
       },
       "title": "Gifts you print, and keep.",
-      "intro": "Everything here arrives as a file, not a parcel. You get three print sizes, each in two versions — one to mount under glass, one with a border for an ordinary frame — at 300 DPI, ready for any print shop. Nothing ships, nothing is late, and you can print it again in ten years."
+      "intro": "These keepsakes are made to hang on a wall. You get three print sizes, each in two versions — one to mount under glass, one with a border for an ordinary frame — ready for any print shop or your own printer. Nothing ships, and you can print it again whenever you like.",
+      "navLabel": "Printable gifts"
     },
     "anniversaryGifts": {
       "meta": {
@@ -980,6 +982,14 @@
         "label": "A song that matters",
         "description": "The first dance, the drive home, the song that was always theirs."
       }
+    }
+  },
+  "ShareCards": {
+    "gift": {
+      "description": "Someone made this for you. Open it when you're ready."
+    },
+    "order": {
+      "description": "Your Heartfolio order: the downloads, the gift link and the QR card."
     }
   }
 }

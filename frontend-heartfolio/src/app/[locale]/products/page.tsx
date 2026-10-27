@@ -9,7 +9,7 @@ import { getCatalogProducts } from "@/lib/products/catalog-server";
 import { filterCatalogByOccasion, getCatalogStartingPrice } from "@/lib/products/catalog";
 import type { CatalogProduct } from "@/lib/products/catalog";
 import { formatPrice, SITE_NAME, SITE_URL } from "@/lib/site-config";
-import { buildAlternates, ogLocales } from "@/lib/seo";
+import { buildAlternates, collectionPageLd, ogLocales } from "@/lib/seo";
 import { Link } from "@/i18n/navigation";
 
 /**
@@ -96,6 +96,8 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
       // which does not exist in this repository).
       ...ogLocales(locale),
     },
+    // Its own title on Twitter/X too; it showed the site's (27 Oct 2026).
+    twitter: { card: "summary_large_image", title: t("meta.title"), description },
   };
 }
 
@@ -143,39 +145,17 @@ export default async function ProductsPage({
   /** An ItemList of the collection — the same products, in the same
    * order, as the grid below it (§29). Reflects whatever is actually
    * showing, filtered or not. */
-  const collectionLd = {
-    "@context": "https://schema.org",
-    "@type": "CollectionPage",
+  const collectionLd = collectionPageLd({
     name: t("meta.title"),
     // Priced via the same helper as the <meta> tag; a bare call would emit
     // the raw message key, since the string now interpolates {price}.
     description: describeCollection(t, cheapestAcrossCatalog(allProducts)),
     url: `${SITE_URL}/${locale}/products`,
-    mainEntity: {
-      "@type": "ItemList",
-      itemListElement: products.map((product, i) => {
-        const starting = getCatalogStartingPrice(product);
-        return {
-          "@type": "ListItem",
-          position: i + 1,
-          item: {
-            "@type": "Product",
-            name: tProducts(`${product.i18nKey}.name`),
-            description: tProducts(`${product.i18nKey}.shortDescription`),
-            url: `${SITE_URL}/${locale}/products/${product.slug}`,
-            ...(starting !== null && {
-              offers: {
-                "@type": "AggregateOffer",
-                lowPrice: starting.toFixed(2),
-                priceCurrency: product.currency,
-                offerCount: product.offerings.filter((o) => o.available).length,
-              },
-            }),
-          },
-        };
-      }),
-    },
-  };
+    items: products.map((product) => ({
+      name: tProducts(`${product.i18nKey}.name`),
+      url: `${SITE_URL}/${locale}/products/${product.slug}`,
+    })),
+  });
 
   return (
     <>

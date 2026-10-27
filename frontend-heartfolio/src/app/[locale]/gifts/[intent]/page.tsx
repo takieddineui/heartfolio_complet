@@ -6,8 +6,9 @@ import { SiteFooter } from "@/components/layout/footer";
 import { ProductCollection } from "@/components/product/product-collection";
 import { getCatalogProducts } from "@/lib/products/catalog-server";
 import { findIntent, productsForIntent } from "@/lib/products/gift-intents";
-import { buildAlternates } from "@/lib/seo";
-import { SITE_URL } from "@/lib/site-config";
+import { buildAlternates, collectionPageLd, ogLocales } from "@/lib/seo";
+import { jsonLdScript } from "@/lib/json-ld";
+import { SITE_NAME, SITE_URL } from "@/lib/site-config";
 
 /**
  * §16c — a gift-intent landing page.
@@ -49,17 +50,24 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   if (!intent) return {};
 
   const t = await getTranslations({ locale, namespace: `GiftIntents.${intent.i18nKey}` });
+  const path = `/gifts/${intent.slug}`;
   return {
     title: t("meta.title"),
     description: t("meta.description"),
-    alternates: buildAlternates(locale, `/gifts/${intent.slug}`),
+    alternates: buildAlternates(locale, path),
     robots: { index: true, follow: true },
+    // No `images`: the `opengraph-image` beside this route draws the card
+    // (an explicit entry would override it). Setting only a title here used
+    // to drop the image and locale altogether (27 Oct 2026).
     openGraph: {
+      type: "website",
       title: t("meta.title"),
       description: t("meta.description"),
-      url: `${SITE_URL}/${locale}/gifts/${intent.slug}`,
-      type: "website",
+      siteName: SITE_NAME,
+      url: `${SITE_URL}/${locale}${path}`,
+      ...ogLocales(locale),
     },
+    twitter: { card: "summary_large_image", title: t("meta.title"), description: t("meta.description") },
   };
 }
 
@@ -77,9 +85,23 @@ export default async function GiftIntentPage({ params }: { params: Params }) {
   // their live prices and availability.
   const eligible = new Set(productsForIntent(intent).map((product) => product.slug));
   const products = catalogProducts.filter((product) => eligible.has(product.slug));
+  const tProducts = await getTranslations({ locale, namespace: "Products" });
+
+  // The same products, in the same order, as the grid (27 Oct 2026; the
+  // page had no structured data).
+  const collectionLd = collectionPageLd({
+    name: t("meta.title"),
+    description: t("meta.description"),
+    url: `${SITE_URL}/${locale}/gifts/${intent.slug}`,
+    items: products.map((product) => ({
+      name: tProducts(`${product.i18nKey}.name`),
+      url: `${SITE_URL}/${locale}/products/${product.slug}`,
+    })),
+  });
 
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(collectionLd) }} />
       <SiteHeader />
       <main className="bg-page">
         <section className="py-20 sm:py-28">

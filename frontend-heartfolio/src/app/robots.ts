@@ -11,44 +11,39 @@ import { SITE_URL } from "@/lib/site-config";
  * are now out of date: the Studio exists, and so do the project, checkout and
  * order routes behind it.
  *
- * The split is between *marketing* and *customer flow*:
+ * THE STUDIO IS CRAWLED BUT NOT INDEXED (27 Oct 2026). `/create`, `/studio`
+ * and `/project` used to be disallowed here while their pages said
+ * `index, follow` with the HOME page as canonical. Blocked, Google never
+ * read those tags, and could still index the bare addresses from the link
+ * on every product page. Now they are crawlable and carry `noindex` with
+ * their own canonical (`noindexMetadata` in `lib/seo.ts`), Google's own
+ * advice for keeping a page out of results; `seo-status.test.ts` pins both
+ * halves.
  *
- *   Crawlable — the homepage, `/products`, each product page, and the legal
- *   pages. These are the pages that should rank, and nothing here is
- *   `noindex`ed (verified: the only `robots` metadata in the app sets
- *   `index: true, follow: true`, on the layout and the four legal routes).
- *
- *   Excluded — `/create`, `/studio`, `/project`, `/orders`. These are
- *   working surfaces scoped to a guest session cookie. A crawler reaching
- *   them sees an empty editor or an error state, so indexing them can only
- *   produce thin, session-dependent results competing with the real pages.
+ * STILL DISALLOWED: `/api/`, and `/orders`, whose links carry a signed
+ * access token: a crawler that found one (pasted somewhere public) would
+ * otherwise fetch a customer's order. The order page is also `noindex`.
  *
  * LOCALE PREFIXES: every URL on this site is locale-prefixed, so a bare
- * `/studio` rule would match nothing in production. Rules are generated per
+ * `/orders` rule would match nothing in production. Rules are generated per
  * locale from `routing.locales` — adding a fourth language keeps this
  * correct without a second edit. The unprefixed forms are listed too: the
  * middleware redirects them, and a disallowed redirect target is cleaner
  * than letting a crawler follow the hop first.
  *
  * PREFIX SEMANTICS: because these rules have no trailing slash, a future
- * route sharing a prefix — `/projects` alongside `/project` — would be
+ * route sharing a prefix — `/orders-history` alongside `/orders` — would be
  * caught too. None exists today; if one is added, give it a distinct first
  * segment or switch these to explicit `$`-anchored pairs.
- *
- * DELIBERATELY NOT ALSO `noindex`: a `Disallow` prevents fetching, and a
- * crawler that never fetches the page never reads a `noindex` on it. Pairing
- * the two is a well-known way to get a URL indexed without a description
- * rather than excluded. One mechanism, chosen on purpose — robots.txt, which
- * is what §16d asks for.
  */
-const PRIVATE_PATHS = ["/create", "/studio", "/project", "/orders"];
+const PRIVATE_PATHS = ["/orders"];
 
 function disallowedPaths(): string[] {
   const rules = new Set<string>(["/api/"]);
 
   for (const path of PRIVATE_PATHS) {
-    // NO trailing slash. robots.txt matches by prefix, so `/en/studio/` would
-    // match `/en/studio/love-story-timeline` but NOT `/en/studio` itself —
+    // NO trailing slash. robots.txt matches by prefix, so `/en/orders/` would
+    // match `/en/orders/<id>` but NOT `/en/orders` itself —
     // leaving the bare route crawlable, which is the one most likely to be
     // linked. Without the slash a single rule covers the route and everything
     // beneath it. Checked against the generated file, not assumed.

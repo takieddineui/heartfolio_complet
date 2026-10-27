@@ -147,7 +147,7 @@ export function buildMerchantFeedItems(
     const text = copy(product);
     const link = `${SITE_URL}/${locale}/products/${product.slug}`;
     const still = getProductCaptures(product.id, locale)?.poster?.jpg.src;
-    const imageLink = still ? `${SITE_URL}${still}` : `${link}/opengraph-image`;
+    const imageLink = still ? `${SITE_URL}${still}` : `${link}/opengraph-image/card`;
 
     for (const pack of product.deliveryPacks) {
       if (pack.status !== "active") continue;

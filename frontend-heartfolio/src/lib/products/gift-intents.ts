@@ -51,8 +51,14 @@ export interface GiftIntent {
 }
 
 /** True when a product sells anything printed — see §2/§3. */
+/**
+ * Sells a Printable pack: the `printable` tag (27 Oct 2026). It used to
+ * guess from "timeline" or "map", which left out Song Poster, sold as a
+ * print since 19 Oct 2026, so the printable-gifts page showed one product.
+ * `gift-intents.test.ts` pins the tag to `seed_catalog.py`'s active packs.
+ */
 function hasPrintDeliverable(product: ProductEntry): boolean {
-  return (product.tags ?? []).includes("timeline") || (product.tags ?? []).includes("map");
+  return (product.tags ?? []).includes("printable");
 }
 
 export const GIFT_INTENTS: GiftIntent[] = [

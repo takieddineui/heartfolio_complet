@@ -1,9 +1,10 @@
 // @vitest-environment node
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
-import { isAbsolute, join } from "node:path";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { getAllProducts } from "@/lib/products/registry";
 import { CAPTURE_LOCALES } from "./capture-mode";
+import { printableProductsFromSeed } from "../../../test/seed-printable";
 
 /**
  * THE STOREFRONT'S PRODUCT CAPTURES (26 Oct 2026): real recordings of each
@@ -64,30 +65,8 @@ interface Manifest {
 
 const manifest = JSON.parse(readFileSync(join(CAPTURES, "manifest.json"), "utf8")) as Manifest;
 
-function backendRoot(): string {
-  const configured = process.env.HEARTFOLIO_BACKEND_PATH;
-  const candidates = [
-    ...(configured ? [isAbsolute(configured) ? configured : join(process.cwd(), configured)] : []),
-    join(process.cwd(), "..", "backend"),
-  ];
-  const found = candidates.find((candidate) => existsSync(join(candidate, "seed_catalog.py")));
-  if (!found) throw new Error(`Cannot locate the Django backend. Set HEARTFOLIO_BACKEND_PATH. Tried: ${candidates.join(" | ")}`);
-  return found;
-}
-
 /** Products the seed sells a Printable pack for: they get a print capture. */
-function printableProducts(): Set<string> {
-  const source = readFileSync(join(backendRoot(), "seed_catalog.py"), "utf8");
-  const printable = new Set<string>();
-  for (const chunk of source.split(/\n {8}"slug": "/).slice(1)) {
-    const slug = chunk.slice(0, chunk.indexOf('"'));
-    const packs = chunk.slice(chunk.indexOf('"packs": ['));
-    if (/\(\s*"printable",\s*\d+,[\s\S]*?"active",?\s*\)/.test(packs.split(/\n {4}\},/)[0] ?? "")) printable.add(slug);
-  }
-  return printable;
-}
-
-const PRINTABLE = printableProducts();
+const PRINTABLE = printableProductsFromSeed();
 const VISIBLE = getAllProducts().map((product) => product.id);
 
 function expectFile(entry: FileEntry | undefined, budget: number, what: string) {
@@ -196,7 +175,7 @@ describe("where the captures are used", () => {
     expect(source("src/components/sections/how-it-works.tsx")).toContain("getStudioCaptures");
     expect(source("src/components/sections/open-moment.tsx")).toContain('mode="inView"');
     expect(source("src/components/sections/by-occasion.tsx")).toContain("getProductCaptures");
-    const home = source("src/app/[locale]/page.tsx");
+    const home = source("src/app/[locale]/(home)/page.tsx");
     for (const retired of ["TemplateGallery", "WhyHeartfolio", "Pricing", "GiftOccasions", "KeepsakeVisual"]) {
       expect(home, retired).not.toContain(`<${retired}`);
     }

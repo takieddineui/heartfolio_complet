@@ -5,6 +5,7 @@ import { Logo } from "@/components/brand/logo";
 import { Link } from "@/i18n/navigation";
 import { reopenConsent } from "@/components/analytics/analytics";
 import { getAllProducts } from "@/lib/products/registry";
+import { enabledIntents } from "@/lib/products/gift-intents";
 import { useProductContent } from "@/lib/products/use-product-content";
 import { SUPPORT_EMAIL } from "@/lib/site-config";
 import type { ProductEntry } from "@/lib/products/types";
@@ -76,7 +77,12 @@ function SocialLinks() {
 
 export function SiteFooter() {
   const t = useTranslations("Footer");
+  const tIntents = useTranslations("GiftIntents");
   const products = getAllProducts();
+  // The gift pages (`/gifts/<slug>`) had no link anywhere, so the sitemap
+  // listed a page no visitor or crawler could reach by following links
+  // (27 Oct 2026).
+  const intents = enabledIntents();
 
   const companyLinks = [
     { href: "/products", label: t("company.collection") },
@@ -123,6 +129,13 @@ export function SiteFooter() {
           <FooterColumn title={t("shop.title")}>
             {products.map((product) => (
               <ProductFooterLink key={product.id} product={product} />
+            ))}
+            {intents.map((intent) => (
+              <li key={intent.slug}>
+                <Link href={`/gifts/${intent.slug}`} className="footer-link text-sm text-parchment/70 transition-colors hover:text-parchment">
+                  {tIntents(`${intent.i18nKey}.navLabel`)}
+                </Link>
+              </li>
             ))}
             <li>
               <Link href="/products" className="footer-link text-sm text-parchment/70 transition-colors hover:text-parchment">

@@ -3,6 +3,7 @@ import createMiddleware from "next-intl/middleware";
 import { routing } from "./i18n/routing";
 import { getProductById, getProductBySlug } from "./lib/products/registry";
 import { captureModeEnabled } from "./lib/captures/capture-mode";
+import { findIntent } from "./lib/products/gift-intents";
 
 const intlMiddleware = createMiddleware(routing);
 
@@ -94,6 +95,35 @@ function unpublishedProductPath(pathname: string, locale: SiteLocale) {
 }
 
 /**
+ * REAL 404s FOR THE OTHER ADDRESSES A PAGE CANNOT ANSWER FOR (27 Oct 2026).
+ * - `/gifts/<slug>` that is not an enabled gift intent: the page's own
+ *   `notFound()` came after its loading skeleton had streamed, so it was a
+ *   200 "this page doesn't exist", indexable, its canonical the home page.
+ * - `/live`, `/ar`, `/orders` and `/project` followed by something that is
+ *   not a UUID (every id there is one): no backend can know it.
+ * A well-formed live or AR id that does not exist is the page's own 404 (no
+ * loading boundary wraps it since the home skeleton moved into `(home)`).
+ * A well-formed order or project id cannot be checked here: the order needs
+ * the link's token and the project the visitor's session, and both pages
+ * load in the browser; they stay noindex.
+ */
+const GIFT_ROUTE = /^\/[a-z]{2}\/gifts\/([^/]+)/;
+const PRIVATE_ID_ROUTE = /^\/[a-z]{2}\/(live|ar|orders|project)\/([^/]+)/;
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function unanswerablePath(pathname: string): boolean {
+  const gift = GIFT_ROUTE.exec(pathname);
+  if (gift) {
+    const slug = decodeURIComponent(gift[1]!);
+    // The intent page's own generated share image is not an intent.
+    if (slug === "opengraph-image" || slug === "twitter-image") return false;
+    return !findIntent(slug);
+  }
+  const id = PRIVATE_ID_ROUTE.exec(pathname);
+  return Boolean(id && !UUID.test(decodeURIComponent(id[2]!)));
+}
+
+/**
  * The dev-only capture page (`app/[locale]/capture/[product]`, for the
  * storefront's product captures) is a real 404 unless the server was started
  * for captures: the same rewrite as an unpublished product, because a
@@ -129,7 +159,7 @@ export default function proxy(request: NextRequest) {
   if (pathnameLocale) {
     const missing = unpublishedProductPath(pathname, pathnameLocale);
     if (missing) return missing(request);
-    if (lockedCapturePath(pathname)) return rewriteToNotFound(request, pathnameLocale);
+    if (lockedCapturePath(pathname) || unanswerablePath(pathname)) return rewriteToNotFound(request, pathnameLocale);
     return intlMiddleware(request);
   }
 

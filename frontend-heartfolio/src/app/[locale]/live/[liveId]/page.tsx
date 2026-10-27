@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { LivePayloadView, type LivePayload } from "@/components/live/live-payload";
 import { getBackendOrigin } from "@/lib/backend-origin";
+import { neutralShareMetadata, noindexMetadata } from "@/lib/seo";
 
 /**
  * §10 — the Digital keepsake.
@@ -22,9 +23,17 @@ export const dynamic = "force-dynamic";
  *  Heartfolio" in the link's language. It was "Heartfolio — Heartfolio"
  *  (25 Oct 2026). Never indexed. */
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
-  const { locale } = await params;
+  const { locale, liveId } = await params;
   const t = await getTranslations({ locale, namespace: "PageTitles" });
-  return { title: t("live"), robots: { index: false, follow: false, nocache: true } };
+  const share = await getTranslations({ locale, namespace: "ShareCards" });
+  const path = `/live/${liveId}`;
+  // Never indexed; its own canonical; a neutral card when the link is shared
+  // (`seo.ts`). Nothing here reads the keepsake.
+  return {
+    title: t("live"),
+    ...noindexMetadata(locale, path, { follow: false }),
+    ...neutralShareMetadata(locale, path, "gift", { title: t("live"), description: share("gift.description") }),
+  };
 }
 
 type Params = Promise<{ locale: string; liveId: string }>;

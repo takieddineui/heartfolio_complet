@@ -162,6 +162,19 @@ export default async function ProductPage({ params }: { params: Params }) {
    * aggregateRating or review nodes — Heartfolio has no published reviews,
    * and inventing them would be both false and a rich-results violation.
    */
+  /**
+   * The refund policy, by its page only (owner, 27 Oct 2026): no refund once
+   * the keepsake is delivered, except when it is broken or not as described
+   * and the customer writes within 14 days. Google's return categories
+   * ("free return", "damaged item") describe physical goods and would
+   * misrepresent a digital one, so the markup is just the link to `/refunds`;
+   * the Search Console warning about missing categories is accepted.
+   */
+  const returnPolicy = {
+    "@type": "MerchantReturnPolicy",
+    merchantReturnLink: `${SITE_URL}/${locale}/refunds`,
+  };
+
   const productLd = {
     "@context": "https://schema.org",
     "@type": "Product",
@@ -209,6 +222,7 @@ export default async function ProductPage({ params }: { params: Params }) {
         product.status === "available"
           ? "https://schema.org/InStock"
           : "https://schema.org/PreOrder",
+      hasMerchantReturnPolicy: returnPolicy,
     })),
   };
 

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { setRequestLocale } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
+import { neutralShareMetadata, noindexMetadata } from "@/lib/seo";
 import { ARScene } from "@/components/ar/ar-scene";
 import { apiFetch } from "@/lib/api/client";
 
@@ -24,10 +25,18 @@ import { apiFetch } from "@/lib/api/client";
  */
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  title: "Heartfolio",
-  robots: { index: false, follow: false, nocache: true },
-};
+/** Never indexed; its own canonical; the gift link's neutral share card. */
+export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
+  const { locale, arId } = await params;
+  const t = await getTranslations({ locale, namespace: "PageTitles" });
+  const share = await getTranslations({ locale, namespace: "ShareCards" });
+  const path = `/ar/${arId}`;
+  return {
+    title: t("live"),
+    ...noindexMetadata(locale, path, { follow: false }),
+    ...neutralShareMetadata(locale, path, "gift", { title: t("live"), description: share("gift.description") }),
+  };
+}
 
 type Params = Promise<{ locale: string; arId: string }>;
 

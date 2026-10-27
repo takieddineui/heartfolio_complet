@@ -1,14 +1,22 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { OrderStatusView } from "@/components/commerce/order-status-view";
+import { neutralShareMetadata, noindexMetadata } from "@/lib/seo";
 
 /** "Your order — Heartfolio" in the page's language (it showed the site's
  *  default title, 25 Oct 2026). Never indexed: the address carries a private
  *  access token. */
-export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
-  const { locale } = await params;
+export async function generateMetadata({ params }: { params: Promise<{ locale: string; orderId: string }> }): Promise<Metadata> {
+  const { locale, orderId } = await params;
   const t = await getTranslations({ locale, namespace: "PageTitles" });
-  return { title: t("order"), robots: { index: false, follow: false } };
+  const share = await getTranslations({ locale, namespace: "ShareCards" });
+  // The canonical and the shared address leave the access token out.
+  const path = `/orders/${orderId}`;
+  return {
+    title: t("order"),
+    ...noindexMetadata(locale, path, { follow: false }),
+    ...neutralShareMetadata(locale, path, "order", { title: t("order"), description: share("order.description") }),
+  };
 }
 
 /**

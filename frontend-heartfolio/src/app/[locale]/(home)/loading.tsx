@@ -4,6 +4,14 @@ import { SkeletonBlock, SkeletonProductGrid, SkeletonRegion, SkeletonText } from
 /**
  * Homepage.
  *
+ * IN THE `(home)` GROUP ON PURPOSE (27 Oct 2026). At `[locale]/loading.tsx`
+ * this boundary wrapped EVERY page under `[locale]` that has no loading file
+ * of its own, so they all streamed it and committed a 200 before their own
+ * `notFound()` or error could set the status: an unknown `/live/<id>` was a
+ * 200 "not found" page (a soft 404), and a gift recipient briefly saw the
+ * shop's home skeleton. In the group it wraps the home page only.
+ * `seo-status.test.ts` fails if a loading file comes back at `[locale]`.
+ *
  * A NOTE ON WHY THIS IS A WHOLE-PAGE SKELETON, which is not ideal.
  *
  * Only the catalog-dependent sections need the catalog: the hero's phone,

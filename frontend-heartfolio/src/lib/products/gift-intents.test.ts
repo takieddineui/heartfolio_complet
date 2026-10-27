@@ -3,6 +3,8 @@ import en from "@/messages/en.json";
 import fr from "@/messages/fr.json";
 import ar from "@/messages/ar.json";
 import { GIFT_INTENTS, enabledIntents, findIntent, productsForIntent } from "./gift-intents";
+import { getAllProducts } from "./registry";
+import { printableProductsFromSeed } from "../../../test/seed-printable";
 
 /**
  * ---------------------------------------------------------------------
@@ -50,6 +52,15 @@ describe("gift intents (§16c)", () => {
     // list the same item and differ only in a heading — the shape search
     // engines treat as doorway pages, penalised across the whole domain.
     expect(enabledIntents().map((i) => i.slug)).toEqual(["printable-gifts"]);
+  });
+
+  it("printable gifts are exactly the visible products the seed sells a Printable pack for", () => {
+    // The page guessed from "timeline"/"map" tags and missed Song Poster
+    // (27 Oct 2026); the `printable` tag is now checked against the seed.
+    const visible = new Set(getAllProducts().map((p) => p.slug));
+    const sold = [...printableProductsFromSeed()].filter((slug) => visible.has(slug)).sort();
+    expect(sold).toEqual(["love-story-timeline", "song-poster"]);
+    expect(productsForIntent(findIntent("printable-gifts")!).map((p) => p.slug).sort()).toEqual(sold);
   });
 
   it("refuses to resolve a disabled or unknown intent", () => {

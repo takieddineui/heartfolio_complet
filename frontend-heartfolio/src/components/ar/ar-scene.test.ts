@@ -23,8 +23,9 @@ describe("AR page security (§21f)", () => {
 
   it("is marked noindex", () => {
     // §21f: AR pages must never be indexed or discoverable via search.
-    expect(page).toContain("index: false");
-    expect(page).toContain("follow: false");
+    // Through the shared helper since 27 Oct 2026 (`noindexMetadata` sets
+    // `index: false`; pinned in `lib/seo-status.test.ts`).
+    expect(page).toMatch(/noindexMetadata\(locale, path, \{ follow: false \}\)/);
   });
 
   it("renders per request rather than being cached or prebuilt", () => {

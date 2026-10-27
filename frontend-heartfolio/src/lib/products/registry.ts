@@ -90,7 +90,7 @@ export const PRODUCT_REGISTRY: ProductEntry[] = [
     status: "available",
     hidden: false,
     order: 2,
-    tags: ["music", "anniversary", "gift"],
+    tags: ["music", "anniversary", "gift", "printable"],
     faqCount: 3,
     /**
      * INTENTIONALLY EMPTY — Django owns this product's commercial data.
@@ -173,7 +173,7 @@ export const PRODUCT_REGISTRY: ProductEntry[] = [
     // Where We Met above.
     status: "available",
     order: 4,
-    tags: ["timeline", "anniversary", "wedding", "photos"],
+    tags: ["timeline", "anniversary", "wedding", "photos", "printable"],
     faqCount: 3,
     /**
      * INTENTIONALLY EMPTY — Django owns this product's commercial data.

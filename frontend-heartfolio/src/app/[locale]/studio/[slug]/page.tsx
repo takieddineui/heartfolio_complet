@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { StudioShell } from "@/components/studio/studio-shell";
 import { resolveProductEntry } from "@/hooks/use-product-entry";
+import { noindexMetadata } from "@/lib/seo";
 
 interface StudioProductPageProps {
   params: Promise<{ slug: string }>;
@@ -17,7 +18,8 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   if (!product) return {};
   const names = await getTranslations({ locale, namespace: `Products.${product.i18nKey}` });
   const t = await getTranslations({ locale, namespace: "PageTitles" });
-  return { title: t("studio", { product: names("name") }) };
+  // Crawlable (no longer hidden by robots.txt) but never indexed.
+  return { title: t("studio", { product: names("name") }), ...noindexMetadata(locale, `/studio/${product.slug}`) };
 }
 
 export default async function StudioProductPage({ params, searchParams }: StudioProductPageProps) {

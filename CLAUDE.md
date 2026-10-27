@@ -235,6 +235,38 @@ must let `/<locale>/products/opengraph-image` through: its unpublished-product
 rule took it for a product slug and made the collection's share card a 404
 from 25 to 26 Oct 2026.
 
+**Technical SEO is pinned (27 Oct 2026, after a crawl of every page on the
+production image).** Things that are not visible from any one file:
+- **A loading skeleton decides the status code.** A `loading.tsx` streams
+  before its page runs, so a later `notFound()` or error can no longer turn
+  the committed 200 into a 404 or 500. The home skeleton therefore lives in
+  `app/[locale]/(home)/`, NOT at `[locale]` (where it wrapped every page and
+  made an unknown `/live/<id>` a 200). Routes that keep a skeleton (products,
+  gifts, create) get their 404s from the PROXY instead: unpublished products,
+  unknown `/gifts/<slug>`, and a non-UUID id on `/live`, `/ar`, `/orders`,
+  `/project`. A well-formed unknown order or project id stays 200 + noindex:
+  those pages load in the browser with the link's token or the visitor's
+  session, so the server cannot know.
+- **Setting `openGraph` on a page REPLACES the layout's whole block** (the
+  image and locale vanished on `/gifts/printable-gifts`). Use the helpers in
+  `lib/seo.ts`: `pageShareMetadata` (own title and `og:url`, the site's
+  card), `noindexMetadata` (crawlable, noindex, own canonical, no hreflang:
+  the Studio, `/create`, `/project`, live, order, AR), and
+  `neutralShareMetadata` (gift and order links share `share-card/<kind>`,
+  never the keepsake). robots.txt blocks only `/api/` and `/orders`: a
+  blocked page's noindex is never read.
+- **Share-image alt text comes from `generateImageMetadata` and the message
+  files read WITHOUT a request (`lib/og-alt.ts`)**: Next calls it at build
+  time, where `getTranslations` reaches for headers and fails the build. It
+  puts each card at `opengraph-image/card`.
+- **`CONTENT_UPDATED` in `app/sitemap.ts` is hand-kept: update a page's date
+  when its CONTENT changes.** The legal pages use `LEGAL_LAST_UPDATED` (no
+  `lastmod` until it is set).
+- **The return policy in Product markup is the `/refunds` link ONLY** (owner):
+  Google's categories ("free return", "damaged item") describe physical goods.
+- **Printable products carry the `printable` tag**, pinned to the seed's
+  active Printable packs (`gift-intents.test.ts`, `test/seed-printable.ts`).
+
 **`backend/.dockerignore` strips `tests_*.py` and `**/tests.py`**, so
 `manage.py test` inside the built image finds 5 tests instead of 649. The
 compose file mounts `./backend` over `/app` to work around this.
@@ -284,6 +316,7 @@ task.**
 | A live product's limits (`limits.ts` or its backend `data.py`), or upload/media limits | `src/lib/studio/product-modules/reasons-i-love-you/reasons-module.test.ts`, `.../graduation-keepsake/graduation-module.test.ts`, `src/lib/studio/media-values.test.ts` | Frontend limits equal the backend's `data.py` and `base.py` |
 | Settings, environment or `.env.example` files, the test runner | `apps.common.tests.ProductionSettingsLoadingTests`, `apps.common.tests.HermeticTestRunnerTests`, `apps.assets.tests.EnvExampleUploadTypesTests` | Production settings load (throttle rates merged); tests reach no outside host; `.env.example` sets no upload type list |
 | The Node version or dependencies: `Dockerfile` `FROM` lines, `.nvmrc`, `engines`, `package.json` dependencies, `package-lock.json` | `src/lib/node-version.test.ts`, then `npm ci` in the image (see "Regenerate `package-lock.json`" above) | Every Dockerfile stage on one even (LTS) Node line, named by `.nvmrc` and `engines`; the lockfile regenerated after `engines` changed |
+| Page metadata (titles, descriptions, canonicals, robots, share cards, JSON-LD), `proxy.ts`, `robots.ts`, `sitemap.ts`, a loading skeleton, a new public page | `src/lib/seo-lengths.test.ts`, `src/lib/seo-status.test.ts`, `src/proxy.test.ts`, `src/lib/products/gift-intents.test.ts` | Every sitemap page's rendered title <= 60 and description <= 160 in en/fr/ar; no loading boundary at `[locale]`; private pages noindex with their own canonical; robots.txt blocks only `/api/` and `/orders`; share alt text per language; sitemap x-default and real dates; return policy link-only; unknown addresses 404 |
 | A print renderer's PNG saving | `apps.delivery.tests_png_encoding` | No `optimize=True` on the full-screen save paths |
 | Dates or counts a print or preview writes (`date_formatting.py`, `formatDate`/`formatCount` in the Love Story Timeline renderer, the live page's dates) | Frontend: `src/lib/studio/product-modules/love-story-timeline/locale-format-parity.test.ts`, `src/components/studio/preview/moment-wallpaper.test.tsx`. Backend: `apps.delivery.test_date_formatting` | Preview and print write the same strings in the order's language (`backend/apps/delivery/locale_format_cases.json`, generated from the browser's `Intl`); a calendar day never shifts by time zone |
 | Storefront captures: a product's live page, its Studio sample (`initial-state.ts`), `marketing_samples/`, `scripts/captures/`, `public/captures/`, the Studio (it is captured for the home page), or a page showing them | Frontend: `src/lib/captures/captures.test.ts`, `src/lib/captures/capture-lock.test.ts`, `src/components/captures/capture-media.test.tsx`, `src/components/captures/capture-showcase.test.tsx`, `src/proxy.test.ts`. Backend: `apps.delivery.tests_marketing_samples` | Every visible product captured in en/fr/ar within budget, no stray files; the capture page and its photo route locked; every sample valid for the real live page, every photo present and licensed. A VISIBLE change to a live page means re-recording: `node scripts/captures/record.mjs all`; to the Studio, `record.mjs studio --base http://localhost:3006` (throwaway backend only) |
@@ -419,6 +452,15 @@ Two were genuine product bugs: the `layout` default above, and
 
 ## Still open
 
+- **THE AR PAGE NEVER LOADS: FIX BEFORE AR IS EVER SOLD (found 27 Oct 2026,
+  owner's task).** `app/[locale]/ar/[arId]/page.tsx` fetches its payload with
+  `apiFetch`, which builds a RELATIVE URL for the browser and throws on the
+  server (see "Server components cannot use `apiFetch`" above); its `catch`
+  calls `notFound()`, so EVERY AR link, valid or not, shows "not found" (a
+  404 since the SEO fixes, a 200 before). AR is not sold today, so no
+  customer is affected. Fix as the live page does: `getBackendOrigin()`
+  outside the `try`, then a server `fetch` (forwarding `X-Forwarded-For`),
+  and a test that a valid id renders the scene.
 - **CONTENT SECTION (`/guides`): plan APPROVED, NOT BUILT (owner, 27 Oct
   2026). It starts after the SEO fixes and launch.** English and French first
   (of 42 paid Love Story Timeline orders, 25 were French, 17 English, none

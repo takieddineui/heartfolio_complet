@@ -4,7 +4,7 @@ import { routing } from "@/i18n/routing";
 import { SiteHeader } from "@/components/layout/header";
 import { SiteFooter } from "@/components/layout/footer";
 import { GeneralFeedbackForm } from "@/components/feedback/general-feedback-form";
-import { buildAlternates } from "@/lib/seo";
+import { buildAlternates, pageShareMetadata } from "@/lib/seo";
 
 const PATH = "/feedback";
 
@@ -17,10 +17,13 @@ type Params = Promise<{ locale: string }>;
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "FeedbackPage" });
+  const tMeta = await getTranslations({ locale, namespace: "Meta" });
   return {
     title: t("meta.title"),
     description: t("meta.description"),
     alternates: buildAlternates(locale, PATH),
+    // Its own share title and address, with the site's card (`seo.ts`).
+    ...pageShareMetadata(locale, PATH, { title: t("meta.title"), description: t("meta.description"), cardAlt: tMeta("ogAlt") }),
     // Indexable. Someone searching for a way to contact Heartfolio should
     // find this, and unlike the Studio it holds nothing session-scoped.
     robots: { index: true, follow: true },

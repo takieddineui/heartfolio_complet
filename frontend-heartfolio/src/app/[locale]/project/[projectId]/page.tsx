@@ -1,4 +1,12 @@
+import type { Metadata } from "next";
 import { StudioShell } from "@/components/studio/studio-shell";
+import { noindexMetadata } from "@/lib/seo";
+
+/** A customer's saved draft: crawlable, never indexed, its own canonical. */
+export async function generateMetadata({ params }: { params: Promise<{ locale: string; projectId: string }> }): Promise<Metadata> {
+  const { locale, projectId } = await params;
+  return noindexMetadata(locale, `/project/${projectId}`, { follow: false });
+}
 
 interface ProjectPageProps {
   params: Promise<{ projectId: string }>;

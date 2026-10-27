@@ -1118,6 +1118,11 @@ instead of a silently empty storefront).
 | `/fr/live/<any id>`, `BACKEND_API_ORIGIN` empty | "This page couldn't load" + an error reference | 200 | 500 |
 | `/fr/products`, `BACKEND_API_ORIGIN` empty | "This page couldn't load" + an error reference | 200 | 500 |
 
+**RESOLVED 27 Oct 2026.** The cause below was confirmed: with the home
+skeleton moved into `app/[locale]/(home)/`, an unknown `/live/<id>` returns
+404 on the production image, and the proxy answers 404 for the routes that
+keep a skeleton (see CLAUDE.md, "Technical SEO is pinned").
+
 **Probable cause — not isolated by experiment.** `src/app/[locale]/loading.tsx`
 sits at the `[locale]` segment level, so it wraps every page beneath it in a
 Suspense boundary. Next therefore starts streaming — and commits the 200 status
