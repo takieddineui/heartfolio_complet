@@ -470,13 +470,19 @@ Two were genuine product bugs: the `layout` default above, and
   customer is affected. Fix as the live page does: `getBackendOrigin()`
   outside the `try`, then a server `fetch` (forwarding `X-Forwarded-For`),
   and a test that a valid id renders the scene.
-- **CONTENT SECTION (`/guides`): SET UP 27 Oct 2026; the first guide is a
-  DRAFT awaiting the owner's review.** Plan (owner, 27 Oct 2026): English and
+- **CONTENT SECTION (`/guides`): LIVE 27 Oct 2026. The first guide is
+  PUBLISHED in English and French** ("Anniversary and Valentine's gift ideas
+  that aren't things" / « Idées cadeau anniversaire de couple originales »,
+  checked on a production build: pages, index, hreflang en<->fr, sitemap,
+  footer, share cards). Guides embed products' real capture loops with the
+  `capture` block (`components/guides/guide-capture.tsx`, the home page's
+  loop; at most 3 loops and 900 KB per guide, `GUIDE_VIDEO_BUDGET`); French
+  typography (no-break spaces) is applied at display (`lib/guides/typeset.ts`). Plan (owner, 27 Oct 2026): English and
   French first (of 42 paid Love Story Timeline orders, 25 were French, 17
   English, none Arabic); Arabic only with a native reviewer. Author: "The
   Heartfolio team". First batch, each written natively per language, not
-  translated: anniversary/Valentine's ideas that aren't objects (DRAFTED in
-  English: `src/content/guides/anniversary-ideas/`), reasons I love you with
+  translated: anniversary/Valentine's ideas that aren't objects (PUBLISHED,
+  `src/content/guides/anniversary-ideas/`), reasons I love you with
   examples, how to build a relationship timeline, last-minute gifts that still
   feel personal, graduation gifts from everyone (Graduation Keepsake is in
   `GUIDE_COVERAGE_PENDING` until then). Search volumes are unverified

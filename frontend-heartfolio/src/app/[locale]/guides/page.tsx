@@ -8,8 +8,8 @@ import { SiteFooter } from "@/components/layout/footer";
 import { formatGuideDate } from "@/components/guides/guide-article";
 import { guideIndexAlternates, guidesIn } from "@/lib/guides/registry";
 import { jsonLdScript } from "@/lib/json-ld";
-import { collectionPageLd, ogLocales } from "@/lib/seo";
-import { SITE_NAME, SITE_URL } from "@/lib/site-config";
+import { collectionPageLd, pageShareMetadata } from "@/lib/seo";
+import { SITE_URL } from "@/lib/site-config";
 
 /**
  * The guides of one language. A language with none has no index (a real
@@ -21,21 +21,16 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   const { locale } = await params;
   if (guidesIn(locale).length === 0) return {};
   const t = await getTranslations({ locale, namespace: "Guides" });
+  const tMeta = await getTranslations({ locale, namespace: "Meta" });
   const published = guidesIn(locale, { includeDrafts: false }).length > 0;
   return {
     title: t("meta.title"),
     description: t("meta.description"),
     alternates: guideIndexAlternates(locale),
     robots: published ? { index: true, follow: true } : { index: false, follow: false },
-    openGraph: {
-      type: "website",
-      title: t("meta.title"),
-      description: t("meta.description"),
-      url: `${SITE_URL}/${locale}/guides`,
-      siteName: SITE_NAME,
-      ...ogLocales(locale),
-    },
-    twitter: { card: "summary_large_image", title: t("meta.title"), description: t("meta.description") },
+    // The site's card (an index has no card of its own), its own title and
+    // address: setting `openGraph` here alone would drop the image.
+    ...pageShareMetadata(locale, "/guides", { title: t("meta.title"), description: t("meta.description"), cardAlt: tMeta("ogAlt") }),
   };
 }
 

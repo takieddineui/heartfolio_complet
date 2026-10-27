@@ -5,4 +5,4 @@
  * text to every page. `guides.test.ts` fails if this list and the guides
  * disagree, so publishing a guide means updating it.
  */
-export const GUIDE_INDEX_LOCALES: readonly string[] = [];
+export const GUIDE_INDEX_LOCALES: readonly string[] = ["en", "fr"];

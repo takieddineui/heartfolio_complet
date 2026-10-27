@@ -1,6 +1,6 @@
 import type { GuideTranslation } from "@/lib/guides/types";
 
-/** DRAFT for the owner's review (27 Oct 2026). French follows approval. */
+/** Published 27 Oct 2026, with the French (owner's approval). */
 export const en: GuideTranslation = {
   slug: "anniversary-gift-ideas-that-arent-things",
   title: "Anniversary and Valentine's gift ideas that aren't things",
@@ -9,7 +9,7 @@ export const en: GuideTranslation = {
     "Anniversary and Valentine's ideas that aren't objects: time planned around them, words they can keep, your story told back to them, and your song.",
   published: "2026-10-27",
   updated: "2026-10-27",
-  status: "draft",
+  status: "published",
   intro:
     "Most of what we buy for an anniversary is forgotten by the next one. The gifts people still talk about years later are rarely objects: a day someone planned around them, a letter they kept, the story of the two of them told back. This guide gathers ideas of that kind, for anniversaries and for Valentine's Day. Most cost little. Some take an evening. All of them work because only you could give them.",
   blocks: [

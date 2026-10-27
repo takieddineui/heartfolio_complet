@@ -170,6 +170,8 @@ describe("the routes", () => {
     const page = readFileSync(`${APP}/[slug]/page.tsx`, "utf8");
     expect(page).toContain('"@type": "Article"');
     expect(page).toContain('"@type": "BreadcrumbList"');
+    // The index shares the site's card (it has none of its own).
+    expect(readFileSync(`${APP}/page.tsx`, "utf8")).toContain("...pageShareMetadata(locale, \"/guides\"");
     const article = readFileSync("src/components/guides/guide-article.tsx", "utf8");
     expect(article).toContain("href={`/products/${product.slug}`}");
     expect(article).not.toMatch(/\/studio/);

@@ -1,7 +1,7 @@
 import type { GuideTranslation } from "@/lib/guides/types";
 
-/** Written in French, not translated (27 Oct 2026). DRAFT for the owner's
- *  review; published together with the English. */
+/** Written in French, not translated. Published 27 Oct 2026, with the
+ *  English (owner's approval). */
 export const fr: GuideTranslation = {
   slug: "idees-cadeau-anniversaire-de-couple-originales",
   title: "Anniversaire de couple et Saint-Valentin : des idées de cadeaux qui ne sont pas des objets",
@@ -10,7 +10,7 @@ export const fr: GuideTranslation = {
     "Anniversaire de couple ou Saint-Valentin : des idées de cadeaux qui ne sont pas des objets. Du temps, des mots, votre histoire, votre chanson.",
   published: "2026-10-27",
   updated: "2026-10-27",
-  status: "draft",
+  status: "published",
   intro:
     "La plupart des cadeaux d'anniversaire sont oubliés avant le suivant. Ceux dont on parle encore des années plus tard sont rarement des objets : une journée organisée rien que pour l'autre, une lettre qu'on a gardée, votre histoire racontée de nouveau. Voici des idées de ce genre, pour un anniversaire de couple comme pour la Saint-Valentin. La plupart coûtent peu ; certaines demandent une soirée. Toutes touchent juste pour la même raison : personne d'autre que vous ne pouvait les offrir.",
   blocks: [
