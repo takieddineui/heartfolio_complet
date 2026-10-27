@@ -1008,7 +1008,7 @@
     "updated": "Mis à jour le {date}",
     "draft": "Brouillon : visible uniquement en développement",
     "read": "Lire le guide",
-    "seeProduct": "Voir {name}",
+    "seeProduct": "Voir « {name} »",
     "related": "Idées et guides"
   }
 }

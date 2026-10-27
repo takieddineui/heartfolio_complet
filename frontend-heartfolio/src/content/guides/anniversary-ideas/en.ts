@@ -57,6 +57,11 @@ export const en: GuideTranslation = {
       text: "Reasons are worth a moment of care. The ones that land are small and observed rather than grand: \"the way you hum when you cook\", \"you remembered my mother's birthday before I did\", \"you still hold the door with your foot when your hands are full\". Write about a moment rather than a quality, and use the present tense: it is still true.",
     },
     {
+      type: "capture",
+      product: "reasons-i-love-you",
+      caption: "A sample Reasons I Love You: the jar opens and a note unfolds, one reason at a time.",
+    },
+    {
       type: "product",
       product: "reasons-i-love-you",
       note: "If you would like your reasons to be opened rather than read in one go, Reasons I Love You turns up to ten of them into a jar of notes, a daisy, a deck of hearts or fortune cookies they open one at a time, from a link on their phone.",
@@ -86,6 +91,11 @@ export const en: GuideTranslation = {
       text: "For each moment, write the date, a short title and one or two lines about what you remember. The details make it: what the weather was, what you ate, what someone said.",
     },
     {
+      type: "capture",
+      product: "love-story-timeline",
+      caption: "A sample Love Story Timeline: your names first, then each moment arriving as they scroll.",
+    },
+    {
       type: "product",
       product: "love-story-timeline",
       note: "Love Story Timeline lays those moments out as one story, with your photos: a page they open on their phone, and a print to frame if you would like it on a wall.",
@@ -103,6 +113,11 @@ export const en: GuideTranslation = {
         "Recreate the moment: the song, the kitchen, a slow dance before the dishes.",
         "Write down why it is yours. People often know the song and have never heard the reason.",
       ],
+    },
+    {
+      type: "capture",
+      product: "song-poster",
+      caption: "A sample Song Poster page: the record, then the soundwave filling as the song plays.",
     },
     {
       type: "product",

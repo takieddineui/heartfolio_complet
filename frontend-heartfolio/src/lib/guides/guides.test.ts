@@ -5,7 +5,9 @@ import sitemap from "@/app/sitemap";
 import { routing } from "@/i18n/routing";
 import { getAllProducts } from "@/lib/products/registry";
 import { SITE_URL } from "@/lib/site-config";
-import { GUIDES, findGuide, guideAlternates, guideIndexLocales, guidesIn } from "./registry";
+import { GUIDES, GUIDE_VIDEO_BUDGET, findGuide, guideAlternates, guideIndexLocales, guidesIn } from "./registry";
+import { getProductCaptures } from "@/lib/captures/manifest";
+import { typeset } from "./typeset";
 import { GUIDE_INDEX_LOCALES } from "./published-locales";
 import type { GuideLocale, GuideTranslation } from "./types";
 
@@ -21,7 +23,13 @@ const label = (row: (typeof translations)[number]) => `${row.guide.id}/${row.loc
 const visible = new Set(getAllProducts().map((product) => product.id));
 const TITLE_SUFFIX: Record<string, string> = { en: " — Heartfolio", fr: " — Heartfolio", ar: " — هارتفوليو" };
 const allText = (t: GuideTranslation) =>
-  [t.title, t.description, t.intro, ...t.blocks.flatMap((b) => (b.type === "list" ? b.items : b.type === "product" ? [b.note] : [b.text]))].join("\n");
+  [t.title, t.description, t.intro, ...t.blocks.flatMap(blockText)].join("\n");
+function blockText(b: GuideTranslation["blocks"][number]): string[] {
+  if (b.type === "list") return b.items;
+  if (b.type === "product") return [b.note];
+  if (b.type === "capture") return [b.caption];
+  return [b.text];
+}
 
 afterEach(() => vi.unstubAllEnvs());
 
@@ -52,6 +60,24 @@ describe("every guide", () => {
     const shown = translation.blocks.flatMap((b) => (b.type === "product" ? [b.product] : []));
     expect([...new Set(shown)].sort()).toEqual([...guide.products].sort());
     expect(translation.blocks.filter((b) => b.type === "h2").length).toBeGreaterThanOrEqual(2);
+  });
+
+  it.each(translations.map((row) => [label(row), row] as const))("%s: shows every product it leads to, as a real capture in its own language", (_, { locale, translation }) => {
+    const leadsTo = new Set(translation.blocks.flatMap((b) => (b.type === "product" ? [b.product] : [])));
+    const captured = translation.blocks.flatMap((b) => (b.type === "capture" ? [b] : []));
+    expect(new Set(captured.map((b) => b.product))).toEqual(leadsTo);
+    for (const block of captured) {
+      const captures = getProductCaptures(block.product, locale);
+      expect(captures?.loop && captures.poster, `${block.product} captured in ${locale}`).toBeTruthy();
+      expect(block.caption.length, `${block.product}: a short caption`).toBeGreaterThan(10);
+      expect(block.caption.length).toBeLessThanOrEqual(140);
+    }
+  });
+
+  it.each(translations.map((row) => [label(row), row] as const))("%s: its loops stay within the guide's video budget", (_, { locale, translation }) => {
+    const loops = translation.blocks.flatMap((b) => (b.type === "capture" ? [getProductCaptures(b.product, locale)!.loop!] : []));
+    expect(loops.length).toBeLessThanOrEqual(GUIDE_VIDEO_BUDGET.loops);
+    expect(loops.reduce((sum, loop) => sum + loop.bytes, 0)).toBeLessThanOrEqual(GUIDE_VIDEO_BUDGET.bytes);
   });
 
   it.each(translations.map((row) => [label(row), row] as const))("%s: quotes no price (it would go stale)", (_, { translation }) => {
@@ -132,6 +158,14 @@ describe("the routes", () => {
     expect(readFileSync(`${APP}/page.tsx`, "utf8")).toMatch(/if \(guides\.length === 0\) notFound\(\);/);
   });
 
+  it("embed captures with the home page's loop: on screen only, never preloaded, pausable, stills under reduced motion", () => {
+    // The rules themselves are pinned on CaptureLoop (capture-media.test.tsx).
+    const block = readFileSync("src/components/guides/guide-capture.tsx", "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+    expect(block).toContain("<CaptureLoop captures={captures}");
+    expect(block).toContain('mode="inView"');
+    expect(block).not.toMatch(/<video|autoPlay|preload=/);
+  });
+
   it("carry Article and breadcrumb structured data, and link products to their pages, never the Studio", () => {
     const page = readFileSync(`${APP}/[slug]/page.tsx`, "utf8");
     expect(page).toContain('"@type": "Article"');
@@ -139,5 +173,14 @@ describe("the routes", () => {
     const article = readFileSync("src/components/guides/guide-article.tsx", "utf8");
     expect(article).toContain("href={`/products/${product.slug}`}");
     expect(article).not.toMatch(/\/studio/);
+  });
+});
+
+describe("French typography", () => {
+  it("keeps the space before : ; ? ! and inside guillemets from breaking, in French only", () => {
+    const NBSP = "\u00A0";
+    const NARROW = "\u202F";
+    expect(typeset("Bonjour : « oui » ; non ? si !", "fr")).toBe(`Bonjour${NBSP}: «${NBSP}oui${NBSP}»${NARROW}; non${NARROW}? si${NARROW}!`);
+    expect(typeset("Hello: yes? no!", "en")).toBe("Hello: yes? no!");
   });
 });

@@ -5,6 +5,7 @@ import { Link } from "@/i18n/navigation";
 import { SiteHeader } from "@/components/layout/header";
 import { SiteFooter } from "@/components/layout/footer";
 import { GuideArticle, formatGuideDate } from "@/components/guides/guide-article";
+import { typeset } from "@/lib/guides/typeset";
 import { findGuide, guideAlternates } from "@/lib/guides/registry";
 import type { GuideLocale } from "@/lib/guides/types";
 import { captureImageUrls } from "@/lib/captures/manifest";
@@ -104,7 +105,7 @@ export default async function GuidePage({ params }: { params: Params }) {
               {t("draft")}
             </p>
           )}
-          <h1 className="mt-6 font-serif text-4xl leading-tight text-heading sm:text-5xl">{translation.title}</h1>
+          <h1 className="mt-6 font-serif text-4xl leading-tight text-heading sm:text-5xl">{typeset(translation.title, locale)}</h1>
           <p className="mt-5 text-sm text-body/60">
             {t("byline", { author })} · {t("updated", { date: formatGuideDate(translation.updated, locale) })}
           </p>

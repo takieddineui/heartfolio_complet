@@ -14,9 +14,15 @@ export type GuideBlock =
   | { type: "h2"; text: string }
   | { type: "p"; text: string }
   | { type: "list"; items: string[] }
-  /** A keepsake the section is about: its real capture, name and a link to
-   *  its PRODUCT page (never the Studio). `note` says why it fits here. */
-  | { type: "product"; product: string; note: string };
+  /** A keepsake the section is about: its name, why it fits here (`note`)
+   *  and a link to its PRODUCT page (never the Studio). */
+  | { type: "product"; product: string; note: string }
+  /** The product's REAL capture loop, in the guide's language, in a phone
+   *  frame with a caption (`components/guides/guide-capture.tsx`): what the
+   *  section describes, actually happening. Every product a translation
+   *  shows needs one; the guide's loops together stay within
+   *  `GUIDE_VIDEO_BUDGET` (`guides.test.ts`). */
+  | { type: "capture"; product: string; caption: string };
 
 export interface GuideTranslation {
   /** In the language's own words: `/<locale>/guides/<slug>`. */

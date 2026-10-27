@@ -10,6 +10,15 @@ import type { Guide, GuideLocale, GuideTranslation } from "./types";
  */
 export const GUIDES: Guide[] = [anniversaryIdeasGuide];
 
+/**
+ * A guide's capture loops together, per translation (`guides.test.ts`).
+ * Each loop downloads only when its phone is on screen, so this is the cost
+ * of reading the whole guide, not of opening it. At most three loops: Love
+ * Story Timeline's is the heaviest (about 515 KB), so three of the current
+ * ones fit with room.
+ */
+export const GUIDE_VIDEO_BUDGET = { bytes: 900 * 1024, loops: 3 };
+
 /** Drafts are visible only on a development server, for review. */
 export function showsDrafts(): boolean {
   return process.env.NODE_ENV !== "production";
