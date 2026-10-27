@@ -168,7 +168,8 @@
       "title": "Heartfolio",
       "collection": "The collection",
       "howItWorks": "How it works",
-      "faq": "FAQ"
+      "faq": "FAQ",
+      "guides": "Guides"
     },
     "legal": {
       "title": "Help & Legal",
@@ -991,5 +992,23 @@
     "order": {
       "description": "Your Heartfolio order: the downloads, the gift link and the QR card."
     }
+  },
+  "Guides": {
+    "meta": {
+      "title": "Gift ideas and guides",
+      "description": "Ideas and how-tos for personal gifts: anniversaries, Valentine's Day, graduations and the songs that matter, from the Heartfolio team."
+    },
+    "eyebrow": "Guides",
+    "title": "Gift ideas and guides",
+    "intro": "Ideas for gifts made from your own story: what to give, what to write, and how to make it.",
+    "breadcrumbHome": "Home",
+    "breadcrumbGuides": "Guides",
+    "author": "The Heartfolio team",
+    "byline": "By {author}",
+    "updated": "Updated {date}",
+    "draft": "Draft: shown on a development server only",
+    "read": "Read the guide",
+    "seeProduct": "See {name}",
+    "related": "Ideas and guides"
   }
 }

@@ -1,11 +1,12 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Logo } from "@/components/brand/logo";
 import { Link } from "@/i18n/navigation";
 import { reopenConsent } from "@/components/analytics/analytics";
 import { getAllProducts } from "@/lib/products/registry";
 import { enabledIntents } from "@/lib/products/gift-intents";
+import { GUIDE_INDEX_LOCALES } from "@/lib/guides/published-locales";
 import { useProductContent } from "@/lib/products/use-product-content";
 import { SUPPORT_EMAIL } from "@/lib/site-config";
 import type { ProductEntry } from "@/lib/products/types";
@@ -84,8 +85,12 @@ export function SiteFooter() {
   // (27 Oct 2026).
   const intents = enabledIntents();
 
+  const locale = useLocale();
   const companyLinks = [
     { href: "/products", label: t("company.collection") },
+    // Only in a language that has published guides (`/guides` is a 404
+    // in the others).
+    ...(GUIDE_INDEX_LOCALES.includes(locale) ? [{ href: "/guides", label: t("company.guides") }] : []),
     { href: "/#how-it-works", label: t("company.howItWorks") },
     { href: "/#faq", label: t("company.faq") },
   ];

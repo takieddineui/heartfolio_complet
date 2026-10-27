@@ -168,7 +168,8 @@
       "title": "Heartfolio",
       "collection": "La collection",
       "howItWorks": "Comment ça marche",
-      "faq": "FAQ"
+      "faq": "FAQ",
+      "guides": "Guides"
     },
     "legal": {
       "title": "Aide & mentions légales",
@@ -991,5 +992,23 @@
     "order": {
       "description": "Votre commande Heartfolio : les téléchargements, le lien cadeau et la carte QR."
     }
+  },
+  "Guides": {
+    "meta": {
+      "title": "Idées cadeaux et guides",
+      "description": "Des idées et des conseils pour des cadeaux personnels : anniversaires de couple, Saint-Valentin, diplômes et chansons qui comptent."
+    },
+    "eyebrow": "Guides",
+    "title": "Idées cadeaux et guides",
+    "intro": "Des idées de cadeaux faits de votre propre histoire : quoi offrir, quoi écrire, et comment le réaliser.",
+    "breadcrumbHome": "Accueil",
+    "breadcrumbGuides": "Guides",
+    "author": "L'équipe Heartfolio",
+    "byline": "Par {author}",
+    "updated": "Mis à jour le {date}",
+    "draft": "Brouillon : visible uniquement en développement",
+    "read": "Lire le guide",
+    "seeProduct": "Voir {name}",
+    "related": "Idées et guides"
   }
 }

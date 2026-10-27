@@ -52,7 +52,8 @@ function metaKeys(path: string): { title: string; descriptions: string[]; templa
 }
 
 const paths = [...new Set(sitemap().map((entry) => entry.url.replace(`${SITE_URL}/${routing.defaultLocale}`, "")))].filter(
-  (path) => !routing.locales.some((l) => path.startsWith(`${SITE_URL}/${l}`))
+  // The guides carry their own titles, per translation: `guides.test.ts`.
+  (path) => !routing.locales.some((l) => path.startsWith(`${SITE_URL}/${l}`)) && !path.startsWith("/guides")
 );
 
 describe("titles and descriptions fit a search result", () => {

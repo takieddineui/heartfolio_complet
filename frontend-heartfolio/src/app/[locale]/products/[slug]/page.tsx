@@ -7,6 +7,7 @@ import { SiteHeader, MobileStickyCta } from "@/components/layout/header";
 import { SiteFooter } from "@/components/layout/footer";
 import { ProductView } from "@/components/product/product-view";
 import { ProductReviews } from "@/components/product/product-reviews";
+import { RelatedGuides } from "@/components/guides/related-guides";
 import { getProductBySlug } from "@/lib/products/registry";
 import { getCatalogProductDetail } from "@/lib/products/catalog-server";
 import { getCatalogStartingPrice, getProductPageOfferings } from "@/lib/products/catalog";
@@ -270,6 +271,7 @@ export default async function ProductPage({ params }: { params: Params }) {
         catalogUnavailable={catalogUnavailable}
         printSizes={printSizes}
       />
+      <RelatedGuides productId={product.id} locale={locale} />
       <ProductReviews reviews={reviews} summary={ratingSummary} />
       <SiteFooter />
       <MobileStickyCta />

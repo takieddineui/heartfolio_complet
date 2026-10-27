@@ -105,7 +105,9 @@ describe("Product markup", () => {
 });
 
 describe("the sitemap", () => {
-  const entries = sitemap();
+  // The guides have their own hreflang (only the translations that exist)
+  // and dates (their own `updated`): `guides.test.ts`.
+  const entries = sitemap().filter((entry) => !/^https:\/\/[^/]+\/[a-z]{2}\/guides(\/|$)/.test(entry.url));
 
   it("names x-default beside every language, as the pages' own tags do", () => {
     for (const entry of entries) {

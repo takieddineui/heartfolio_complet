@@ -3,6 +3,8 @@ import { routing } from "@/i18n/routing";
 import { getAllProducts } from "@/lib/products/registry";
 import { enabledIntents } from "@/lib/products/gift-intents";
 import { LEGAL_LAST_UPDATED, SITE_URL } from "@/lib/site-config";
+import { GUIDES, guideAlternates, guideIndexAlternates, guideIndexLocales } from "@/lib/guides/registry";
+import type { GuideLocale } from "@/lib/guides/types";
 
 /**
  * Previously this listed three URLs — one homepage per locale — on the
@@ -60,7 +62,7 @@ const ROUTES: { path: string; priority: number; changeFrequency: MetadataRoute.S
 ];
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  return ROUTES.flatMap((route) => {
+  const pages = ROUTES.flatMap((route) => {
     const updated = LEGAL_PATHS.has(route.path) ? LEGAL_LAST_UPDATED : CONTENT_UPDATED[route.path];
     // Every language version, and `x-default` (English), as the pages' own
     // hreflang tags say (`buildAlternates`); the sitemap had no x-default.
@@ -76,4 +78,40 @@ export default function sitemap(): MetadataRoute.Sitemap {
       alternates: { languages },
     }));
   });
+  return [...pages, ...guideEntries()];
+}
+
+/**
+ * The guides (`lib/guides`): each PUBLISHED translation, dated by its own
+ * `updated`, with hreflang only between the translations that exist (they
+ * have different slugs); and each language's index, dated by its newest
+ * guide. Drafts never appear.
+ */
+function guideEntries(): MetadataRoute.Sitemap {
+  const articles = GUIDES.flatMap((guide) =>
+    (Object.entries(guide.translations) as [GuideLocale, NonNullable<(typeof guide.translations)[GuideLocale]>][])
+      .filter(([, translation]) => translation.status === "published")
+      .map(([locale, translation]) => ({
+        url: `${SITE_URL}/${locale}/guides/${translation.slug}`,
+        lastModified: `${translation.updated}T00:00:00.000Z`,
+        changeFrequency: "monthly" as const,
+        priority: 0.6,
+        alternates: { languages: guideAlternates(guide, locale).languages },
+      }))
+  );
+  const indexes = guideIndexLocales().map((locale) => {
+    const newest = GUIDES.map((guide) => guide.translations[locale])
+      .filter((translation) => translation?.status === "published")
+      .map((translation) => translation!.updated)
+      .sort()
+      .pop()!;
+    return {
+      url: `${SITE_URL}/${locale}/guides`,
+      lastModified: `${newest}T00:00:00.000Z`,
+      changeFrequency: "weekly" as const,
+      priority: 0.6,
+      alternates: { languages: guideIndexAlternates(locale).languages },
+    };
+  });
+  return [...indexes, ...articles];
 }
