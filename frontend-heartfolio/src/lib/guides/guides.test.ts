@@ -163,6 +163,9 @@ describe("the routes", () => {
     const block = readFileSync("src/components/guides/guide-capture.tsx", "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
     expect(block).toContain("<CaptureLoop captures={captures}");
     expect(block).toContain('mode="inView"');
+    // One loop at a time on a guide (the behaviour is pinned in
+    // exclusive-playback.test.tsx).
+    expect(block).toContain('exclusive="guide"');
     expect(block).not.toMatch(/<video|autoPlay|preload=/);
   });
 

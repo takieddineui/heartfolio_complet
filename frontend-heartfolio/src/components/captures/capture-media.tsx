@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } fro
 import { useTranslations } from "next-intl";
 import { Pause, Play } from "lucide-react";
 import type { CaptureStillEntry, ProductCaptures } from "@/lib/captures/manifest";
+import { useExclusivePlayback } from "./exclusive-playback";
 
 /**
  * How the storefront shows its product captures (real recordings of each
@@ -109,12 +110,16 @@ export function CaptureLoop({
   mode,
   active = false,
   priority = false,
+  exclusive,
 }: {
   captures: Pick<ProductCaptures, "loop" | "poster">;
   alt: string;
   mode: "hover" | "inView";
   active?: boolean;
   priority?: boolean;
+  /** A group name: loops sharing it play one at a time, the most recent to
+   *  come on screen (`exclusive-playback.ts`). */
+  exclusive?: string;
 }) {
   const t = useTranslations("Captures");
   const motionAllowed = useMotionAllowed();
@@ -144,7 +149,10 @@ export function CaptureLoop({
 
   const loop = captures.loop;
   const wanted = mode === "hover" ? active : inView && !userPaused;
-  const shouldPlay = Boolean(loop) && motionAllowed && pageLoaded && pageVisible && wanted;
+  const canPlay = Boolean(loop) && motionAllowed && pageLoaded && pageVisible && wanted;
+  // In a group, only the most recent loop that wants to play does.
+  const turn = useExclusivePlayback(exclusive, canPlay);
+  const shouldPlay = canPlay && turn;
 
   // The video is created the first time it should play, and kept after that
   // (recorded during render, React's pattern for state derived from props).

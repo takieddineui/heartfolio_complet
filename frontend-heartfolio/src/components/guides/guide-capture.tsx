@@ -13,7 +13,9 @@ import { getProductCaptures } from "@/lib/captures/manifest";
  * (`CaptureLoop`, `mode="inView"`): no `<video>` before the page has loaded
  * and the phone is on screen, never preloaded, paused off screen or when the
  * tab is hidden, a pause button, stills only under reduced motion or data
- * saver, and the still's real size reserved so nothing jumps. A guide's
+ * saver, and the still's real size reserved so nothing jumps. ONE loop plays
+ * at a time on a guide (`exclusive="guide"`): the most recent to come on
+ * screen, the others paused. A guide's
  * loops together stay within `GUIDE_VIDEO_BUDGET` (`guides.test.ts`).
  */
 export function GuideCapture({ product, name, caption }: { product: string; name: string; caption: string }) {
@@ -24,7 +26,7 @@ export function GuideCapture({ product, name, caption }: { product: string; name
   return (
     <figure className="mx-auto mt-10 w-[min(68%,250px)]">
       <PhoneFrame>
-        <CaptureLoop captures={captures} alt={t("phoneAlt", { name })} mode="inView" />
+        <CaptureLoop captures={captures} alt={t("phoneAlt", { name })} mode="inView" exclusive="guide" />
       </PhoneFrame>
       <figcaption className="mt-4 text-center text-sm leading-relaxed text-body/65">{caption}</figcaption>
     </figure>
