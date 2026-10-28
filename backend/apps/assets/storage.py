@@ -56,6 +56,13 @@ class AssetStorage(Protocol):
 
     def download(self, key: str) -> bytes: ...
 
+    # For moving objects between keys (`move_assets_to_new_layout`). R2 has
+    # no rename: a move is a server-side copy, a size check, and later a
+    # delete of the original.
+    def copy(self, source_key: str, target_key: str) -> None: ...
+
+    def size(self, key: str) -> int | None: ...
+
 
 # ONE SHARED CLOCK FOR EVERY READ IN A REQUEST. Per-attempt timeouts and a
 # retry count bound a single photo, not the request: three attempts at a 45s
@@ -172,6 +179,34 @@ class R2Storage:
             logger.error("r2_delete_failed", extra={"storage_key": key})
             raise AssetStorageError(f"R2 delete failed for key {key!r}: {exc}") from exc
 
+    def copy(self, source_key: str, target_key: str) -> None:
+        """A server-side copy: the bytes never leave R2. The stored
+        `ContentType` comes along (`MetadataDirective="COPY"`), so the copy
+        is served exactly as the original was."""
+        try:
+            self._client.copy_object(
+                Bucket=self._bucket,
+                Key=target_key,
+                CopySource={"Bucket": self._bucket, "Key": source_key},
+                MetadataDirective="COPY",
+            )
+        except (BotoCoreError, ClientError) as exc:
+            logger.error("r2_copy_failed", extra={"storage_key": source_key, "target_key": target_key})
+            raise AssetStorageError(f"R2 copy failed for key {source_key!r}: {exc}") from exc
+
+    def size(self, key: str) -> int | None:
+        """The object's size in bytes, or None if there is no such object."""
+        try:
+            return int(self._client.head_object(Bucket=self._bucket, Key=key)["ContentLength"])
+        except ClientError as exc:
+            if exc.response.get("Error", {}).get("Code") in ("404", "NoSuchKey", "NotFound"):
+                return None
+            logger.error("r2_head_failed", extra={"storage_key": key})
+            raise AssetStorageError(f"R2 head failed for key {key!r}: {exc}") from exc
+        except BotoCoreError as exc:
+            logger.error("r2_head_failed", extra={"storage_key": key})
+            raise AssetStorageError(f"R2 head failed for key {key!r}: {exc}") from exc
+
     def generate_access_url(self, key: str, *, expires_in: int | None = None) -> str:
         # Public base URL is only used if the deployment intentionally
         # wants public read access (e.g. a CDN domain in front of the
@@ -277,6 +312,16 @@ class MockAssetStorage:
 
     def generate_access_url(self, key: str, *, expires_in: int | None = None) -> str:
         return f"mock://assets/{key}"
+
+    def copy(self, source_key: str, target_key: str) -> None:
+        try:
+            self._objects[target_key] = self._objects[source_key]
+        except KeyError as exc:
+            raise AssetStorageError(f"No mock object found for key {source_key!r}") from exc
+
+    def size(self, key: str) -> int | None:
+        data = self._objects.get(key)
+        return None if data is None else len(data)
 
     def exists(self, key: str) -> bool:
         """Test-only convenience, not part of the `AssetStorage`

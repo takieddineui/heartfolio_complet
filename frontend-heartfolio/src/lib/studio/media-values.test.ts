@@ -160,6 +160,21 @@ describe("uploadPendingMedia", () => {
     expect(result.photo.assetId).toBe("a1");
   });
 
+  it("sends the product with each upload, for its storage folder (27 Oct 2026)", async () => {
+    registerPendingFile("blob:c", fakeFile("c.webp", "image/webp"));
+    const fetchMock = vi.fn().mockResolvedValue(
+      jsonResponse({ id: "a1", assetId: "a1", url: "https://r2/x", mimeType: "image/webp", filename: null }, 201)
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const result = (await uploadPendingMedia(MAP_VALUES, { productId: "song-poster" })) as { photo: MediaValue };
+    const body = fetchMock.mock.calls[0]![1].body as FormData;
+    expect(body.get("product")).toBe("song-poster");
+    expect(body.get("file")).toBeInstanceOf(File);
+    // The server keeps no filename; the tab's own name is kept for display.
+    expect(result.photo.filename).toBe("c.webp");
+  });
+
   it("does not re-upload a photo that already has an assetId", async () => {
     const fetchMock = vi.fn();
     vi.stubGlobal("fetch", fetchMock);
@@ -337,5 +352,15 @@ describe("refreshMediaUrls", () => {
     vi.stubGlobal("fetch", fetchMock);
     await refreshMediaUrls(MAP_VALUES);
     expect(fetchMock).not.toHaveBeenCalled();
+  });
+});
+
+describe("mediaDisplayName", () => {
+  it("shows the browser's filename while the tab has it, a neutral label once saved", async () => {
+    const { mediaDisplayName } = await import("./media-names");
+    expect(mediaDisplayName({ filename: "voice-note.webm", mimeType: "audio/webm" }, 0, "en")).toBe("voice-note.webm");
+    expect(mediaDisplayName({ mimeType: "audio/mp4" }, 1, "en")).toBe("Recording 2");
+    expect(mediaDisplayName({ mimeType: "video/mp4" }, 0, "fr")).toBe("Vidéo 1");
+    expect(mediaDisplayName({ mimeType: "application/pdf" }, 2, "ar")).toBe("ملف 3");
   });
 });

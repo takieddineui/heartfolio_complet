@@ -9,8 +9,6 @@ from __future__ import annotations
 
 import contextvars
 import logging
-import os
-import re
 import uuid
 from collections import OrderedDict
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -50,30 +48,45 @@ from .storage import AssetStorageError, get_asset_storage, read_budget, read_tim
 
 logger = logging.getLogger("heartfolio")
 
-_SAFE_FILENAME_CHARS_RE = re.compile(r"[^A-Za-z0-9._-]+")
-_MAX_SAFE_FILENAME_LENGTH = 150
+#: Where every customer upload lives (owner's decision, 27 Oct 2026):
+#: `uploads/<product>/<asset id>.<ext>`. Grouped by product for the R2
+#: console; the asset's own UUID is the only identifier, so a recipient who
+#: reads a photo's link learns nothing about the buyer.
+#:
+#: NO FILENAME, ON PURPOSE. Keys used to end in the customer's own filename
+#: ("Sarah_me_Paris_2019.jpg", a phone's capture timestamp), and every
+#: presigned link carries the key, so the live page showed it to the gift's
+#: recipient, and every storage error logged it. The extension comes from
+#: the DETECTED type, never from the name the browser sent.
+#:
+#: Nothing reads this structure: every reader goes through
+#: `Asset.storage_key`, so older keys (`assets/<id>/<filename>`) keep working
+#: until `move_assets_to_new_layout` moves them.
+UPLOADS_PREFIX = "uploads/"
+
+#: An upload whose product the Studio did not say (an old cached Studio).
+#: Stored, not refused: failing a customer's checkout over a folder name
+#: would be the wrong trade.
+UNKNOWN_PRODUCT_FOLDER = "unknown"
+
+_EXTENSIONS = {
+    "image/jpeg": "jpg",
+    "image/png": "png",
+    "image/webp": "webp",
+    # Every audio upload is re-encoded to AAC in MP4 (`reencode_audio`).
+    "audio/mp4": "m4a",
+    "video/mp4": "mp4",
+    "video/quicktime": "mov",
+    "video/webm": "webm",
+}
 
 
-def _sanitize_filename(filename: str | None) -> str:
-    """Strips any directory component and anything outside a small safe
-    character set. Defeats path traversal (`../../etc/passwd`,
-    `C:\\Windows\\...`, `/etc/passwd`) regardless of which OS's path
-    separators the client sends, since `os.path.basename` only strips
-    forward slashes and the regex substitution afterward removes
-    backslashes (and everything else non-safe) too.
-    """
-    base = os.path.basename(filename or "")
-    safe = _SAFE_FILENAME_CHARS_RE.sub("_", base).strip("._")
-    return (safe or "file")[:_MAX_SAFE_FILENAME_LENGTH]
-
-
-def generate_storage_key(asset_id, filename: str | None) -> str:
-    """Server-generated, collision-resistant, not user-controlled: the
-    asset's own UUID is the stable identifying path segment, and the
-    (sanitized) original filename is included only for readability in
-    the R2 console — it plays no role in uniqueness or lookup.
-    """
-    return f"assets/{asset_id}/{_sanitize_filename(filename)}"
+def generate_storage_key(asset_id, mime_type: str, product_slug: str | None = None) -> str:
+    """Server-generated and never user-controlled: the folder is a slug
+    that exists in the catalog (checked by `upload_asset`), the name is the
+    asset's own UUID, the extension follows the detected type."""
+    folder = product_slug or UNKNOWN_PRODUCT_FOLDER
+    return f"{UPLOADS_PREFIX}{folder}/{asset_id}.{_EXTENSIONS.get(mime_type, 'bin')}"
 
 
 #: Pillow's format name -> the MIME type we store and serve it as.
@@ -246,7 +259,7 @@ def validate_uploaded_file(uploaded_file) -> str:
     return detect_image_mime_type(uploaded_file)
 
 
-def upload_asset(customer, uploaded_file) -> Asset:
+def upload_asset(customer, uploaded_file, *, product_slug: str | None = None) -> Asset:
     """Create-pending -> upload-to-storage -> mark-uploaded, with
     cleanup on failure. An uploaded file always belongs to the
     customer performing the upload — there is no anonymous/unowned
@@ -255,6 +268,13 @@ def upload_asset(customer, uploaded_file) -> Asset:
     deleted, handled by the DB's ON DELETE SET NULL — not something
     this endpoint ever creates directly).
     """
+    # The folder must be a real catalog slug before anything is stored: it
+    # becomes part of the key. Unknown -> `ProductNotFound`, as for projects.
+    if product_slug:
+        from apps.products.services import get_product_by_slug
+
+        product_slug = get_product_by_slug(product_slug).slug
+
     # The detected type, not the declared one — see `detect_image_mime_type`.
     mime_type = validate_uploaded_file(uploaded_file)
 
@@ -288,14 +308,17 @@ def upload_asset(customer, uploaded_file) -> Asset:
     # (storage_provider, storage_key) placeholder and collide on the
     # unique constraint.
     asset_id = uuid.uuid4()
-    storage_key = generate_storage_key(asset_id, uploaded_file.name)
+    storage_key = generate_storage_key(asset_id, mime_type, product_slug)
 
     asset = Asset.objects.create(
         id=asset_id,
         customer=customer,
         storage_provider="r2",
         storage_key=storage_key,
-        original_filename=uploaded_file.name,
+        # Never stored (27 Oct 2026): the customer's filename is theirs, and
+        # nothing here needs it. The Studio shows the buyer their own file's
+        # name from the browser while they edit.
+        original_filename=None,
         mime_type=mime_type,
         status=Asset.STATUS_PENDING,
         # §7 — provisional for video/audio only. Photos are needed by

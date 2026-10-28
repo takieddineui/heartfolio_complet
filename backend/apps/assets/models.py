@@ -64,6 +64,13 @@ class Asset(models.Model):
     #: promoted is deleted by the `expire_provisional_assets` management
     #: command once this timestamp passes.
     expires_at = models.DateTimeField(null=True, blank=True)
+    #: Set by `move_assets_to_new_layout` when it copies an object to the
+    #: `uploads/<product>/<id>.<ext>` layout: the key it came from, and when.
+    #: The old object is kept 24 hours (a live page open at that moment holds
+    #: a five-minute link to it) and deleted by the command's next run, which
+    #: then clears both fields. NULL for every asset that never moved.
+    previous_storage_key = models.TextField(null=True, blank=True)
+    moved_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

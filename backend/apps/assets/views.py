@@ -31,9 +31,12 @@ class AssetUploadView(APIView):
     def post(self, request):
         customer = get_current_customer(request)
         uploaded_file = request.FILES.get("file")  # validated (incl. "missing") in the service layer
+        # The product the upload is for: its folder in storage. Optional, so
+        # an older cached Studio that does not send it still uploads.
+        product_slug = request.data.get("product") or None
 
         try:
-            asset = upload_asset(customer, uploaded_file)
+            asset = upload_asset(customer, uploaded_file, product_slug=product_slug)
         except ApplicationError:
             # An expected rejection — file too large, wrong type, missing.
             # The customer sees a clear message and can fix it themselves,
@@ -49,7 +52,9 @@ class AssetUploadView(APIView):
             send_alert(
                 "ASSET UPLOAD FAILED\n"
                 f"customer: {customer.id}\n"
-                f"filename: {getattr(uploaded_file, 'name', '—')}\n"
+                # The file's type, never its name: a customer's filename is
+                # theirs and has no place in an alert (27 Oct 2026).
+                f"type: {getattr(uploaded_file, 'content_type', '—')}\n"
                 f"reason: {type(exc).__name__}: {exc}"
             )
             raise

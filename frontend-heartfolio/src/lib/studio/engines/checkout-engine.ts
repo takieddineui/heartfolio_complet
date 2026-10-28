@@ -74,7 +74,7 @@ export async function prepareOrder(
   await identifyGuest(context.email, signal);
 
   onProgress?.("uploading");
-  const values = (await uploadPendingMedia(context.values, signal)) as Record<string, unknown>;
+  const values = (await uploadPendingMedia(context.values, { signal, productId: context.productId })) as Record<string, unknown>;
 
   onProgress?.("saving");
   const { projectId } = await projectEngine.save(context.projectId, {
@@ -174,7 +174,7 @@ export async function prepareFreemiusStaging(
   await identifyGuest(context.email, signal);
 
   onProgress?.("uploading");
-  const values = (await uploadPendingMedia(context.values, signal)) as Record<string, unknown>;
+  const values = (await uploadPendingMedia(context.values, { signal, productId: context.productId })) as Record<string, unknown>;
 
   onProgress?.("saving");
   const { projectId } = await projectEngine.save(context.projectId, {

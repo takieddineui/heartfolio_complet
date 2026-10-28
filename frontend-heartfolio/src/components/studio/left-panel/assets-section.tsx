@@ -1,16 +1,18 @@
 "use client";
 
 import { ImagePlus } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Card } from "@/components/studio/ui/card";
 import { useProductState } from "@/lib/studio/product-state-context";
 import type { FieldSchema } from "@/types/studio";
+import { mediaDisplayName } from "@/lib/studio/media-names";
 import { PanelPlaceholder } from "./panel-placeholder";
 
 interface UploadedMedia {
   url: string;
   mimeType: string;
-  filename: string;
+  /** Absent once saved: the server keeps no filename (`mediaDisplayName`). */
+  filename?: string;
 }
 
 const MEDIA_TYPES = new Set(["image", "gallery", "audio", "video", "file"]);
@@ -37,6 +39,7 @@ function collectMedia(fields: FieldSchema[], values: Record<string, unknown>): U
 
 export function AssetsSection() {
   const t = useTranslations("Studio.panels.assets");
+  const locale = useLocale();
   const { session, values } = useProductState();
   const media = session.module.formSchema.sections.flatMap((s) => collectMedia(s.fields, values));
 
@@ -60,7 +63,7 @@ export function AssetsSection() {
               key={i}
               className="flex h-14 max-w-[9rem] items-center rounded-[var(--radius-sm)] border border-subtle bg-page px-2 text-xs text-body/70"
             >
-              <span className="truncate">{item.filename}</span>
+              <span className="truncate">{mediaDisplayName(item, i, locale)}</span>
             </div>
           )
         )}

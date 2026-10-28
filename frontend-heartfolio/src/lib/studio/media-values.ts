@@ -31,7 +31,10 @@ import { getAsset, uploadAsset, type ApiAsset } from "@/lib/api/assets";
 export interface MediaValue {
   url: string;
   mimeType: string;
-  filename: string;
+  /** The browser's name for the picked file, while this tab has it. The
+   * server never stores it (27 Oct 2026), so a reopened project has none:
+   * show `mediaDisplayName` instead of reading this directly. */
+  filename?: string;
   /** The durable Django reference. Absent until the photo is uploaded. */
   assetId?: string;
 }
@@ -45,8 +48,8 @@ export interface MediaValue {
  * from an ordinary (retryable) upload failure.
  */
 export class MissingPendingFileError extends Error {
-  constructor(public readonly filename: string) {
-    super(`"${filename}" could not be uploaded — the selected file is no longer available.`);
+  constructor(public readonly filename: string | undefined) {
+    super(`"${filename ?? "a file"}" could not be uploaded — the selected file is no longer available.`);
     this.name = "MissingPendingFileError";
   }
 }
@@ -206,7 +209,11 @@ export function countPendingUploads(values: unknown): number {
  * `values` via `replaceValues` before retrying, so a retry only re-attempts
  * what actually still needs it.
  */
-export async function uploadPendingMedia(values: unknown, signal?: AbortSignal): Promise<unknown> {
+export async function uploadPendingMedia(
+  values: unknown,
+  options: { signal?: AbortSignal; productId?: string } = {}
+): Promise<unknown> {
+  const { signal, productId } = options;
   const causes: unknown[] = [];
 
   const result = await mapMediaValues(values, async (media) => {
@@ -224,7 +231,7 @@ export async function uploadPendingMedia(values: unknown, signal?: AbortSignal):
     }
 
     try {
-      const asset: ApiAsset = await uploadAsset(file, signal);
+      const asset: ApiAsset = await uploadAsset(file, { signal, productId });
       // Only forgotten once the upload has actually succeeded AND that
       // success is about to be returned as part of this batch's result —
       // never as a side effect that could outlive a sibling's failure.

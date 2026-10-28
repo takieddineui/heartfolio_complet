@@ -6,6 +6,7 @@ independently in every view.
 
 from __future__ import annotations
 
+from apps.assets.filenames import strip_media_filenames
 from apps.common.exceptions.api_errors import (
     InvalidProjectData,
     ProjectAccessDenied,
@@ -55,6 +56,7 @@ def create_project(customer, *, product_slug: str, data=None, status: str = Proj
         data = default_project_data()
     else:
         validate_project_data(data)
+        data, _ = strip_media_filenames(data)
 
     _validate_status(status)
 
@@ -119,7 +121,8 @@ def update_project(customer, project_id, *, data=None, status: str | None = None
                     data.get("values", {}), data.get("themeSelections", {})
                 )
 
-        project.data = data
+        # No customer filename is kept (see `apps/assets/filenames.py`).
+        project.data, _ = strip_media_filenames(data)
 
     if status is not None:
         _validate_status(status)

@@ -25,6 +25,8 @@ export interface ApiAsset {
   /** Presigned, expires in minutes. Display-only; never store this. */
   url: string;
   mimeType: string;
+  /** Always null for uploads since 27 Oct 2026: the server keeps no
+   * customer filename. The Studio shows the browser's own name meanwhile. */
   filename: string | null;
 }
 
@@ -110,10 +112,18 @@ export function checkFileAccepted(file: File): AssetRejectionReason | null {
   return null;
 }
 
-export async function uploadAsset(file: File, signal?: AbortSignal): Promise<ApiAsset> {
+export async function uploadAsset(
+  file: File,
+  options: { signal?: AbortSignal; productId?: string } = {}
+): Promise<ApiAsset> {
+  const { signal, productId } = options;
   const formData = new FormData();
   // Field name is fixed by the backend view: `request.FILES.get("file")`.
   formData.append("file", file);
+  // The product the upload is for: its folder in storage
+  // (`uploads/<product>/<id>.<ext>`). Without it the file still uploads,
+  // into `uploads/unknown/`.
+  if (productId) formData.append("product", productId);
   return apiFetch<ApiAsset>("/assets", { method: "POST", formData, signal });
 }
 

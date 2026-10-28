@@ -69,6 +69,12 @@ Two more rules apply throughout:
    it, or `expire_provisional_assets` deletes it a week after purchase.
    Photos never expire. Count the uploads against production's
    `asset_upload` 30 a minute and pin the worst case in a test.
+   **Uploads need nothing else (27 Oct 2026):** the Studio sends the product
+   with each upload and the server stores it as
+   `uploads/<product>/<asset id>.<ext>` (`generate_storage_key`). Never put a
+   customer's filename into a storage key, a log line, an alert or saved
+   project data: project saves strip `filename` from every media value
+   (`apps/assets/filenames.py`), and nothing on the server may need it.
 6. **What the customer receives.** The gift QR card's caption
    (`_qr_caption_for_order`, `apps/delivery/bonuses.py`: names only, never an
    English sentence), the product's name in the receipt email and the bonus
@@ -204,6 +210,9 @@ Two more rules apply throughout:
 - **Live pages customers already received:** `/live/<id>` must keep working,
   so keep the product's `_LIVE_PAYLOAD_BUILDERS` entry, its branch in
   `live-payload.tsx`, the live component, its fonts and its copy.
+- **Uploads under the `uploads/<product>/` folder of a withdrawn product:**
+  past orders still read them through `Asset.storage_key`. The folder name
+  is only a location; nothing reads it.
 - **Freemius plans with licences, and their mapping:** remove a product's
   mapping only if it never had an order (the owner checks; Complete's 70518
   stays mapped although the pack is disabled).

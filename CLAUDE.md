@@ -485,6 +485,26 @@ Two were genuine product bugs: the `layout` default above, and
   customer is affected. Fix as the live page does: `getBackendOrigin()`
   outside the `try`, then a server `fetch` (forwarding `X-Forwarded-For`),
   and a test that a valid id renders the scene.
+- **R2: UPLOADS ARE `uploads/<product>/<asset id>.<ext>` AND NO CUSTOMER
+  FILENAME IS KEPT (owner, 27 Oct 2026).** Keys used to be
+  `assets/<id>/<filename>`, and every presigned link carries the key, so a
+  gift's recipient could read the buyer's filename. New uploads take the new
+  key (`generate_storage_key`; the Studio sends `product`, an unknown slug is
+  refused, a missing one goes to `uploads/unknown/`); `original_filename` is
+  no longer written; project saves strip `filename` from media values
+  (`apps/assets/filenames.py`); the upload-failure alert names the type,
+  not the file. Readers are unchanged: everything goes through
+  `Asset.storage_key`. **OWNER'S TASK BEFORE LAUNCH:** apply migration
+  `assets.0002` on the real database, then
+  `python manage.py move_assets_to_new_layout` (dry run: counts and asset
+  ids only, never a key or a name), `--execute` (copies each file to its new
+  key, size-checked, row switched under a lock; clears `original_filename`;
+  strips filenames from every project with the `updated_at` trigger off for
+  that one transaction, or the 12-month draft cleanup would see every
+  project as active today), and `--execute` again 24 hours later to delete
+  the old objects (kept that long for pages already open: Love Story
+  Timeline's and Song Poster's do not refetch an expired link). Safe to
+  re-run; `--limit N` for a trial.
 - **CONTENT SECTION (`/guides`): LIVE 27 Oct 2026. THE FIRST BATCH IS DONE
   except the graduation guide: four guides PUBLISHED in English and French**
   (anniversary ideas; reasons I love you, with its own French examples; the

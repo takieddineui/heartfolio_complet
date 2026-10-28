@@ -130,28 +130,89 @@ def _oversized_file(name="huge.jpg", content_type="image/jpeg", size=1024) -> Si
 
 
 class StorageKeyTests(TestCase):
-    def test_key_uses_asset_uuid_and_is_collision_resistant(self):
-        asset_id = uuid.uuid4()
-        key = generate_storage_key(asset_id, "photo.jpg")
-        self.assertTrue(key.startswith(f"assets/{asset_id}/"))
+    """`uploads/<product>/<asset id>.<ext>` (27 Oct 2026): no filename, the
+    extension from the detected type, the folder from a real catalog slug."""
 
-    def test_path_traversal_in_filename_is_stripped(self):
+    def test_key_is_product_folder_then_asset_uuid_and_extension(self):
         asset_id = uuid.uuid4()
-        key = generate_storage_key(asset_id, "../../etc/passwd")
-        self.assertNotIn("..", key)
-        self.assertNotIn("/etc/", key)
-        self.assertEqual(key, f"assets/{asset_id}/passwd")
+        self.assertEqual(
+            generate_storage_key(asset_id, "image/jpeg", "love-story-timeline"),
+            f"uploads/love-story-timeline/{asset_id}.jpg",
+        )
 
-    def test_windows_style_path_in_filename_is_stripped(self):
+    def test_extension_follows_the_detected_type(self):
         asset_id = uuid.uuid4()
-        key = generate_storage_key(asset_id, r"C:\Windows\System32\evil.exe")
-        self.assertNotIn("\\", key)
-        self.assertNotIn(":", key)
+        for mime, ext in [("image/png", "png"), ("image/webp", "webp"), ("audio/mp4", "m4a"),
+                          ("video/mp4", "mp4"), ("video/quicktime", "mov"), ("video/webm", "webm")]:
+            self.assertEqual(generate_storage_key(asset_id, mime, "song-poster"), f"uploads/song-poster/{asset_id}.{ext}")
 
-    def test_empty_filename_falls_back_to_safe_default(self):
+    def test_no_product_goes_to_the_unknown_folder(self):
         asset_id = uuid.uuid4()
-        key = generate_storage_key(asset_id, "")
-        self.assertEqual(key, f"assets/{asset_id}/file")
+        self.assertEqual(generate_storage_key(asset_id, "image/jpeg"), f"uploads/unknown/{asset_id}.jpg")
+
+
+def _product(slug="love-story-timeline"):
+    from apps.products.models import Product
+
+    return Product.objects.get_or_create(
+        slug=slug, defaults={"name_i18n_key": "x", "category": Product.CATEGORY_TIMELINE, "status": "available"}
+    )[0]
+
+
+class UploadKeyAndFilenameTests(TestCase):
+    """No customer filename is stored anywhere an upload goes (27 Oct 2026)."""
+
+    NAME = "Sarah & me - Paris 2019.jpg"
+
+    def test_key_has_the_product_folder_and_no_filename(self):
+        _product()
+        asset = upload_asset(make_customer(), _image_file(name=self.NAME), product_slug="love-story-timeline")
+        self.assertEqual(asset.storage_key, f"uploads/love-story-timeline/{asset.id}.jpg")
+        for part in ("Sarah", "Paris", "2019"):
+            self.assertNotIn(part, asset.storage_key)
+
+    def test_extension_is_the_detected_type_not_the_name(self):
+        # A PNG named .jpg is stored as what it is.
+        asset = upload_asset(make_customer(), _image_file(name="photo.jpg", fmt="PNG", content_type="image/png"))
+        self.assertTrue(asset.storage_key.endswith(f"{asset.id}.png"))
+
+    def test_original_filename_is_never_stored(self):
+        asset = upload_asset(make_customer(), _image_file(name=self.NAME))
+        self.assertIsNone(asset.original_filename)
+        self.assertIsNone(Asset.objects.get(id=asset.id).original_filename)
+
+    def test_unknown_product_is_refused_before_anything_is_stored(self):
+        from apps.common.exceptions.api_errors import ProductNotFound
+
+        storage = MockAssetStorage()
+        with patch("apps.assets.services.get_asset_storage", return_value=storage):
+            with self.assertRaises(ProductNotFound):
+                upload_asset(make_customer(), _image_file(), product_slug="../etc")
+        self.assertEqual(storage._objects, {})
+        self.assertFalse(Asset.objects.exists())
+
+    def test_api_takes_the_product_and_returns_no_filename(self):
+        _product("song-poster")
+        client = APIClient(enforce_csrf_checks=True)
+        login_as_guest(client)
+        response = client.post(
+            "/api/v1/assets/", {"file": _image_file(name=self.NAME), "product": "song-poster"},
+            format="multipart", **csrf_headers(client),
+        )
+        self.assertEqual(response.status_code, http_status.HTTP_201_CREATED)
+        self.assertIsNone(response.data["filename"])
+        asset = Asset.objects.get(id=response.data["id"])
+        self.assertEqual(asset.storage_key, f"uploads/song-poster/{asset.id}.jpg")
+
+    def test_failure_alert_carries_the_type_never_the_filename(self):
+        client = APIClient(enforce_csrf_checks=True)
+        login_as_guest(client)
+        with patch("apps.assets.views.upload_asset", side_effect=RuntimeError("r2 down")),                 patch("apps.assets.views.send_alert") as alert:
+            with self.assertRaises(RuntimeError):
+                client.post("/api/v1/assets/", {"file": _image_file(name=self.NAME)}, format="multipart", **csrf_headers(client))
+        message = alert.call_args[0][0]
+        self.assertIn("image/jpeg", message)
+        self.assertNotIn("Sarah", message)
 
 
 class UploadAssetServiceTests(TestCase):
@@ -162,8 +223,8 @@ class UploadAssetServiceTests(TestCase):
         self.assertEqual(asset.status, Asset.STATUS_UPLOADED)
         self.assertEqual(asset.customer_id, customer.id)
         self.assertEqual(asset.mime_type, "image/jpeg")
-        self.assertEqual(asset.original_filename, "photo.jpg")
-        self.assertTrue(asset.storage_key.startswith(f"assets/{asset.id}/"))
+        self.assertIsNone(asset.original_filename)
+        self.assertEqual(asset.storage_key, f"uploads/unknown/{asset.id}.jpg")
         self.assertTrue(Asset.objects.filter(id=asset.id, status=Asset.STATUS_UPLOADED).exists())
 
     def test_upload_failure_does_not_leave_asset_marked_uploaded(self):
@@ -298,7 +359,7 @@ class AssetAPITests(TestCase):
 
         self.assertEqual(response.status_code, http_status.HTTP_201_CREATED)
         self.assertEqual(response.data["mimeType"], "image/jpeg")
-        self.assertEqual(response.data["filename"], "photo.jpg")
+        self.assertIsNone(response.data["filename"])
         self.assertEqual(response.data["id"], response.data["assetId"])
         self.assertIn("url", response.data)
         # No storage credentials/internal details ever appear in the response.
@@ -446,6 +507,8 @@ class ProjectAssetReferenceTests(TestCase):
         # new top-level "assets" key was introduced.
         self.assertEqual(set(project_response.data["data"].keys()), {"version", "values", "themeSelections"})
         self.assertEqual(project_response.data["data"]["values"]["photo"]["assetId"], asset_id)
+        # The browser's filename is dropped on save (27 Oct 2026).
+        self.assertNotIn("filename", project_response.data["data"]["values"]["photo"])
 
 
 class NoGeneratedOutputStorageTests(TestCase):

@@ -14,6 +14,7 @@ import {
 } from "@/lib/api/mapbox";
 import { useProductState } from "@/lib/studio/product-state-context";
 import { resolveShellValidationText, resolveValidationMessage } from "@/lib/studio/i18n";
+import { mediaDisplayName } from "@/lib/studio/media-names";
 import { YouTubeFieldInput } from "./youtube-field-input";
 
 const inputClass =
@@ -252,7 +253,8 @@ function readAudioDuration(file: File): Promise<number | null> {
 interface UploadedMedia {
   url: string;
   mimeType: string;
-  filename: string;
+  /** Absent once saved: the server keeps no filename (`mediaDisplayName`). */
+  filename?: string;
   /** Set once the file has been uploaded to Django at checkout. Absent
    * while the photo is only a local preview. */
   assetId?: string;
@@ -496,13 +498,13 @@ function MediaFieldInput({
           ) : (
             <div className="flex h-14 max-w-[10rem] items-center gap-2 rounded-[var(--radius-sm)] border border-subtle bg-page px-2 pe-6 text-xs text-body/70">
               {Icon && <Icon className="h-4 w-4 shrink-0" strokeWidth={1.75} />}
-              <span className="truncate">{item.filename}</span>
+              <span className="truncate">{mediaDisplayName(item, i, locale)}</span>
             </div>
           )}
           <button
             type="button"
             onClick={() => removeItem(i)}
-            aria-label={`${removeLabel}: ${item.filename ?? ""}`}
+            aria-label={`${removeLabel}: ${mediaDisplayName(item, i, locale)}`}
             title={removeLabel}
             className="absolute -end-1.5 -top-1.5 grid h-5 w-5 place-items-center rounded-full border border-subtle bg-card text-body/60 hover:text-error-warm"
           >
