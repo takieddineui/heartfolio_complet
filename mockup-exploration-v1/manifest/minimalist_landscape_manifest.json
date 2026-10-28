@@ -1,0 +1,38 @@
+[
+ {
+  "file": "minimalist/v1-studio-white-landscape.jpg",
+  "variant": "v1-studio-white-landscape",
+  "orientation": "landscape",
+  "direction": "modern-minimalist",
+  "product": "song-poster",
+  "source_artwork": "customer-artwork-library-v2/song-poster/en/sp6-milestone-award.png",
+  "canvas": "3200x2560",
+  "format": "JPG",
+  "note": "off-white plaster · slim black frame · floating oak shelf",
+  "source_unchanged": true
+ },
+ {
+  "file": "minimalist/v2-gallery-white-landscape.jpg",
+  "variant": "v2-gallery-white-landscape",
+  "orientation": "landscape",
+  "direction": "modern-minimalist",
+  "product": "love-story-timeline",
+  "source_artwork": "customer-artwork-library-v2/love-story-timeline/en/s5-long-distance-horizontal-polaroid.png",
+  "canvas": "3200x2560",
+  "format": "JPG",
+  "note": "bright gallery white · slim black frame · no shelf",
+  "source_unchanged": true
+ },
+ {
+  "file": "minimalist/v3-concrete-oak-landscape.jpg",
+  "variant": "v3-concrete-oak-landscape",
+  "orientation": "landscape",
+  "direction": "modern-minimalist",
+  "product": "love-story-timeline",
+  "source_artwork": "customer-artwork-library-v2/love-story-timeline/en/s6-parents-story-horizontal-circles.png",
+  "canvas": "3200x2560",
+  "format": "JPG",
+  "note": "cool light-grey concrete · slim natural-oak frame · floating shelf",
+  "source_unchanged": true
+ }
+]

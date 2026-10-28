@@ -1,0 +1,35 @@
+[
+ {
+  "file": "minimalist/v1-studio-white.jpg",
+  "variant": "v1-studio-white",
+  "direction": "modern-minimalist",
+  "product": "song-poster",
+  "source_artwork": "customer-artwork-library-v2/song-poster/en/sp1-first-dance-player.png",
+  "canvas": "2560x3200",
+  "format": "JPG",
+  "note": "soft off-white plaster wall · slim black frame · floating oak shelf",
+  "source_unchanged": true
+ },
+ {
+  "file": "minimalist/v2-gallery-white.jpg",
+  "variant": "v2-gallery-white",
+  "direction": "modern-minimalist",
+  "product": "love-story-timeline",
+  "source_artwork": "customer-artwork-library-v2/love-story-timeline/en/s1-new-love-neat-stack.png",
+  "canvas": "2560x3200",
+  "format": "JPG",
+  "note": "bright white gallery wall · slim black frame · no shelf, generous negative space",
+  "source_unchanged": true
+ },
+ {
+  "file": "minimalist/v3-concrete-oak.jpg",
+  "variant": "v3-concrete-oak",
+  "direction": "modern-minimalist",
+  "product": "love-story-timeline",
+  "source_artwork": "customer-artwork-library-v2/love-story-timeline/en/s4-engaged-wedding-dotted-branching.png",
+  "canvas": "2560x3200",
+  "format": "JPG",
+  "note": "cool light-grey concrete wall · slim natural-oak frame · thin floating shelf",
+  "source_unchanged": true
+ }
+]
