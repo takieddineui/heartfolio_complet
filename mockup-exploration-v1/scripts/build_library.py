@@ -19,7 +19,7 @@ import build_cinematic as bc
 REPO = bc.LIB.parents[0]
 SRC = REPO / "customer-artwork-library-v2"
 OUTLIB = REPO / "heartfolio-mockup-library"
-LANGS = ["en"]            # set to ["en","fr","ar","es","ru","zh-CN"] for all languages
+LANGS = ["en","fr","ar","es","ru","zh-CN"]   # full six-language set
 PRODUCTS = ["love-story-timeline", "song-poster"]
 
 STYLES = ["neat-stack", "alternating-tilt", "overlapping-cascade", "dotted-branching",
