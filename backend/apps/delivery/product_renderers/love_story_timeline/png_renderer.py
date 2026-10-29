@@ -59,7 +59,7 @@ from apps.common.exceptions.api_errors import LoveStoryTimelineRenderFailed
 from apps.delivery.mixed_script import MixedScriptFont, parse_unicode_range
 
 from .data import duration_phrase, join_names, PALETTES, NormalizedTimeline
-from apps.delivery.attribution import MARK_OPACITY, MARK_SCALE, PRINT_MARK, blend
+from apps.delivery.attribution import FRAMELESS_SAFE_PX, MARK_OPACITY, MARK_SCALE, PRINT_MARK, blend, draw_colophon
 
 from .compositions import HEADER_NAMES_LINE_HEIGHT, geometry_for
 from .layout import days_together, format_event_date, ordered_events
@@ -668,26 +668,27 @@ def _render_png(
             timeline.ending_text, font=small_font, fill=palette["muted"],
         )
 
-    # Attribution — the bare domain, at the foot of the page.
+    # The colophon (`apps/delivery/attribution.py`), at the foot of the
+    # page, bottom right.
     #
     # Drawn LAST and below the customer's own closing line, so it never
     # competes with their words. Inside the content box, which on an edged
     # print means inside the frame-safe margin (§3) — a mark cropped in half
-    # by a picture frame would look like a defect rather than a colophon.
+    # by a picture frame would look like a defect rather than a colophon. On
+    # a frameless print, at least FRAMELESS_SAFE_PX from the trim.
     #
     # The fade is computed rather than declared: Pillow's text() has no
     # alpha on an RGB image, so a translucent fill would print at full
     # strength, which is the one thing this must not do.
     mark_font = _font(fonts["body"], max(9, int(type_basis * MARK_SCALE * scale)))
-    mark_colour = blend(palette["muted"], palette["bg"], MARK_OPACITY)
-    try:
-        bbox = draw.textbbox((0, 0), PRINT_MARK, font=mark_font)
-        mark_w, mark_h = bbox[2] - bbox[0], bbox[3] - bbox[1]
-    except Exception:  # noqa: BLE001 - very old Pillow
-        mark_w, mark_h = len(PRINT_MARK) * (mark_font.size // 2), mark_font.size
-    draw.text(
-        (content_right - margin - mark_w, content_bottom - margin - mark_h),
-        PRINT_MARK, font=mark_font, fill=mark_colour,
+    frameless_print = parsed is not None and parsed[1] != EDGED
+    draw_colophon(
+        image,
+        font=mark_font,
+        colour=blend(palette["muted"], palette["bg"], MARK_OPACITY),
+        content_box=(content_left, content_top, content_right, content_bottom),
+        corner="right",
+        inset=max(margin, FRAMELESS_SAFE_PX) if frameless_print else margin,
     )
 
     buffer = io.BytesIO()

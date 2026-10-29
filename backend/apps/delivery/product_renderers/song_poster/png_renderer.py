@@ -44,7 +44,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 from apps.assets.services import get_asset_bytes_for_customer
 from apps.common.exceptions.api_errors import SongPosterRenderFailed
-from apps.delivery.attribution import MARK_OPACITY, MARK_SCALE, PRINT_MARK, blend
+from apps.delivery.attribution import FRAMELESS_SAFE_PX, MARK_OPACITY, MARK_SCALE, blend, draw_colophon
 from apps.delivery.mixed_script import MixedScriptFont, parse_unicode_range
 from apps.delivery.print_sizes import EDGED, edged_margin_px, parse_print_target, print_target_dimensions
 from apps.delivery.wallpaper_devices import parse_wallpaper_target
@@ -487,9 +487,8 @@ def player_message_centre_y() -> float:
 
 
 def _draw_attribution(canvas: Image.Image, *, content_box: tuple[int, int, int, int], bg: str, soft: str) -> None:
-    """Site-wide policy (`apps/delivery/attribution.py`) applied here the
-    same way every other product's print/wallpaper output applies it —
-    not an LST-specific convention.
+    """The colophon (`apps/delivery/attribution.py`), bottom left, the same
+    rule every product's prints follow.
 
     `bg`/`soft` are the SELECTED THEME'S OWN colours, not the module's
     Player-specific `_BG`/`_SOFT` constants — an earlier version of this
@@ -497,13 +496,22 @@ def _draw_attribution(canvas: Image.Image, *, content_box: tuple[int, int, int, 
     Ledger's attribution mark against Player's cream background instead
     of Ledger's own khaki. Subtle, but a real per-theme colour bug the
     same class as the canvas-background one just above it.
+
+    A content box at the page's own edge is a frameless print or a
+    wallpaper: there the colophon keeps FRAMELESS_SAFE_PX from the trim.
     """
     x0, y0, x1, y1 = content_box
-    draw = ImageDraw.Draw(canvas)
     size = max(8, round((y1 - y0) * MARK_SCALE))
     font = ImageFont.truetype(str(_FONT_DIR / "DejaVuSans.ttf"), size=size)
-    colour = blend(soft, bg, MARK_OPACITY)
-    draw.text((x0 + size, y1 - size * 2), PRINT_MARK, font=font, fill=colour)
+    at_page_edge = (x0, y0) == (0, 0)
+    draw_colophon(
+        canvas,
+        font=font,
+        colour=blend(soft, bg, MARK_OPACITY),
+        content_box=content_box,
+        corner="left",
+        inset=max(FRAMELESS_SAFE_PX, size) if at_page_edge else size,
+    )
 
 
 def _draw_ledger(canvas: Image.Image, song: NormalizedSongPoster, *, scale: float, origin: tuple[int, int], customer) -> None:

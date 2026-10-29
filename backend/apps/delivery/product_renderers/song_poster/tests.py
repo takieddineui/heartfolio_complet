@@ -901,9 +901,11 @@ class DedicationWrapTests(TestCase):
             with self.subTest(text=case):
                 drawn, _ = self._render("mosaic", dedication, customer, photo)
                 [card] = [r["box"] for r in drawn.rects if r["fill"] == "#0e0f10"]
+                from apps.delivery.attribution import PRINT_MARK
+
                 # Everything on the card; the page's own attribution mark sits at
                 # the page's corner by design (`_draw_attribution`).
-                card_texts = [t for t in drawn.texts if t["box"] and t["box"][1] >= card[1] and t["text"] != "theheartfolio.com"]
+                card_texts = [t for t in drawn.texts if t["box"] and t["box"][1] >= card[1] and t["text"] != PRINT_MARK]
                 self.assertTrue(card_texts)
                 for text in card_texts:
                     self.assertTrue(_inside(text["box"], card), f"{text['text']!r} runs off the card")
@@ -1259,7 +1261,13 @@ class ArtistFitTests(TestCase):
 
     def test_no_artist_leaves_its_column_or_the_page_or_touches_anything(self):
         for render in self._posters():
-            others = [t for t in render["texts"] if t["box"]]
+            from apps.delivery.attribution import PRINT_MARK
+
+            # The colophon is held to its own, pixel-level rule (no ink of the
+            # design under or within 6px of it, `tests_colophon.py`): its text
+            # box can meet a long Arabic artist's descender space on Ledger's
+            # 8x10 frameless print while their ink stays apart.
+            others = [t for t in render["texts"] if t["box"] and t["text"] != PRINT_MARK]
             for drawn, fit in self._artist_texts(render):
                 with self.subTest(theme=render["theme"], artist=render["artist"][:12], target=render["target"], line=drawn["text"][:16]):
                     box = drawn["box"]

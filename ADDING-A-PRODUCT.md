@@ -80,6 +80,17 @@ Two more rules apply throughout:
    English sentence), the product's name in the receipt email and the bonus
    PDFs in en/fr/ar (`apps/commerce/email_copy.py`,
    `apps/delivery/bonus_copy.py`; `email-product-names.test.ts`).
+   **Branding (owner, 27 Oct 2026): every deliverable carries the colophon
+   "Heartfolio · theheartfolio.com"** (`apps/delivery/attribution.py`), never
+   translated, no slogan, no logo. A print or wallpaper draws it LAST through
+   `draw_colophon`, in the bottom corner the product's designs keep empty, in
+   the product's muted colour at `MARK_OPACITY` and `MARK_SCALE`, at least
+   `FRAMELESS_SAFE_PX` (6.35mm) from the trim of a frameless print and inside
+   the border of an edged one, and never over the customer's photos or words:
+   add the product to `apps/delivery/tests_colophon.py` (every layout or theme,
+   every print target, Latin and Arabic at maximum content). The QR cards, the
+   bonus PDFs, the receipt email and the share cards are shared and need
+   nothing.
 7. **The owner runs the real seed** (`docker compose exec api python
    seed_catalog.py`) and reads its summary. This alone makes nothing visible.
 

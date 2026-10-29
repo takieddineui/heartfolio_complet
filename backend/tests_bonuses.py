@@ -157,7 +157,8 @@ _LONG_CAPTIONS = (
 
 
 def _drawn_card(caption, variant):
-    """Every text the card draws (text, ink box, font) and its QR plate."""
+    """Every text the card draws (text, ink box, font) and its QR plate. The
+    wordmark line carries the address since 27 Oct 2026 (`QR_WORDMARK`)."""
     from unittest import mock
 
     from PIL import Image as PILImage
@@ -181,8 +182,8 @@ def _drawn_card(caption, variant):
         png = bonuses._render_qr_card("https://www.theheartfolio.com/en/k/abc", variant, caption=caption)
     size = PILImage.open(io.BytesIO(png)).size
     [plate] = plates
-    caption_lines = [t for t in texts if t[0] != "HEARTFOLIO"]
-    [wordmark] = [t for t in texts if t[0] == "HEARTFOLIO"]
+    caption_lines = [t for t in texts if t[0] != bonuses.QR_WORDMARK]
+    [wordmark] = [t for t in texts if t[0] == bonuses.QR_WORDMARK]
     return size, plate, caption_lines, wordmark
 
 

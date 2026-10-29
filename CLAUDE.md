@@ -505,6 +505,26 @@ Two were genuine product bugs: the `layout` default above, and
   the old objects (kept that long for pages already open: Love Story
   Timeline's and Song Poster's do not refetch an expired link). Safe to
   re-run; `--limit N` for a trial.
+- **EVERY DELIVERABLE CARRIES THE COLOPHON "Heartfolio · theheartfolio.com"
+  (owner, 27 Oct 2026; `apps/delivery/attribution.py` has the rule).** Prints
+  (both products, every target, wallpapers too) draw it through
+  `draw_colophon`: Love Story Timeline bottom right, Song Poster bottom left,
+  at least 75px (6.35mm) from the trim of a frameless print (it was
+  2.2-5.3mm). The QR cards' wordmark line is "HEARTFOLIO ·
+  theheartfolio.com" (`QR_WORDMARK`; on ONE line on purpose: a second line
+  took the room a long caption grows into, and a voweled Arabic caption lost
+  its second line), the bonus PDFs' footer the same (`PDF_FOOTER`), the
+  receipt email ends with a linked line, the share cards (`og.tsx`) show the
+  address beside the wordmark (`COLOPHON` in `site-config.ts`, pinned to the
+  backend's by `site-config.test.ts`). `tests_colophon.py` renders every
+  layout and theme on every print target at maximum Latin and Arabic content
+  and fails if any ink lies under the colophon or within 6px of it.
+  **Tight, accepted case:** on Ledger's (and nearly Contact Sheet's) 8x10
+  frameless print the design reaches the paper, so the colophon sits about
+  1mm under the footer; with a 60-character Arabic artist their text boxes
+  meet while their ink stays apart (`ArtistFitTests` therefore leaves the
+  colophon to its own pixel test). Shrinking those designs ~4% on 8x10
+  frameless would make room; not done, it changes the artwork.
 - **CONTENT SECTION (`/guides`): LIVE 27 Oct 2026. THE FIRST BATCH IS DONE
   except the graduation guide: four guides PUBLISHED in English and French**
   (anniversary ideas; reasons I love you, with its own French examples; the

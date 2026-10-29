@@ -17,11 +17,17 @@ export const SITE_NAME = "Heartfolio";
 export const SITE_DOMAIN = SITE_URL.replace(/^https?:\/\//, "");
 
 /**
- * Attribution on web surfaces Heartfolio serves — the AR page, the live
- * keepsake — as opposed to files the customer bought and framed, which
- * carry the bare domain only.
- *
- * Mirrors `WEB_MARK` in `apps/delivery/attribution.py`.
+ * The colophon every deliverable carries (owner, 27 Oct 2026): the name and
+ * the address, never translated. Mirrors `PRINT_MARK` in
+ * `apps/delivery/attribution.py` (pinned by `site-config.test.ts`). The
+ * address is the bare domain, without the canonical origin's "www.".
+ */
+export const COLOPHON_DOMAIN = SITE_DOMAIN.replace(/^www\./, "");
+export const COLOPHON = `${SITE_NAME} · ${COLOPHON_DOMAIN}`;
+
+/**
+ * The older attribution line of the AR page. Mirrors `WEB_MARK` in
+ * `apps/delivery/attribution.py`.
  */
 export const WEB_MARK = `Made with Heartfolio · ${SITE_DOMAIN}`;
 

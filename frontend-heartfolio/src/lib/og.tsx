@@ -1,6 +1,7 @@
 import { ImageResponse } from "next/og";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
+import { COLOPHON_DOMAIN, SITE_NAME } from "@/lib/site-config";
 
 /**
  * ---------------------------------------------------------------------
@@ -183,10 +184,14 @@ export async function renderOgImage({
             color: "rgba(247,241,230,0.6)",
           }}
         >
-          {/* Wordmark only — the ♥ from the site's logotype is not in the
+          {/* The colophon (`COLOPHON`): the wordmark, then the address in the
+              body face. The ♥ from the site's logotype is not in the
               subsetted font and renders as nothing, so it is left out here
               rather than shipped as an invisible glyph. */}
-          <div style={{ display: "flex", fontFamily: "Display", color: "#f7f1e6" }}>Heartfolio</div>
+          <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
+            <span style={{ fontFamily: "Display", color: "#f7f1e6" }}>{SITE_NAME}</span>
+            <span style={{ fontFamily: "Body", fontSize: 20 }}>· {COLOPHON_DOMAIN}</span>
+          </div>
           <div style={{ display: "flex" }}>{footnote ?? ""}</div>
         </div>
         </div>

@@ -30,6 +30,8 @@ import logging
 import requests
 from django.conf import settings
 
+from apps.delivery.attribution import PRINT_MARK, SITE_DOMAIN
+
 from .order_access import generate_order_access_token
 
 logger = logging.getLogger("heartfolio")
@@ -181,6 +183,9 @@ def _render(order, link: str, *, include_qr: bool | None = None) -> tuple[str, s
     <p style="line-height:1.6;margin:16px 0 0;font-size:14px;color:#6b6b75;">
       {reference_html}
     </p>
+    <p style="line-height:1.6;margin:24px 0 0;font-size:12px;color:#9a968e;">
+      <a href="https://{SITE_DOMAIN}" dir="ltr" style="color:#9a968e;text-decoration:none;">{escape(PRINT_MARK)}</a>
+    </p>
   </div>
 </body>
 </html>"""
@@ -192,7 +197,9 @@ def _render(order, link: str, *, include_qr: bool | None = None) -> tuple[str, s
         f"{copy['button']}: {link}\n\n"
         f"{copy['link_note'].format(days=days)}\n\n"
         f"{qr_text}"
-        f"{copy['reference'].format(reference=order.id)}\n"
+        f"{copy['reference'].format(reference=order.id)}\n\n"
+        # The colophon (`apps/delivery/attribution.py`), as on every deliverable.
+        f"{PRINT_MARK}\n"
     )
 
     return subject, html, text

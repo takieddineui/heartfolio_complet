@@ -41,6 +41,7 @@ from reportlab.lib.units import mm
 from reportlab.pdfgen import canvas
 
 from apps.commerce.order_access import generate_order_access_token
+from apps.delivery.attribution import SITE_DOMAIN
 from apps.delivery.print_sizes import PRINT_DPI
 
 #: Synthetic target ids. Prefixed `bonus-` so they can never collide with a
@@ -423,7 +424,11 @@ def _render_qr_card(url: str, variant: str, *, caption: str | None = None, local
     caption_top = plate_bottom + int(size[1] * 0.045)
     wordmark_top = plate_bottom + int(size[1] * 0.105)
     wordmark_font = _card_font("DejaVuSans.ttf", int(size[0] * 0.024))
-    wordmark_box = draw.textbbox((0, 0), "HEARTFOLIO", font=wordmark_font)
+    # The colophon (owner, 27 Oct 2026): the address on the wordmark's own
+    # line, so the caption keeps exactly the room it had to grow into (a
+    # second line under it took that room, and a long Arabic caption lost
+    # its second line).
+    wordmark_box = draw.textbbox((0, 0), QR_WORDMARK, font=wordmark_font)
     lines, font, pitch = _caption_layout(
         draw, caption or QR_DEFAULT_CAPTION[copy_locale(locale)], card_size=size,
         room=size[1] * (1 - CAPTION_BOTTOM_MARGIN) - wordmark_top - (wordmark_box[3] - wordmark_box[1]),
@@ -432,7 +437,7 @@ def _render_qr_card(url: str, variant: str, *, caption: str | None = None, local
         _centred(draw, line, size[0], caption_top + index * pitch, fg, font)
     # The wordmark follows the caption's last line; under a one-line caption
     # it is exactly where it always was.
-    _centred(draw, "HEARTFOLIO", size[0], wordmark_top + (len(lines) - 1) * pitch, sub, wordmark_font)
+    _centred(draw, QR_WORDMARK, size[0], wordmark_top + (len(lines) - 1) * pitch, sub, wordmark_font)
 
     buffer = io.BytesIO()
     card.save(buffer, format="PNG")
@@ -462,6 +467,13 @@ _CAPTION_STEP = 0.05
 #: The space the caption's second line takes, as a multiple of its size (a line
 #: with Arabic takes at least its ink: `_line_pitch`).
 CAPTION_LINE_HEIGHT = 1.3
+#: The bonus PDFs' footer.
+PDF_FOOTER = f"HEARTFOLIO · {SITE_DOMAIN}"
+
+#: The QR cards' wordmark line: the wordmark and the address.
+QR_WORDMARK = f"HEARTFOLIO · {SITE_DOMAIN}"
+
+
 #: The wordmark's foot never comes closer than this to the card's bottom edge.
 CAPTION_BOTTOM_MARGIN = 0.03
 
@@ -714,13 +726,14 @@ def _text_pdf(
             y = new_page()
         text.line(closing, y, 11, _BRONZE, italic=True)
 
-    # Footer wordmark, same on every page-final render.
+    # Footer colophon, same on every page-final render: the wordmark and the
+    # address (`attribution.py`), Latin in every language.
     pdf.setFillColorRGB(*_CREAM_DIM)
     pdf.setFont("Helvetica", 8)
     if text.rtl:
-        pdf.drawRightString(right, 16 * mm, "HEARTFOLIO")
+        pdf.drawRightString(right, 16 * mm, PDF_FOOTER)
     else:
-        pdf.drawString(left, 16 * mm, "HEARTFOLIO")
+        pdf.drawString(left, 16 * mm, PDF_FOOTER)
     pdf.setFillColorRGB(*_INK_SOFT)
     pdf.setStrokeColorRGB(*_INK_SOFT)
 

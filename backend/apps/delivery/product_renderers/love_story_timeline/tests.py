@@ -1020,10 +1020,11 @@ class AttributionTests(SimpleTestCase):
         timeline = validate_and_normalize(VALID_VALUES, {**VALID_THEME, "palette": palette})
         return render_png(timeline, target_id=target, customer=None)
 
-    def test_the_print_mark_is_the_bare_domain(self):
+    def test_the_print_mark_is_the_colophon(self):
         from apps.delivery.attribution import PRINT_MARK, WEB_MARK
 
-        self.assertEqual(PRINT_MARK, "theheartfolio.com")
+        # The name and the address, nothing else (owner, 27 Oct 2026).
+        self.assertEqual(PRINT_MARK, "Heartfolio · theheartfolio.com")
         # No slogan on a paid, framed print. The web surfaces carry more.
         self.assertNotIn("Made with", PRINT_MARK)
         self.assertIn("Made with", WEB_MARK)

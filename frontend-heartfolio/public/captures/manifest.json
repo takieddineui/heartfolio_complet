@@ -1,5 +1,5 @@
 {
-  "generated": "2026-10-27",
+  "generated": "2026-10-29",
   "fps": 30,
   "products": {
     "love-story-timeline": {
@@ -26,11 +26,11 @@
         "print": {
           "avif": {
             "src": "/captures/en/love-story-timeline-print.avif",
-            "bytes": 24397
+            "bytes": 24498
           },
           "jpg": {
             "src": "/captures/en/love-story-timeline-print.jpg",
-            "bytes": 58599
+            "bytes": 58894
           },
           "width": 900,
           "height": 1125
@@ -38,11 +38,11 @@
         "qr": {
           "avif": {
             "src": "/captures/en/love-story-timeline-qr.avif",
-            "bytes": 22225
+            "bytes": 22949
           },
           "jpg": {
             "src": "/captures/en/love-story-timeline-qr.jpg",
-            "bytes": 60345
+            "bytes": 61656
           },
           "width": 600,
           "height": 780
@@ -71,11 +71,11 @@
         "print": {
           "avif": {
             "src": "/captures/fr/love-story-timeline-print.avif",
-            "bytes": 28040
+            "bytes": 28152
           },
           "jpg": {
             "src": "/captures/fr/love-story-timeline-print.jpg",
-            "bytes": 64660
+            "bytes": 64833
           },
           "width": 900,
           "height": 1125
@@ -83,11 +83,11 @@
         "qr": {
           "avif": {
             "src": "/captures/fr/love-story-timeline-qr.avif",
-            "bytes": 22744
+            "bytes": 23607
           },
           "jpg": {
             "src": "/captures/fr/love-story-timeline-qr.jpg",
-            "bytes": 61783
+            "bytes": 63074
           },
           "width": 600,
           "height": 780
@@ -116,11 +116,11 @@
         "print": {
           "avif": {
             "src": "/captures/ar/love-story-timeline-print.avif",
-            "bytes": 18961
+            "bytes": 19099
           },
           "jpg": {
             "src": "/captures/ar/love-story-timeline-print.jpg",
-            "bytes": 47771
+            "bytes": 48005
           },
           "width": 900,
           "height": 1125
@@ -128,11 +128,11 @@
         "qr": {
           "avif": {
             "src": "/captures/ar/love-story-timeline-qr.avif",
-            "bytes": 20709
+            "bytes": 21508
           },
           "jpg": {
             "src": "/captures/ar/love-story-timeline-qr.jpg",
-            "bytes": 58519
+            "bytes": 59817
           },
           "width": 600,
           "height": 780
@@ -164,11 +164,11 @@
         "qr": {
           "avif": {
             "src": "/captures/en/reasons-i-love-you-qr.avif",
-            "bytes": 21413
+            "bytes": 22112
           },
           "jpg": {
             "src": "/captures/en/reasons-i-love-you-qr.jpg",
-            "bytes": 59507
+            "bytes": 60815
           },
           "width": 600,
           "height": 780
@@ -198,11 +198,11 @@
         "qr": {
           "avif": {
             "src": "/captures/fr/reasons-i-love-you-qr.avif",
-            "bytes": 21275
+            "bytes": 22083
           },
           "jpg": {
             "src": "/captures/fr/reasons-i-love-you-qr.jpg",
-            "bytes": 59261
+            "bytes": 60564
           },
           "width": 600,
           "height": 780
@@ -232,11 +232,11 @@
         "qr": {
           "avif": {
             "src": "/captures/ar/reasons-i-love-you-qr.avif",
-            "bytes": 21194
+            "bytes": 21967
           },
           "jpg": {
             "src": "/captures/ar/reasons-i-love-you-qr.jpg",
-            "bytes": 59243
+            "bytes": 60549
           },
           "width": 600,
           "height": 780
@@ -268,11 +268,11 @@
         "qr": {
           "avif": {
             "src": "/captures/en/graduation-keepsake-qr.avif",
-            "bytes": 21365
+            "bytes": 22120
           },
           "jpg": {
             "src": "/captures/en/graduation-keepsake-qr.jpg",
-            "bytes": 59028
+            "bytes": 60347
           },
           "width": 600,
           "height": 780
@@ -302,11 +302,11 @@
         "qr": {
           "avif": {
             "src": "/captures/fr/graduation-keepsake-qr.avif",
-            "bytes": 21679
+            "bytes": 22496
           },
           "jpg": {
             "src": "/captures/fr/graduation-keepsake-qr.jpg",
-            "bytes": 59888
+            "bytes": 61187
           },
           "width": 600,
           "height": 780
@@ -336,11 +336,11 @@
         "qr": {
           "avif": {
             "src": "/captures/ar/graduation-keepsake-qr.avif",
-            "bytes": 21032
+            "bytes": 21862
           },
           "jpg": {
             "src": "/captures/ar/graduation-keepsake-qr.jpg",
-            "bytes": 59440
+            "bytes": 60722
           },
           "width": 600,
           "height": 780
@@ -371,11 +371,11 @@
         "print": {
           "avif": {
             "src": "/captures/en/song-poster-print.avif",
-            "bytes": 15471
+            "bytes": 15627
           },
           "jpg": {
             "src": "/captures/en/song-poster-print.jpg",
-            "bytes": 49046
+            "bytes": 49340
           },
           "width": 900,
           "height": 1125
@@ -383,11 +383,11 @@
         "qr": {
           "avif": {
             "src": "/captures/en/song-poster-qr.avif",
-            "bytes": 22598
+            "bytes": 23263
           },
           "jpg": {
             "src": "/captures/en/song-poster-qr.jpg",
-            "bytes": 61297
+            "bytes": 62661
           },
           "width": 600,
           "height": 780
@@ -416,11 +416,11 @@
         "print": {
           "avif": {
             "src": "/captures/fr/song-poster-print.avif",
-            "bytes": 14577
+            "bytes": 14747
           },
           "jpg": {
             "src": "/captures/fr/song-poster-print.jpg",
-            "bytes": 47660
+            "bytes": 47994
           },
           "width": 900,
           "height": 1125
@@ -428,11 +428,11 @@
         "qr": {
           "avif": {
             "src": "/captures/fr/song-poster-qr.avif",
-            "bytes": 21561
+            "bytes": 22331
           },
           "jpg": {
             "src": "/captures/fr/song-poster-qr.jpg",
-            "bytes": 59599
+            "bytes": 60936
           },
           "width": 600,
           "height": 780
@@ -461,11 +461,11 @@
         "print": {
           "avif": {
             "src": "/captures/ar/song-poster-print.avif",
-            "bytes": 13540
+            "bytes": 13699
           },
           "jpg": {
             "src": "/captures/ar/song-poster-print.jpg",
-            "bytes": 44282
+            "bytes": 44567
           },
           "width": 900,
           "height": 1125
@@ -473,11 +473,11 @@
         "qr": {
           "avif": {
             "src": "/captures/ar/song-poster-qr.avif",
-            "bytes": 20557
+            "bytes": 21349
           },
           "jpg": {
             "src": "/captures/ar/song-poster-qr.jpg",
-            "bytes": 58277
+            "bytes": 59594
           },
           "width": 600,
           "height": 780

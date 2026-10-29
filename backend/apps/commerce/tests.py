@@ -2630,6 +2630,16 @@ class OrderEmailTests(SimpleTestCase):
                 self.assertTrue(text.startswith(RECEIPT[locale]["heading"]))
                 self.assertIn(RECEIPT[locale]["paid"].format(product=product), text)
 
+    def test_the_receipt_ends_with_the_colophon_in_every_language(self):
+        """The name and the address, linked, as on every deliverable (owner,
+        27 Oct 2026); Latin and left to right on an Arabic receipt too."""
+        for locale in ("en", "fr", "ar"):
+            with self.subTest(locale):
+                _, html, text = _render(self._order(locale), "https://example.test/o", include_qr=False)
+                self.assertIn('<a href="https://theheartfolio.com" dir="ltr"', html)
+                self.assertIn("Heartfolio · theheartfolio.com</a>", html)
+                self.assertTrue(text.rstrip().endswith("Heartfolio · theheartfolio.com"))
+
     def test_an_unknown_language_gets_the_english_receipt(self):
         subject, html, _ = _render(self._order("de"), "https://example.test/o", include_qr=False)
         self.assertEqual(subject, "Your Heartfolio order — Love Story Timeline")
