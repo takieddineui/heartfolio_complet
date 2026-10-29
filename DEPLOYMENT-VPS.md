@@ -253,6 +253,8 @@ Yours, in order:
      does, Freemius did not mark the licence as production: stop and tell me.
 7. **Refund it** in the Freemius dashboard.
 8. **Remove the test orders** (section 6).
+9. **Move the uploads to the new storage layout** (section 7), once, from
+   the VPS, after the development and production databases are separated.
 
 ## 6. Removing test orders
 
@@ -290,7 +292,60 @@ docker compose -f docker-compose.prod.yml --env-file .env.production exec api \
 - **When to run it:** after the live test purchase in section 5 is refunded.
   Take a Supabase backup first.
 
-## 7. Updating and rolling back
+## 7. Moving uploads to the new storage layout (once, before launch)
+
+Uploads stored before 27 Oct 2026 sit at `assets/<id>/<customer's
+filename>`, and every photo link a recipient's page loads carries that key,
+so the filename shows. New uploads already go to
+`uploads/<product>/<id>.<ext>`. `move_assets_to_new_layout` moves the old
+ones, clears the stored filenames, and strips filenames from saved projects
+(without touching their `updated_at`, which the 12-month draft cleanup
+reads). Nothing that reads uploads changes: each file is served from its old
+key until the moment its row points at the new one.
+
+**Where:** on the VPS, against production, and only AFTER the development
+and production databases are separated. Never from local Docker: there,
+`docker compose exec api` reads `.env.docker`, and that has pointed at the
+same Supabase database. Yours to run; Claude never runs it against real data.
+
+In this order:
+
+1. **Back up the database** (Supabase dashboard, or `pg_dump`). The R2
+   bucket needs no backup: the command copies, never deletes, until step 6.
+2. **Apply the migration** that adds the move's bookkeeping (two nullable
+   columns on `assets`):
+
+   ```bash
+   docker compose -f docker-compose.prod.yml --env-file .env.production exec api python manage.py migrate assets 0002
+   ```
+
+3. **Dry run.** Changes nothing; prints counts and asset ids, never a key or
+   a filename:
+
+   ```bash
+   docker compose -f docker-compose.prod.yml --env-file .env.production exec api python manage.py move_assets_to_new_layout
+   ```
+
+4. **Review it:** the files to move per product folder (`unknown` is a file
+   no project references), the asset rows with a filename, the projects
+   with filenames. A trial on a few files first is possible with
+   `--execute --limit 5`.
+5. **Execute:**
+
+   ```bash
+   docker compose -f docker-compose.prod.yml --env-file .env.production exec api python manage.py move_assets_to_new_layout --execute
+   ```
+
+   Each file is copied, its size checked, and its row switched under a lock;
+   a file deleted meanwhile is left alone and its copy removed. Warnings
+   (a storage error, a row with no object) leave those files where they
+   were; running it again retries them.
+6. **24 hours later, execute again.** This deletes the old objects (kept
+   that long for pages already open: their five-minute links point at the
+   old keys). It reports "Deleted N old object(s)": N should equal the files
+   moved in step 5. Run it again if it reports any it could not delete.
+
+## 8. Updating and rolling back
 
 ```bash
 git pull

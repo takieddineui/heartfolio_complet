@@ -504,7 +504,25 @@ Two were genuine product bugs: the `layout` default above, and
   project as active today), and `--execute` again 24 hours later to delete
   the old objects (kept that long for pages already open: Love Story
   Timeline's and Song Poster's do not refetch an expired link). Safe to
-  re-run; `--limit N` for a trial.
+  re-run; `--limit N` for a trial. **The full sequence (backup first; from
+  the VPS against production, only after the dev/prod database separation,
+  never from local dev) is `DEPLOYMENT-VPS.md` section 7.** The Studio's
+  labels for saved recordings and videos ("Recording 1" / « Enregistrement
+  1 » / «تسجيل 1») were approved by the owner on 29 Oct 2026.
+- **ARABIC COPY AWAITING A NATIVE REVIEW** (all written by Claude; none
+  reviewed yet). Started 29 Oct 2026 as one list; add to it whenever Arabic
+  copy is written:
+  - the live-page intro line «هديّة لك», its skip «تخطٍّ» and the closing
+    line «صُنع باستخدام Heartfolio» (`components/live/live-frame-copy.ts`);
+  - the Studio's media labels «تسجيل {n}», «فيديو {n}», «ملف {n}»
+    (`lib/studio/i18n.ts`);
+  - Love Story Timeline's live-page words (`components/live/live-copy.ts`)
+    and its typography and Appearance labels;
+  - Reasons I Love You and Graduation Keepsake (Studio and live pages);
+  - Song Poster's pack labels, player words and FAQ;
+  - the receipt email, the thank-you and how-to-print PDFs and the QR card's
+    default caption (`apps/commerce/email_copy.py`,
+    `apps/delivery/bonus_copy.py`).
 - **EVERY DELIVERABLE CARRIES THE COLOPHON "Heartfolio · theheartfolio.com"
   (owner, 27 Oct 2026; `apps/delivery/attribution.py` has the rule).** Prints
   (both products, every target, wallpapers too) draw it through
@@ -524,7 +542,8 @@ Two were genuine product bugs: the `layout` default above, and
   1mm under the footer; with a 60-character Arabic artist their text boxes
   meet while their ink stays apart (`ArtistFitTests` therefore leaves the
   colophon to its own pixel test). Shrinking those designs ~4% on 8x10
-  frameless would make room; not done, it changes the artwork.
+  frameless would make room. **Owner, 29 Oct 2026: leave as is** (only an
+  extreme 60-character Arabic artist; no ink near the colophon).
 - **EVERY LIVE PAGE OPENS WITH THE SHARED HEARTFOLIO INTRO AND ENDS WITH ONE
   TRANSLATED CLOSING LINE (owner, 27 Oct 2026).** `components/live/live-intro.tsx`:
   the mark, "A gift for you" / « Un cadeau pour toi » / «هديّة لك», 1.6s from
@@ -540,7 +559,7 @@ Two were genuine product bugs: the `layout` default above, and
   "Made with Heartfolio" lines. **Measured** (production build, 390px phone,
   CPU 4x, cold): the page is interactive 0.5-0.6s into the intro on Fast 4G
   and 2.4-3.1s into it on Slow 4G (3.8-4.6s after the tap), past the 2.5s
-  cap the owner set. **Trap, found in the browser:** a server component that
+  cap the owner set and kept (29 Oct 2026). **Trap, found in the browser:** a server component that
   imports constants from a "use client" module gets client REFERENCES, not
   strings; the first build wrote an error message into the inline scripts
   in place of the element id. The names live in the plain
