@@ -1,6 +1,8 @@
 import { act, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { OpeningSequence } from "./opening-sequence";
+import { INTRO_DONE_EVENT, INTRO_STATE_ID } from "./live-intro-ids";
+import { LiveIntroFrame } from "./live-intro-state";
 
 /**
  * `useReducedMotion` (framer-motion) reads `window.matchMedia(
@@ -83,5 +85,36 @@ describe("OpeningSequence", () => {
 
     expect(onDone).not.toHaveBeenCalled();
     await waitFor(() => expect(onDone).toHaveBeenCalledTimes(1), { timeout: 3000 });
+  });
+
+  it("waits for the shared intro to hand over, then runs (27 Oct 2026)", async () => {
+    mockMatchMedia(false);
+    const marker = document.createElement("i");
+    marker.id = INTRO_STATE_ID;
+    marker.setAttribute("data-s", "playing");
+    document.body.appendChild(marker);
+    const onDone = vi.fn();
+    render(
+      <LiveIntroFrame present>
+        <OpeningSequence names="A & B" title="T" onDone={onDone} durationMs={20} />
+      </LiveIntroFrame>
+    );
+    // The intro is still playing: the sequence does not start. Longer than
+    // its 20ms plus its 0.6s exit, so a sequence that ran anyway would have
+    // finished by now.
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+    expect(onDone).not.toHaveBeenCalled();
+    act(() => {
+      marker.setAttribute("data-s", "done");
+      window.dispatchEvent(new Event(INTRO_DONE_EVENT));
+    });
+    await waitFor(() => expect(onDone).toHaveBeenCalledTimes(1), { timeout: 3000 });
+    marker.remove();
+  });
+
+  it("no longer draws a Heartfolio mark of its own: the shared intro does", () => {
+    mockMatchMedia(false);
+    const { container } = render(<OpeningSequence names="A & B" title="T" onDone={() => {}} />);
+    expect(container.querySelector("svg")).toBeNull();
   });
 });

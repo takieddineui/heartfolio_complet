@@ -383,12 +383,12 @@ describe("the other three gifts", () => {
 });
 
 describe("the same branding line as every other live page", () => {
-  it("is exactly Love Story Timeline's and Song Poster's, always shown", () => {
-    const line = "Made with Heartfolio · theheartfolio.com";
-    expect(readFileSync("src/components/live/live-keepsake.tsx", "utf8")).toContain(line);
-    expect(readFileSync("src/components/live-song/song-live-keepsake.tsx", "utf8")).toContain(line);
+  it("is the shared closing line, in the order's language, always shown", () => {
+    // One component for every live page since 27 Oct 2026 (`live-colophon.tsx`).
+    expect(readFileSync("src/components/live/live-keepsake.tsx", "utf8")).toContain("<LiveColophon");
+    expect(readFileSync("src/components/live-song/song-live-keepsake.tsx", "utf8")).toContain("<LiveColophon");
     const { container } = render(<ReasonsKeepsake data={DATA} locale="ar" />);
-    expect(container.querySelector('a[href="https://theheartfolio.com"]')?.textContent).toBe(line);
+    expect(container.querySelector('a[href="https://theheartfolio.com"]')?.textContent).toBe("صُنع باستخدام Heartfolio · theheartfolio.com");
   });
 });
 

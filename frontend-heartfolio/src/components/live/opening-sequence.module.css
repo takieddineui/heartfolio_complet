@@ -26,12 +26,6 @@
   overflow: hidden;
 }
 
-.mark {
-  width: clamp(56px, 12vw, 96px);
-  height: clamp(56px, 12vw, 96px);
-  color: var(--accent);
-}
-
 .photo {
   width: min(64vw, 320px);
   aspect-ratio: 4 / 5;

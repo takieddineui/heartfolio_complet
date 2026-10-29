@@ -525,6 +525,33 @@ Two were genuine product bugs: the `layout` default above, and
   meet while their ink stays apart (`ArtistFitTests` therefore leaves the
   colophon to its own pixel test). Shrinking those designs ~4% on 8x10
   frameless would make room; not done, it changes the artwork.
+- **EVERY LIVE PAGE OPENS WITH THE SHARED HEARTFOLIO INTRO AND ENDS WITH ONE
+  TRANSLATED CLOSING LINE (owner, 27 Oct 2026).** `components/live/live-intro.tsx`:
+  the mark, "A gift for you" / « Un cadeau pour toi » / «هديّة لك», 1.6s from
+  first paint, held for the page up to 2.5s in all, tap/Esc/Enter to skip,
+  only on the FIRST open of a gift on a device (`localStorage`
+  `hf-intro:<live id>`), never under reduced motion. Only the real
+  `/live/<id>` route asks for it (`LivePayloadView intro`); the dev capture
+  page and the Studio do not. It is plain DOM driven by two inline scripts,
+  not React, so it plays before hydration; products start their own opening
+  on `useLiveIntroDone()` (Love Story Timeline's overlay lost its own mark
+  beat and now runs 3s after the handover; Song Poster's mark above the disc
+  is gone). `<LiveColophon>` replaced the four hard-coded English
+  "Made with Heartfolio" lines. **Measured** (production build, 390px phone,
+  CPU 4x, cold): the page is interactive 0.5-0.6s into the intro on Fast 4G
+  and 2.4-3.1s into it on Slow 4G (3.8-4.6s after the tap), past the 2.5s
+  cap the owner set. **Trap, found in the browser:** a server component that
+  imports constants from a "use client" module gets client REFERENCES, not
+  strings; the first build wrote an error message into the inline scripts
+  in place of the element id. The names live in the plain
+  `live-intro-ids.ts`, and `live-intro.test.tsx` fails if the server
+  component imports from a client module. **Recording trap:** Next refuses
+  a second `next dev` in the same folder, so the capture server cannot start
+  while another dev server runs there; a copy INSIDE `frontend-heartfolio/`
+  (src, public, configs, `.captures-work`; no `node_modules`, which resolves
+  upward) started with `HEARTFOLIO_CAPTURE=1` works. A copy elsewhere with a
+  linked `node_modules` does not (Turbopack refuses the link; webpack mode
+  fails on Windows).
 - **CONTENT SECTION (`/guides`): LIVE 27 Oct 2026. THE FIRST BATCH IS DONE
   except the graduation guide: four guides PUBLISHED in English and French**
   (anniversary ideas; reasons I love you, with its own French examples; the

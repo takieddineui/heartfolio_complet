@@ -32,15 +32,24 @@ import { SongLiveKeepsake } from "@/components/live-song/song-live-keepsake";
 import { ReasonsLivePage } from "@/components/live-reasons/reasons-live-page";
 import { GraduationLivePage } from "@/components/live-graduation/graduation-live-page";
 import { LivePayloadView } from "@/components/live/live-payload";
+import { LiveIntro } from "@/components/live/live-intro";
+import { LiveIntroFrame } from "@/components/live/live-intro-state";
 
 type Element = { type: unknown; props: Record<string, unknown> };
 
 /** The page hands the payload to `LivePayloadView` (shared with the dev-only
- *  capture page); this follows it to the product's own component. */
+ *  capture page), WITH the shared intro (27 Oct 2026); this follows it
+ *  through the intro's frame to the product's own component. */
 async function rendered(page: Promise<unknown>): Promise<Element> {
   const element = (await page) as Element;
   expect(element.type).toBe(LivePayloadView);
-  return (LivePayloadView as (props: never) => Element)(element.props as never);
+  expect(element.props.intro).toBe(true);
+  const frame = (LivePayloadView as (props: never) => Element)(element.props as never);
+  expect(frame.type).toBe(LiveIntroFrame);
+  const children = (frame.props.children as (Element | false)[]).filter(Boolean) as Element[];
+  expect(children.map((child) => child.type)).toContain(LiveIntro);
+  const product = children.find((child) => child.type !== LiveIntro)!;
+  return (product.type as (props: never) => Element)(product.props as never);
 }
 
 const params = (liveId = "abc") => Promise.resolve({ locale: "en", liveId });

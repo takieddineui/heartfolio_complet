@@ -4,6 +4,9 @@ import { ReasonsLivePage } from "@/components/live-reasons/reasons-live-page";
 import type { ReasonsExperienceData } from "@/components/live-reasons/experience-data";
 import { GraduationLivePage } from "@/components/live-graduation/graduation-live-page";
 import type { GraduationExperienceData } from "@/components/live-graduation/experience-data";
+import { LiveIntro } from "@/components/live/live-intro";
+import { introGround } from "@/components/live/live-intro-ground";
+import { LiveIntroFrame } from "@/components/live/live-intro-state";
 
 /*
  * The live keepsake's payload and the one place that turns it into a page.
@@ -92,9 +95,28 @@ function isReasonsPayload(payload: LivePayload): payload is ReasonsLivePayload {
   return payload.productId === "reasons-i-love-you";
 }
 
-/** Renders a live payload as the recipient's page. `liveId` is what the
- *  Reasons and Graduation pages ask for again when a photo link expires. */
-export function LivePayloadView({ payload, liveId }: { payload: LivePayload; liveId: string }) {
+/**
+ * Renders a live payload as the recipient's page. `intro`: the shared
+ * Heartfolio intro in front of it (the real `/live/<id>` route only; the dev
+ * capture page leaves it out, so the storefront's loops show the products).
+ * `liveId` is what the Reasons and Graduation pages ask for again when a
+ * photo link expires, and what the intro remembers it was seen by.
+ */
+export function LivePayloadView({ payload, liveId, intro = false }: { payload: LivePayload; liveId: string; intro?: boolean }) {
+  const ground = introGround(
+    payload.productId,
+    payload.values as Record<string, unknown>,
+    "themeSelections" in payload ? payload.themeSelections : undefined
+  );
+  return (
+    <LiveIntroFrame present={intro}>
+      {intro && <LiveIntro liveId={liveId} locale={payload.locale} ground={ground} />}
+      <LivePayloadProduct payload={payload} liveId={liveId} />
+    </LiveIntroFrame>
+  );
+}
+
+function LivePayloadProduct({ payload, liveId }: { payload: LivePayload; liveId: string }) {
   // Dispatched by `productId`, matching `live_views.py`'s own dispatch
   // exactly (`_build_ar_payload` vs `_build_song_poster_live_payload`) —
   // Song Poster's own digital keepsake is a genuinely different

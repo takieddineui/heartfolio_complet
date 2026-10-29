@@ -400,7 +400,8 @@ describe("prototype content and scaffolding are gone (prototype bug 11)", () => 
 
   it("keeps the same branding line as every live page", () => {
     const source = SOURCES.find(([f]) => f === "graduation-keepsake.tsx")![1];
-    expect(source).toContain('<a href="https://theheartfolio.com" tabIndex={done ? 0 : -1}>Made with Heartfolio · theheartfolio.com</a>');
+    // The shared closing line (`live-colophon.tsx`), reachable only once the finale is done.
+    expect(source).toContain('<LiveColophon locale={locale} className={cx("brand")} tabIndex={done ? 0 : -1} />');
   });
 });
 

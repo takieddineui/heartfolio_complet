@@ -7,6 +7,7 @@ import { useReducedMotion } from "framer-motion";
 import { SHOW_MILESTONE_VIDEO } from "@/lib/feature-flags";
 import { OpeningSequence } from "./opening-sequence";
 import { EndingSpark } from "./ending-spark";
+import { LiveColophon } from "./live-colophon";
 import { liveThemeStyle } from "./live-theme";
 import { liveMotionStyle } from "./live-motion";
 import { MilestoneSpark } from "./milestone-spark";
@@ -391,8 +392,8 @@ export function LiveKeepsake({
           <RevealItem as="p" className={styles.endingText}>
             {String(values.endingText ?? "")}
           </RevealItem>
-          <RevealItem as="p" className={styles.colophon}>
-            <a href="https://theheartfolio.com">Made with Heartfolio · theheartfolio.com</a>
+          <RevealItem>
+            <LiveColophon locale={locale} className={styles.colophon} />
           </RevealItem>
         </RevealGroup>
         <EndingSpark />

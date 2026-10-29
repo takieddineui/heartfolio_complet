@@ -1,16 +1,16 @@
 "use client";
 
 import { useMemo, useRef, useState } from "react";
-import { motion, useReducedMotion } from "framer-motion";
 import { Pause, Play } from "lucide-react";
 import styles from "./song-live-keepsake.module.css";
 import { useYouTubePlayer } from "@/lib/studio/product-modules/song-poster/use-youtube-player";
 import { downsample, generateEnvelope, seedForOrder } from "@/lib/studio/product-modules/song-poster/waveform";
 import { RevealGroup, RevealItem } from "@/components/motion/reveal";
 import { EndingSpark } from "@/components/live/ending-spark";
+import { LiveColophon } from "@/components/live/live-colophon";
+import { useLiveIntroDone } from "@/components/live/live-intro-state";
 import { playerCopy } from "@/lib/studio/product-modules/song-poster/player-copy";
 
-const EASE = [0.22, 1, 0.36, 1] as const;
 const WAVE_BARS = 64;
 
 /**
@@ -107,40 +107,12 @@ function formatTime(totalSeconds: number): string {
   return `${m}:${String(s).padStart(2, "0")}`;
 }
 
-const MARK_PATHS = [
-  "M32 22 A 10 10 0 0 0 14 31.5 L32 50",
-  "M41 23 L23 40.5",
-  "M23 23 L41 40.5",
-  "M32 22 A 10 10 0 0 1 50 31.5 L32 50",
-] as const;
-
-function OpeningMark() {
-  const reduceMotion = useReducedMotion();
-  if (reduceMotion) return null;
-  return (
-    <motion.svg
-      viewBox="0 0 64 64"
-      aria-hidden="true"
-      style={{ width: 40, height: 40, color: "var(--accent)" }}
-      initial="hidden"
-      animate="drawn"
-    >
-      <g fill="none" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" stroke="currentColor">
-        {MARK_PATHS.map((d, i) => (
-          <motion.path
-            key={d}
-            d={d}
-            variants={{ hidden: { pathLength: 0, opacity: 0.4 }, drawn: { pathLength: 1, opacity: 1 } }}
-            transition={{ duration: 0.8, ease: EASE, delay: i * 0.1 }}
-          />
-        ))}
-      </g>
-    </motion.svg>
-  );
-}
-
 export function SongLiveKeepsake({ values, locale }: SongLiveKeepsakeProps) {
   const copy = playerCopy(locale);
+  // The poster reveals itself when the shared intro hands over (at once
+  // where there is none). It used to draw the Heartfolio mark above itself;
+  // the intro draws it now (27 Oct 2026).
+  const introDone = useLiveIntroDone();
   const [state, controls] = useYouTubePlayer(values.youtubeVideoId);
   const waveRef = useRef<HTMLDivElement | null>(null);
   const [dragging, setDragging] = useState(false);
@@ -164,14 +136,12 @@ export function SongLiveKeepsake({ values, locale }: SongLiveKeepsakeProps) {
   return (
     <main className={styles.root}>
       <div className={styles.stage}>
-        <OpeningMark />
-
         {/* A centred column of its own: the group, not `.stage`, is the flex
             container its items sit in. As a plain block it took its widest
             child's width and left the disc (and a short dedication) at its
             start edge: 28-37px left of centre on a phone, right on /ar
             (found in the storefront captures, 27 Oct 2026). */}
-        <RevealGroup className={styles.content}>
+        <RevealGroup className={styles.content} active={introDone}>
           {values.photo?.url && (
             <RevealItem className={styles.photo}>
               {/* eslint-disable-next-line @next/next/no-img-element --
@@ -265,9 +235,7 @@ export function SongLiveKeepsake({ values, locale }: SongLiveKeepsakeProps) {
 
       <div className={styles.ending}>
         <EndingSpark />
-        <p className={styles.colophon}>
-          <a href="https://theheartfolio.com">Made with Heartfolio · theheartfolio.com</a>
-        </p>
+        <LiveColophon locale={locale} className={styles.colophon} />
       </div>
     </main>
   );

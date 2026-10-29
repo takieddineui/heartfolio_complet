@@ -15,6 +15,7 @@ import {
 import { FINAL_FRAMES, NOTE_COLOURS, OPEN_FRAMES, RANKS, SCENES, animate, finished, takeAnimation } from "./gift-scenes";
 import { ProceduralMusic } from "./procedural-music";
 import { Sparkles } from "./sparkles";
+import { LiveColophon } from "@/components/live/live-colophon";
 import styles from "./reasons-keepsake.module.css";
 
 /**
@@ -375,9 +376,7 @@ export function ReasonsKeepsake({ data, locale, fill = "viewport", shareUrl = nu
               <ReplayIcon /> {t("experience.again")}
             </button>
           </div>
-          <p className={styles.brand}>
-            <a href="https://theheartfolio.com">Made with Heartfolio · theheartfolio.com</a>
-          </p>
+          <LiveColophon locale={locale} className={styles.brand} />
         </section>
       </div>
 

@@ -112,5 +112,5 @@ export default async function LivePage({ params }: { params: Params }) {
     notFound();
   }
 
-  return <LivePayloadView payload={payload} liveId={liveId} />;
+  return <LivePayloadView payload={payload} liveId={liveId} intro />;
 }

@@ -21,6 +21,7 @@ import {
 import { Confetti } from "./particles";
 import { cx, Icon, Jet, Photo, Plane, Rocket, ROMAN, STAMP_INKS, STAMP_TILTS, SummitFinale, SummitPeaks, tilt, TROPHIES } from "./scenes";
 import { JourneySounds, type SoundKind } from "./sfx";
+import { LiveColophon } from "@/components/live/live-colophon";
 
 /**
  * GRADUATION KEEPSAKE: one graduation story told as one of five journeys.
@@ -1027,9 +1028,7 @@ export function GraduationKeepsake({ data, locale, fill = "viewport", shareUrl =
               <Icon name="replay" /> {j === "arcade" ? t("journeys.arcade.newGame") : t("ui.again")}
             </button>
           </div>
-          <p className={cx("brand")}>
-            <a href="https://theheartfolio.com" tabIndex={done ? 0 : -1}>Made with Heartfolio · theheartfolio.com</a>
-          </p>
+          <LiveColophon locale={locale} className={cx("brand")} tabIndex={done ? 0 : -1} />
         </div>
       </section>
     );

@@ -251,7 +251,8 @@ describe("what it must not break", () => {
   });
 
   it("draws the SAME spark as the opening and the ending (three copies of one path, kept honest)", () => {
-    const opening = readFileSync("src/components/live/opening-sequence.tsx", "utf8");
+    // The opening's spark is the shared intro's since 27 Oct 2026.
+    const opening = readFileSync("src/components/live/live-intro.tsx", "utf8");
     const ending = readFileSync("src/components/live/ending-spark.tsx", "utf8");
     expect(opening).toContain(SPARK_PATH);
     expect(ending).toContain(SPARK_PATH);

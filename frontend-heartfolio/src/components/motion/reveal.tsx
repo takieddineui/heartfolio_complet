@@ -52,16 +52,18 @@ interface RevealGroupProps {
   children: ReactNode;
   className?: string;
   stagger?: number;
+  /** False holds the group hidden (a live page under the shared intro);
+   * it reveals once true and in view. Default true. */
+  active?: boolean;
 }
 
 /** Wrap a set of Reveal children to stagger them 80–120ms apart. */
-export function RevealGroup({ children, className, stagger = 0.1 }: RevealGroupProps) {
+export function RevealGroup({ children, className, stagger = 0.1, active = true }: RevealGroupProps) {
   return (
     <motion.div
       className={className}
       initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true, margin: "-80px" }}
+      {...(active ? { whileInView: "visible", viewport: { once: true, margin: "-80px" } } : { animate: "hidden" })}
       transition={{ staggerChildren: stagger }}
     >
       {children}

@@ -90,7 +90,8 @@ Two more rules apply throughout:
    add the product to `apps/delivery/tests_colophon.py` (every layout or theme,
    every print target, Latin and Arabic at maximum content). The QR cards, the
    bonus PDFs, the receipt email and the share cards are shared and need
-   nothing.
+   nothing. Its live page ends with the shared translated closing line, never
+   a hand-written one.
 7. **The owner runs the real seed** (`docker compose exec api python
    seed_catalog.py`) and reads its summary. This alone makes nothing visible.
 
@@ -142,6 +143,16 @@ Two more rules apply throughout:
     and west-of-UTC bugs). Right to left: mirror the layout on /ar unless the
     thing is directional by nature (Song Poster's soundwave and times stay
     left to right).
+    **The shared frame (owner, 27 Oct 2026):** the live route puts the
+    Heartfolio intro in front of every product (`live-intro.tsx`: 1.6s from
+    first paint, held for the page up to 2.5s, tap to skip, first open per
+    device only, none under reduced motion). The product needs three
+    things: its opening colours in `live-intro-ground.ts` (pinned against
+    its stylesheet by `live-intro.test.tsx`), its own opening started on
+    `useLiveIntroDone()` rather than on mount (never a second Heartfolio
+    mark of its own), and `<LiveColophon locale={…} />` after its own
+    ending, never a hand-written branding line (add the product's folder to
+    the scan in `live-intro.test.tsx`).
 15. **Fonts that cover French and Arabic.** Every face the product uses must
     hold every French letter (Gaegu held only ASCII: "faÇon") and either
     Arabic or a fallback to the site's Kufi/Naskh; self-hosted, with its

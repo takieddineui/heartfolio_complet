@@ -171,7 +171,8 @@ describe("SongLiveKeepsake layout", () => {
     expect(content).toMatch(/gap:\s*28px/);
     expect(rule(".stage")).toMatch(/gap:\s*28px/);
     const source = readFileSync("src/components/live-song/song-live-keepsake.tsx", "utf8");
-    expect(source).toMatch(/<RevealGroup className=\{styles\.content\}>/);
+    // Held until the shared intro hands over (27 Oct 2026).
+    expect(source).toMatch(/<RevealGroup className=\{styles\.content\} active=\{introDone\}>/);
   });
 
   it("centres the disc without a physical side", () => {

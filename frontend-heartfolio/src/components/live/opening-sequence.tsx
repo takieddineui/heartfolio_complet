@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { useLiveIntroDone } from "./live-intro-state";
 import styles from "./opening-sequence.module.css";
 
 /**
@@ -14,12 +15,12 @@ import styles from "./opening-sequence.module.css";
  * permanently mid-animation.
  * ---------------------------------------------------------------------
  *
- * FOUR BEATS, ~4.6s: the mark draws itself in (a real SVG path
- * animation — `pathLength` on the same four strokes `Logo`'s mark is
- * built from, not a copy that has drifted from it, see `MARK_PATHS`
- * below), the sparkle catches, the couple's own names and title settle
- * in beneath it, and — if there is one — the FIRST MILESTONE'S OWN
- * PHOTO appears as a glimpse before the whole overlay clears.
+ * THREE BEATS, 3s (27 Oct 2026): the couple's own names and title settle
+ * in, and — if there is one — the FIRST MILESTONE'S OWN PHOTO appears as a
+ * glimpse before the whole overlay clears. It used to open with the
+ * Heartfolio mark drawing itself (4.6s in all); the shared intro in front of
+ * every live page (`live-intro.tsx`) draws the mark now, and this starts when
+ * it hands over (`useLiveIntroDone`), so the two never play at once.
  *
  * THE PHOTO IS A PRELUDE, NOT A PREVIEW OF WHAT FOLLOWS. The static
  * `.opening` section underneath has never shown a photo at all — the
@@ -47,21 +48,6 @@ import styles from "./opening-sequence.module.css";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
-/** The exact four stroke paths `components/brand/logo.tsx` draws its
- *  mark from, at that component's own `variant="mark"` viewBox (0 0 64
- *  64) — copied rather than imported, because `Logo` is deliberately a
- *  static, always-instant component used in headers and footers
- *  everywhere, and adding a draw-in mode to every place it is already
- *  used is a bigger, riskier change than duplicating four path strings
- *  with a comment explaining why they must stay identical to their
- *  source. */
-const MARK_PATHS = [
-  "M32 22 A 10 10 0 0 0 14 31.5 L32 50",
-  "M41 23 L23 40.5",
-  "M23 23 L41 40.5",
-  "M32 22 A 10 10 0 0 1 50 31.5 L32 50",
-] as const;
-
 export interface OpeningSequenceProps {
   names: string;
   title: string;
@@ -70,7 +56,7 @@ export interface OpeningSequenceProps {
   /** The skip button's word, in the order's language (`live-copy.ts`). */
   skipLabel?: string;
   /** The real sequence length in production — overridable ONLY so
-   *  tests don't need a genuine 4.6-second real-time wait per case.
+   *  tests don't need a genuine 3-second real-time wait per case.
    *  Framer Motion's exit transitions run on real animation frames, not
    *  `setTimeout`, so they don't cooperate with fake timers; this prop
    *  is the actual, correct fix for that, not a workaround bolted onto
@@ -78,9 +64,11 @@ export interface OpeningSequenceProps {
   durationMs?: number;
 }
 
-export function OpeningSequence({ names, title, photoUrl, onDone, skipLabel = "Skip", durationMs = 4600 }: OpeningSequenceProps) {
+export function OpeningSequence({ names, title, photoUrl, onDone, skipLabel = "Skip", durationMs = 3000 }: OpeningSequenceProps) {
   const reduceMotion = useReducedMotion();
   const [visible, setVisible] = useState(true);
+  // Starts when the shared intro hands over; at once where there is none.
+  const started = useLiveIntroDone();
 
   useEffect(() => {
     if (reduceMotion) {
@@ -92,10 +80,11 @@ export function OpeningSequence({ names, title, photoUrl, onDone, skipLabel = "S
       onDone();
       return;
     }
+    if (!started) return;
 
     const timer = setTimeout(() => setVisible(false), durationMs);
     return () => clearTimeout(timer);
-  }, [reduceMotion, onDone, durationMs]);
+  }, [reduceMotion, onDone, durationMs, started]);
 
   if (reduceMotion) return null;
 
@@ -107,39 +96,11 @@ export function OpeningSequence({ names, title, photoUrl, onDone, skipLabel = "S
           initial={{ opacity: 1 }}
           exit={{ opacity: 0, transition: { duration: 0.6, ease: EASE } }}
         >
-          <motion.svg
-            className={styles.mark}
-            viewBox="0 0 64 64"
-            aria-hidden="true"
-            initial="hidden"
-            animate="drawn"
-          >
-            <g fill="none" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" stroke="currentColor">
-              {MARK_PATHS.map((d, i) => (
-                <motion.path
-                  key={d}
-                  d={d}
-                  variants={{ hidden: { pathLength: 0, opacity: 0.4 }, drawn: { pathLength: 1, opacity: 1 } }}
-                  transition={{ duration: 0.9, ease: EASE, delay: i * 0.12 }}
-                />
-              ))}
-            </g>
-            <motion.path
-              fill="currentColor"
-              stroke="none"
-              d="M51 7 L52.8 13.2 L59 15 L52.8 16.8 L51 23 L49.2 16.8 L43 15 L49.2 13.2 Z"
-              initial={{ scale: 0, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ duration: 0.5, ease: EASE, delay: 0.85 }}
-              style={{ transformOrigin: "51px 15px" }}
-            />
-          </motion.svg>
-
           <motion.p
             className={styles.names}
             initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, ease: EASE, delay: 1.3 }}
+            animate={started ? { opacity: 1, y: 0 } : undefined}
+            transition={{ duration: 0.7, ease: EASE, delay: 0 }}
           >
             {names}
           </motion.p>
@@ -147,8 +108,8 @@ export function OpeningSequence({ names, title, photoUrl, onDone, skipLabel = "S
           <motion.h1
             className={styles.title}
             initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, ease: EASE, delay: 1.55 }}
+            animate={started ? { opacity: 1, y: 0 } : undefined}
+            transition={{ duration: 0.7, ease: EASE, delay: 0.25 }}
           >
             {title}
           </motion.h1>
@@ -157,8 +118,8 @@ export function OpeningSequence({ names, title, photoUrl, onDone, skipLabel = "S
             <motion.div
               className={styles.photo}
               initial={{ opacity: 0, scale: 1.04 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.9, ease: EASE, delay: 2.3 }}
+              animate={started ? { opacity: 1, scale: 1 } : undefined}
+              transition={{ duration: 0.9, ease: EASE, delay: 1.0 }}
             >
               {/* eslint-disable-next-line @next/next/no-img-element --
                   same reasoning as every other photo in this live page:
@@ -173,8 +134,8 @@ export function OpeningSequence({ names, title, photoUrl, onDone, skipLabel = "S
             className={styles.skip}
             onClick={() => setVisible(false)}
             initial={{ opacity: 0 }}
-            animate={{ opacity: 0.7 }}
-            transition={{ duration: 0.5, delay: 0.6 }}
+            animate={started ? { opacity: 0.7 } : undefined}
+            transition={{ duration: 0.5, delay: 0.3 }}
           >
             {skipLabel}
           </motion.button>
