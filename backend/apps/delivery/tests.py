@@ -1011,10 +1011,16 @@ class OrderPackDownloadAPITests(TestCase):
             content = self._streamed_content(response)
 
         self.assertEqual(response["Cache-Control"], "private, no-store")
-        # The archive is bytes; no R2 key, bucket or signed URL is ever
-        # handed to the browser.
-        for leak in [b"r2", b"amazonaws", b"storage_key", b"X-Amz"]:
-            self.assertNotIn(leak, content)
+        # No R2 key, bucket or signed URL is ever handed to the browser:
+        # checked in every file INSIDE the archive and in its names. (It used
+        # to search the compressed bytes for b"r2", which deflate output
+        # contains by chance: about 1 archive in 10 once the bonus PDFs
+        # embedded the mark, 31 Oct 2026.)
+        with zipfile.ZipFile(io.BytesIO(content)) as archive:
+            for info in archive.infolist():
+                data = archive.read(info) + info.filename.encode()
+                for leak in [b"r2.cloudflarestorage.com", b"r2.dev", b"amazonaws", b"storage_key", b"X-Amz-", b"uploads/", b"assets/"]:
+                    self.assertNotIn(leak, data, info.filename)
 
     def test_response_has_no_content_length_declared_upfront(self):
         # The archive's final size depends on how well each entry
@@ -1960,7 +1966,7 @@ class ReceiptEmailGiftQrTests(TestCase):
 
     @staticmethod
     def _inline_src(payload):
-        return re.search(r'<img src="([^"]+)"', payload["html"]).group(1)
+        return re.search(r'<img src="([^"]+/qr/[^"]+)"', payload["html"]).group(1)
 
     @staticmethod
     def _as_backend_path(src):
@@ -2020,7 +2026,7 @@ class ReceiptEmailGiftQrTests(TestCase):
 
         self.assertTrue(ok, "the receipt must still be sent")
         self.assertNotIn("attachments", payload)
-        self.assertNotIn("<img", payload["html"])
+        self.assertNotIn("/qr/", payload["html"])  # the mark stays; no QR image
         self.assertNotIn("attached", payload["html"])
         self.assertNotIn("attached", payload["text"])
         self.assertNotIn("QR", _without_links(payload["html"]))

@@ -250,12 +250,15 @@ describe("what it must not break", () => {
     expect(spark).toMatch(/justify-content:\s*center/);
   });
 
-  it("draws the SAME spark as the opening and the ending (three copies of one path, kept honest)", () => {
-    // The opening's spark is the shared intro's since 27 Oct 2026.
+  it("draws the SAME spark as the intro and the ending: one shared path, no copies (31 Oct 2026)", () => {
     const opening = readFileSync("src/components/live/live-intro.tsx", "utf8");
     const ending = readFileSync("src/components/live/ending-spark.tsx", "utf8");
-    expect(opening).toContain(SPARK_PATH);
-    expect(ending).toContain(SPARK_PATH);
-    expect(ending).toContain(`viewBox="${SPARK_VIEWBOX}"`);
+    for (const source of [opening, ending]) {
+      expect(source).toMatch(/from "@\/lib\/brand\/mark"/);
+      expect(source).toContain("d={SPARK_PATH}");
+      expect(source).not.toContain(SPARK_PATH);
+    }
+    expect(ending).toContain("viewBox={SPARK_VIEWBOX}");
+    expect(SPARK_VIEWBOX).toBe("43 6 16 17");
   });
 });

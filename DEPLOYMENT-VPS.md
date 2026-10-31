@@ -170,6 +170,12 @@ Then open the storefront, a product page and a Studio in a browser, and
 `https://api.theheartfolio.com/api/v1/ops/status/` with your staff login: it
 says whether Supabase, R2 and the rest are reachable from the server.
 
+**Verify the domain in Pinterest once theheartfolio.com is live.** Every page
+already carries the verification tag (`<meta name="p:domain_verify">`, set by
+the locale layout); check it with
+`curl -s https://www.theheartfolio.com/en | grep -o 'p:domain_verify[^>]*'`,
+then claim the site in Pinterest's settings.
+
 ## 4. Scheduled jobs
 
 On the VPS host, `crontab -e` (adjust the path):

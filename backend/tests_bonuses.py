@@ -157,8 +157,10 @@ _LONG_CAPTIONS = (
 
 
 def _drawn_card(caption, variant):
-    """Every text the card draws (text, ink box, font) and its QR plate. The
-    wordmark line carries the address since 27 Oct 2026 (`QR_WORDMARK`)."""
+    """Every caption line the card draws (text, ink box, font), its QR plate,
+    and its wordmark line (`QR_WORDMARK`, with the address since 27 Oct 2026),
+    pasted as the site's own wordmark since 31 Oct 2026 (`apps/delivery/brand`):
+    its box comes from `_place_wordmark`."""
     from unittest import mock
 
     from PIL import Image as PILImage
@@ -166,25 +168,34 @@ def _drawn_card(caption, variant):
 
     from apps.delivery import bonuses
 
-    texts, plates = [], []
+    texts, plates, placed = [], [], []
     real_text, real_plate = ImageDraw.ImageDraw.text, ImageDraw.ImageDraw.rounded_rectangle
+    real_place = bonuses._place_wordmark
 
     def spy_text(draw, xy, value, *args, **kwargs):
-        texts.append((value, draw.textbbox(xy, value, font=kwargs.get("font")), kwargs.get("font")))
+        # The wordmark's own letters are drawn on its layer, not the card:
+        # keep only what the card itself draws.
+        texts.append((value, draw.textbbox(xy, value, font=kwargs.get("font")), kwargs.get("font"), draw.im.size))
         return real_text(draw, xy, value, *args, **kwargs)
 
     def spy_plate(draw, xy, *args, **kwargs):
         plates.append(tuple(xy[0]) + tuple(xy[1]) if isinstance(xy[0], (tuple, list)) else tuple(xy))
         return real_plate(draw, xy, *args, **kwargs)
 
+    def spy_place(card, line, top):
+        box = real_place(card, line, top)
+        placed.append(box)
+        return box
+
     with mock.patch.object(ImageDraw.ImageDraw, "text", spy_text), \
-            mock.patch.object(ImageDraw.ImageDraw, "rounded_rectangle", spy_plate):
+            mock.patch.object(ImageDraw.ImageDraw, "rounded_rectangle", spy_plate), \
+            mock.patch.object(bonuses, "_place_wordmark", spy_place):
         png = bonuses._render_qr_card("https://www.theheartfolio.com/en/k/abc", variant, caption=caption)
     size = PILImage.open(io.BytesIO(png)).size
     [plate] = plates
-    caption_lines = [t for t in texts if t[0] != bonuses.QR_WORDMARK]
-    [wordmark] = [t for t in texts if t[0] == bonuses.QR_WORDMARK]
-    return size, plate, caption_lines, wordmark
+    caption_lines = [(value, box, font) for value, box, font, on in texts if on == size]
+    [box] = placed
+    return size, plate, caption_lines, (bonuses.QR_WORDMARK, box, None)
 
 
 class QrCaptionTests(SimpleTestCase):
@@ -262,7 +273,7 @@ class QrCaptionTests(SimpleTestCase):
             for caption in _LONG_CAPTIONS:
                 with self.subTest(variant=variant, caption=caption):
                     _, _, lines, wordmark = _drawn_card(caption, variant)
-                    for text, _, font in lines + [wordmark]:
+                    for text, _, font in lines:
                         for ch in text:
                             if ch.isspace():
                                 continue

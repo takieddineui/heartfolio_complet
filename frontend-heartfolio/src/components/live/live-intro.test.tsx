@@ -200,6 +200,12 @@ describe("the intro's markup", () => {
       expect(html.indexOf("<script")).toBeLessThan(html.indexOf(`id="${INTRO_ID}"`));
     }
     expect(renderToStaticMarkup(<LiveIntro liveId={ID} locale="ar" ground={SONG_GROUND} />)).toContain('dir="rtl"');
+    // The site's own mark: its gradients, never flat colours (31 Oct 2026).
+    const mark = renderToStaticMarkup(<LiveIntro liveId={ID} locale="en" ground={SONG_GROUND} />);
+    expect(mark.match(/stroke="url\(#hf-intro-ribbon\)"/g)).toHaveLength(3);
+    expect(mark.match(/stroke="url\(#hf-intro-over\)"/g)).toHaveLength(1);
+    expect(mark).toContain('fill="url(#hf-intro-spark)"');
+    expect(mark).not.toMatch(/stroke="#/);
   });
 
   it("copy: the approved English and French, an Arabic line, no point médian", () => {

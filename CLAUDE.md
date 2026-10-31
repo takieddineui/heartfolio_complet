@@ -323,9 +323,10 @@ task.**
 | A live product's limits (`limits.ts` or its backend `data.py`), or upload/media limits | `src/lib/studio/product-modules/reasons-i-love-you/reasons-module.test.ts`, `.../graduation-keepsake/graduation-module.test.ts`, `src/lib/studio/media-values.test.ts` | Frontend limits equal the backend's `data.py` and `base.py` |
 | Settings, environment or `.env.example` files, the test runner | `apps.common.tests.ProductionSettingsLoadingTests`, `apps.common.tests.HermeticTestRunnerTests`, `apps.assets.tests.EnvExampleUploadTypesTests` | Production settings load (throttle rates merged); tests reach no outside host; `.env.example` sets no upload type list |
 | The Node version or dependencies: `Dockerfile` `FROM` lines, `.nvmrc`, `engines`, `package.json` dependencies, `package-lock.json` | `src/lib/node-version.test.ts`, then `npm ci` in the image (see "Regenerate `package-lock.json`" above) | Every Dockerfile stage on one even (LTS) Node line, named by `.nvmrc` and `engines`; the lockfile regenerated after `engines` changed |
-| Page metadata (titles, descriptions, canonicals, robots, share cards, JSON-LD), `proxy.ts`, `robots.ts`, `sitemap.ts`, a loading skeleton, a new public page | `src/lib/seo-lengths.test.ts`, `src/lib/seo-status.test.ts`, `src/proxy.test.ts`, `src/lib/products/gift-intents.test.ts` | Every sitemap page's rendered title <= 60 and description <= 160 in en/fr/ar; no loading boundary at `[locale]`; private pages noindex with their own canonical; robots.txt blocks only `/api/` and `/orders`; share alt text per language; sitemap x-default and real dates; return policy link-only; unknown addresses 404 |
+| Page metadata (titles, descriptions, canonicals, robots, share cards, JSON-LD), `proxy.ts`, `robots.ts`, `sitemap.ts`, a loading skeleton, a new public page | `src/lib/seo-lengths.test.ts`, `src/lib/seo-status.test.ts`, `src/lib/site-verification.test.ts`, `src/proxy.test.ts`, `src/lib/products/gift-intents.test.ts` | Pinterest's verification tag from the layout, never overridden, in the head for its crawler; every sitemap page's rendered title <= 60 and description <= 160 in en/fr/ar; no loading boundary at `[locale]`; private pages noindex with their own canonical; robots.txt blocks only `/api/` and `/orders`; share alt text per language; sitemap x-default and real dates; return policy link-only; unknown addresses 404 |
 | A product added, changed or withdrawn (registry, seed, Freemius map, captures, guides) | `src/lib/products/product-checklist.test.ts`, plus the rows for each kind of file touched (`ADDING-A-PRODUCT.md`, step 21) | Every visible product: Studio module, copy in en/fr/ar, active packs each with a Freemius plan, `printable` tag = seed, captures in every language, live-page dispatch, sitemap, a guide or a stated reason; every withdrawn product: no active pack, in no sitemap, guide or recording |
 | Guides (`src/content/guides/`, `lib/guides/`, `app/[locale]/guides/`) | `src/lib/guides/guides.test.ts`, `src/lib/products/product-checklist.test.ts`, `src/lib/seo-status.test.ts` | Lengths, slugs and dates per translation; every product shown and visible; no price in the text; drafts never in production; hreflang only between published translations; sitemap dated by `updated`; real 404s; footer language list = published guides |
+| The Heartfolio mark or wordmark anywhere: `src/app/icon.svg`, `public/assets/logo-full.svg`, `lib/brand/`, `components/brand/`, the live intro or sparks, `og.tsx`, `apps/delivery/brand/`, a QR card, PDF or email header | Frontend: `src/lib/brand/brand.test.ts`, `src/components/live/live-intro.test.tsx`. Backend: `apps.delivery.tests_brand`, `tests_bonuses` | One source for the mark and wordmark; both PNGs equal a fresh render of `icon.svg` (`node scripts/brand/render-mark.mjs`); fonts byte-identical to `public/fonts`; no deliverable draws its own copy |
 | A print renderer's PNG saving | `apps.delivery.tests_png_encoding` | No `optimize=True` on the full-screen save paths |
 | Dates or counts a print or preview writes (`date_formatting.py`, `formatDate`/`formatCount` in the Love Story Timeline renderer, the live page's dates) | Frontend: `src/lib/studio/product-modules/love-story-timeline/locale-format-parity.test.ts`, `src/components/studio/preview/moment-wallpaper.test.tsx`. Backend: `apps.delivery.test_date_formatting` | Preview and print write the same strings in the order's language (`backend/apps/delivery/locale_format_cases.json`, generated from the browser's `Intl`); a calendar day never shifts by time zone |
 | Storefront captures: a product's live page, its Studio sample (`initial-state.ts`), `marketing_samples/`, `scripts/captures/`, `public/captures/`, the Studio (it is captured for the home page), or a page showing them | Frontend: `src/lib/captures/captures.test.ts`, `src/lib/captures/capture-lock.test.ts`, `src/components/captures/capture-media.test.tsx`, `src/components/captures/capture-showcase.test.tsx`, `src/proxy.test.ts`. Backend: `apps.delivery.tests_marketing_samples` | Every visible product captured in en/fr/ar within budget, no stray files; the capture page and its photo route locked; every sample valid for the real live page, every photo present and licensed. A VISIBLE change to a live page means re-recording: `node scripts/captures/record.mjs all`; to the Studio, `record.mjs studio --base http://localhost:3006` (throwaway backend only) |
@@ -523,6 +524,47 @@ Two were genuine product bugs: the `layout` default above, and
   - the receipt email, the thank-you and how-to-print PDFs and the QR card's
     default caption (`apps/commerce/email_copy.py`,
     `apps/delivery/bonus_copy.py`).
+- **ONE LOGO SOURCE: NO DELIVERABLE DRAWS ITS OWN MARK (owner, 31 Oct
+  2026).** The QR cards drew the mark with Pillow arcs and lines (other
+  curves, two flat colours, square ends, the weave reversed, no
+  anti-aliasing) and "HEARTFOLIO" in DejaVu capitals; the bonus PDFs had a
+  hand-made two-tone vector copy; the live intro used flat colours and an
+  uppercase sans. Now: the mark is `src/app/icon.svg` and
+  `src/lib/brand/mark.ts` (geometry, paint order, gradients; `Logo`, the live
+  intro and the sparks import it). The backend PASTES
+  `backend/apps/delivery/brand/mark.png` (1024px) and the receipt email links
+  `public/brand/heartfolio-mark.png` (144px, shown at 48px, alt "Heartfolio";
+  email clients draw neither SVG nor data: images), both rendered from
+  `icon.svg` by `frontend-heartfolio/scripts/brand/render-mark.mjs`: **run it
+  whenever `icon.svg` changes.** The wordmark is the site's ("Heartfolio",
+  Fraunces 400, tracking -0.025em, `WORDMARK`), drawn by `brand.lockup_line`
+  from the site's own font files (byte-identical copies in
+  `apps/delivery/brand/fonts/`, with their OFL licences); the share cards use
+  `og-fonts/fraunces-400.ttf`, a static instance of the same file made with
+  fontTools' instancer (Satori reads neither WOFF2 nor variable fonts).
+  Guards: `src/lib/brand/brand.test.ts` (icon.svg = mark.ts; both PNGs = a
+  fresh render of icon.svg; fonts byte-identical; no other frontend file
+  carries the geometry) and `apps/delivery/tests_brand.py` (no backend module
+  draws the mark's geometry). The QR wordmark is 2.4% of the card's width on
+  purpose: at 3% it took the room a long voweled Arabic caption grows into.
+  **Kept as they are, by decision:** print colophons (text in the print's
+  own face, no logo), Song Poster themes' "HEARTFOLIO" footers (artwork), the
+  share cards' gold labels.
+- **PINTEREST DOMAIN VERIFICATION (owner, 31 Oct 2026):** `<meta
+  name="p:domain_verify">` on every page in en/fr/ar, from the locale
+  layout's metadata (`siteVerificationMetadata`, `lib/seo.ts`; the value is
+  `PINTEREST_DOMAIN_VERIFY` in `site-config.ts`). No page may set its own
+  `other` metadata, which would replace it (`seo-status.test.ts`). The root
+  404 page has its own `<head>` and does not carry it. **Trap, measured on the
+  production build:** Next streams the metadata of a DYNAMIC page (a product
+  page, behind its loading skeleton) into the `<body>`, and only crawlers on
+  its "HTML-limited" list wait for it in the `<head>`; Pinterest is not on
+  Next's list, so its crawler found the tag in the body of product pages.
+  `htmlLimitedBots` (`next.config.ts`, `src/lib/html-limited-bots.ts`) is
+  Next's own list plus `Pinterest`; the option REPLACES Next's list, so
+  `site-verification.test.ts` fails if Next's default ever changes. **Owner's task:
+  verify the domain in Pinterest once theheartfolio.com is live**
+  (`DEPLOYMENT-VPS.md`, section 3).
 - **EVERY DELIVERABLE CARRIES THE COLOPHON "Heartfolio · theheartfolio.com"
   (owner, 27 Oct 2026; `apps/delivery/attribution.py` has the rule).** Prints
   (both products, every target, wallpapers too) draw it through

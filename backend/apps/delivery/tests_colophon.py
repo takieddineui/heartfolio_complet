@@ -159,57 +159,36 @@ class ColophonOnBonusesTests(TestCase):
     """The QR cards, the bonus PDFs and the receipt email carry the name and
     the address too."""
 
-    def _card_texts(self, variant, caption):
+    def test_every_qr_card_ends_with_the_site_wordmark_inside_its_margin(self):
+        from tests_bonuses import _drawn_card
+
         from apps.delivery import bonuses
 
-        drawn = []
-        real = bonuses._centred
-
-        def spy(draw, text, width, y, fill, font):
-            left, top, right, bottom = draw.textbbox((0, 0), text, font=font)
-            drawn.append({"text": text, "top": y, "bottom": y + (bottom - top), "height": draw.im.size[1]})
-            return real(draw, text, width, y, fill, font)
-
-        with mock.patch.object(bonuses, "_centred", spy):
-            bonuses._render_qr_card("https://theheartfolio.com/en/live/x", variant, caption=caption, locale="en")
-        return drawn
-
-    def test_every_qr_card_ends_with_the_wordmark_and_the_address_inside_its_margin(self):
-        from apps.delivery import bonuses
-
-        self.assertEqual(bonuses.QR_WORDMARK, "HEARTFOLIO · theheartfolio.com")
+        self.assertEqual(bonuses.QR_WORDMARK, "Heartfolio · theheartfolio.com")
         longest = "Sir Paul McCartney and the Royal Liverpool Philharmonic Orch — " + "The Long and Winding Road That Leads Me Back to Your Door Ag"
         for variant in bonuses.QR_CARD_VARIANTS:
             for caption in ("Our Love Story", longest):
                 with self.subTest(variant=variant, caption=caption[:12]):
-                    drawn = self._card_texts(variant, caption)
-                    wordmark = drawn[-1]
-                    self.assertEqual(wordmark["text"], bonuses.QR_WORDMARK)
-                    self.assertLessEqual(wordmark["bottom"], wordmark["height"] * (1 - bonuses.CAPTION_BOTTOM_MARGIN))
-                    for line in drawn[:-1]:
-                        self.assertLess(line["bottom"], wordmark["top"], f"{line['text']!r} runs into the wordmark")
+                    (_, height), _, lines, (_, box, _) = _drawn_card(caption, variant)
+                    self.assertLessEqual(box[3], height * (1 - bonuses.CAPTION_BOTTOM_MARGIN))
+                    for text, line_box, _ in lines:
+                        self.assertLess(line_box[3], box[1], f"{text!r} runs into the wordmark")
 
-    def test_both_bonus_pdfs_carry_the_colophon_in_every_language(self):
-        from apps.delivery.bonuses import PDF_FOOTER, render_printing_advice_pdf, render_thank_you_card
+    def test_both_bonus_pdfs_carry_the_site_wordmark_footer_in_every_language(self):
+        from apps.delivery import bonuses
 
-        self.assertEqual(PDF_FOOTER, "HEARTFOLIO · theheartfolio.com")
-        from reportlab.pdfgen.canvas import Canvas
-
+        self.assertEqual(bonuses.PDF_FOOTER, "Heartfolio · theheartfolio.com")
         for locale in ("en", "fr", "ar"):
-            for render in (render_thank_you_card, render_printing_advice_pdf):
+            for render in (bonuses.render_thank_you_card, bonuses.render_printing_advice_pdf):
                 with self.subTest(locale=locale, pdf=render.__name__):
-                    # The pages are compressed: record what is drawn instead.
-                    drawn = []
-                    real_left, real_right = Canvas.drawString, Canvas.drawRightString
+                    calls = []
+                    real = bonuses.brand.lockup_line
 
-                    def left(canvas, x, y, text, *args, **kwargs):
-                        drawn.append(text)
-                        return real_left(canvas, x, y, text, *args, **kwargs)
+                    def spy(size_px, colour, **kwargs):
+                        calls.append(kwargs)
+                        return real(size_px, colour, **kwargs)
 
-                    def right(canvas, x, y, text, *args, **kwargs):
-                        drawn.append(text)
-                        return real_right(canvas, x, y, text, *args, **kwargs)
-
-                    with mock.patch.object(Canvas, "drawString", left), mock.patch.object(Canvas, "drawRightString", right):
+                    with mock.patch.object(bonuses.brand, "lockup_line", spy):
                         render(locale)
-                    self.assertIn(PDF_FOOTER, drawn)
+                    # The footer, once, with the address: the site's wordmark line.
+                    self.assertEqual(calls, [{}])

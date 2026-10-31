@@ -1,7 +1,8 @@
 import { ImageResponse } from "next/og";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
-import { COLOPHON_DOMAIN, SITE_NAME } from "@/lib/site-config";
+import { WORDMARK } from "@/lib/brand/mark";
+import { COLOPHON_DOMAIN } from "@/lib/site-config";
 
 /**
  * ---------------------------------------------------------------------
@@ -51,15 +52,29 @@ async function loadFonts(locale: string) {
   // Arabic is not covered by the Latin faces — without its own font the
   // card renders as empty boxes, which is worse than no card at all.
   const displayFile = locale === "ar" ? "noto-kufi-600.ttf" : "fraunces-600.ttf";
-  const [display, body] = await Promise.all([
+  const [display, body, wordmark] = await Promise.all([
     readFile(join(FONT_DIR, displayFile)),
     readFile(join(FONT_DIR, locale === "ar" ? "noto-kufi-600.ttf" : "inter-400.ttf")),
+    // The site's wordmark face at the site's weight (`WORDMARK`): a static
+    // instance of `public/fonts/fraunces-latin.woff2` at wght 400, made with
+    // fontTools' instancer (Satori reads neither WOFF2 nor variable fonts).
+    readFile(join(FONT_DIR, "fraunces-400.ttf")),
   ]);
 
   return [
     { name: "Display", data: display, weight: 600 as const, style: "normal" as const },
     { name: "Body", data: body, weight: 400 as const, style: "normal" as const },
+    { name: "Wordmark", data: wordmark, weight: WORDMARK.weight, style: "normal" as const },
   ];
+}
+
+/** The site's own mark, `src/app/icon.svg`, as the card draws it. */
+let markDataUrl: Promise<string> | null = null;
+function siteMarkDataUrl(): Promise<string> {
+  markDataUrl ??= readFile(join(process.cwd(), "src/app/icon.svg")).then(
+    (svg) => `data:image/svg+xml;base64,${svg.toString("base64")}`
+  );
+  return markDataUrl;
 }
 
 /**
@@ -120,7 +135,7 @@ export async function renderOgImage({
    *  product, not a drawing (26 Oct 2026). */
   stills?: string[];
 }) {
-  const fonts = await loadFonts(locale);
+  const [fonts, mark] = await Promise.all([loadFonts(locale), siteMarkDataUrl()]);
   const isRtl = locale === "ar";
   const textWidth = stills.length === 0 ? undefined : stills.length === 1 ? 700 : 560;
 
@@ -184,13 +199,24 @@ export async function renderOgImage({
             color: "rgba(247,241,230,0.6)",
           }}
         >
-          {/* The colophon (`COLOPHON`): the wordmark, then the address in the
-              body face. The ♥ from the site's logotype is not in the
-              subsetted font and renders as nothing, so it is left out here
-              rather than shipped as an invisible glyph. */}
-          <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
-            <span style={{ fontFamily: "Display", color: "#f7f1e6" }}>{SITE_NAME}</span>
-            <span style={{ fontFamily: "Body", fontSize: 20 }}>· {COLOPHON_DOMAIN}</span>
+          {/* The site's lockup (`lib/brand/mark.ts`): its own mark from
+              `icon.svg`, 1.4x the word and 0.5em from it, then "Heartfolio" in
+              the wordmark face and tracking, then the address (`COLOPHON`). */}
+          <div style={{ display: "flex", alignItems: "center" }}>
+            {/* eslint-disable-next-line @next/next/no-img-element -- Satori draws <img>, not next/image. */}
+            <img src={mark} width={Math.round(24 * WORDMARK.markToTextRatio)} height={Math.round(24 * WORDMARK.markToTextRatio)} alt="" />
+            <span
+              style={{
+                fontFamily: "Wordmark",
+                fontWeight: WORDMARK.weight,
+                letterSpacing: `${WORDMARK.trackingEm}em`,
+                color: "#f7f1e6",
+                marginLeft: Math.round(24 * WORDMARK.gapEm),
+              }}
+            >
+              {WORDMARK.text}
+            </span>
+            <span style={{ fontFamily: "Body", fontSize: 20, marginLeft: 12 }}>· {COLOPHON_DOMAIN}</span>
           </div>
           <div style={{ display: "flex" }}>{footnote ?? ""}</div>
         </div>

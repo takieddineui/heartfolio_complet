@@ -1,3 +1,4 @@
+import { SPARK_PATH, SPARK_VIEWBOX } from "@/lib/brand/mark";
 import styles from "./ending-spark.module.css";
 
 /**
@@ -7,19 +8,16 @@ import styles from "./ending-spark.module.css";
  * it arrives, which is correct for arrival, and is the wrong shape for
  * an ending that is supposed to feel like it keeps going.
  *
- * THE EXACT SPARK FROM THE BRAND MARK, not a new decoration —
- * `components/brand/logo.tsx`'s own accent shape, copied for the same
- * reason `opening-sequence.tsx`'s `MARK_PATHS` copies the mark's own
- * ribbon strokes rather than importing/modifying `Logo`: that component
- * is deliberately static everywhere else it is used, and giving it an
- * animation mode for one caller is a bigger change than duplicating one
- * small path with a comment tying it back to its source.
+ * THE EXACT SPARK FROM THE BRAND MARK, not a new decoration: its
+ * geometry comes from `lib/brand/mark.ts`, the one source of the mark (31 Oct
+ * 2026). Its colour is the page's accent on purpose: it is part of the
+ * keepsake's palette here, not the logo.
  */
 export function EndingSpark() {
   return (
     <div className={styles.wrap}>
-      <svg className={styles.spark} viewBox="43 6 16 17" aria-hidden="true">
-        <path fill="currentColor" d="M51 7 L52.8 13.2 L59 15 L52.8 16.8 L51 23 L49.2 16.8 L43 15 L49.2 13.2 Z" />
+      <svg className={styles.spark} viewBox={SPARK_VIEWBOX} aria-hidden="true">
+        <path fill="currentColor" d={SPARK_PATH} />
       </svg>
     </div>
   );

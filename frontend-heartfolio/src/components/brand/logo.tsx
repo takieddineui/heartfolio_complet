@@ -18,6 +18,15 @@
 "use client";
 
 import { useId } from "react";
+import { MARK_GRADIENTS, MARK_STROKES, MARK_STROKE_WIDTH, SPARK_PATH } from "@/lib/brand/mark";
+
+/** The full lockup's own gradient boxes: the mark is scaled into a 320-wide
+ *  canvas there, and these were set by eye for it (`logo-full.svg`). */
+const FULL_GRADIENTS = {
+  ribbon: { x1: 120, y1: 12, x2: 200, y2: 94 },
+  over: { x1: 134, y1: 26, x2: 186, y2: 86 },
+  spark: { x1: 188, y1: 8, x2: 208, y2: 34 },
+} as const;
 
 export type LogoVariant = "full" | "mark";
 
@@ -58,40 +67,25 @@ export function Logo({
     >
       {!monochrome && (
         <defs>
-          <linearGradient
-            id={ribbon}
-            x1={isFull ? 120 : 10}
-            y1={isFull ? 12 : 12}
-            x2={isFull ? 200 : 54}
-            y2={isFull ? 94 : 52}
-            gradientUnits="userSpaceOnUse"
-          >
-            <stop offset="0" stopColor="#EBB0A6" />
-            <stop offset="0.5" stopColor="#DE9B85" />
-            <stop offset="1" stopColor="#C5854F" />
-          </linearGradient>
-          <linearGradient
-            id={over}
-            x1={isFull ? 134 : 18}
-            y1={isFull ? 26 : 18}
-            x2={isFull ? 186 : 46}
-            y2={isFull ? 86 : 46}
-            gradientUnits="userSpaceOnUse"
-          >
-            <stop offset="0" stopColor="#D89A8C" />
-            <stop offset="1" stopColor="#B8763F" />
-          </linearGradient>
-          <linearGradient
-            id={spark}
-            x1={isFull ? 188 : 46}
-            y1={isFull ? 8 : 6}
-            x2={isFull ? 208 : 57}
-            y2={isFull ? 34 : 21}
-            gradientUnits="userSpaceOnUse"
-          >
-            <stop offset="0" stopColor="#FFEBCF" />
-            <stop offset="1" stopColor="#E0A765" />
-          </linearGradient>
+          {(["ribbon", "over", "spark"] as const).map((key) => {
+            const gradient = MARK_GRADIENTS[key];
+            const box = isFull ? FULL_GRADIENTS[key] : gradient;
+            return (
+              <linearGradient
+                key={key}
+                id={{ ribbon, over, spark }[key]}
+                x1={box.x1}
+                y1={box.y1}
+                x2={box.x2}
+                y2={box.y2}
+                gradientUnits="userSpaceOnUse"
+              >
+                {gradient.stops.map(([offset, color]) => (
+                  <stop key={offset} offset={offset} stopColor={color} />
+                ))}
+              </linearGradient>
+            );
+          })}
           <linearGradient id={word} x1="40" y1="0" x2="280" y2="0" gradientUnits="userSpaceOnUse">
             <stop offset="0" stopColor="#E9A9A0" />
             <stop offset="0.42" stopColor="#E0A487" />
@@ -100,20 +94,16 @@ export function Logo({
         </defs>
       )}
 
-      {/* The mark. In the full lockup it is the same geometry, scaled and
-          nudged down to leave room for the wordmark. */}
+      {/* The mark (`lib/brand/mark.ts`). In the full lockup it is the same
+          geometry, scaled and nudged down to leave room for the wordmark. */}
       <g transform={isFull ? "translate(102.4 4) scale(1.8)" : undefined}>
-        <g fill="none" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round">
+        <g fill="none" strokeWidth={MARK_STROKE_WIDTH} strokeLinecap="round" strokeLinejoin="round">
           {/* Paint order is the weave — see icon.svg. */}
-          <path stroke={paint(ribbon)} d="M32 22 A 10 10 0 0 0 14 31.5 L32 50" />
-          <path stroke={paint(over)} d="M41 23 L23 40.5" />
-          <path stroke={paint(ribbon)} d="M23 23 L41 40.5" />
-          <path stroke={paint(ribbon)} d="M32 22 A 10 10 0 0 1 50 31.5 L32 50" />
+          {MARK_STROKES.map((stroke) => (
+            <path key={stroke.d} stroke={paint(stroke.paint === "over" ? over : ribbon)} d={stroke.d} />
+          ))}
         </g>
-        <path
-          fill={paint(spark)}
-          d="M51 7 L52.8 13.2 L59 15 L52.8 16.8 L51 23 L49.2 16.8 L43 15 L49.2 13.2 Z"
-        />
+        <path fill={paint(spark)} d={SPARK_PATH} />
       </g>
 
       {isFull && (

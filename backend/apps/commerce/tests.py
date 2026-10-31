@@ -2640,6 +2640,25 @@ class OrderEmailTests(SimpleTestCase):
                 self.assertIn("Heartfolio · theheartfolio.com</a>", html)
                 self.assertTrue(text.rstrip().endswith("Heartfolio · theheartfolio.com"))
 
+    @override_settings(FRONTEND_URL="https://www.theheartfolio.com")
+    def test_the_receipt_opens_with_the_sites_mark_in_every_language(self):
+        """The shared mark, small and centred above the heading (owner, 31 Oct
+        2026): a fixed-size PNG on the site with the alt text "Heartfolio",
+        so a client that blocks images keeps the layout and shows the word."""
+        from .emails import EMAIL_MARK_PATH, EMAIL_MARK_SIZE
+
+        self.assertEqual(EMAIL_MARK_PATH, "/brand/heartfolio-mark.png")
+        for locale in ("en", "fr", "ar"):
+            with self.subTest(locale):
+                _, html, _ = _render(self._order(locale), "https://example.test/o", include_qr=False)
+                img = re.search(r'<p style="margin:0 0 20px;text-align:center;">\s*<img ([^>]+)/>', html)
+                self.assertIsNotNone(img, "the mark is the card's first element")
+                attrs = img.group(1)
+                self.assertIn('src="https://www.theheartfolio.com/brand/heartfolio-mark.png"', attrs)
+                self.assertIn('alt="Heartfolio"', attrs)
+                self.assertIn(f'width="{EMAIL_MARK_SIZE}" height="{EMAIL_MARK_SIZE}"', attrs)
+                self.assertLess(html.index("heartfolio-mark.png"), html.index("<h1"))
+
     def test_an_unknown_language_gets_the_english_receipt(self):
         subject, html, _ = _render(self._order("de"), "https://example.test/o", include_qr=False)
         self.assertEqual(subject, "Your Heartfolio order — Love Story Timeline")
@@ -2764,7 +2783,7 @@ class OrderEmailTests(SimpleTestCase):
         sent = self._send_receipt()
         order, html = sent["order"], sent["payload"]["html"]
 
-        src = re.search(r'<img src="([^"]+)"', html).group(1)
+        src = re.search(r'<img src="([^"]+/qr/[^"]+)"', html).group(1)
         prefix = f"https://example.test/api/backend/orders/{order.id}/qr/recipient/"
         self.assertTrue(src.startswith(prefix), src)
 
@@ -2838,7 +2857,7 @@ class OrderEmailTests(SimpleTestCase):
 
         self.assertTrue(sent["ok"])
         self.assertNotIn("attachments", payload)
-        self.assertNotIn("<img", payload["html"])
+        self.assertNotIn("/qr/", payload["html"])  # the mark stays; no QR image
         self.assertNotIn("QR", _without_links(payload["html"]))
         self.assertNotIn("QR", _without_links(payload["text"]))
         # Not rendered, not even attempted — and the order link is still there.
@@ -2861,7 +2880,7 @@ class OrderEmailTests(SimpleTestCase):
 
                 self.assertTrue(sent["ok"])
                 self.assertNotIn("attachments", payload)
-                self.assertNotIn("<img", payload["html"])
+                self.assertNotIn("/qr/", payload["html"])  # the mark stays; no QR image
                 self.assertNotIn("attached", payload["html"])
                 self.assertNotIn("attached", payload["text"])
                 self.assertNotIn("QR", _without_links(payload["html"]))

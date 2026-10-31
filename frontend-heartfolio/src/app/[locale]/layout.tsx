@@ -13,7 +13,7 @@ import { NO_FLASH_SCRIPT } from "@/components/theme/theme-constants";
 import { Analytics } from "@/components/analytics/analytics";
 import { CookieConsent } from "@/components/analytics/cookie-consent";
 import { SITE_NAME, SITE_URL } from "@/lib/site-config";
-import { buildAlternates, ogLocales } from "@/lib/seo";
+import { buildAlternates, ogLocales, siteVerificationMetadata } from "@/lib/seo";
 import { fontClassNames } from "@/lib/fonts";
 import "../globals.css";
 
@@ -60,6 +60,8 @@ export async function generateMetadata({
       description: t("description"),
     },
     robots: { index: true, follow: true },
+    // Pinterest's domain verification, on every page in every language.
+    ...siteVerificationMetadata(),
   };
 }
 

@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 import robots from "@/app/robots";
 import sitemap, { CONTENT_UPDATED } from "@/app/sitemap";
 import { routing } from "@/i18n/routing";
-import { neutralShareMetadata, noindexMetadata, pageShareMetadata } from "@/lib/seo";
+import { neutralShareMetadata, noindexMetadata, pageShareMetadata, siteVerificationMetadata } from "@/lib/seo";
 import { SITE_URL } from "@/lib/site-config";
 
 /**
@@ -136,5 +136,27 @@ describe("the sitemap", () => {
 describe("the home page's route group", () => {
   it("holds the home page and its skeleton only", () => {
     expect(readdirSync(join(APP, "(home)")).sort()).toEqual(["loading.tsx", "page.tsx"]);
+  });
+});
+
+describe("site verification (Pinterest, 31 Oct 2026)", () => {
+  it("the locale layout puts p:domain_verify on every page, in every language", () => {
+    expect(siteVerificationMetadata()).toEqual({ other: { "p:domain_verify": "7be136160ca05f467042f9f7e5c8cfeb" } });
+    const layout = readFileSync(join(process.cwd(), "src/app/[locale]/layout.tsx"), "utf8");
+    expect(layout).toContain("...siteVerificationMetadata()");
+    // The layout serves every locale from one generateMetadata.
+    expect(routing.locales).toEqual(["en", "fr", "ar"]);
+  });
+
+  it("no page or layout sets its own `other`, which would replace the tag", () => {
+    const appDir = join(process.cwd(), "src/app");
+    const walk = (dir: string): string[] =>
+      readdirSync(dir, { withFileTypes: true }).flatMap((entry) =>
+        entry.isDirectory() ? walk(join(dir, entry.name)) : [join(dir, entry.name)]
+      );
+    const offenders = walk(appDir)
+      .filter((file) => /\.(tsx?)$/.test(file) && !file.includes(".test."))
+      .filter((file) => /\bother\s*:/.test(readFileSync(file, "utf8")));
+    expect(offenders).toEqual([]);
   });
 });

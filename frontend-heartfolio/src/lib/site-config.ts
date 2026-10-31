@@ -51,6 +51,15 @@ export const WEB_MARK = `Made with Heartfolio · ${SITE_DOMAIN}`;
 export const SUPPORT_EMAIL = "support@theheartfolio.com";
 
 /**
+ * Pinterest's domain verification (owner, 31 Oct 2026): a `<meta
+ * name="p:domain_verify">` in the head of every page, through the locale
+ * layout's metadata (`siteVerificationMetadata` in `lib/seo.ts`). The owner
+ * verifies the domain in Pinterest once theheartfolio.com is live
+ * (DEPLOYMENT-VPS.md).
+ */
+export const PINTEREST_DOMAIN_VERIFY = "7be136160ca05f467042f9f7e5c8cfeb";
+
+/**
  * The facts the legal pages need that only the owner can supply, in one
  * place rather than in six translations. `legal-page.tsx` substitutes them
  * for `{controller}`, `{hosting}` and `{updated}` in the Terms, Refund and

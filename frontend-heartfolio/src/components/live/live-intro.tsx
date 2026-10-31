@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import { SITE_NAME } from "@/lib/site-config";
+import { MARK_GRADIENTS, MARK_STROKES, MARK_STROKE_WIDTH, MARK_VIEWBOX, SPARK_PATH, WORDMARK } from "@/lib/brand/mark";
 import { liveFrameCopy } from "./live-frame-copy";
 import type { IntroGround } from "./live-intro-ground";
 import { INTRO_DONE_EVENT, INTRO_ID, INTRO_STATE_ID, LIVE_READY_EVENT } from "./live-intro-ids";
@@ -62,14 +62,8 @@ export function introRunScript(): string {
   );
 }
 
-/** The same four strokes and spark as the brand mark (`components/brand/logo.tsx`). */
-const MARK_PATHS = [
-  "M32 22 A 10 10 0 0 0 14 31.5 L32 50",
-  "M41 23 L23 40.5",
-  "M23 23 L41 40.5",
-  "M32 22 A 10 10 0 0 1 50 31.5 L32 50",
-] as const;
-const SPARK = "M51 7 L52.8 13.2 L59 15 L52.8 16.8 L51 23 L49.2 16.8 L43 15 L49.2 13.2 Z";
+/** The mark's gradients, ids fixed: there is one intro per page. */
+const GRADIENT_IDS = { ribbon: "hf-intro-ribbon", over: "hf-intro-over", spark: "hf-intro-spark" } as const;
 
 export function LiveIntro({ liveId, locale, ground }: { liveId: string; locale: string; ground: IntroGround }) {
   const copy = liveFrameCopy(locale);
@@ -86,18 +80,36 @@ export function LiveIntro({ liveId, locale, ground }: { liveId: string; locale: 
       <i id={INTRO_STATE_ID} className={styles.state} hidden suppressHydrationWarning />
       <script dangerouslySetInnerHTML={{ __html: introDecideScript(liveId) }} />
       <div id={INTRO_ID} className={styles.intro} style={style} aria-hidden="true" suppressHydrationWarning>
-        <svg className={styles.mark} viewBox="0 0 64 64" aria-hidden="true">
-          <g fill="none" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round">
-            {MARK_PATHS.map((d, i) => (
-              <path key={d} className={styles.stroke} d={d} pathLength={1} stroke={i % 2 ? "#c5854f" : "#ebb0a6"} />
+        {/* The site's own mark (`lib/brand/mark.ts`): the same strokes, paint
+            order and gradients as the header's, each stroke drawn in turn. */}
+        <svg className={styles.mark} viewBox={MARK_VIEWBOX} aria-hidden="true">
+          <defs>
+            {(Object.keys(GRADIENT_IDS) as (keyof typeof GRADIENT_IDS)[]).map((key) => {
+              const g = MARK_GRADIENTS[key];
+              return (
+                <linearGradient key={key} id={GRADIENT_IDS[key]} x1={g.x1} y1={g.y1} x2={g.x2} y2={g.y2} gradientUnits="userSpaceOnUse">
+                  {g.stops.map(([offset, color]) => (
+                    <stop key={offset} offset={offset} stopColor={color} />
+                  ))}
+                </linearGradient>
+              );
+            })}
+          </defs>
+          <g fill="none" strokeWidth={MARK_STROKE_WIDTH} strokeLinecap="round" strokeLinejoin="round">
+            {MARK_STROKES.map((stroke) => (
+              <path key={stroke.d} className={styles.stroke} d={stroke.d} pathLength={1} stroke={`url(#${GRADIENT_IDS[stroke.paint]})`} />
             ))}
           </g>
-          <path className={styles.spark} d={SPARK} />
+          <path className={styles.spark} d={SPARK_PATH} fill={`url(#${GRADIENT_IDS.spark})`} />
         </svg>
         <p className={styles.line} lang={lang} dir={lang === "ar" ? "rtl" : "ltr"}>
           {copy.introLine}
         </p>
-        <p className={styles.word}>{SITE_NAME}</p>
+        {/* The site's wordmark: Heartfolio Serif, weight and tracking from
+            `WORDMARK` (the header's). */}
+        <p className={styles.word} style={{ fontWeight: WORDMARK.weight, letterSpacing: `${WORDMARK.trackingEm}em` }}>
+          {WORDMARK.text}
+        </p>
         <button type="button" className={styles.skip} tabIndex={-1}>
           {copy.skip}
         </button>

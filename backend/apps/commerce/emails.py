@@ -36,6 +36,16 @@ from .order_access import generate_order_access_token
 
 logger = logging.getLogger("heartfolio")
 
+#: The mark at the top of the receipt (owner, 31 Oct 2026): the site's own,
+#: `frontend-heartfolio/public/brand/heartfolio-mark.png`, rendered from
+#: `icon.svg` by `scripts/brand/render-mark.mjs` at 144px for 48px on screen.
+#: A linked PNG because email clients draw neither SVG nor data: images; it
+#: has a fixed size and the alt text "Heartfolio" (the brand, in every
+#: language), so a client that blocks images keeps the layout and shows the
+#: word. `brand.test.ts` pins this path to the file and the file to icon.svg.
+EMAIL_MARK_PATH = "/brand/heartfolio-mark.png"
+EMAIL_MARK_SIZE = 48
+
 RESEND_ENDPOINT = "https://api.resend.com/emails"
 _TIMEOUT_SECONDS = 10
 
@@ -166,6 +176,10 @@ def _render(order, link: str, *, include_qr: bool | None = None) -> tuple[str, s
 <head><meta charset="utf-8"></head>
 <body style="margin:0;padding:24px;background:#faf7f2;font-family:Georgia,serif;color:#2b2b33;">
   <div dir="{'rtl' if rtl else 'ltr'}" style="max-width:520px;margin:0 auto;background:#fffdfa;padding:32px;border-radius:8px;text-align:{align};">
+    <p style="margin:0 0 20px;text-align:center;">
+      <img src="{settings.FRONTEND_URL}{EMAIL_MARK_PATH}" alt="Heartfolio" width="{EMAIL_MARK_SIZE}" height="{EMAIL_MARK_SIZE}"
+           style="display:inline-block;width:{EMAIL_MARK_SIZE}px;height:{EMAIL_MARK_SIZE}px;border:0;outline:none;text-decoration:none;" />
+    </p>
     <h1 style="font-size:22px;margin:0 0 16px;">{escape(copy["heading"])}</h1>
     <p style="line-height:1.6;margin:0 0 16px;">
       {paid_html}

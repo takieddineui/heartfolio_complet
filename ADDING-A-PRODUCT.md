@@ -90,7 +90,11 @@ Two more rules apply throughout:
    add the product to `apps/delivery/tests_colophon.py` (every layout or theme,
    every print target, Latin and Arabic at maximum content). The QR cards, the
    bonus PDFs, the receipt email and the share cards are shared and need
-   nothing. Its live page ends with the shared translated closing line, never
+   nothing. **Never draw the Heartfolio mark or wordmark yourself** (owner,
+   31 Oct 2026): a print or card pastes `apps.delivery.brand.mark_image()` and
+   draws the wordmark with `brand.lockup_line()`; a page or component takes
+   the geometry from `src/lib/brand/mark.ts` (or uses `<Logo>`).
+   `brand.test.ts` and `tests_brand.py` fail on any copy. Its live page ends with the shared translated closing line, never
    a hand-written one.
 7. **The owner runs the real seed** (`docker compose exec api python
    seed_catalog.py`) and reads its summary. This alone makes nothing visible.

@@ -3,6 +3,7 @@ import createNextIntlPlugin from "next-intl/plugin";
 import { routing } from "./src/i18n/routing";
 import { getAllProducts } from "./src/lib/products/registry";
 import { getBackendOrigin } from "./src/lib/backend-origin";
+import { HTML_LIMITED_BOTS } from "./src/lib/html-limited-bots";
 
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
@@ -94,6 +95,10 @@ const nextConfig: NextConfig = {
    * save one line.
    */
   output: process.env.DOCKER_BUILD === "1" ? "standalone" : undefined,
+
+  // Pinterest's crawler gets the metadata in the <head> of every page, as
+  // Next's own list of crawlers does (`src/lib/html-limited-bots.ts`).
+  htmlLimitedBots: HTML_LIMITED_BOTS,
 
   reactStrictMode: true,
   images: {

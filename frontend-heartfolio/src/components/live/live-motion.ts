@@ -84,11 +84,8 @@ export function liveMotionStyle(values: Partial<LiveMotionValues> = {}): CSSProp
 }
 
 /**
- * The brand mark's spark: the same shape `opening-sequence.tsx` pops in and
- * `ending-spark.tsx` drifts, in the mark's own 64-unit space cropped to the
- * spark (`SPARK_VIEWBOX`). A third copy of one path, kept honest by a test that
- * compares all three, because `Logo` is deliberately static and is not imported
- * (see those files' notes).
+ * The brand mark's spark, which `ending-spark.tsx` drifts and
+ * `milestone-spark.tsx` catches: one source for every copy of the mark since
+ * 31 Oct 2026 (`lib/brand/mark.ts`), re-exported here for the live page.
  */
-export const SPARK_PATH = "M51 7 L52.8 13.2 L59 15 L52.8 16.8 L51 23 L49.2 16.8 L43 15 L49.2 13.2 Z";
-export const SPARK_VIEWBOX = "43 6 16 17";
+export { SPARK_PATH, SPARK_VIEWBOX } from "@/lib/brand/mark";

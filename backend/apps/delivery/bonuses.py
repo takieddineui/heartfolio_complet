@@ -41,7 +41,7 @@ from reportlab.lib.units import mm
 from reportlab.pdfgen import canvas
 
 from apps.commerce.order_access import generate_order_access_token
-from apps.delivery.attribution import SITE_DOMAIN
+from apps.delivery import brand
 from apps.delivery.print_sizes import PRINT_DPI
 
 #: Synthetic target ids. Prefixed `bonus-` so they can never collide with a
@@ -191,7 +191,7 @@ def _qr_caption_for_order(order) -> str | None:
     `join_names()` never translates the names it joins: the return value
     IS the buyer's own entered data (proper nouns), not UI copy — there is
     nothing here for a translation dictionary to own. Every OTHER string
-    in this file (the default caption, "HEARTFOLIO", the thank-you and
+    in this file (the default caption, the wordmark, the thank-you and
     printing-advice PDF copy) is hardcoded English with no i18n at all —
     confirmed there is no `gettext`/translation mechanism anywhere in this
     Django backend. Returning `None` here (which falls back to that same
@@ -276,35 +276,6 @@ def _qr_matrix(url: str):
     return code.make_image(fill_color="black", back_color="white").convert("RGB")
 
 
-def _mark_on(draw, x: float, y: float, size: float, *, rose, bronze, spark) -> None:
-    """The Heartfolio mark, drawn with Pillow primitives.
-
-    A third port of the same geometry — SVG for the web, reportlab paths
-    for the PDFs, and this. Duplicated rather than shared because each
-    drawing API takes different primitives, and an abstraction over three
-    of them would be harder to read than three short functions. If the mark
-    changes, all three change; that is the cost, and it is written down
-    here so it is not a surprise.
-    """
-    k = size / 64.0
-    w = max(2, int(5 * k))
-
-    def pt(px, py):
-        return (x + px * k, y + py * k)
-
-    # Lobes as arcs, flanks as lines — Pillow has no path primitive, so the
-    # curve is an arc on a bounding box rather than a cubic.
-    draw.arc([*pt(14, 12), *pt(32, 31.5)], start=180, end=360, fill=rose, width=w)
-    draw.arc([*pt(32, 12), *pt(50, 31.5)], start=180, end=360, fill=bronze, width=w)
-    draw.line([*pt(14, 26), *pt(32, 50)], fill=rose, width=w)
-    draw.line([*pt(50, 26), *pt(32, 50)], fill=bronze, width=w)
-    draw.line([*pt(41, 23), *pt(23, 40.5)], fill=bronze, width=w)
-    draw.line([*pt(23, 23), *pt(41, 40.5)], fill=rose, width=w)
-
-    star = [(51, 7), (52.8, 13.2), (59, 15), (52.8, 16.8), (51, 23), (49.2, 16.8), (43, 15), (49.2, 13.2)]
-    draw.polygon([pt(*p) for p in star], fill=spark)
-
-
 def _recolour_qr(matrix, dark, light):
     """Repaints a black/white QR into two brand colours.
 
@@ -378,8 +349,6 @@ def _render_qr_card(url: str, variant: str, *, caption: str | None = None, local
     ink = (20, 27, 46)
     cream = (247, 241, 230)
     rose = (235, 176, 166)
-    bronze = (197, 133, 79)
-    spark = (246, 204, 146)
 
     if variant == "cream":
         bg, fg, sub, qr_dark, qr_light = cream, ink, (110, 105, 96), ink, cream
@@ -412,8 +381,10 @@ def _render_qr_card(url: str, variant: str, *, caption: str | None = None, local
     )
     card.paste(qr, (qx, qy))
 
-    _mark_on(draw, (size[0] - size[0] * 0.16) / 2, size[1] * 0.07, size[0] * 0.16,
-             rose=rose, bronze=bronze, spark=spark)
+    # The site's own mark (`apps/delivery/brand`), never a drawn copy: the
+    # same 64-unit box as before, 16% of the card wide, at the same place.
+    mark_px = int(size[0] * 0.16)
+    brand.paste(card, brand.mark_image(mark_px), ((size[0] - mark_px) / 2, size[1] * 0.07))
 
     # The caption and the wordmark are DejaVu from the poster renderers'
     # folder (`_card_font`), the caption with Arabic drawn in Noto Kufi
@@ -423,21 +394,19 @@ def _render_qr_card(url: str, variant: str, *, caption: str | None = None, local
     plate_bottom = qy + plate + pad
     caption_top = plate_bottom + int(size[1] * 0.045)
     wordmark_top = plate_bottom + int(size[1] * 0.105)
-    wordmark_font = _card_font("DejaVuSans.ttf", int(size[0] * 0.024))
-    # The colophon (owner, 27 Oct 2026): the address on the wordmark's own
-    # line, so the caption keeps exactly the room it had to grow into (a
-    # second line under it took that room, and a long Arabic caption lost
-    # its second line).
-    wordmark_box = draw.textbbox((0, 0), QR_WORDMARK, font=wordmark_font)
+    # The colophon in the site's wordmark: "Heartfolio" in Fraunces, then
+    # the address in Inter (`brand.lockup_line`), on ONE line so the caption
+    # keeps exactly the room it had to grow into.
+    wordmark = brand.lockup_line(int(size[0] * QR_WORDMARK_SIZE), sub)
     lines, font, pitch = _caption_layout(
         draw, caption or QR_DEFAULT_CAPTION[copy_locale(locale)], card_size=size,
-        room=size[1] * (1 - CAPTION_BOTTOM_MARGIN) - wordmark_top - (wordmark_box[3] - wordmark_box[1]),
+        room=size[1] * (1 - CAPTION_BOTTOM_MARGIN) - wordmark_top - wordmark.height,
     )
     for index, line in enumerate(lines):
         _centred(draw, line, size[0], caption_top + index * pitch, fg, font)
     # The wordmark follows the caption's last line; under a one-line caption
     # it is exactly where it always was.
-    _centred(draw, QR_WORDMARK, size[0], wordmark_top + (len(lines) - 1) * pitch, sub, wordmark_font)
+    _place_wordmark(card, wordmark, wordmark_top + (len(lines) - 1) * pitch)
 
     buffer = io.BytesIO()
     card.save(buffer, format="PNG")
@@ -467,11 +436,19 @@ _CAPTION_STEP = 0.05
 #: The space the caption's second line takes, as a multiple of its size (a line
 #: with Arabic takes at least its ink: `_line_pitch`).
 CAPTION_LINE_HEIGHT = 1.3
-#: The bonus PDFs' footer.
-PDF_FOOTER = f"HEARTFOLIO · {SITE_DOMAIN}"
+#: The bonus PDFs' footer, as `_draw_footer` draws it.
+PDF_FOOTER = f"{brand.WORDMARK_TEXT}{brand.DOMAIN_TEXT}"
 
-#: The QR cards' wordmark line: the wordmark and the address.
-QR_WORDMARK = f"HEARTFOLIO · {SITE_DOMAIN}"
+#: The QR cards' wordmark line: the site's wordmark and the address
+#: (`brand.lockup_line`), and its font size as a share of the card's width.
+QR_WORDMARK = f"{brand.WORDMARK_TEXT}{brand.DOMAIN_TEXT}"
+QR_WORDMARK_SIZE = 0.024  # the old capitals' size: a taller line takes the
+                          # room a long caption grows into
+
+
+def _place_wordmark(card, wordmark, top: float) -> tuple[int, int, int, int]:
+    """Centres the wordmark line on the card with its ink's top at `top`."""
+    return brand.paste(card, wordmark, ((card.width - wordmark.width) / 2, top))
 
 
 #: The wordmark's foot never comes closer than this to the card's bottom edge.
@@ -572,73 +549,31 @@ _CREAM_DIM = (0.729, 0.706, 0.675)  # secondary text
 
 
 def _draw_mark(pdf: canvas.Canvas, x: float, y: float, size: float) -> None:
-    """Draws the Heartfolio mark, vector, at (x, y) with `size` as its width.
+    """The site's own mark (`apps/delivery/brand`), `size` wide with its
+    lower-left corner at (x, y). The 1024px master is embedded whole and the
+    page scales it: about 1,860dpi at 14mm, sharp on any printer. It replaced
+    a hand-ported two-tone vector copy whose curve was an approximation."""
+    from reportlab.lib.utils import ImageReader
 
-    The same geometry as `icon.svg`, in PDF units. Hand-ported rather than
-    embedding the SVG because reportlab cannot place an SVG without an extra
-    dependency, and a raster logo in a 300 DPI print document would be the
-    one soft thing on an otherwise sharp page.
+    pdf.drawImage(ImageReader(str(brand.mark_master_path())), x, y, width=size, height=size, mask="auto")
 
-    TWO-TONE RATHER THAN A GRADIENT. PDF gradients require clipping each
-    stroke to its own shading pattern, which triples the code for something
-    nobody can see at 14mm. The left bands take rose, the right take bronze,
-    which reads as the same warm shift at this size.
-    """
-    scale = size / 64.0
 
-    def at(px: float, py: float) -> tuple[float, float]:
-        # SVG's y grows downward, PDF's grows upward.
-        return (x + px * scale, y + (64 - py) * scale)
+def _draw_footer(pdf: canvas.Canvas, *, left: float, right: float, rtl: bool) -> None:
+    """The colophon at the foot of the page in the site's wordmark
+    (`brand.lockup_line`): drawn at 600dpi and placed at 9pt, its baseline
+    on 16mm, at the reading edge."""
+    from reportlab.lib.utils import ImageReader
 
-    pdf.saveState()
-    pdf.setLineWidth(5 * scale)
-    pdf.setLineCap(1)   # round
-    pdf.setLineJoin(1)
+    dpi = 600
+    name_pt = 9
+    line = brand.lockup_line(round(name_pt * dpi / 72), _to_255(_CREAM_DIM))
+    width, height = line.width * 72 / dpi, line.height * 72 / dpi
+    x = right - width if rtl else left
+    pdf.drawImage(ImageReader(line), x, 16 * mm - 0.2 * height, width=width, height=height, mask="auto")
 
-    # Left lobe and flank.
-    pdf.setStrokeColorRGB(*_ROSE)
-    path = pdf.beginPath()
-    path.moveTo(*at(32, 22))
-    # Cubic approximation of the SVG arc. The control points bulge up and
-    # out, which is what gives the lobe its shoulder; pulling them toward
-    # the endpoints (an easy mistake) flattens the heart into a chevron.
-    path.curveTo(*at(24, 17.5), *at(14, 21), *at(14, 31.5))
-    path.lineTo(*at(32, 50))
-    pdf.drawPath(path)
 
-    # The band that passes over.
-    pdf.setStrokeColorRGB(*_BRONZE)
-    path = pdf.beginPath()
-    path.moveTo(*at(41, 23))
-    path.lineTo(*at(23, 40.5))
-    pdf.drawPath(path)
-
-    # The band that passes under.
-    pdf.setStrokeColorRGB(*_ROSE)
-    path = pdf.beginPath()
-    path.moveTo(*at(23, 23))
-    path.lineTo(*at(41, 40.5))
-    pdf.drawPath(path)
-
-    # Right lobe and flank.
-    pdf.setStrokeColorRGB(*_BRONZE)
-    path = pdf.beginPath()
-    path.moveTo(*at(32, 22))
-    path.curveTo(*at(40, 17.5), *at(50, 21), *at(50, 31.5))
-    path.lineTo(*at(32, 50))
-    pdf.drawPath(path)
-
-    # Sparkle, filled.
-    pdf.setFillColorRGB(0.965, 0.800, 0.573)
-    star = pdf.beginPath()
-    points = [(51, 7), (52.8, 13.2), (59, 15), (52.8, 16.8), (51, 23), (49.2, 16.8), (43, 15), (49.2, 13.2)]
-    star.moveTo(*at(*points[0]))
-    for point in points[1:]:
-        star.lineTo(*at(*point))
-    star.close()
-    pdf.drawPath(star, stroke=0, fill=1)
-
-    pdf.restoreState()
+def _to_255(colour: tuple[float, float, float]) -> tuple[int, int, int]:
+    return tuple(round(channel * 255) for channel in colour)
 
 
 def _text_pdf(
@@ -726,14 +661,9 @@ def _text_pdf(
             y = new_page()
         text.line(closing, y, 11, _BRONZE, italic=True)
 
-    # Footer colophon, same on every page-final render: the wordmark and the
-    # address (`attribution.py`), Latin in every language.
-    pdf.setFillColorRGB(*_CREAM_DIM)
-    pdf.setFont("Helvetica", 8)
-    if text.rtl:
-        pdf.drawRightString(right, 16 * mm, PDF_FOOTER)
-    else:
-        pdf.drawString(left, 16 * mm, PDF_FOOTER)
+    # Footer colophon, same on every page-final render: the site's wordmark
+    # and the address, Latin in every language.
+    _draw_footer(pdf, left=left, right=right, rtl=text.rtl)
     pdf.setFillColorRGB(*_INK_SOFT)
     pdf.setStrokeColorRGB(*_INK_SOFT)
 

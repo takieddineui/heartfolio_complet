@@ -1,6 +1,16 @@
 import type { Metadata } from "next";
 import { routing } from "@/i18n/routing";
-import { SITE_NAME, SITE_URL } from "@/lib/site-config";
+import { PINTEREST_DOMAIN_VERIFY, SITE_NAME, SITE_URL } from "@/lib/site-config";
+
+/**
+ * Site verification tags for every page, set once by the locale layout. Next
+ * renders `other` as `<meta name="…" content="…">`. A page's own `other`
+ * would REPLACE this one (metadata merges key by key), which is why
+ * `seo-status.test.ts` fails if any other route sets it.
+ */
+export function siteVerificationMetadata(): Pick<Metadata, "other"> {
+  return { other: { "p:domain_verify": PINTEREST_DOMAIN_VERIFY } };
+}
 
 /**
  * Builds a correct per-locale `alternates` block.
