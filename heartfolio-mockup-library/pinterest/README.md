@@ -4,14 +4,14 @@ Six CSVs, one per language, 42 pins each (14 designs × 3 variants), 252 pins in
 total. Built from `../manifest/manifest.json` by
 `mockup-exploration-v1/scripts/build_pinterest_csv.py`.
 
-| File | Boards it needs (create them first, names must match exactly) |
+All six files use the same two boards (create them first, names must match exactly):
+`Love story timeline posters (printable)` and `Song posters (printable)`.
+
+| File | Pins |
 |---|---|
-| `pinterest-bulk-en.csv` | `Love story timeline posters (printable)` · `Song posters (printable)` |
-| `pinterest-bulk-fr.csv` | `Frises d'histoire d'amour à imprimer` · `Affiches musicales à imprimer` |
-| `pinterest-bulk-ar.csv` | `الخط الزمني لقصة الحب للطباعة` · `ملصقات الأغاني للطباعة` |
-| `pinterest-bulk-es.csv` | `Historias de amor: pósters para imprimir` · `Pósters de canciones para imprimir` |
-| `pinterest-bulk-ru.csv` | `Постеры с историей любви для печати` · `Постеры песен для печати` |
-| `pinterest-bulk-zh-CN.csv` | `爱情故事时间线（可打印）` · `歌曲海报（可打印）` |
+| `pinterest-bulk-en.csv` | 42 (English; see "First upload" below) |
+| `pinterest-bulk-en-remaining.csv` | 28 |
+| `pinterest-bulk-fr.csv` · `-ar` · `-es` · `-ru` · `-zh-CN` | 42 each |
 
 Columns: `Title, Media URL, Pinterest board, Description, Link, Publish date, Keywords`.
 

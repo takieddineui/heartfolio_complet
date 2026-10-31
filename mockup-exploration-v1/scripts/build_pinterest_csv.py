@@ -193,6 +193,10 @@ COPY = {
       "song-poster": "音乐礼物, 歌曲海报, 声波海报, 婚礼礼物, 第一支舞, 定制礼物, 墙面装饰, 可打印礼物, 情侣礼物"}),
 }
 
+# One pair of boards for every language (owner's choice, 31 Oct 2026): the per-language
+# `board` names inside COPY are no longer used.
+BOARDS = {"love-story-timeline": "Love story timeline posters (printable)", "song-poster": "Song posters (printable)"}
+
 COLUMNS = ["Title", "Media URL", "Pinterest board", "Description", "Link", "Publish date", "Keywords"]
 
 def order():
@@ -224,7 +228,7 @@ def build(lang, base, start, per_day):
         if start:
             slot = SLOTS[i % per_day] if per_day <= len(SLOTS) else SLOTS[i % len(SLOTS)]
             pub = f"{(start + timedelta(days=i // per_day)).isoformat()}T{slot}"
-        rows.append({"Title": title, "Media URL": f"{base}/{quote(rel)}", "Pinterest board": c["board"][product],
+        rows.append({"Title": title, "Media URL": f"{base}/{quote(rel)}", "Pinterest board": BOARDS[product],
                      "Description": desc, "Link": link(lang, product, design, variant),
                      "Publish date": pub, "Keywords": c["kw"][product], "_variant": variant})
     return rows
