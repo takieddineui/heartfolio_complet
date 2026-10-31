@@ -53,10 +53,11 @@ languages' files are complete and should upload cleanly.
 
 ## Notes
 
-- **Links** go to `https://www.theheartfolio.com/<locale>/products/<product>`
-  with UTM tags (`utm_campaign=mockups-<lang>`, `utm_content=<design>-<variant>`).
-  The site has pages in `en`, `fr` and `ar` only, so the es, ru and zh-CN pins
-  link to the English page. Confirm the production site is live before posting.
+- **Links** always go to the English product page,
+  `https://www.theheartfolio.com/en/products/<product>`, whatever the pin's
+  language, with UTM tags (`utm_campaign=mockups-<lang>` still says which
+  language's pin was clicked, `utm_content=<design>-<variant>`). Confirm the
+  production site is live before posting.
 - **Order:** pins alternate between the two products and go variant by variant,
   so neighbouring pins are never the same design.
 - **Copy** follows the social pack's honesty rules: instant private link and QR

@@ -209,7 +209,7 @@ def order():
     return seq
 
 def link(lang, product, design, variant):
-    loc = lang if lang in SITE_LOCALES else "en"
+    loc = "en"          # every pin links to the English product page (owner, 31 Oct 2026)
     utm = f"utm_source=pinterest&utm_medium=social&utm_campaign=mockups-{lang}&utm_content={design}-{variant}"
     return f"{SITE}/{loc}/products/{SLUG[product]}?{utm}"
 
