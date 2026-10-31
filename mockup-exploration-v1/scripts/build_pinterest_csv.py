@@ -72,16 +72,17 @@ COPY = {
   scene={"studio-white": "Illustrative mockup: black frame on a soft white wall.",
          "gallery-white": "Illustrative mockup: slim black frame on a bright gallery wall.",
          "concrete-oak": "Illustrative mockup: oak frame on a light concrete wall."},
+  look={"gallery-white": "gallery wall", "concrete-oak": "oak frame"},
   board={"love-story-timeline": "Love story timeline posters (printable)", "song-poster": "Song posters (printable)"},
   kw={"love-story-timeline": "couple gift, anniversary gift, timeline poster, personalized poster, valentines gift, wall decor, printable gift, love story, unique gift",
       "song-poster": "music gift, song poster, soundwave art, wedding gift, first dance, personalized gift, wall decor, printable gift, couple gift"}),
  "fr": dict(
   prod={"love-story-timeline": "Frise d'histoire d'amour", "song-poster": "Affiche musicale"},
-  kind={"love-story-timeline": "frise de votre histoire d'amour à imprimer",
+  kind={"love-story-timeline": "frise d'histoire d'amour à imprimer",
         "song-poster": "affiche musicale personnalisée à imprimer"},
   sep=" : ",
   hook=hooks("Cadeau pour un nouvel amour", "Cadeau de premier anniversaire de couple", "Cadeau pour 10 ans d'amour",
-             "Cadeau de fiançailles et de mariage", "Cadeau pour une relation à distance", "Cadeau : l'histoire d'amour de vos parents",
+             "Cadeau de fiançailles et de mariage", "Cadeau pour une relation à distance", "Cadeau pour l'histoire d'amour de vos parents",
              "Cadeau chanson de la première danse", "Cadeau pour de longues années de mariage", "Chanson d'amour à distance",
              "Cadeau chanson d'anniversaire de couple", "Cadeau chanson de mariage", "Cadeau chanson pour une étape marquante",
              "Cadeau chanson d'amour classique", "Cadeau chanson d'un nouvel amour"),
@@ -94,6 +95,7 @@ COPY = {
   scene={"studio-white": "Maquette illustrative : cadre noir sur un mur blanc doux.",
          "gallery-white": "Maquette illustrative : cadre noir fin sur un mur de galerie lumineux.",
          "concrete-oak": "Maquette illustrative : cadre en chêne sur un mur de béton clair."},
+  look={"gallery-white": "mur galerie", "concrete-oak": "cadre chêne"},
   board={"love-story-timeline": "Frises d'histoire d'amour à imprimer", "song-poster": "Affiches musicales à imprimer"},
   kw={"love-story-timeline": "cadeau couple, cadeau anniversaire de couple, frise chronologique, affiche personnalisée, cadeau Saint-Valentin, décoration murale, cadeau à imprimer, histoire d'amour, cadeau original",
       "song-poster": "cadeau musique, affiche chanson, affiche onde sonore, cadeau mariage, première danse, cadeau personnalisé, décoration murale, cadeau à imprimer, cadeau couple"}),
@@ -103,7 +105,7 @@ COPY = {
         "song-poster": "ملصق أغنية مخصص بموجة صوتية للطباعة"},
   sep=": ",
   hook=hooks("هدية لحب جديد", "هدية أول ذكرى سنوية", "هدية عشر سنوات من الحب",
-             "هدية خطوبة وزفاف", "هدية لعلاقة عن بُعد", "هدية: قصة حب الوالدين",
+             "هدية خطوبة وزفاف", "هدية لعلاقة عن بُعد", "هدية لقصة حب الوالدين",
              "هدية أغنية الرقصة الأولى", "هدية لسنوات زواج طويلة", "أغنية حب عن بُعد",
              "هدية أغنية الذكرى السنوية", "هدية أغنية الزفاف", "هدية أغنية لمناسبة مميزة",
              "هدية أغنية حب كلاسيكية", "هدية أغنية لحب جديد"),
@@ -116,16 +118,17 @@ COPY = {
   scene={"studio-white": "نموذج توضيحي: إطار أسود على جدار أبيض ناعم.",
          "gallery-white": "نموذج توضيحي: إطار أسود رفيع على جدار معرض مضيء.",
          "concrete-oak": "نموذج توضيحي: إطار من خشب البلوط على جدار إسمنتي فاتح."},
+  look={"gallery-white": "جدار معرض", "concrete-oak": "إطار بلوط"},
   board={"love-story-timeline": "الخط الزمني لقصة الحب للطباعة", "song-poster": "ملصقات الأغاني للطباعة"},
   kw={"love-story-timeline": "هدية للأزواج, هدية ذكرى سنوية, خط زمني, ملصق مخصص, هدية عيد الحب, ديكور جداري, هدية للطباعة, قصة حب, هدية مميزة",
       "song-poster": "هدية موسيقية, ملصق أغنية, موجة صوتية, هدية زفاف, الرقصة الأولى, هدية مخصصة, ديكور جداري, هدية للطباعة, هدية للأزواج"}),
  "es": dict(
   prod={"love-story-timeline": "Línea de tiempo de tu historia de amor", "song-poster": "Póster de canción"},
-  kind={"love-story-timeline": "póster de tu historia de amor para imprimir",
-        "song-poster": "póster de canción personalizado para imprimir"},
+  kind={"love-story-timeline": "póster de amor para imprimir",
+        "song-poster": "póster de canción para imprimir"},
   sep=": ",
   hook=hooks("Regalo para un amor nuevo", "Regalo de primer aniversario", "Regalo para 10 años juntos",
-             "Regalo de compromiso y boda", "Regalo para una relación a distancia", "Regalo: la historia de amor de tus padres",
+             "Regalo de compromiso y boda", "Regalo para una relación a distancia", "Regalo para la historia de amor de tus padres",
              "Regalo con la canción del primer baile", "Regalo para un matrimonio de muchos años", "Canción de amor a distancia",
              "Regalo con la canción del aniversario", "Regalo con la canción de la boda", "Regalo con la canción de un momento importante",
              "Regalo con una canción de amor clásica", "Regalo con la canción de un amor nuevo"),
@@ -138,16 +141,17 @@ COPY = {
   scene={"studio-white": "Maqueta ilustrativa: marco negro sobre una pared blanca suave.",
          "gallery-white": "Maqueta ilustrativa: marco negro fino sobre una pared de galería luminosa.",
          "concrete-oak": "Maqueta ilustrativa: marco de roble sobre una pared de hormigón claro."},
+  look={"gallery-white": "pared galería", "concrete-oak": "marco roble"},
   board={"love-story-timeline": "Historias de amor: pósters para imprimir", "song-poster": "Pósters de canciones para imprimir"},
   kw={"love-story-timeline": "regalo para parejas, regalo de aniversario, línea de tiempo, póster personalizado, regalo San Valentín, decoración de pared, regalo para imprimir, historia de amor, regalo original",
       "song-poster": "regalo musical, póster de canción, onda de sonido, regalo de boda, primer baile, regalo personalizado, decoración de pared, regalo para imprimir, regalo para parejas"}),
  "ru": dict(
   prod={"love-story-timeline": "Лента времени вашей истории любви", "song-poster": "Постер песни"},
-  kind={"love-story-timeline": "персональный постер с историей любви для печати",
-        "song-poster": "персональный постер песни со звуковой волной для печати"},
+  kind={"love-story-timeline": "постер с историей любви для печати",
+        "song-poster": "постер песни со звуковой волной для печати"},
   sep=": ",
   hook=hooks("Подарок на новую любовь", "Подарок на первую годовщину", "Подарок на 10 лет вместе",
-             "Подарок на помолвку и свадьбу", "Подарок для отношений на расстоянии", "Подарок: история любви родителей",
+             "Подарок на помолвку и свадьбу", "Подарок для отношений на расстоянии", "Подарок к истории любви родителей",
              "Подарок с песней первого танца", "Подарок на долгие годы брака", "Песня о любви на расстоянии",
              "Подарок с песней годовщины", "Подарок с песней свадьбы", "Подарок с песней важного момента",
              "Подарок с классической песней о любви", "Подарок с песней новой любви"),
@@ -160,6 +164,7 @@ COPY = {
   scene={"studio-white": "Иллюстративный макет: чёрная рама на мягкой белой стене.",
          "gallery-white": "Иллюстративный макет: тонкая чёрная рама на светлой галерейной стене.",
          "concrete-oak": "Иллюстративный макет: дубовая рама на светлой бетонной стене."},
+  look={"gallery-white": "светлая стена", "concrete-oak": "дубовая рама"},
   board={"love-story-timeline": "Постеры с историей любви для печати", "song-poster": "Постеры песен для печати"},
   kw={"love-story-timeline": "подарок для пары, подарок на годовщину, лента времени, персональный постер, подарок на 14 февраля, декор стен, подарок для печати, история любви, оригинальный подарок",
       "song-poster": "музыкальный подарок, постер песни, звуковая волна, свадебный подарок, первый танец, персональный подарок, декор стен, подарок для печати, подарок для пары"}),
@@ -182,6 +187,7 @@ COPY = {
   scene={"studio-white": "示意样机：柔和白墙上的黑色画框。",
          "gallery-white": "示意样机：明亮画廊墙面上的细黑画框。",
          "concrete-oak": "示意样机：浅色水泥墙上的橡木画框。"},
+  look={"gallery-white": "画廊墙", "concrete-oak": "橡木画框"},
   board={"love-story-timeline": "爱情故事时间线（可打印）", "song-poster": "歌曲海报（可打印）"},
   kw={"love-story-timeline": "情侣礼物, 纪念日礼物, 时间线, 定制海报, 情人节礼物, 墙面装饰, 可打印礼物, 爱情故事, 创意礼物",
       "song-poster": "音乐礼物, 歌曲海报, 声波海报, 婚礼礼物, 第一支舞, 定制礼物, 墙面装饰, 可打印礼物, 情侣礼物"}),
@@ -211,6 +217,8 @@ def build(lang, base, start, per_day):
         rel = f"{product}/{lang}/{design}/{variant}.jpg"
         assert (LIB / rel).exists(), rel
         title = c["hook"][design] + c["sep"] + c["kind"][product]
+        if variant != "studio-white":          # Pinterest rejects duplicate titles within a file
+            title += f" ({c['look'][variant]})"
         desc = c["desc"][product].format(style=STYLE[design], scene=c["scene"][variant])
         pub = ""
         if start:
@@ -218,12 +226,13 @@ def build(lang, base, start, per_day):
             pub = f"{(start + timedelta(days=i // per_day)).isoformat()}T{slot}"
         rows.append({"Title": title, "Media URL": f"{base}/{quote(rel)}", "Pinterest board": c["board"][product],
                      "Description": desc, "Link": link(lang, product, design, variant),
-                     "Publish date": pub, "Keywords": c["kw"][product]})
+                     "Publish date": pub, "Keywords": c["kw"][product], "_variant": variant})
     return rows
 
 def validate(lang, rows):
     assert len(rows) == 42, (lang, len(rows))
     assert len({r["Media URL"] for r in rows}) == 42
+    assert len({r["Title"] for r in rows}) == 42, (lang, "duplicate titles")
     for r in rows:
         assert 0 < len(r["Title"]) <= MAX_TITLE, (lang, len(r["Title"]), r["Title"])
         assert 0 < len(r["Description"]) <= MAX_DESC, (lang, len(r["Description"]))
@@ -235,24 +244,29 @@ def main():
     ap.add_argument("--image-base-url", default=RAW_BASE, help="public URL that serves heartfolio-mockup-library/")
     ap.add_argument("--start-date", default=(date.today() + timedelta(days=1)).isoformat())
     ap.add_argument("--per-day", type=int, default=3, choices=[1, 2, 3])
+    ap.add_argument("--exclude-variant", action="append", default=[], choices=VARIANTS,
+                    help="leave these variants out and name the file -remaining (rows keep their dates)")
+    ap.add_argument("--lang", action="append", choices=LANGS, help="only these languages (default: all)")
     ap.add_argument("--no-dates", action="store_true", help="leave Publish date empty")
     a = ap.parse_args()
     base = a.image_base_url.rstrip("/")
     start = None if a.no_dates else date.fromisoformat(a.start_date)
     OUT.mkdir(parents=True, exist_ok=True)
     summary = []
-    for lang in LANGS:
+    for lang in (a.lang or LANGS):
         rows = build(lang, base, start, a.per_day)
         validate(lang, rows)
-        path = OUT / f"pinterest-bulk-{lang}.csv"
+        rows = [r for r in rows if r["_variant"] not in a.exclude_variant]
+        path = OUT / f"pinterest-bulk-{lang}{'-remaining' if a.exclude_variant else ''}.csv"
         with open(path, "w", newline="", encoding="utf-8") as fh:        # plain UTF-8, no BOM
-            w = csv.DictWriter(fh, fieldnames=COLUMNS, quoting=csv.QUOTE_MINIMAL)
+            w = csv.DictWriter(fh, fieldnames=COLUMNS, quoting=csv.QUOTE_MINIMAL, extrasaction="ignore")
             w.writeheader(); w.writerows(rows)
         last = rows[-1]["Publish date"] or "-"
         summary.append({"lang": lang, "file": path.name, "pins": len(rows), "boards": sorted({r["Pinterest board"] for r in rows}),
                         "first": rows[0]["Publish date"] or "-", "last": last})
         print(f"{path.name}: {len(rows)} pins · {rows[0]['Publish date'] or 'no dates'} → {last}")
-    json.dump(summary, open(OUT / "summary.json", "w"), ensure_ascii=False, indent=1)
+    if not (a.exclude_variant or a.lang):
+        json.dump(summary, open(OUT / "summary.json", "w"), ensure_ascii=False, indent=1)
 
 if __name__ == "__main__":
     main()

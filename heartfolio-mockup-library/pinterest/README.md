@@ -15,9 +15,21 @@ total. Built from `../manifest/manifest.json` by
 
 Columns: `Title, Media URL, Pinterest board, Description, Link, Publish date, Keywords`.
 
+## First upload (English), what Pinterest told us
+
+Pinterest accepted the columns, the order and the `YYYY-MM-DDTHH:MM:SS` dates.
+It rejected 28 of 42 rows with "Multiples rows with the same title": the three
+variants of a design shared one title. Titles are now unique, the two other
+variants carry their look in brackets, for example `(gallery wall)`.
+
+`pinterest-bulk-en-remaining.csv` holds the 28 English rows that were rejected
+(`gallery-white` and `concrete-oak`), with their original publish dates. The 14
+`studio-white` rows were accepted, so do not upload them again. The other five
+languages' files are complete and should upload cleanly.
+
 ## Before the first upload
 
-1. **Compare the header with Pinterest's own template.** In Pinterest Business:
+1. **Compare the header with Pinterest's own template (confirmed for English).** In Pinterest Business:
    Create → Bulk create Pins → download the sample CSV. The column order here
    is what users report for that template, not an official spec. If a column
    name or order differs, change `COLUMNS` in the script and re-run.
