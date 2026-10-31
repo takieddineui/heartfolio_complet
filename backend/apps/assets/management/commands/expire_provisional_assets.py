@@ -39,6 +39,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         from apps.assets.models import Asset
+        from apps.assets.services import delete_asset_objects
         from apps.assets.storage import AssetStorageError, get_asset_storage
 
         expired = Asset.objects.filter(
@@ -62,7 +63,7 @@ class Command(BaseCommand):
 
         for asset in expired:
             try:
-                storage.delete(asset.storage_key)
+                delete_asset_objects(storage, asset)
             except AssetStorageError:
                 # Left untouched — picked up again on the next scheduled
                 # run rather than treated as a fatal error for the whole

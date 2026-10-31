@@ -76,8 +76,11 @@ class BundleTests(TestCase):
         self.assertEqual((payload["productId"], payload["locale"]), ("reasons-i-love-you", "fr"))
         text = json.dumps(payload)
         self.assertNotIn("mock://", text)
-        # Every photo link points at a file the bundle carries.
-        for link in re.findall(r"/capture-assets/([^\"]+)", text):
+        # Every photo link, each web copy in a `srcset` included, points at
+        # a file the bundle carries.
+        links = re.findall(r"/capture-assets/([^\"\s,]+)", text)
+        self.assertTrue(any(".w960.webp" in link for link in links), "the web copies come through")
+        for link in links:
             self.assertIn(f"assets/{link}", names)
         self.assertEqual(sum(1 for r in payload["values"]["reasons"] if r["photo"]), 4)
         self.assertTrue(bundle.read("qr/reasons-i-love-you.fr.png").startswith(b"\x89PNG"))

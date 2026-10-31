@@ -296,6 +296,7 @@ function MediaFieldInput({
     if (!files || files.length === 0) return;
     const { checkFileAccepted, withInferredAudioType } = await import("@/lib/api/assets");
     const { registerPendingFile } = await import("@/lib/studio/media-values");
+    const { prepareImageForUpload } = await import("@/lib/studio/photo-resize");
 
     const accepted: UploadedMedia[] = [];
     let rejection: string | null = null;
@@ -303,7 +304,10 @@ function MediaFieldInput({
     for (const picked of Array.from(files)) {
       // A received voice file the browser could not type (some report an empty
       // type for a WhatsApp `.opus`) gets one from its extension.
-      const file = field.type === "audio" ? withInferredAudioType(picked) : picked;
+      // A photo above what prints need (a 48-50 MP phone photo is over the
+      // upload limit) is shrunk here first, upright and in sRGB; anything
+      // else comes back as picked (`photo-resize.ts`).
+      const file = field.type === "audio" ? withInferredAudioType(picked) : await prepareImageForUpload(picked);
       if (field.type === "audio" && field.maxSeconds) {
         const seconds = await readAudioDuration(file);
         // Half a second of grace: a recording stopped by its own timer can

@@ -70,8 +70,8 @@ def _build_song_poster_live_payload(experience, order, project, product_slug) ->
     from apps.assets.services import (
         AssetAccessDenied,
         AssetNotFound,
-        generate_asset_access_url,
         get_asset_for_customer,
+        photo_payload,
     )
     from apps.delivery.product_renderers.song_poster.data import validate_and_normalize
 
@@ -84,11 +84,11 @@ def _build_song_poster_live_payload(experience, order, project, product_slug) ->
         logger.warning("live_experience_invalid_project", extra={"experience_id": str(experience.id)})
         return None
 
-    photo_url = None
+    photo = None
     if song.photo_asset_id:
         try:
             asset = get_asset_for_customer(order.customer, song.photo_asset_id)
-            photo_url = generate_asset_access_url(asset)
+            photo = photo_payload(asset)
         except (AssetNotFound, AssetAccessDenied):
             # The photo this project pointed at is gone or no longer this
             # order's own — same reasoning `_load_experience` already
@@ -105,7 +105,7 @@ def _build_song_poster_live_payload(experience, order, project, product_slug) ->
             "track": song.track,
             "artist": song.artist,
             "dedication": song.dedication,
-            "photo": {"url": photo_url} if photo_url else None,
+            "photo": photo,
             # `null` rather than an empty string — `SongLiveKeepsakeProps`
             # on the frontend already treats a missing video id as "no
             # player to show," the same contract the Studio's own
@@ -137,8 +137,8 @@ def _build_reasons_live_payload(experience, order, project, product_slug) -> dic
     from apps.assets.services import (
         AssetAccessDenied,
         AssetNotFound,
-        generate_asset_access_url,
         get_asset_for_customer,
+        photo_payload,
     )
     from apps.delivery.product_renderers.reasons_i_love_you.data import validate_and_normalize
 
@@ -154,7 +154,7 @@ def _build_reasons_live_payload(experience, order, project, product_slug) -> dic
         if not asset_id:
             return None
         try:
-            return {"url": generate_asset_access_url(get_asset_for_customer(order.customer, asset_id))}
+            return photo_payload(get_asset_for_customer(order.customer, asset_id))
         except (AssetNotFound, AssetAccessDenied):
             logger.warning("live_experience_missing_photo", extra={"experience_id": str(experience.id)})
             return None

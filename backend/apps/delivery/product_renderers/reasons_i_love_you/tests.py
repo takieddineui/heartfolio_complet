@@ -272,6 +272,29 @@ class LivePayloadTests(TestCase):
         _, _, experience = self._experience(project_values=values(letterEnabled=False))
         self.assertIsNone(self.client.get(f"/api/v1/live/{experience.id}/").data["values"]["letter"])
 
+    def test_a_photo_carries_its_web_copies_and_size(self):
+        product = make_product(slug=SLUG)
+        customer, order, _ = make_paid_order_with_entitlements(target_ids=[LIVE_TARGET_SENTINEL], product=product)
+        own = make_asset(
+            customer=customer, mime_type="image/jpeg", storage_key=f"uploads/{SLUG}/{uuid.uuid4()}.jpg",
+            width=4032, height=3024, web_widths=[480, 960, 1600],
+        )
+        order.project.data = {
+            "version": 1,
+            "values": values(reasons=[{"text": "mine", "photo": {"assetId": str(own.id)}}, {"text": "two"}]),
+            "themeSelections": VALID_THEME,
+        }
+        order.project.save(update_fields=["data"])
+        experience = PublicExperience.objects.get(entitlement__order=order)
+
+        photo = self.client.get(f"/api/v1/live/{experience.id}/").data["values"]["reasons"][0]["photo"]
+
+        stem = own.storage_key.removesuffix(".jpg")
+        self.assertEqual((photo["width"], photo["height"]), (4032, 3024))
+        self.assertIn(f"{stem}.w960.webp", photo["url"])
+        for width in (480, 960, 1600):
+            self.assertIn(f"{stem}.w{width}.webp {width}w", photo["srcset"])
+
     def test_photos_are_fresh_ownership_checked_urls_and_a_foreign_one_is_dropped(self):
         product = make_product(slug=SLUG)
         customer, order, _ = make_paid_order_with_entitlements(target_ids=[LIVE_TARGET_SENTINEL], product=product)

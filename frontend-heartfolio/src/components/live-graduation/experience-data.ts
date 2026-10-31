@@ -4,6 +4,7 @@ import { colourFor, journeyOrDefault, type JourneyId } from "@/lib/studio/produc
 import { GRADUATION_LIMITS as L } from "@/lib/studio/product-modules/graduation-keepsake/limits";
 import { graduationMessages } from "@/lib/studio/product-modules/graduation-keepsake/messages";
 import type { LocaleCode, ThemeSelections } from "@/types/studio";
+import type { LivePhoto } from "@/components/live/live-photo";
 
 /**
  * WHAT THE EXPERIENCE DRAWS, in one shape for both of its homes: the Studio's
@@ -12,7 +13,9 @@ import type { LocaleCode, ThemeSelections } from "@/types/studio";
  * which returns exactly this shape with fresh, ownership-checked media URLs).
  * A chapter switched off is `null`.
  */
-export type Media = { url: string } | null;
+/** A photo, drawing or voice message. Photos and drawings from the live
+ * payload also carry their web copies and size (`live-photo.ts`). */
+export type Media = (LivePhoto & { url: string }) | null;
 
 export interface ExperienceStop {
   year: string;

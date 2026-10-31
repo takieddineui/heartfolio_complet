@@ -15,7 +15,7 @@ from apps.customers.authentication import CsrfEnforcedSessionAuthentication
 from apps.customers.services import get_current_customer
 
 from .serializers import AssetSerializer
-from .services import delete_asset, generate_asset_access_url, get_asset_for_customer, upload_asset
+from .services import asset_preview_url, delete_asset, generate_asset_access_url, get_asset_for_customer, upload_asset
 
 
 class AssetUploadView(APIView):
@@ -61,7 +61,7 @@ class AssetUploadView(APIView):
 
         url = generate_asset_access_url(asset)
 
-        return Response(AssetSerializer.from_asset(asset, url=url).data, status=status.HTTP_201_CREATED)
+        return Response(AssetSerializer.from_asset(asset, url=url, preview_url=asset_preview_url(asset)).data, status=status.HTTP_201_CREATED)
 
 
 class AssetDetailView(APIView):
@@ -72,7 +72,7 @@ class AssetDetailView(APIView):
         customer = get_current_customer(request)
         asset = get_asset_for_customer(customer, asset_id)
         url = generate_asset_access_url(asset)
-        return Response(AssetSerializer.from_asset(asset, url=url).data)
+        return Response(AssetSerializer.from_asset(asset, url=url, preview_url=asset_preview_url(asset)).data)
 
     def delete(self, request, asset_id):
         customer = get_current_customer(request)

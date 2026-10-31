@@ -34,6 +34,7 @@ from __future__ import annotations
 
 import io
 import json
+import re
 import zipfile
 from pathlib import Path
 
@@ -106,13 +107,21 @@ def _with_uploaded_photos(node, upload):
     return node
 
 
+_MOCK_URL = re.compile(re.escape(MOCK_PREFIX) + r"([^\s,]+)")
+
+
 def _rewrite_mock_urls(node, found: dict[str, str]):
-    """`mock://assets/<key>` -> `/capture-assets/<file>`, recording each key."""
-    if isinstance(node, str) and node.startswith(MOCK_PREFIX):
-        key = node[len(MOCK_PREFIX):]
-        filename = key.rsplit("/", 1)[-1]
-        found[filename] = key
-        return CAPTURE_ASSET_PREFIX + filename
+    """`mock://assets/<key>` -> `/capture-assets/<file>`, recording each key.
+    Every link in a string is rewritten, so a photo's `srcset` (one link per
+    web copy) comes through whole."""
+    if isinstance(node, str) and MOCK_PREFIX in node:
+        def rewrite(match):
+            key = match.group(1)
+            filename = key.rsplit("/", 1)[-1]
+            found[filename] = key
+            return CAPTURE_ASSET_PREFIX + filename
+
+        return _MOCK_URL.sub(rewrite, node)
     if isinstance(node, dict):
         return {key: _rewrite_mock_urls(value, found) for key, value in node.items()}
     if isinstance(node, list):

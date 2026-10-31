@@ -327,6 +327,7 @@ task.**
 | A product added, changed or withdrawn (registry, seed, Freemius map, captures, guides) | `src/lib/products/product-checklist.test.ts`, plus the rows for each kind of file touched (`ADDING-A-PRODUCT.md`, step 21) | Every visible product: Studio module, copy in en/fr/ar, active packs each with a Freemius plan, `printable` tag = seed, captures in every language, live-page dispatch, sitemap, a guide or a stated reason; every withdrawn product: no active pack, in no sitemap, guide or recording |
 | Guides (`src/content/guides/`, `lib/guides/`, `app/[locale]/guides/`) | `src/lib/guides/guides.test.ts`, `src/lib/products/product-checklist.test.ts`, `src/lib/seo-status.test.ts` | Lengths, slugs and dates per translation; every product shown and visible; no price in the text; drafts never in production; hreflang only between published translations; sitemap dated by `updated`; real 404s; footer language list = published guides |
 | The Heartfolio mark or wordmark anywhere: `src/app/icon.svg`, `public/assets/logo-full.svg`, `lib/brand/`, `components/brand/`, the live intro or sparks, `og.tsx`, `apps/delivery/brand/`, a QR card, PDF or email header | Frontend: `src/lib/brand/brand.test.ts`, `src/components/live/live-intro.test.tsx`. Backend: `apps.delivery.tests_brand`, `tests_bonuses` | One source for the mark and wordmark; both PNGs equal a fresh render of `icon.svg` (`node scripts/brand/render-mark.mjs`); fonts byte-identical to `public/fonts`; no deliverable draws its own copy |
+| Customer uploads: `apps/assets/images.py`, upload/delete in `apps/assets/services.py`, a live payload's photo, `lib/studio/photo-resize.ts`, the Studio's file pick, a live page's `<img>` | Backend: `apps.assets` (incl. `tests_images`), `apps.projects.tests_draft_cleanup`, the product payload tests (`apps.delivery.tests.LiveExperienceDispatchTests`, `...MilestoneMediaResolutionTests`, Reasons and Graduation `LivePayloadTests`), `apps.delivery.tests_marketing_samples`. Frontend: `src/lib/studio/photo-resize.test.ts`, `src/components/live/live-photo.test.tsx`, `src/lib/studio/media-values.test.ts` | Upright, sRGB, no metadata, the 3,072 cap; copies stored, served and deleted; browser cap = server cap; every live photo drawn from its copies |
 | A print renderer's PNG saving | `apps.delivery.tests_png_encoding` | No `optimize=True` on the full-screen save paths |
 | Dates or counts a print or preview writes (`date_formatting.py`, `formatDate`/`formatCount` in the Love Story Timeline renderer, the live page's dates) | Frontend: `src/lib/studio/product-modules/love-story-timeline/locale-format-parity.test.ts`, `src/components/studio/preview/moment-wallpaper.test.tsx`. Backend: `apps.delivery.test_date_formatting` | Preview and print write the same strings in the order's language (`backend/apps/delivery/locale_format_cases.json`, generated from the browser's `Intl`); a calendar day never shifts by time zone |
 | Storefront captures: a product's live page, its Studio sample (`initial-state.ts`), `marketing_samples/`, `scripts/captures/`, `public/captures/`, the Studio (it is captured for the home page), or a page showing them | Frontend: `src/lib/captures/captures.test.ts`, `src/lib/captures/capture-lock.test.ts`, `src/components/captures/capture-media.test.tsx`, `src/components/captures/capture-showcase.test.tsx`, `src/proxy.test.ts`. Backend: `apps.delivery.tests_marketing_samples` | Every visible product captured in en/fr/ar within budget, no stray files; the capture page and its photo route locked; every sample valid for the real live page, every photo present and licensed. A VISIBLE change to a live page means re-recording: `node scripts/captures/record.mjs all`; to the Studio, `record.mjs studio --base http://localhost:3006` (throwaway backend only) |
@@ -474,6 +475,11 @@ Two were genuine product bugs: the `layout` default above, and
   About page is where that story belongs.
 - The `/guides` content plan continues: the graduation guide, drafted in
   February 2027 (see "Still open").
+- **AVIF web copies** (owner, 31 Oct 2026: WebP now, AVIF later). Pillow
+  10.4 cannot write AVIF; upgrading Pillow brings new FreeType/raqm builds,
+  so it needs its own before/after renders of every print (hundreds are
+  pinned byte for byte). Expected gain: roughly 20-30% on copies already
+  about 90 KB.
 
 ## Still open
 
@@ -495,14 +501,15 @@ Two were genuine product bugs: the `layout` default above, and
   no longer written; project saves strip `filename` from media values
   (`apps/assets/filenames.py`); the upload-failure alert names the type,
   not the file. Readers are unchanged: everything goes through
-  `Asset.storage_key`. **OWNER'S TASK BEFORE LAUNCH:** apply migration
-  `assets.0002` on the real database, then
+  `Asset.storage_key`. **OWNER'S TASK BEFORE LAUNCH:** apply migrations
+  `assets.0002` and `assets.0003` on the real database, then
   `python manage.py move_assets_to_new_layout` (dry run: counts and asset
   ids only, never a key or a name), `--execute` (copies each file to its new
   key, size-checked, row switched under a lock; clears `original_filename`;
   strips filenames from every project with the `updated_at` trigger off for
   that one transaction, or the 12-month draft cleanup would see every
-  project as active today), and `--execute` again 24 hours later to delete
+  project as active today), then `make_web_copies` (dry run, `--execute`;
+  see "CUSTOMER PHOTOS" below), and the move's `--execute` again 24 hours later to delete
   the old objects (kept that long for pages already open: Love Story
   Timeline's and Song Poster's do not refetch an expired link). Safe to
   re-run; `--limit N` for a trial. **The full sequence (backup first; from
@@ -1161,21 +1168,67 @@ Two were genuine product bugs: the `layout` default above, and
   the Studio's Live tab shows it too. **Deliberately deferred by decision:** photo
   parallax, ambient particles, an animating accent colour (it would undo the
   8-palette fix), cursor-follow and photo tilt, time-of-day mood.
-- **FLAGGED, pre-existing, its own task BEFORE any future photo-motion work: the
-  live page's photographs are delivered unsized.** Each milestone's `<img>` has no
-  `loading="lazy"`, no `decoding="async"`, no width/height and no `srcset`; there
-  are no resized variants anywhere. Uploads are re-encoded at quality 92 at FULL
-  resolution (`apps/assets/services.py`; no downscale on the server and none in the
-  Studio), so the live page fetches whatever the customer uploaded, up to the 10MB
-  `MAX_ASSET_SIZE_MB`. A 12-megapixel photo decodes to about 48MB of memory
-  (4000 x 3000 x 4 bytes) whatever its file size, so five of them is roughly 240MB
-  on a phone before any effect is added (arithmetic, not measured; no real order's
-  photos have been measured, and the one customer surveyed had small ones). The
-  lightbox loads the same full-size URL, and so does the opening's first-photo
-  glimpse. Transforming these images (parallax, tilt, scale) multiplies the risk on
-  an older phone, which is where this page is mostly opened. Do first: lazy loading,
-  async decoding, intrinsic sizes, and resized variants for the live page (made at
-  upload or on demand), then measure on a mid-range phone.
+- **CUSTOMER PHOTOS: UPRIGHT, sRGB, NO METADATA, PRINT-SIZED, WITH WEB COPIES
+  (owner, 31 Oct 2026).** Found by the photo investigation: the upload
+  re-encode dropped the EXIF orientation tag WITHOUT applying it (every
+  Android portrait photo was stored, printed and shown on the live page lying
+  on its side; the Studio looked right only because the browser obeys the
+  tag), and dropped the colour profile without converting (every iPhone
+  Display P3 photo printed duller). GPS was already gone (re-encoding writes
+  pixels only); now pinned by tests with a real GPS block. Past orders'
+  photos cannot be repaired (the tag and profile were thrown away) and are
+  not reviewed (owner). Now (`apps/assets/images.py`, `prepare_master`):
+  - THE MASTER: `exif_transpose`, converted to sRGB (LittleCMS, relative
+    colorimetric), short edge capped at `MASTER_SHORT_EDGE` 3,072 (Song
+    Poster Player's photo on the 12x18 frameless poster takes 3,060 across a
+    portrait photo, the most of any print, measured in real renders of every
+    layout, theme and target), long edge at 6,144, never upscaled; JPEG
+    quality 92 as before, PNG/WebP keep their format and transparency. A
+    12 MP phone photo keeps every pixel. Prints read it exactly as before.
+  - WEB COPIES: WebP q80 at 480/960/1600 px wide, made at upload from the
+    master, each resized from the next larger (a quarter faster), stored
+    beside it as `<master key minus extension>.w<width>.webp`
+    (`web_copy_key`), recorded in `Asset.web_widths` with the photo's
+    `width`/`height`. Best effort: a copy that fails to store is left out,
+    never failing the upload. Every delete path deletes them
+    (`delete_asset_objects`: `delete_asset`, the 12-month draft cleanup, the
+    provisional-media sweep).
+  - PAYLOADS: every live payload's photo is `photo_payload(asset)`: `url`
+    (the 960 copy, else the master), `srcset`, `width`, `height`. The pages
+    use `livePhotoSources` (`components/live/live-photo.ts`) with each slot's
+    `sizes`; Love Story Timeline's milestone photos also reserve their box
+    (`height: auto`) and load lazily after the first; `live-photo.test.tsx`
+    fails if a live page draws a customer photo another way. The asset API
+    adds `previewUrl` (the 1600 copy) for the Studio's reopened projects.
+    Capture payloads rewrite every link in a `srcset` (`build.py`).
+  - THE STUDIO SHRINKS LARGE PHOTOS BEFORE UPLOAD (`lib/studio/photo-resize.ts`,
+    same cap, quality 0.92, constants pinned to the backend's): 48-50 MP
+    photos (12-25 MB) used to be refused by the 10 MB limit and are now
+    accepted. Only when it helps: a photo within the cap and the limit is
+    sent as picked (no second JPEG generation); HEIC that the browser can
+    decode becomes JPEG. The browser applies the orientation and draws into
+    an sRGB canvas, and a canvas export carries no metadata. Any failure
+    returns the original file. The server still does all of it itself.
+  - MEASURED (31 Oct 2026, the whole flow on the throwaway backend with a
+    sideways Android 12 MP photo with GPS, a 24 MP iPhone Display P3 photo
+    and a 50 MP Android photo): before, the Android photo was sideways in the
+    Studio after reload, on the live page and in the print, the iPhone's
+    colours were off by 5.6 (mean, 0-255) and the 50 MP photo was refused;
+    after, all upright, colours within 1.0, no EXIF/GPS/ICC in any stored
+    file. Live page photo bytes: 8,053 KB before, 346 KB after (desktop and
+    a 2x phone both pick the 960 copies). Browser resize in Chromium on this
+    PC: 1.3 s (24 MP) and 1.7 s (50 MP), once 7.4 s after repeated 50 MP
+    decodes; NOT measured on a phone, nor iOS Safari's HEIC and orientation
+    handling. Graduation's worst-case checkout (15 photos + 5 drawings of
+    12 MP, 5 one-minute voices, all at once as the Studio sends them,
+    gunicorn 2 sync workers, mock storage): 3.9 s server time before, 8.9 s
+    after; the network upload of the same ~59 MB dominates on mobile. Hence
+    a VPS of 2-4 cores with `GUNICORN_WORKERS` = cores (owner, 31 Oct 2026;
+    `DEPLOYMENT-VPS.md` sections 1 and 2).
+  - EXISTING PHOTOS: `make_web_copies` (dry run unless `--execute`), right
+    after the move's first `--execute` (`DEPLOYMENT-VPS.md` section 7). It
+    never rewrites a stored photo. `assets.0003` gives `web_widths` a
+    database default, so it may be applied before or after the code deploy.
 - **Dev trap: the Studio never finishes loading in a hidden browser pane.**
   Something in its load path waits on `requestAnimationFrame`, which never fires in
   a hidden tab, so it sits on "Loading Heartfolio" (any screenshot wakes the pane;

@@ -71,6 +71,16 @@ class Asset(models.Model):
     #: then clears both fields. NULL for every asset that never moved.
     previous_storage_key = models.TextField(null=True, blank=True)
     moved_at = models.DateTimeField(null=True, blank=True)
+    #: A photo's stored size in pixels (the master's, upright), so a page can
+    #: reserve its space before it loads. NULL for media, and for photos
+    #: stored before 31 Oct 2026 until `make_web_copies` has read them.
+    width = models.PositiveIntegerField(null=True, blank=True)
+    height = models.PositiveIntegerField(null=True, blank=True)
+    #: The widths of the WebP copies stored beside the master
+    #: (`apps.assets.images.web_copy_key`). Empty: no copies, pages use the
+    #: master itself. The database default too (`db_default`), so code from
+    #: before this column existed keeps working against the migrated table.
+    web_widths = models.JSONField(default=list, db_default=[], blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

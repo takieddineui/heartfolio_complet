@@ -1123,7 +1123,7 @@ export function GraduationKeepsake({ data, locale, fill = "viewport", shareUrl =
             </button>
           )}
           <figure>
-            <Photo media={lbStop.photo} alt={lbStop.caption} eager onError={photoError} />
+            <Photo media={lbStop.photo} alt={lbStop.caption} eager sizes="100vw" onError={photoError} />
             <figcaption>{lbStop.year} · {lbStop.caption}</figcaption>
           </figure>
           {stops.length > 1 && (

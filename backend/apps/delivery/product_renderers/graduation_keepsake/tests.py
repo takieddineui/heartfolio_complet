@@ -484,14 +484,36 @@ class LivePayloadTests(TestCase):
         for absent in ("scene", "level", "targetUrl", "themeSelections"):
             self.assertNotIn(absent, response.data)
 
+    def test_photos_and_drawings_carry_their_web_copies_and_size(self):
+        from apps.delivery.product_renderers.graduation_keepsake.live_payload import _media_payloads
+
+        customer = make_customer()
+        photo = make_asset(
+            customer=customer, mime_type="image/png", storage_key=f"uploads/{SLUG}/{uuid.uuid4()}.png",
+            width=1200, height=900, web_widths=[480, 960],
+        )
+        voice = make_asset(customer=customer, mime_type="audio/mp4", storage_key=f"uploads/{SLUG}/{uuid.uuid4()}.m4a")
+
+        payloads = _media_payloads(customer, [str(photo.id), str(voice.id)])
+
+        stem = photo.storage_key.removesuffix(".png")
+        got = payloads[str(photo.id)]
+        self.assertEqual((got["width"], got["height"]), (1200, 900))
+        self.assertIn(f"{stem}.w960.webp", got["url"])
+        # A master narrower than the largest copy is itself the sharpest
+        # choice for a wide screen.
+        self.assertEqual([candidate.rsplit(" ", 1)[1] for candidate in got["srcset"].split(", ")], ["480w", "960w", "1200w"])
+        self.assertIn(f"{photo.storage_key} 1200w", got["srcset"])
+        self.assertEqual(set(payloads[str(voice.id)]), {"url"}, "media get a link only")
+
     def test_every_file_is_fetched_in_one_query(self):
         """Up to 25 files: one query for all of them, not one each."""
-        from apps.delivery.product_renderers.graduation_keepsake.live_payload import _media_urls
+        from apps.delivery.product_renderers.graduation_keepsake.live_payload import _media_payloads
 
         customer = make_customer()
         ids = [str(make_asset(customer=customer, mime_type="image/jpeg", storage_key=f"k{i}").id) for i in range(25)]
         with self.assertNumQueries(1):
-            urls = _media_urls(customer, ids + ["not-a-uuid"])
+            urls = _media_payloads(customer, ids + ["not-a-uuid"])
         self.assertEqual(len(urls), 25)
 
     def test_switched_off_chapters_are_null(self):

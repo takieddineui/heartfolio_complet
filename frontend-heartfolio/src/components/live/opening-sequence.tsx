@@ -52,6 +52,8 @@ export interface OpeningSequenceProps {
   names: string;
   title: string;
   photoUrl?: string;
+  /** The photo's web copies (`live-photo.ts`): the glimpse is at most 320px. */
+  photoSrcSet?: string;
   onDone: () => void;
   /** The skip button's word, in the order's language (`live-copy.ts`). */
   skipLabel?: string;
@@ -64,7 +66,7 @@ export interface OpeningSequenceProps {
   durationMs?: number;
 }
 
-export function OpeningSequence({ names, title, photoUrl, onDone, skipLabel = "Skip", durationMs = 3000 }: OpeningSequenceProps) {
+export function OpeningSequence({ names, title, photoUrl, photoSrcSet, onDone, skipLabel = "Skip", durationMs = 3000 }: OpeningSequenceProps) {
   const reduceMotion = useReducedMotion();
   const [visible, setVisible] = useState(true);
   // Starts when the shared intro hands over; at once where there is none.
@@ -125,7 +127,7 @@ export function OpeningSequence({ names, title, photoUrl, onDone, skipLabel = "S
                   same reasoning as every other photo in this live page:
                   a private, per-order URL, not a candidate for a shared
                   image CDN cache. */}
-              <img src={photoUrl} alt="" />
+              <img src={photoUrl} srcSet={photoSrcSet} sizes={photoSrcSet ? "(min-width: 500px) 320px, 64vw" : undefined} alt="" />
             </motion.div>
           )}
 

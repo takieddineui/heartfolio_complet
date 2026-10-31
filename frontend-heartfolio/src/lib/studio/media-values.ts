@@ -278,7 +278,9 @@ export async function refreshMediaUrls(values: unknown, signal?: AbortSignal): P
 
     try {
       const asset = await getAsset(media.assetId, signal);
-      return { ...media, url: asset.url, mimeType: asset.mimeType, filename: asset.filename ?? media.filename };
+      // The web copy, not the full photo: the preview shows it at a few
+      // hundred pixels, and the Studio never needs the master's bytes.
+      return { ...media, url: asset.previewUrl ?? asset.url, mimeType: asset.mimeType, filename: asset.filename ?? media.filename };
     } catch {
       return null;
     }

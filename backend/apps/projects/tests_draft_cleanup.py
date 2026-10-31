@@ -99,6 +99,18 @@ class InactiveDraftCleanupTests(TestCase):
         self.assertTrue(self._gone(photo))
         self.assertTrue(self._gone(other))
 
+    def test_a_deleted_drafts_photos_take_their_web_copies_with_them(self):
+        from apps.assets.images import web_copy_key
+        from apps.assets.tests_images import as_upload, phone_jpeg
+
+        photo = upload_asset(self.customer, as_upload(phone_jpeg(2000, 1500)))
+        copies = [web_copy_key(photo.storage_key, width) for width in photo.web_widths]
+        self.assertEqual(len(copies), 3)
+        self._draft([photo], age=OLD)
+        self._run(execute=True)
+        self.assertTrue(self._gone(photo))
+        self.assertEqual([key for key in copies if self.storage.exists(key)], [])
+
     def test_saving_a_draft_counts_as_activity(self):
         """The trigger the cleanup relies on: any save moves `updated_at`."""
         draft = self._draft([self._asset()], age=OLD)

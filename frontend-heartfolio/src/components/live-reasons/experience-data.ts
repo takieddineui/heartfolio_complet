@@ -4,6 +4,7 @@ import type { ReasonsValues } from "@/lib/studio/product-modules/reasons-i-love-
 import { REASONS_LIMITS } from "@/lib/studio/product-modules/reasons-i-love-you/limits";
 import { reasonsMessages } from "@/lib/studio/product-modules/reasons-i-love-you/messages";
 import type { LocaleCode, ThemeSelections } from "@/types/studio";
+import type { LivePhoto } from "@/components/live/live-photo";
 
 /**
  * WHAT THE EXPERIENCE DRAWS, in one shape for both of its homes: the Studio's
@@ -15,7 +16,8 @@ import type { LocaleCode, ThemeSelections } from "@/types/studio";
 export interface ExperienceReason {
   text: string;
   memory: string;
-  photo: { url: string } | null;
+  /** On the live page, also the web copies and size (`live-photo.ts`). */
+  photo: (LivePhoto & { url: string }) | null;
 }
 
 export interface ReasonsExperienceData {

@@ -34,9 +34,15 @@ the throwaway database (see the Phase 2 report).
 
 ## 1. One-time setup
 
-1. **The VPS.** Ubuntu 24.04 or similar, at least 2 vCPU and 4 GB RAM (a
-   heavy pack render has been measured above 512 MB per worker). Install
-   Docker Engine and the compose plugin. Firewall: allow only 22, 80 and 443.
+1. **The VPS.** Ubuntu 24.04 or similar, at least 2 and preferably 4 vCPU,
+   and 4 GB RAM (a heavy pack render has been measured above 512 MB per
+   worker). Set `GUNICORN_WORKERS` to the core count (section 2), memory
+   allowing: since 31 Oct 2026 every photo upload also makes three WebP web
+   copies, and a checkout sends all its uploads at once. Graduation's worst
+   case (15 photos, 5 drawings, 5 voice messages) took about 9 s of server
+   time on 2 workers, against 4 s before the copies (measured locally, R2
+   time not included). Install Docker Engine and the compose plugin.
+   Firewall: allow only 22, 80 and 443.
 2. **DNS.** Three `A` records (and `AAAA` if the VPS has IPv6) pointing at
    the VPS: `theheartfolio.com`, `www.theheartfolio.com`,
    `api.theheartfolio.com`. Caddy cannot get certificates until they resolve.
@@ -128,7 +134,7 @@ image: changing it needs `up -d --build web`, not a restart.
 
 | Variable | Default | Notes |
 |---|---|---|
-| `GUNICORN_WORKERS` | `2` | About one per GB of free memory. Each sync worker serves one request at a time |
+| `GUNICORN_WORKERS` | `2` | One per CPU core (2-4), and no more than about one per GB of free memory. Each sync worker serves one request at a time, and a photo upload is CPU work (upright, sRGB, three WebP copies: about 0.75 s for a 12 MP photo), so workers beyond the core count only queue |
 | `GUNICORN_TIMEOUT` | `120` | Matches the web proxy's timeout, which is baked into the image. Raise both together or neither |
 | `GUNICORN_MAX_REQUESTS` / `_JITTER` | `200` / `50` | Recycles workers so render caches cannot grow without bound |
 | `THROTTLE_RATE_*` | production defaults | Listed, commented out, at the end of the example file. Browser requests are limited per visitor (Caddy's X-Forwarded-For, which a client cannot forge). The live page's first load is fetched by the Next server, which forwards the visitor's X-Forwarded-For since 26 Oct 2026 (before that, every recipient shared one identity). `THROTTLE_RATE_AR_ACCESS` stays at 1000/min until per-visitor identities are confirmed on this stack; size any tighter rate for many guests on one venue's Wi-Fi |
@@ -298,7 +304,7 @@ docker compose -f docker-compose.prod.yml --env-file .env.production exec api \
 - **When to run it:** after the live test purchase in section 5 is refunded.
   Take a Supabase backup first.
 
-## 7. Moving uploads to the new storage layout (once, before launch)
+## 7. Moving uploads to the new storage layout and making their web copies (once, before launch)
 
 Uploads stored before 27 Oct 2026 sit at `assets/<id>/<customer's
 filename>`, and every photo link a recipient's page loads carries that key,
@@ -309,6 +315,12 @@ ones, clears the stored filenames, and strips filenames from saved projects
 reads). Nothing that reads uploads changes: each file is served from its old
 key until the moment its row points at the new one.
 
+Right after it, `make_web_copies` gives every photo stored before 31 Oct 2026
+the small WebP copies the live pages now download (480, 960 and 1600 px
+wide, about 90 KB on a phone instead of the 3-4 MB photo). New uploads get
+theirs at upload. Until it runs, those older photos are served whole, as
+before; nothing breaks. It never rewrites a stored photo.
+
 **Where:** on the VPS, against production, and only AFTER the development
 and production databases are separated. Never from local Docker: there,
 `docker compose exec api` reads `.env.docker`, and that has pointed at the
@@ -317,12 +329,15 @@ same Supabase database. Yours to run; Claude never runs it against real data.
 In this order:
 
 1. **Back up the database** (Supabase dashboard, or `pg_dump`). The R2
-   bucket needs no backup: the command copies, never deletes, until step 6.
-2. **Apply the migration** that adds the move's bookkeeping (two nullable
-   columns on `assets`):
+   bucket needs no backup: the move copies, never deletes, until step 7,
+   and the web copies are new objects only.
+2. **Apply the migrations** on `assets`: `0002` adds the move's bookkeeping
+   (two nullable columns), `0003` a photo's size and the list of its web
+   copies (`web_widths`, which has a database default, so the order of this
+   step and a code deploy does not matter):
 
    ```bash
-   docker compose -f docker-compose.prod.yml --env-file .env.production exec api python manage.py migrate assets 0002
+   docker compose -f docker-compose.prod.yml --env-file .env.production exec api python manage.py migrate assets 0003
    ```
 
 3. **Dry run.** Changes nothing; prints counts and asset ids, never a key or
@@ -346,10 +361,25 @@ In this order:
    a file deleted meanwhile is left alone and its copy removed. Warnings
    (a storage error, a row with no object) leave those files where they
    were; running it again retries them.
-6. **24 hours later, execute again.** This deletes the old objects (kept
-   that long for pages already open: their five-minute links point at the
-   old keys). It reports "Deleted N old object(s)": N should equal the files
-   moved in step 5. Run it again if it reports any it could not delete.
+6. **Make the web copies**, right after step 5 (it only handles photos
+   already under `uploads/`, and says how many it skipped if any are still
+   under an old key). Dry run first, then execute:
+
+   ```bash
+   docker compose -f docker-compose.prod.yml --env-file .env.production exec api python manage.py make_web_copies
+   docker compose -f docker-compose.prod.yml --env-file .env.production exec api python manage.py make_web_copies --execute
+   ```
+
+   It reads each photo, writes its copies beside it and records them; a
+   photo deleted meanwhile keeps none, and one whose copies could not all be
+   stored is reported and retried by the next run. Safe to re-run; `--limit 5`
+   for a trial. It reports "Made web copies for N photo(s)": N should equal
+   the dry run's count.
+7. **24 hours after step 5, execute the move again.** This deletes the old
+   objects (kept that long for pages already open: their five-minute links
+   point at the old keys). It reports "Deleted N old object(s)": N should
+   equal the files moved in step 5. Run it again if it reports any it could
+   not delete.
 
 ## 8. Updating and rolling back
 

@@ -24,6 +24,9 @@ export interface ApiAsset {
   assetId: string;
   /** Presigned, expires in minutes. Display-only; never store this. */
   url: string;
+  /** What the Studio shows: a photo's largest web copy (1600 px WebP),
+   * else the same as `url`. Presigned like it. Optional: older backends. */
+  previewUrl?: string;
   mimeType: string;
   /** Always null for uploads since 27 Oct 2026: the server keeps no
    * customer filename. The Studio shows the browser's own name meanwhile. */

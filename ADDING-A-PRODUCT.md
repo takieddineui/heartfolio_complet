@@ -63,6 +63,14 @@ Two more rules apply throughout:
    `_LIVE_PAYLOAD_BUILDERS` (`apps/delivery/live_views.py`; a product missing
    from it gets the generic 404). Generate photo URLs fresh in the builder;
    they expire, so a page that loads photos lazily must be able to ask again.
+   Every photo goes through `photo_payload(asset)` (`apps/assets/services.py`:
+   the 960 web copy as `url`, every copy as `srcset`, the size), and the page
+   draws it with `livePhotoSources(photo, sizes)`
+   (`components/live/live-photo.ts`) and the slot's real width as `sizes`, so a
+   phone downloads about 90 KB, not the 3-4 MB photo. Add the component file to
+   the list in `live-photo.test.tsx`. Prints keep reading the master, which is
+   capped at 3,072 px on its short edge: a new print layout needing more
+   than that from a photo must raise `MASTER_SHORT_EDGE` (both sides).
 5. **Media.** Audio or video anywhere other than Love Story Timeline's
    `events[]`: register a collector in `_MEDIA_COLLECTORS`
    (`apps/commerce/media_promotion.py`) with a test that a paid order keeps

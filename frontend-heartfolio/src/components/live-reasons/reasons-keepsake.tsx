@@ -17,6 +17,7 @@ import { ProceduralMusic } from "./procedural-music";
 import { Sparkles } from "./sparkles";
 import { LiveColophon } from "@/components/live/live-colophon";
 import styles from "./reasons-keepsake.module.css";
+import { livePhotoSources } from "@/components/live/live-photo";
 
 /**
  * REASONS I LOVE YOU: the gift, opened one reason at a time.
@@ -441,7 +442,7 @@ function ReasonCard({
 }) {
   if (!reason) return null;
   const number = t("experience.reasonN", { n: formatCount(index + 1, locale) });
-  const photo = reason.photo ? <ReasonPhoto url={reason.photo.url} onError={() => onPhotoError?.(index)} /> : null;
+  const photo = reason.photo ? <ReasonPhoto photo={reason.photo} onError={() => onPhotoError?.(index)} /> : null;
   const memory = reason.memory ? <p className={styles.memory}>{reason.memory}</p> : null;
 
   if (data.gift === "deck") {
@@ -551,18 +552,18 @@ export function writesLetterByLetter(signature: string): boolean {
  * reason is open (one at a time, so at most one is decoded for display),
  * loads lazily, decodes off the main thread, and sits in a fixed-proportion
  * box with matching `width`/`height`, so the card never jumps when it arrives.
- * The photo is shown whole (`contain`), never cropped. There are no smaller
- * copies to choose between yet (that is the separate, flagged photo-delivery
- * task), so there is no `srcset`.
+ * The photo is shown whole (`contain`), never cropped. On the live page the
+ * browser picks the smallest web copy that is sharp in the card
+ * (`live-photo.ts`; the card is at most 400px less its padding).
  */
 export const PHOTO_BOX = { width: 800, height: 600 } as const;
 
-function ReasonPhoto({ url, onError }: { url: string; onError: () => void }) {
+function ReasonPhoto({ photo, onError }: { photo: NonNullable<ExperienceReason["photo"]>; onError: () => void }) {
   return (
     <span className={styles.photoBox}>
       {/* eslint-disable-next-line @next/next/no-img-element -- a customer's photo behind a presigned URL, not a static asset next/image could optimise */}
       <img
-        src={url}
+        {...livePhotoSources(photo, "(min-width: 480px) 360px, 80vw")}
         alt=""
         width={PHOTO_BOX.width}
         height={PHOTO_BOX.height}

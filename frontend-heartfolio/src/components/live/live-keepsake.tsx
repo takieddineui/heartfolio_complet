@@ -13,7 +13,12 @@ import { liveMotionStyle } from "./live-motion";
 import { MilestoneSpark } from "./milestone-spark";
 import { formatDuration, milestoneDuration } from "./live-duration";
 import { liveCopy } from "./live-copy";
+import { livePhotoSize, livePhotoSources, type LivePhoto } from "./live-photo";
 import { RevealGroup, RevealItem } from "@/components/motion/reveal";
+
+/** The milestone photo's width: the journey column (720px less its 6vw
+ * sides) less the spine (28px + 18px gap). The lightbox fills the screen. */
+const MILESTONE_PHOTO_SIZES = "(min-width: 760px) 520px, calc(88vw - 46px)";
 
 /**
  * ---------------------------------------------------------------------
@@ -95,7 +100,7 @@ interface Milestone {
   title?: string;
   description?: string;
   location?: string;
-  photo?: { url?: string };
+  photo?: LivePhoto;
 }
 
 export function LiveKeepsake({
@@ -267,6 +272,7 @@ export function LiveKeepsake({
           names={people.join(" & ")}
           title={String(values.posterTitle ?? "")}
           photoUrl={milestones[0]?.photo?.url}
+          photoSrcSet={milestones[0]?.photo?.srcset}
           onDone={handleOpeningDone}
           skipLabel={copy.skip}
         />
@@ -323,8 +329,18 @@ export function LiveKeepsake({
                   onClick={() => setLightbox(index)}
                   aria-label={milestone.title ?? copy.openPhoto}
                 >
+                  {/* The web copy the screen needs (`live-photo.ts`), its box
+                      reserved before it loads; all but the first load as the
+                      reader nears them. */}
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={milestone.photo.url} alt="" className={styles.photo} />
+                  <img
+                    {...livePhotoSources(milestone.photo, MILESTONE_PHOTO_SIZES)}
+                    {...livePhotoSize(milestone.photo)}
+                    alt=""
+                    className={styles.photo}
+                    loading={index === 0 ? "eager" : "lazy"}
+                    decoding="async"
+                  />
                 </button>
               )}
 
@@ -447,7 +463,7 @@ export function LiveKeepsake({
           onClick={() => setLightbox(null)}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={milestones[lightbox]!.photo!.url} alt={milestones[lightbox]!.title ?? ""} />
+          <img {...livePhotoSources(milestones[lightbox]!.photo!, "100vw")} alt={milestones[lightbox]!.title ?? ""} />
           <button type="button" className={styles.lightboxClose} aria-label={copy.close} onClick={() => setLightbox(null)}>
             ×
           </button>

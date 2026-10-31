@@ -285,7 +285,7 @@ def _with_fresh_milestone_photo_urls(values: dict, timeline, customer) -> dict:
     if not events:
         return values
 
-    from apps.assets.services import AssetAccessDenied, AssetNotFound, generate_asset_access_url, get_asset_for_customer
+    from apps.assets.services import AssetAccessDenied, AssetNotFound, get_asset_for_customer, photo_payload
 
     fresh_events = []
     for index, event in enumerate(events):
@@ -299,7 +299,7 @@ def _with_fresh_milestone_photo_urls(values: dict, timeline, customer) -> dict:
 
         try:
             asset = get_asset_for_customer(customer, asset_id)
-            fresh_event["photo"] = {"url": generate_asset_access_url(asset)}
+            fresh_event["photo"] = photo_payload(asset)
         except (AssetNotFound, AssetAccessDenied):
             logger.warning("live_experience_missing_milestone_photo", extra={"asset_id": str(asset_id)})
             fresh_event.pop("photo", None)

@@ -1254,6 +1254,27 @@ class LiveExperienceDispatchTests(TestCase):
         "themeSelections": {"theme": "player"},
     }
 
+    def test_song_poster_photo_carries_its_web_copies_and_size(self):
+        """The live page downloads a web copy, not the master (31 Oct 2026):
+        the payload carries every copy as a `srcset`, the 960 copy as `url`
+        and the photo's size."""
+        customer, order, experience = self._make_live_experience(product_slug="song-poster", project_data=self.VALID_SONG_POSTER)
+        photo = make_asset(
+            customer=customer, mime_type="image/jpeg", storage_key=f"uploads/song-poster/{uuid.uuid4()}.jpg",
+            width=3024, height=4032, web_widths=[480, 960, 1600],
+        )
+        order.project.data = {**order.project.data, "values": {**order.project.data["values"], "photo": {"assetId": str(photo.id)}}}
+        order.project.save(update_fields=["data"])
+
+        got = self.client.get(f"/api/v1/live/{experience.id}/").data["values"]["photo"]
+
+        stem = photo.storage_key.removesuffix(".jpg")
+        self.assertEqual((got["width"], got["height"]), (3024, 4032))
+        self.assertIn(f"{stem}.w960.webp", got["url"])
+        self.assertEqual([candidate.rsplit(" ", 1)[1] for candidate in got["srcset"].split(", ")], ["480w", "960w", "1600w"])
+        for width in (480, 960, 1600):
+            self.assertIn(f"{stem}.w{width}.webp {width}w", got["srcset"])
+
     def test_unpaid_order_returns_the_same_generic_404_as_an_unknown_id(self):
         _, order, experience = self._make_live_experience(product_slug="song-poster", project_data=self.VALID_SONG_POSTER)
         # Control: paid, the same experience opens.
@@ -1521,6 +1542,25 @@ class MilestoneMediaResolutionTests(TestCase):
         # stored value is never trusted.
         self.assertNotEqual(resolved, stale_blob_url)
         self.assertIn(photo_asset.storage_key, resolved)
+
+    def test_milestone_photo_carries_its_web_copies_and_size(self):
+        customer = make_customer()
+        photo_asset = make_asset(
+            customer=customer, mime_type="image/jpeg", storage_key=f"uploads/love-story-timeline/{uuid.uuid4()}.jpg",
+            width=3072, height=2304, web_widths=[480, 960, 1600],
+        )
+        experience = self._make_lst_live_experience(
+            customer=customer,
+            events=self._events({"date": "2020-06-20", "title": "First trip together", "photo": {"assetId": str(photo_asset.id)}}),
+        )
+
+        photo = self.client.get(f"/api/v1/live/{experience.id}/").data["values"]["events"][1]["photo"]
+
+        stem = photo_asset.storage_key.removesuffix(".jpg")
+        self.assertEqual((photo["width"], photo["height"]), (3072, 2304))
+        self.assertIn(f"{stem}.w960.webp", photo["url"])
+        for width in (480, 960, 1600):
+            self.assertIn(f"{stem}.w{width}.webp {width}w", photo["srcset"])
 
     def test_a_milestone_with_an_unresolvable_photo_asset_id_has_no_photo_rather_than_erroring(self):
         # `photo.assetId` is a REQUIRED field per event (§7's own validation

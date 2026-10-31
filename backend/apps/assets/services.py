@@ -17,6 +17,7 @@ from contextlib import contextmanager
 
 import io
 
+from apps.assets.images import WEB_COPY_WIDTHS, make_web_copies, prepare_master, web_copy_key
 from apps.assets.media import AUDIO_MIME_TYPES, is_media, reencode_audio, validate_media
 from PIL import Image, UnidentifiedImageError
 from django.core.exceptions import ValidationError
@@ -191,39 +192,13 @@ def sanitize_image(uploaded_file, mime_type: str) -> ContentFile:
     worth having on its own: phone photographs carry GPS coordinates, and a
     keepsake product had no reason to be storing where its customers live.
 
-    Format is preserved so the stored `mime_type` stays truthful. JPEG is
-    re-encoded at high quality; PNG and WebP are lossless, so the only thing
-    lost is what was never image data.
+    Since 31 Oct 2026 the rewrite is `apps.assets.images.prepare_master`:
+    the photo is also turned upright and converted to sRGB BEFORE its
+    metadata goes, and capped at the size prints need. Format is preserved
+    so the stored `mime_type` stays truthful.
     """
-    uploaded_file.seek(0)
-    with Image.open(uploaded_file) as image:
-        # `load()` forces a full decode. `Image.open` is lazy, and a file
-        # that only fails partway through decoding would otherwise reach the
-        # save below and produce a truncated image rather than an error.
-        image.load()
-
-        target_format = _MIME_TO_PILLOW_FORMAT[mime_type]
-
-        # A palette or alpha-bearing image saved as JPEG raises; converting
-        # only where the target demands it avoids touching PNG/WebP alpha,
-        # which customers legitimately use for cut-out photos.
-        if target_format == "JPEG" and image.mode not in ("RGB", "L"):
-            image = image.convert("RGB")
-
-        buffer = io.BytesIO()
-        save_options: dict = {"format": target_format}
-        if target_format == "JPEG":
-            save_options.update(quality=92, optimize=True, progressive=True)
-        elif target_format == "WEBP":
-            save_options.update(quality=92, method=4)
-
-        # No `exif=` and no `pnginfo=` argument: metadata is dropped by
-        # omission rather than by an explicit strip, which is the harder
-        # thing to get wrong.
-        image.save(buffer, **save_options)
-
-    buffer.seek(0)
-    return ContentFile(buffer.read(), name=getattr(uploaded_file, "name", "upload"))
+    master = prepare_master(uploaded_file, mime_type)
+    return ContentFile(master.content, name=getattr(uploaded_file, "name", "upload"))
 
 
 def validate_uploaded_file(uploaded_file) -> str:
@@ -284,6 +259,7 @@ def upload_asset(customer, uploaded_file, *, product_slug: str | None = None) ->
     # Video is probed and stored as-received, which is weaker and was a
     # deliberate decision — see the module docstring in assets/media.py for
     # exactly what that leaves open.
+    master = None
     if is_media(mime_type):
         validate_media(uploaded_file, mime_type)
         if mime_type in AUDIO_MIME_TYPES:
@@ -299,7 +275,8 @@ def upload_asset(customer, uploaded_file, *, product_slug: str | None = None) ->
         # and trustworthy — re-encoding needs a target format and taking it
         # from the client's claim rather than the detected one would defeat
         # §22a.
-        uploaded_file = sanitize_image(uploaded_file, mime_type)
+        master = prepare_master(uploaded_file, mime_type)
+        uploaded_file = ContentFile(master.content, name=getattr(uploaded_file, "name", "upload"))
 
     # Generate the id up front so the real storage_key can be included
     # in the single INSERT below — creating the row first with a
@@ -328,6 +305,8 @@ def upload_asset(customer, uploaded_file, *, product_slug: str | None = None) ->
         # and most uploads of them are never purchased at all, which is
         # the actual cost this bounds.
         expires_at=(timezone.now() + PROVISIONAL_MEDIA_RETENTION) if is_media(mime_type) else None,
+        width=master.width if master else None,
+        height=master.height if master else None,
     )
 
     storage = get_asset_storage()
@@ -343,9 +322,73 @@ def upload_asset(customer, uploaded_file, *, product_slug: str | None = None) ->
         asset.save(update_fields=["status", "updated_at"])
         raise AssetUploadFailed()
 
+    if master is not None:
+        asset.web_widths = store_web_copies(storage, asset.storage_key, master.image)
+
     asset.status = Asset.STATUS_UPLOADED
-    asset.save(update_fields=["status", "updated_at"])
+    asset.save(update_fields=["status", "web_widths", "updated_at"])
     return asset
+
+
+def store_web_copies(storage, storage_key: str, image) -> list[int]:
+    """Writes the WebP copies of a photo beside its master and returns their
+    widths. Best effort: a copy that fails to store is left out (pages then
+    use the master), never a reason to fail the customer's upload."""
+    stored = []
+    for width, content in make_web_copies(image):
+        try:
+            storage.upload(web_copy_key(storage_key, width), ContentFile(content), content_type="image/webp")
+        except AssetStorageError:
+            logger.warning("asset_web_copy_upload_failed", extra={"width": width})
+            continue
+        stored.append(width)
+    return stored
+
+
+def asset_object_keys(asset: Asset) -> list[str]:
+    """Every stored object that belongs to `asset`: the master, then its web
+    copies. Whatever deletes an asset's file deletes all of these."""
+    return [asset.storage_key, *(web_copy_key(asset.storage_key, width) for width in asset.web_widths or [])]
+
+
+def delete_asset_objects(storage, asset: Asset) -> None:
+    """Deletes the master and every web copy. Raises `AssetStorageError` on
+    the first failure, leaving the row for the caller to keep or retry."""
+    for key in asset_object_keys(asset):
+        storage.delete(key)
+
+
+def asset_preview_url(asset: Asset) -> str | None:
+    """A fresh link to the largest web copy, for the Studio's preview of a
+    saved photo; None when the asset has no copies."""
+    widths = [width for width in asset.web_widths or [] if isinstance(width, int)]
+    if not widths:
+        return None
+    return get_asset_storage().generate_access_url(web_copy_key(asset.storage_key, max(widths)))
+
+
+def photo_payload(asset: Asset) -> dict:
+    """A photo as a page shows it: `url` (the 960 copy, or the master when
+    there are no copies), `srcset` of every copy so the browser picks the
+    smallest that is sharp on its screen, and the photo's `width` and
+    `height` so the page can reserve its space. Links are presigned fresh on
+    every call, like `generate_asset_access_url`; signing is local, so the
+    extra links cost no network call. Media (audio, video) get `url` only."""
+    storage = get_asset_storage()
+    widths = [width for width in asset.web_widths or [] if isinstance(width, int)]
+    if not widths:
+        payload = {"url": generate_asset_access_url(asset)}
+    else:
+        urls = {width: storage.generate_access_url(web_copy_key(asset.storage_key, width)) for width in widths}
+        candidates = [f"{urls[width]} {width}w" for width in sorted(widths)]
+        if asset.width and asset.width > max(widths) and max(widths) < max(WEB_COPY_WIDTHS):
+            # A master too narrow for the largest copy is small itself: it
+            # is the sharpest choice for a wide screen.
+            candidates.append(f"{generate_asset_access_url(asset)} {asset.width}w")
+        payload = {"url": urls[960] if 960 in urls else urls[max(widths)], "srcset": ", ".join(candidates)}
+    if asset.width and asset.height:
+        payload.update(width=asset.width, height=asset.height)
+    return payload
 
 
 def get_asset_for_customer(customer, asset_id) -> Asset:
@@ -407,7 +450,7 @@ def delete_asset(customer, asset_id) -> None:
 
     storage = get_asset_storage()
     try:
-        storage.delete(asset.storage_key)
+        delete_asset_objects(storage, asset)
     except AssetStorageError:
         raise AssetDeleteFailed()
 

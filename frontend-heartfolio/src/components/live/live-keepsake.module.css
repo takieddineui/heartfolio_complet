@@ -130,6 +130,8 @@
 }
 .photo {
   width: 100%;
+  /* Its width/height attributes reserve the box; the height follows. */
+  height: auto;
   display: block;
   transform: scale(var(--live-photo-settle-scale, 1.04));
   transition: transform var(--live-photo-settle-ms, 1100ms) var(--live-ease, cubic-bezier(0.22, 1, 0.36, 1)) var(--live-photo-settle-delay, 120ms);

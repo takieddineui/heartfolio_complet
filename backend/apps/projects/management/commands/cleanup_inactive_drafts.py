@@ -24,6 +24,7 @@ from django.db import transaction
 from django.utils import timezone
 
 from apps.assets.models import Asset
+from apps.assets.services import delete_asset_objects
 from apps.assets.storage import AssetStorageError, get_asset_storage
 from apps.common.telegram import send_alert
 from apps.projects.draft_cleanup import MINIMUM_MONTHS, build_plan, still_qualifies
@@ -77,7 +78,7 @@ class Command(BaseCommand):
                 failed = False
                 for asset in plan.assets:
                     try:
-                        storage.delete(asset.storage_key)
+                        delete_asset_objects(storage, asset)
                     except AssetStorageError:
                         failed = True
                         continue

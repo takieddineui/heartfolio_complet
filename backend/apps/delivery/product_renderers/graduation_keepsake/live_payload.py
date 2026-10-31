@@ -40,10 +40,12 @@ def _asset_ids(grad: NormalizedGraduation) -> list[str]:
     return [asset_id for asset_id in ids if asset_id]
 
 
-def _media_urls(customer, asset_ids: list[str]) -> dict[str, str]:
-    """`{asset id: fresh URL}` for the customer's own, not-deleted assets."""
+def _media_payloads(customer, asset_ids: list[str]) -> dict[str, dict]:
+    """`{asset id: media}` for the customer's own, not-deleted assets: fresh
+    links, and for photos and drawings the web copies and size
+    (`photo_payload`)."""
     from apps.assets.models import Asset
-    from apps.assets.services import generate_asset_access_url
+    from apps.assets.services import photo_payload
 
     valid = []
     for asset_id in asset_ids:
@@ -54,7 +56,7 @@ def _media_urls(customer, asset_ids: list[str]) -> dict[str, str]:
     if not valid:
         return {}
     assets = Asset.objects.filter(id__in=valid, customer=customer).exclude(status=Asset.STATUS_DELETED)
-    return {str(asset.id): generate_asset_access_url(asset) for asset in assets}
+    return {str(asset.id): photo_payload(asset) for asset in assets}
 
 
 def build_graduation_live_payload(experience, order, project, product_slug) -> dict | None:
@@ -67,13 +69,12 @@ def build_graduation_live_payload(experience, order, project, product_slug) -> d
         return None
 
     wanted = _asset_ids(grad)
-    urls = _media_urls(order.customer, wanted)
-    if len(urls) < len(set(wanted)):
+    payloads = _media_payloads(order.customer, wanted)
+    if len(payloads) < len(set(wanted)):
         logger.warning("live_experience_missing_photo", extra={"experience_id": str(experience.id)})
 
     def media(asset_id: str | None) -> dict | None:
-        url = urls.get(str(uuid.UUID(asset_id))) if _is_uuid(asset_id) else None
-        return {"url": url} if url else None
+        return payloads.get(str(uuid.UUID(asset_id))) if _is_uuid(asset_id) else None
 
     graduate = grad.graduate
     path = grad.path

@@ -3,6 +3,7 @@
 import { useEffect, useRef, type CSSProperties, type Ref } from "react";
 import type { Media } from "./experience-data";
 import styles from "./graduation-keepsake.module.css";
+import { livePhotoSources } from "@/components/live/live-photo";
 
 /** `cx("pass", "passMain")`: the module's hashed class names from the
  * prototype's readable ones. */
@@ -42,8 +43,9 @@ export function Plane() {
 
 /**
  * A photo or drawing. Loads lazily and decodes off the main thread with its
- * shape reserved by CSS, so nothing jumps (the live page's photos are
- * delivered at the size uploaded; see CLAUDE.md). A failed load reports back:
+ * shape reserved by CSS, so nothing jumps; on the live page the browser picks
+ * the smallest web copy that is sharp at `sizes` (`live-photo.ts`). A failed
+ * load reports back:
  * on the live page its five-minute link may simply have expired, and the page
  * fetches fresh ones. No photo yet (the Studio, before an upload) is a calm
  * placeholder, never a broken image.
@@ -58,12 +60,15 @@ export function Photo({
   alt,
   className,
   eager,
+  sizes = "(min-width: 600px) 480px, 92vw",
   onError,
 }: {
   media: Media;
   alt: string;
   className?: string;
   eager?: boolean;
+  /** How wide the photo is shown; the lightbox fills the screen. */
+  sizes?: string;
   onError?: () => void;
 }) {
   const ref = useRef<HTMLImageElement>(null);
@@ -86,7 +91,7 @@ export function Photo({
     // eslint-disable-next-line @next/next/no-img-element
     <img
       ref={ref}
-      src={media.url}
+      {...livePhotoSources(media, sizes)}
       alt={alt}
       className={className}
       loading={eager ? "eager" : "lazy"}

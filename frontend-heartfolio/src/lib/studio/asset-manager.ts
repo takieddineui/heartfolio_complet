@@ -20,7 +20,7 @@ export const assetManager: AssetManager = {
     const asset = await uploadAsset(file);
     return {
       assetId: asset.assetId,
-      url: asset.url,
+      url: asset.previewUrl ?? asset.url,
       mimeType: asset.mimeType,
       filename: asset.filename ?? file.name,
     };

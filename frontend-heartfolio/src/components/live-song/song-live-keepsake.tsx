@@ -10,6 +10,7 @@ import { EndingSpark } from "@/components/live/ending-spark";
 import { LiveColophon } from "@/components/live/live-colophon";
 import { useLiveIntroDone } from "@/components/live/live-intro-state";
 import { playerCopy } from "@/lib/studio/product-modules/song-poster/player-copy";
+import { livePhotoSources, type LivePhoto } from "@/components/live/live-photo";
 
 const WAVE_BARS = 64;
 
@@ -95,7 +96,7 @@ export interface SongLiveKeepsakeProps {
     // py`'s `_build_song_poster_live_payload`), not an omitted key.
     // Optional chaining (`values.photo?.url` below) already handles
     // both the same way; only the type needed to say so.
-    photo?: { url: string } | null;
+    photo?: (LivePhoto & { url: string }) | null;
     youtubeVideoId: string | null;
   };
 }
@@ -147,7 +148,7 @@ export function SongLiveKeepsake({ values, locale }: SongLiveKeepsakeProps) {
               {/* eslint-disable-next-line @next/next/no-img-element --
                   a private, per-order URL, same reasoning as every
                   other photo in the Love Story Timeline live page. */}
-              <img src={values.photo.url} alt="" />
+              <img {...livePhotoSources(values.photo, "(min-width: 430px) 300px, 70vw")} alt="" />
             </RevealItem>
           )}
 
